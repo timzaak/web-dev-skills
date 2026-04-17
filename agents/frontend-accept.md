@@ -74,6 +74,31 @@ tools:
 
 ## 验收检查项
 
+### 设计一致性检查
+- [ ] 设计文档存在且已读取（豁免前缀：bugfix-, refactor-, doc-, test-, style-）
+- [ ] 实现与设计文档中的交互描述一致
+- [ ] 路由、页面结构与设计匹配
+
+### 基础质量检查
+- [ ] 类型检查通过: `cd frontend && npm run type-check`
+- [ ] 构建通过: `cd frontend && npm run build`
+- [ ] 相关测试通过: `cd frontend && npm run test:run -- [pattern]`
+- [ ] Lint 无新增错误: `cd frontend && npm run lint`
+
+### API 一致性检查
+- [ ] API 路径与后端 OpenAPI spec 或设计文档匹配
+- [ ] 请求参数（路径参数、查询参数、请求体）类型正确
+- [ ] 响应类型与 `frontend/src/lib/api-generated/` 一致
+- [ ] 认证头和权限处理正确
+
+### 测试策略校验
+- [ ] Demo-first 策略满足（核心用户故事有 Demo 覆盖）
+- [ ] Vitest 仅覆盖 Demo 难以稳定覆盖的边界场景
+
+### UI 合规检查
+- [ ] `data-testid` 命名符合 `spec/agents/frontend/testid-standards.md`
+- [ ] 组件复用 `frontend/src/components/ui/` 中的基础组件
+
 ### 测试代码检查
 - [ ] userEvent 导入方式: 命名导入
 - [ ] 用户交互: 统一使用 userEvent，无 DOM 直接操作

@@ -14,64 +14,8 @@ tools:
 examples:
   - "实现用户注册 API 端点"
   - "修复登录接口的 bug"
-  - "添加 验证功能"
-output_schema:
-  task_completion:
-    type: object
-    properties:
-      status:
-        type: string
-        enum: [success, partial, failed]
-      files_modified:
-        type: array
-        items:
-          type: string
-      compilation:
-        type: object
-        properties:
-          status:
-            type: string
-            enum: [passed, failed]
-          errors:
-            type: integer
-      change_scope:
-        type: object
-        properties:
-          backend:
-            type: boolean
-          frontend:
-            type: boolean
-          demo:
-            type: boolean
-      tests_to_run:
-        type: array
-        items:
-          type: object
-          properties:
-            layer:
-              type: string
-              enum: [backend, frontend, demo]
-            command:
-              type: string
-            reason:
-              type: string
-            required:
-              type: boolean
-      tests_written:
-        type: object
-        properties:
-          unit_tests:
-            type: integer
-      next_steps:
-        type: array
-        items:
-          type: string
+  - "添加验证功能"
 hooks:
-  PreToolUse:
-    - matcher: "Edit|Write"
-      hooks:
-        - type: command
-          command: "if ((Get-Item $Env:INPUT_PATH -ErrorAction SilentlyContinue) -is [System.IO.DirectoryInfo]) { Write-Error 'Cannot edit directory' }"
   PostToolWrite:
     - matcher: "Edit|Write"
       hooks:
@@ -92,12 +36,12 @@ hooks:
 
 ## 执行流程
 
-2. **Design-First 验证**: 检查 `.ai/design/[任务名].md` (如适用)
-3. **架构规范参考**: 读取 `spec/backend/development.md` 复习核心原则和代码模板
-4. **代码实现**: 遵循六边形架构编写代码
-5. **测试编写**: Domain/Application 层编写单元测试
-6. **编译验证**: 运行 `cargo check -p backend-api` 确保通过
-7. **质量检查**: 验证代码符合验收标准
+1. **Design-First 验证**: 检查 `.ai/design/[任务名].md` (如适用)
+2. **架构规范参考**: 读取 `spec/backend/development.md` 复习核心原则和代码模板
+3. **代码实现**: 遵循六边形架构编写代码
+4. **测试编写**: Domain/Application 层编写单元测试
+5. **编译验证**: 运行 `cargo check -p backend-api` 确保通过
+6. **质量检查**: 验证代码符合验收标准
 
 ## 工作模式
 
@@ -126,13 +70,6 @@ hooks:
 
 ---
 
-
-
-**快速检查**:
-```bash
-```
-
-
 ## Design-First 验证 (MANDATORY)
 
 ⚠️ **CRITICAL**: 必须验证设计文档存在。
@@ -143,18 +80,9 @@ hooks:
 
 **豁免**: `bugfix-`, `refactor-`, `test-` 前缀
 
-## 步骤 3: 架构规范参考 (MANDATORY)
+## 步骤 2: 架构规范参考 (MANDATORY)
 
-⚠️ **CRITICAL**: 必须阅读并参考 `spec/backend/development.md`。
-
-**核心文档**: `spec/backend/development.md` - 包含完整的架构规范、代码模板、最佳实践和禁止事项。
-
-**必读章节**:
-- 核心原则（六边形架构、依赖倒置、异步优先）
-- 命名约定
-- 代码模板（实体、Repository、Service、Handler）
-- 禁止事项（async_trait、UUID v4、Domain 层外部依赖）
-- RBAC 权限控制（角色存储规范、role_policies 查询限制）
+⚠️ **CRITICAL**: 必须阅读并参考 `spec/backend/development.md`，该文档包含完整的架构规范、代码模板、命名约定和禁止事项。
 
 ## Context7 文档查询
 
@@ -166,68 +94,17 @@ hooks:
 
 **核心原则**：backend-dev 负责编写**单元测试**（Domain/Application 层），backend-test 负责编写**场景测试**（端到端测试）。
 
-### 职责划分
-
-| 测试类型 | 编写者 | 位置 | 目的 | 示例 |
-|---------|-------|------|------|------|
-| **单元测试** | backend-dev | 源代码文件内的 `#[cfg(test)]` 模块 | 验证单个函数/方法的正确性 | PasswordPolicy::validate() |
-| **场景测试** | backend-test | `backend/api/tests/scenarios/` | 验证完整业务流程 | 用户创建→查询→更新→删除 |
-
-### Domain 层开发：采用 TDD 模式
-
-**适用场景**：
-- 纯业务逻辑（如：密码策略、权限验证）
-- 不依赖外部服务（数据库、HTTP、Redis）
-- 核心算法和数据转换
+| 测试类型 | 编写者 | 位置 |
+|---------|-------|------|
+| **单元测试** | backend-dev | 源代码文件内的 `#[cfg(test)]` 模块 |
+| **场景测试** | backend-test | `backend/api/tests/scenarios/` |
 
 **详细指南**: `spec/agents/backend/tdd-workflow.md`
 
-### Application 层开发：部分采用 TDD
-
-**适用场景**：
-- Service 层的业务编排逻辑
-- 可以使用 mockall Mock Repository 依赖
-
-**详细指南**: `spec/agents/backend/tdd-workflow.md`
-
-### Infrastructure 和 API 层：传统开发
-
-不编写单元测试，由 backend-test 编写场景测试。
-
-**临时验证**：
-- 使用简单的手动测试
-- 或运行已有的场景测试验证
-
-### 覆盖率目标
-
-- **Domain 层**：单元测试覆盖率 ≥ 80%
-- **Application 层**：关键 Service 有 Mock 测试
-- **API 层**：由 backend-test 的场景测试覆盖
-
-### 禁止事项
-
-- ❌ 在 Domain 层编写依赖数据库的测试
+**禁止事项**:
 - ❌ 在 backend-dev 中编写场景测试（由 backend-test 负责）
+- ❌ 在 Domain 层编写依赖数据库的测试
 - ❌ 编写单元测试后不运行验证
-
-## 代码简化原则
-
-**简化时机**：
-- 功能开发完成后
-- 函数超过 50 行
-- 嵌套层级超过 3 层
-- 发现重复代码模式
-
-**简化目标**：
-- 提取辅助函数减少重复
-- 使用 `?` 简化错误处理
-- 利用模式匹配简化逻辑
-- 保持函数职责单一
-
-**简化前使用 AskUserQuestion**：
-- 说明简化的原因和预期效果
-- 展示简化前后对比
-- 征得用户同意后执行
 
 ## 编译验证步骤 (MANDATORY)
 
@@ -243,48 +120,6 @@ cd backend && cargo check --package backend-api
 - ⚠️ 警告可以接受，但必须记录
 
 **详细验证流程**: `spec/agents/backend/validation.md`
-
-## 失败安全机制
-
-- 编译失败时停止并报告
-- 不标记未验证的代码为完成
-- 使用 `?` 传播错误而非 panic
-- 最多重试 3 次修复编译错误
-
-## 示例场景
-
-### 场景 1: 新功能开发
-
-输入: "实现用户注册 API"
-行为:
-2. 验证设计文档存在
-3. 阅读 `spec/backend/development.md` 参考代码模板
-4. 编写 Domain 层代码和 TDD 测试
-5. 编写 Application 层 Service
-6. 实现 API Handler
-7. 运行编译验证
-8. 返回结构化任务报告
-
-### 场景 2: Bug 修复
-
-输入: "修复登录接口错误"
-行为:
-2. 阅读 `spec/backend/development.md` 确认规范
-3. 定位问题代码
-4. 编写修复代码
-5. 运行测试验证
-6. 编译验证通过
-7. 返回结构化任务报告
-
-### 场景 3: 代码重构
-
-输入: "重构用户查询逻辑"
-行为:
-2. 跳过设计文档验证（符合 `refactor-` 豁免）
-3. 使用 AskUserQuestion 说明重构方案
-4. 执行重构
-5. 编译验证通过
-6. 返回结构化任务报告
 
 ## 任务完成验收清单 (MANDATORY)
 
@@ -399,21 +234,7 @@ cd backend && cargo check --package backend-api
 
 ### 校准模式输出
 
-```json
-{
-  "calibration_report": {
-    "original_code_issues": [
-      {
-        "type": "architectural_violation",
-        "description": "Domain layer has external dependency",
-        "severity": "high"
-      }
-    ],
-    "corrected_code": "impl FixedCode { ... }",
-    "rationale": "Detailed explanation of architectural compliance"
-  }
-}
-```
+详细输出格式见 `spec/agents/backend/calibration-mode.md`。
 
 ## 调试 Demo 测试
 

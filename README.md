@@ -137,6 +137,30 @@
 - **路径解析**：`scripts/lib/paths.py` 从自身位置向上推导项目根目录
 - **针对特定项目**：Skills 中的路径、命令、触发条件需要根据目标项目调整
 
+## 依赖的 MCP 服务器与 Skills
+
+### Context7 MCP 服务器（必需）
+
+多个 Sub-Agent 使用 [Context7](https://github.com/upstash/context7) MCP 服务器查询第三方库的最新文档，确保生成的代码符合当前 API 用法。
+
+**涉及的 Agent**：`backend-dev`、`backend-test`、`frontend-dev`、`frontend-test`
+
+**使用的库 ID**：
+
+| Agent | 库 ID |
+|-------|--------|
+| `backend-dev` / `backend-test` | `/tokio-rs/tokio`, `/tokio-rs/axum`, `/SeaQL/sea-orm` |
+| `frontend-dev` | `/tanstack/router`, `/tanstack/query`, `/tanstack/form`, `/zodjs/zod`, `/tailwindlabs/tailwindcss.com` |
+| `frontend-test` | `/vitest-dev/vitest`, `/testing-library/testing-library-docs`, `/tanstack/query` |
+
+**安装方式**：在 Claude Code 中通过 MCP 服务器配置添加 Context7，确保 `mcp__context7__resolve-library-id` 和 `mcp__context7__query-docs` 两个工具可用。如果未配置，上述 Agent 仍可工作，但无法查询外部库文档。
+
+### Simplify Skill（推荐）
+
+`/simplify` 用于在代码实现完成后审查变更质量，检查复用性、效率和一致性问题。本工具集的 `/t-backend-finalize` 流程中会调用 `/simplify` 进行代码审查。
+
+**安装方式**：通过 Claude Code 的 skill 市场安装 `simplify` skill，或在项目的 `CLAUDE.md` 中添加简化代码的相关指令。
+
 ## 引用约定
 
 - **插件内资源**：统一使用插件根语义路径，例如 `skills/t-run/SKILL.md`、`agents/backend-dev.md`、`protocols/tests-to-run-contract.md`

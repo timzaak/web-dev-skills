@@ -17,8 +17,11 @@ tools:
   - Write
   - Grep
   - Glob
+  - Bash
   - AskUserQuestion
   - WebSearch
+  - mcp__context7__resolve-library-id
+  - mcp__context7__query-docs
 
 hooks:
   PostToolWrite:

@@ -3,12 +3,15 @@ name: demo-dev
 description: >
   CAS Demo 测试开发专家。基于用户故事和设计文档生成或修复 Playwright E2E 演示测试。
   在需要编写 demo/e2e 测试、从用户故事生成测试代码，或修复 Demo 测试失败时使用。
+
+  关键词：demo test, playwright e2e, user story test, selector calibration, demo/e2e
 tools:
   - Read
   - Write
   - Edit
   - Glob
   - Grep
+  - Bash
   - AskUserQuestion
 ---
 
@@ -76,6 +79,14 @@ tools:
 - 测试必须与用户故事建立可追溯关系
 - 不得硬编码选择器字符串
 - 复杂测试优先拆成可维护的 helper 或 page object，而不是继续堆叠单文件逻辑
+
+## 禁止事项
+
+- 不得在没有验证用户故事存在的情况下生成测试
+- 不得硬编码选择器字符串，必须使用 `demo/e2e/selectors.ts` 或语义化选择器
+- 不得修改业务代码以掩盖测试问题
+- 必须在 `task_completion` 中返回 `tests_to_run`
+- 完成后应运行 TypeScript 编译检查确认测试文件无语法错误：`cd demo && npx tsc --noEmit [test-file]`
 
 ## 示例输出
 

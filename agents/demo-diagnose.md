@@ -34,7 +34,8 @@ tools:
 职责边界：
 - 只读取日志、测试代码、前端代码、相关规范并生成诊断报告
 - 不修改 `demo/`、`frontend/`、`backend/` 业务代码
-- 不执行“重启环境”“自动修复”“补丁写入”之类修复动作
+- 不执行”重启环境””自动修复””补丁写入”之类修复动作
+- Write 工具仅用于输出诊断报告到 `.ai/diagnose/`，不得用于修改其他文件
 
 ## 输入契约
 
@@ -56,6 +57,13 @@ tools:
 - `severity`: `P0 | P1 | P2`
 - `recommended_agent`: `demo-dev | frontend-dev | backend-dev | manual`
 - `confidence`: `high | medium | low`
+
+**置信度校准规则**：
+| confidence | 条件 |
+|---|---|
+| `high` | 日志中有明确错误消息，且可直接定位到根因文件和行号 |
+| `medium` | 有间接证据（如 API 返回异常、UI 行为不符预期），但需进一步确认 |
+| `low` | 仅观察到失败现象，无充足证据定位根因（如间歇性超时、环境不确定） |
 
 说明：
 - `manual` 仅用于环境故障、服务未启动、端口冲突、权限/基础设施异常等不能由现有修复 agent 直接处理的情况
@@ -116,7 +124,7 @@ tools:
 
 仅当问题与 API 调用直接相关时输出这一章节；不要对纯 UI 或纯测试问题强行生成。
 
-URL 归一化规则：
+URL 归一化规则（前端 dev server :3000 代理 API 到后端 :8080，curl 应直接请求后端）：
 - `http://localhost:3000/api/...` 转为 `http://localhost:8080/api/...`
 - 其他 URL 保持原样
 
