@@ -15,14 +15,7 @@ tools:
 
 # Backend Accept（流程入口）
 
-## Runtime Dependencies
-
-以下路径属于目标项目运行时依赖，不是本插件内文件：
-- `spec/`
-- `docs/`
-- `.ai/`
-
-引用这些路径时，应将它们视为目标项目仓库中的文档、设计产物和验收产物。
+运行时边界统一参考：`protocols/runtime-boundaries.md`
 
 ## 输入契约
 
@@ -66,7 +59,8 @@ tools:
 ## 规范来源（唯一标准）
 
 所有验收标准、检查清单、通过/拒绝规则、报告字段以：
-- `spec/agents/backend/quality.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md`
 
 为准。
 

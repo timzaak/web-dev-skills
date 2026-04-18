@@ -15,14 +15,7 @@ tools:
 
 # Demo Accept（流程入口）
 
-## Runtime Dependencies
-
-以下路径属于目标项目运行时依赖，不是本插件内文件：
-- `spec/`
-- `docs/`
-- `.ai/`
-
-引用这些路径时，应将它们视为目标项目仓库中的文档、设计产物和验收产物。
+运行时边界统一参考：`protocols/runtime-boundaries.md`
 
 ## 输入契约
 
@@ -53,6 +46,8 @@ tools:
 
 ### 阶段 4：代码质量检查
 - 检查隔离、日志系统、延迟、选择器、等待模式
+- 检查选择器是否符合 `${CLAUDE_PLUGIN_ROOT}/guides/demo/selector-strategy.md` 标准
+- 检查 Page Object 使用是否符合 `${CLAUDE_PLUGIN_ROOT}/guides/demo/pom-guide.md` 规范
 - **检查测试数据构造方式（MANDATORY）**
   - 验证不使用 `api-test-data.helpers.ts`
   - 验证不使用 `db-test-data.helpers.ts`
@@ -68,10 +63,17 @@ tools:
 - 单文件报告：`.ai/quality/demo-accept-[feature]-[YYYYMMDD-HHMMSS].md`
 - 批量验收输出汇总报告
 
-## 规范来源（唯一标准）
+## 规范来源
 
+插件内置参考：
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/index.md` — Demo guide 入口
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/selector-strategy.md` — 选择器策略标准
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/pom-guide.md` — POM 模式规范
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/test-maintenance.md` — 测试可维护性标准
+
+Runtime Dependencies：
 所有验收标准、评分公式、拒绝条件、报告模板以：
-- `spec/agents/demo/quality.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/quality.md`
 
 为准。
 

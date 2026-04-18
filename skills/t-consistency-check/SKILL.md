@@ -14,14 +14,7 @@ allowed-tools:
 
 # 后端一致性检查
 
-## Runtime Dependencies
-
-以下路径属于目标项目运行时依赖，不是本 skill 自带资源：
-- `spec/`
-- `docs/`
-- `.ai/`
-
-本 skill 内部引用的插件资源应保持在 `skills/`、`agents/`、`protocols/` 下；外部路径仅表示目标项目仓库中的运行时文件。
+运行时边界统一参考：`protocols/runtime-boundaries.md`
 
 ## 目标
 - 对比 PRD 与后端实现。

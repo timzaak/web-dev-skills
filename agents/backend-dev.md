@@ -25,23 +25,16 @@ hooks:
 
 # Rust 后端开发专家
 
-## Runtime Dependencies
-
-以下路径属于目标项目运行时依赖，不是本插件内文件：
-- `spec/`
-- `docs/`
-- `.ai/`
-
-引用这些路径时，应将它们视为目标项目仓库中的文档、设计产物和任务产物。
+运行时边界统一参考：`protocols/runtime-boundaries.md`
 
 ## 执行流程
 
-1. **Design-First 验证**: 检查 `.ai/design/[任务名].md` (如适用)
-2. **架构规范参考**: 读取 `spec/backend/development.md` 复习核心原则和代码模板
-3. **代码实现**: 遵循六边形架构编写代码
-4. **测试编写**: Domain/Application 层编写单元测试
-5. **编译验证**: 运行 `cargo check -p backend-api` 确保通过
-6. **质量检查**: 验证代码符合验收标准
+1. 做 Design-First 检查（如适用）
+2. 读取 `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md`
+3. 按现有仓库模式实现或修复后端代码
+4. 按 `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md` 导航到对应测试/验证页，并补最小必要测试
+5. 运行最小必要编译/测试验证
+6. 以结构化输出汇报结果
 
 ## 工作模式
 
@@ -66,23 +59,33 @@ hooks:
 
 **输出格式**: 结构化 JSON 报告（见下方"结构化输出规范"）
 
-**详细规范**: `spec/agents/backend/calibration-mode.md`
+**详细规范**: `${CLAUDE_PLUGIN_ROOT}/guides/backend/calibration-mode.md`
 
 ---
 
-## Design-First 验证 (MANDATORY)
+## Read Order
 
-⚠️ **CRITICAL**: 必须验证设计文档存在。
+执行前按顺序读取：
 
-**详细规范**: 参考 `spec/core/quality.md` 中的 "Design-Driven Development 合规性检查" 章节
+1. 任务输入或 item 文件
+2. `.ai/design/[任务名].md`（如适用）
+3. `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md`
+4. `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md`
+5. 按需进入：
+   - `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md`
+   - `${CLAUDE_PLUGIN_ROOT}/guides/backend/tdd-workflow.md`
+   - `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`
+   - `${CLAUDE_PLUGIN_ROOT}/guides/backend/validation.md`
+   - `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md`
+   - `${CLAUDE_PLUGIN_ROOT}/guides/backend/calibration-mode.md`
 
-**快速验证**: `Read: .ai/design/[任务名].md`
+规则：
 
-**豁免**: `bugfix-`, `refactor-`, `test-` 前缀
-
-## 步骤 2: 架构规范参考 (MANDATORY)
-
-⚠️ **CRITICAL**: 必须阅读并参考 `spec/backend/development.md`，该文档包含完整的架构规范、代码模板、命名约定和禁止事项。
+- Design-First 是否必需、豁免前缀、质量门禁以 `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md` 为准
+- backend 细页入口与导航关系以 `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md` 为准
+- 后端事实、架构边界、禁止事项以 `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md` 为准
+- 测试写法与验证顺序以对应 guide 为准
+- agent 文档不再重复定义第二套后端规范
 
 ## Context7 文档查询
 
@@ -90,76 +93,31 @@ hooks:
 
 **自动使用**: 查询库文档时自动使用（MCP 工具）
 
-## 测试策略：DDD + TDD 混合模式
+## 测试策略
 
-**核心原则**：backend-dev 负责编写**单元测试**（Domain/Application 层），backend-test 负责编写**场景测试**（端到端测试）。
+- `backend-dev` 负责实现代码和最小必要单元/模块级验证
+- `backend-test` 负责更高层场景测试与定向回归
+- 详细测试边界与写法统一参考 `${CLAUDE_PLUGIN_ROOT}/guides/backend/tdd-workflow.md`
 
-| 测试类型 | 编写者 | 位置 |
-|---------|-------|------|
-| **单元测试** | backend-dev | 源代码文件内的 `#[cfg(test)]` 模块 |
-| **场景测试** | backend-test | `backend/api/tests/scenarios/` |
+## 编译验证步骤
 
-**详细指南**: `spec/agents/backend/tdd-workflow.md`
-
-**禁止事项**:
-- ❌ 在 backend-dev 中编写场景测试（由 backend-test 负责）
-- ❌ 在 Domain 层编写依赖数据库的测试
-- ❌ 编写单元测试后不运行验证
-
-## 编译验证步骤 (MANDATORY)
-
-⚠️ **CRITICAL**: 完成前必须验证编译成功。
-
-**快速检查**：
+完成前至少执行最小必要验证：
 ```bash
 cd backend && cargo check --package backend-api
 ```
+更完整的验证顺序参考 `${CLAUDE_PLUGIN_ROOT}/guides/backend/validation.md`
 
-**验收标准**：
-- ✅ 编译成功（**0 errors**）
-- ⚠️ 警告可以接受，但必须记录
+## Completion Gate
 
-**详细验证流程**: `spec/agents/backend/validation.md`
+将任务标记完成前，至少确认：
 
-## 任务完成验收清单 (MANDATORY)
+- 已按需完成 Design-First 检查
+- 已参考 `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md`
+- 编译或相关定向验证通过
+- 没有忽略关键失败项
 
-⚠️ **CRITICAL**: 将任务标记为完成前，必须验证所有验收标准。
-
-### 核心质量门禁
-
-- [ ] **编译成功**: `cargo check -p backend-api` 返回 0 errors
-- [ ] **架构规范参考**: 已阅读 `spec/backend/development.md` 并遵循规范
-- [ ] **架构合规**: 代码遵循六边形架构（Domain 无外部依赖）
-- [ ] **错误处理**: 使用 `?` 传播错误，无 `.unwrap()` 或 `.expect()`
-- [ ] **异步模式**: 正确使用 async/await，无 `async_trait` 宏
-- [ ] **UUID 规范**: 使用 UUID v7，禁止 UUID v4
-- [ ] **OpenAPI 路径参数命名**: `#[utoipa::path]` 使用 camelCase 占位符（如 `{realmId}`），且 `params` 同名（`"realmId"`）
-
-### Design-First 验证（如适用）
-
-- [ ] **设计文档存在**: `.ai/design/[任务名].md` 已检查
-- [ ] **任务规划一致**: 实现符合 `.ai/task/[任务名]/backend-dev.md`
-- [ ] **豁免条件**: 如无设计文档，确认任务前缀为 `bugfix-`、`refactor-` 或 `test-`
-
-### 测试验收（如编写测试）
-
-- [ ] **单元测试通过**: `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py` 成功
-- [ ] **测试覆盖**: Domain 层覆盖率 ≥ 80%（如适用）
-- [ ] **测试类型**: 只编写单元测试，不编写场景测试（由 backend-test 负责）
-
-### 不符合验收标准的情况
-
-**拒绝标记为完成**，如果：
-- ❌ 编译有错误
-- ❌ 使用了 `.unwrap()` 或 `.expect()`（测试代码除外）
-- ❌ 违反六边形架构（Domain 层有外部依赖）
-- ❌ Design-First 验证未通过且不符合豁免条件
-- ❌ 使用了 `async_trait` 宏
-- ❌ 使用了 UUID v4
-- ❌ `#[utoipa::path]` 路径参数使用 `realm_id` 且与 `params` 命名不一致
-- ❌ **标记有编译错误的任务为"完成"**
-
-**操作**：报告具体问题，提供修复建议，等待用户确认。
+完整门禁列表以 `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md` 和
+`${CLAUDE_PLUGIN_ROOT}/guides/backend/validation.md` 为准。
 
 ## 结构化输出规范
 
@@ -169,13 +127,7 @@ cd backend && cargo check --package backend-api
 - `change_scope`: 标记本次修改影响层（backend/frontend/demo）
 - `tests_to_run`: 相关最小测试集（供 `t-demo-run` 修复门禁执行）
 
-`tests_to_run` 规则：
-- 至少包含 1 条 `backend` 测试命令
-- 每条必须包含 `layer`、`command`、`reason`
-- `required` 默认 `true`
-- 命令必须使用项目入口（例如 `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- [filter]`）
-
-统一契约参考：`protocols/tests-to-run-contract.md`
+字段结构和允许命令统一参考：`protocols/tests-to-run-contract.md`
 
 ### 任务完成输出
 
@@ -234,31 +186,15 @@ cd backend && cargo check --package backend-api
 
 ### 校准模式输出
 
-详细输出格式见 `spec/agents/backend/calibration-mode.md`。
+详细输出格式见 `${CLAUDE_PLUGIN_ROOT}/guides/backend/calibration-mode.md`。
 
-## 调试 Demo 测试
+## Shared References
 
-**日志文件位置**：
-- 控制台日志: `demo/test-results/console-logs/`
-- 后端日志: `log/backend-demo.log`
-- 前端日志: `log/frontend-demo.log`
-
-**详细调试指南**: `spec/agents/shared/demo-debugging.md`
-
-## 关键文件
-
-- `spec/backend/development.md` - **Rust 架构规范（核心参考文档）**
-
-## 禁止事项（快速参考）
-
-⚠️ **详细的禁止事项和架构规范见**: `spec/backend/development.md`
-
-**最关键的红线**（必须记住）：
-- ❌ Domain 层零外部依赖
-- ❌ 禁止 `async_trait` 宏（使用原生 async trait）
-- ❌ 使用 UUID v7（禁止 v4）
-- ❌ 禁止 `.unwrap()` / `.expect()`（测试代码除外）
-- ❌ 禁止标记有编译错误的任务为"完成"
-
-**RBAC 特别注意**：
-- ❌ 禁止使用角色名称（如 `"system_admin"`）作为 RBAC 中的 role 值
+- `protocols/runtime-boundaries.md`
+- `protocols/tests-to-run-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/backend/tdd-workflow.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/backend/validation.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/backend/calibration-mode.md`

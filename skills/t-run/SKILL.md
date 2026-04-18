@@ -20,14 +20,7 @@ allowed-tools:
 
 # 任务执行
 
-## Runtime Dependencies
-
-以下路径属于目标项目运行时依赖，不是本 skill 自带资源：
-- `spec/`
-- `docs/`
-- `.ai/`
-
-本 skill 内部引用的插件资源应保持在 `skills/`、`agents/`、`protocols/` 下；外部路径仅表示目标项目仓库中的运行时文件。
+运行时边界统一参考：`protocols/runtime-boundaries.md`
 
 ## Input Contract
 
@@ -53,14 +46,10 @@ allowed-tools:
 
 ## Purpose
 - 读取 `.ai/task/[feature]/.state.json`。
-- 按当前 phase 的 item DAG 计算执行顺序，但全程串行调度 item 对应 sub agent。
-- `/t-run` 任意时刻最多只能有一个 item 处于 `running`，不得并发执行多个 item。
-- `/t-run` 的最小执行单元是 item 文件：
-  - `dev/*.md`
-  - `test/*.md`
-  - `accept/*.md`
-- `index.md`、`dev.md`、`test.md`、`accept.md` 只作为上下文和导航，不作为直接执行输入。
-- backend 的 `finalize.md` 不由 `/t-run` 执行；其入口固定为 `/t-backend-finalize [feature]`。
+- 按当前 phase 的 item DAG 选择可执行 item，但始终串行调度单个 sub agent。
+- `/t-run` 的执行单元、slot 顺序、失败处理、所需上下文统一参考 `protocols/task-phase-execution.md`。
+- `index.md` 和 slot manifest 只作为上下文和导航，不作为直接执行输入。
+- backend 的 `finalize.md` 不由 `/t-run` 执行。
 
 ## Args
 | 参数 | 说明 |
@@ -72,9 +61,7 @@ allowed-tools:
 - `.ai/task/[feature]/.state.json` 必须存在且可解析。
 - `.state.json` 不得包含旧状态字段或 `agents` 根字段。
 - 目标阶段必须已生成，且 `phases[phase].generated_at` 非空。
-- 前置阶段必须已完成：
-  - frontend 依赖 backend completed
-  - demo 依赖 frontend completed
+- 前置阶段依赖统一参考 `protocols/task-phase-execution.md`。
 - 当前阶段目录必须存在。
 - 当前阶段必须包含：
   - `index.md`
@@ -82,114 +69,57 @@ allowed-tools:
   - 对应 item 目录和 item 文件
   - backend 阶段额外要求 `finalize.md`
 
-## Execution Unit
-`/t-run` 只执行 item 文件。
+## Shared Contracts
 
-| phase | slot 顺序 | item 来源 |
-|---|---|---|
-| backend | `dev -> test -> accept` | `backend/dev/*.md`, `backend/test/*.md`, `backend/accept/*.md` |
-| frontend | `dev -> test -> accept` | `frontend/dev/*.md`, `frontend/test/*.md`, `frontend/accept/*.md` |
-| demo | `dev -> accept` | `demo/dev/*.md`, `demo/accept/*.md` |
-
-执行策略：
-- 全局单 item 串行：同一 phase 内任意时刻只允许启动一个 item agent。
-- DAG 仅用于依赖校验和确定可执行顺序；即使同一 DAG 层存在多个已满足依赖的 item，也必须逐个执行。
-- 当前 item 完成或失败并写回 `.state.json` 后，才允许选择下一个 item。
-
-slot 状态由其 items 聚合：
-- 任一 item `running` => slot `running`
-- 任一 item `failed` => slot `failed`
-- 全部 items `completed` => slot `completed`
-- 否则 slot `pending`
-
-phase 状态由 slot 状态聚合：
-- 任一 slot `running` => phase `running`
-- 任一 slot `failed` => phase `failed`
-- backend 的 `dev/test/accept` 全部 completed 且 `finalize` 未 completed => phase `awaiting_finalize`
-- 非 backend 阶段全部 slot completed => phase `completed`
-- backend 含 `finalize` completed => phase `completed`
-- 其他情况 => phase `pending`
+- 状态结构与聚合规则：`protocols/task-state-contract.md`
+- phase/slot/item 执行规则：`protocols/task-phase-execution.md`
 
 ## Item Selection
-1. 读取目标 phase 的 slots。
-2. 按 slot 顺序扫描 items。
-3. 在同一 slot 内按 DAG 拓扑顺序选择 item，但每次只选择一个 item 执行。
-4. 同一轮存在多个可执行 item 时，按 slot manifest 中的 item 顺序选择；manifest 缺失顺序时按 item ID 字典序选择。
-5. 仅执行 `pending` 或 `failed` item。
-6. `failed` item 重试前必须确认其依赖均为 `completed`。
-7. 依赖未完成的 item 保持 `pending`，不得跳过依赖执行。
-8. 当前 item 完成或失败并重新聚合状态前，不得启动任何其他 item。
-9. 若 DAG 成环、依赖缺失或 item 文件缺失，立即终止并提示重新运行 `/t-task-check` 或重建任务。
+按 `protocols/task-phase-execution.md` 选择可执行 item：
+
+- 只执行 `pending` 或 `failed` item
+- 依赖未满足不得跳过
+- 同时存在多个可执行 item 时按 manifest 顺序或 item ID 字典序
+- 若 DAG 成环、依赖缺失或 item 文件缺失，立即终止并提示重新运行 `/t-task-check`
 
 ## Sub Agent Context Contract
+最小上下文、可选增强上下文以及 backend-test 额外要求统一参考：
 
-### Must-Have（必须包含，缺失则不可启动 agent）
-1. agent 自身规范文件（如 `agents/backend-dev.md`）。
-2. 当前 `feature`、`phase`、`slot`、`item_id`、目标 agent。
-3. 当前 item 文件全文。
-4. 当前阶段 `index.md`。
-5. 直接依赖 item 的 handoff 摘要和文件路径。
-
-### Nice-to-Have（应尽量包含，但非启动阻塞项）
-6. 当前 slot manifest 全文。
-7. 由 `context-isolator` 提取的阶段设计摘要。
-8. `.state.json` 中目标 phase 的最小必要状态切片。
-9. 当前 item 的 completion criteria 和 validation 要求。
-
-### backend-test Item 额外要求
-10. 必须显式加载 `skills/t-backend-test-run/SKILL.md`。
-11. prompt 必须包含：
-   - 相关 backend-dev item handoff 摘要
-   - 当前改动文件列表或实现影响点
-   - 建议定向测试范围
-   - 允许升级为全量测试的条件
-12. 默认运行顺序必须是：change analysis -> targeted tests -> auto-fix/retest -> optional full-suite escalation。
-13. 默认成功标准是"受影响测试通过且无未处理错误"，不是默认全量测试通过。
+- `protocols/task-phase-execution.md`
+- `protocols/backend-test-execution.md`
 
 ## Recovery Protocol
 
-当 item 执行失败时，按以下策略恢复：
-
-### 可自动重试的场景
-- **状态写入失败**：重试写入 2 次，间隔 5 秒。仍失败则终止。
-- **agent 超时**：标记 item 为 `failed`，下次运行 `/t-run` 时自动重试（依赖检查通过后）。
-- **编译级联错误**：不重试，标记 `failed`，在 `last_error` 中注明"compilation cascade"。
-
-### 需要人工介入的场景
-- **连续 3 次同一 item 失败**：停止自动重试，提示人工检查。
-- **DAG 环路检测**：终止执行，提示运行 `/t-task-check` 修复 DAG。
-- **agent 产出与 item scope 不匹配**：终止并提示人工确认 item 定义。
-- **阶段前置状态不一致**：终止并提示运行 `/t-task-check` 验证状态。
-
-### 降级策略
-- 如果 item 依赖的上游 item 无 `handoff_summary`，仍可启动，但在 prompt 中明确标注"上游 handoff 缺失"。
-- 如果 `context-isolator` 不可用，直接读取设计文档全文（注意上下文大小）。
+- 状态写入失败：重试写入 2 次，仍失败则终止
+- agent 超时：标记 item 为 `failed`，下次 `/t-run` 重试
+- 编译级联错误：标记 `failed` 并注明 `compilation cascade`
+- 连续 3 次同一 item 失败、DAG 环路、scope 明显不匹配时转人工介入
+- 若上游 item 无 `handoff_summary`，可降级启动，但必须显式标注 handoff 缺失
 
 ## State Transition
 1. 读取状态并确定执行范围。
-2. 校验阶段生成状态和前置阶段状态。
-3. 校验当前 phase 的 item DAG。
-4. 执行 item 前检查当前 phase 是否已有任何 item 为 `running`：
+2. 依据 `protocols/task-state-contract.md` 与 `protocols/task-phase-execution.md` 校验状态与 DAG。
+3. 执行 item 前检查当前 phase 是否已有任何 item 为 `running`：
    - 若存在，立即终止，不启动新 agent。
    - 提示先确认该 item 的真实执行结果，并恢复或修正 `.state.json` 后再重试。
-5. 执行 item 前写入：
+4. 执行 item 前写入：
    - `tasks[phase][slot].items[item_id].status = running`
    - `tasks[phase][slot].items[item_id].started_at = <timestamp>`
    - `tasks[phase][slot].status = running`
    - `phases[phase].status = running`
-6. item 成功后写入：
+5. item 成功后写入：
    - `tasks[phase][slot].items[item_id].status = completed`
    - `tasks[phase][slot].items[item_id].completed_at = <timestamp>`
    - `tasks[phase][slot].items[item_id].handoff_summary = <summary>`
-7. item 失败后写入：
+6. item 失败后写入：
    - `tasks[phase][slot].items[item_id].status = failed`
    - `tasks[phase][slot].items[item_id].last_error = <summary>`
    - `tasks[phase][slot].status = failed`
    - `phases[phase].status = failed`
    - 停止依赖该 item 的后续执行
-8. 每个 item 完成或失败后重新聚合 slot 和 phase 状态。
-9. 若当前 item 成功且仍有可执行 item，则返回 Item Selection，继续串行选择下一个 item。
-10. backend 阶段在 `accept` slot 全部 completed 后停止，并提示执行 `/t-backend-finalize [feature]`。
+7. 每个 item 完成或失败后重新聚合 slot 和 phase 状态。
+8. 若当前 item 成功且仍有可执行 item，则返回 Item Selection，继续串行选择下一个 item。
+9. backend 阶段在 `accept` slot 全部 completed 后停止，并提示执行 `/t-backend-finalize [feature]`。
 
 ## Forbidden
 - 生成或依赖旧状态字段。
@@ -234,6 +164,10 @@ dependencies:
 ```
 
 ## 相关引用
+- `protocols/runtime-boundaries.md`
+- `protocols/task-state-contract.md`
+- `protocols/task-phase-execution.md`
+- `protocols/backend-test-execution.md`
 - `skills/t-task/SKILL.md`
 - `skills/t-backend-finalize/SKILL.md`
 - `skills/t-task-check/SKILL.md`

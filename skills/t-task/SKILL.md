@@ -16,14 +16,7 @@ allowed-tools:
 
 # 任务规划生成
 
-## Runtime Dependencies
-
-以下路径属于目标项目运行时依赖，不是本 skill 自带资源：
-- `spec/`
-- `docs/`
-- `.ai/`
-
-本 skill 内部引用的插件资源应保持在 `skills/`、`agents/`、`protocols/` 下；外部路径仅表示目标项目仓库中的运行时文件。
+运行时边界统一参考：`protocols/runtime-boundaries.md`
 
 ## Input Contract
 
@@ -36,7 +29,7 @@ allowed-tools:
 - `.ai/task/[feature]/.state.json` — 已有任务状态（增量生成时）
 - `docs/prd/**/*.md` — PRD 文档
 - `docs/user-stories/**/*.md` — 用户故事
-- `spec/` 目录 — 开发规范
+- `${CLAUDE_PLUGIN_ROOT}/guides/` — 开发规范
 
 ## Output Contract
 
@@ -50,14 +43,9 @@ allowed-tools:
 
 ## Purpose
 - 从 `.ai/design/[feature].md` 生成 `.ai/task/[feature]/` 任务目录和 `.state.json`。
-- 固定使用 `phase -> slot -> item` 模型：
-  - `phase`: `backend | frontend | demo`
-  - `slot`: `dev | test | accept`，backend 额外有 `finalize`
-  - `item`: slot 下的最小可执行子任务文件
-- `index.md` 是阶段总览。
-- `dev.md`、`test.md`、`accept.md` 是 slot manifest，只做导航、依赖和完成标准。
-- `dev/*.md`、`test/*.md`、`accept/*.md` 是唯一可由 `/t-run` 直接执行的任务输入。
-- backend 的 `finalize.md` 是验收后的固定收口流程，由 `/t-backend-finalize [feature]` 执行。
+- 固定使用 `phase -> slot -> item` 模型。
+- 生成可供 `/t-run` 串行执行的 item 文件，而不是把 manifest 当执行输入。
+- backend 阶段额外生成 `finalize.md`，由 `/t-backend-finalize` 独立执行。
 
 ## Args
 | 参数 | 说明 |
@@ -67,17 +55,9 @@ allowed-tools:
 
 ## Preconditions
 - `.ai/design/[feature].md` 必须存在。
-- 阶段前置必须完成：
-
-| 目标阶段 | 前置阶段要求 |
-|---|---|
-| `backend` | 无 |
-| `frontend` | `backend == completed` |
-| `demo` | `frontend == completed` |
-
-- `frontend` 阶段生成前必须先执行：
-  - `cd frontend && npm run generate-api && cd ../`
-  - 命令失败时立即终止，不生成当前阶段任务文件，也不调度 `frontend-dev/test/accept`。
+- 阶段依赖、slot 顺序、执行单元统一参考：`protocols/task-phase-execution.md`
+- `frontend` 阶段生成前必须先执行 `cd frontend && npm run generate-api && cd ../`
+- `generate-api` 失败时立即终止，不生成当前阶段任务文件。
 
 ## Output Layout
 backend 阶段：
@@ -122,80 +102,26 @@ demo 阶段：
 ```
 
 ## State Shape
-`.state.json` 必须使用当前唯一结构，不包含旧状态字段或 `agents` 根字段：
+`.state.json` 的完整结构、兼容性规则和状态聚合规则统一参考：
 
-```json
-{
-  "feature": "sample-feature",
-  "phase": "backend",
-  "phases": {
-    "backend": {"status": "pending", "generated_at": null},
-    "frontend": {"status": "pending", "generated_at": null},
-    "demo": {"status": "pending", "generated_at": null}
-  },
-  "tasks": {
-    "backend": {
-      "dev": {
-        "status": "pending",
-        "manifest": ".ai/task/sample-feature/backend/dev.md",
-        "items": {
-          "BE-D01": {
-            "status": "pending",
-            "file": ".ai/task/sample-feature/backend/dev/BE-D01-database-foundation.md",
-            "agent": "backend-dev",
-            "depends_on": []
-          }
-        }
-      },
-      "test": {
-        "status": "pending",
-        "manifest": ".ai/task/sample-feature/backend/test.md",
-        "items": {}
-      },
-      "accept": {
-        "status": "pending",
-        "manifest": ".ai/task/sample-feature/backend/accept.md",
-        "items": {}
-      },
-      "finalize": {
-        "status": "pending",
-        "file": ".ai/task/sample-feature/backend/finalize.md"
-      }
-    }
-  },
-  "metadata": {
-    "design_document": ".ai/design/sample-feature.md",
-    "created_at": "<timestamp>",
-    "updated_at": "<timestamp>"
-  }
-}
-```
+- `protocols/task-state-contract.md`
 
 ## Generation Flow
 1. 校验 `.ai/design/[feature].md` 存在。
 2. 解析 `[feature]` 和 `--phase`；未传 `--phase` 时自动选择第一未完成阶段。
-3. 校验阶段前置状态。
-4. 若目标阶段为 `frontend`，先执行 `cd frontend && npm run generate-api && cd ../`。
-5. 按当前阶段 slot 串行调度 agent：
-   - backend/frontend: `dev -> test -> accept`
-   - demo: `dev -> accept`
+3. 按 `protocols/task-phase-execution.md` 校验阶段前置和 slot 顺序。
+4. 如目标阶段为 `frontend`，先运行 `generate-api`。
+5. 按当前阶段 slot 串行调度相应 agent。
 6. 每个 slot agent 必须返回：
    - slot manifest 正文
    - item 文件集合
    - item DAG
    - slot completion criteria
    - handoff summary
-7. 主流程在每个 slot 返回后立即写盘：
-   - `<phase>/<slot>.md`
-   - `<phase>/<slot>/<ITEM-ID>-*.md`
-8. 下游 slot prompt 必须包含：
-   - 上游 slot manifest 路径
-   - 上游 item 清单与 DAG
-   - 上游 handoff summary
-   - 已写入的上游 item 文件路径
-9. 当前阶段所有 slot 齐备后生成 `<phase>/index.md`。
-10. 写入或更新 `.state.json`。
-11. 返回下一步建议：`/t-run [feature] --phase [phase]`。
+7. 主流程在每个 slot 返回后立即写入 manifest 与 item 文件。
+8. 当前阶段 slot 齐备后生成 `<phase>/index.md`。
+9. 写入或更新 `.state.json`。
+10. 返回下一步建议：`/t-run [feature] --phase [phase]`。
 
 ## Slot Manifest Contract
 每个 slot manifest 必须包含：
@@ -238,6 +164,9 @@ slot agent 输出必须至少包含：
 - `depends_on`: 依赖的 item ID 列表
 - `handoff_summary`: 完成后传给下游 item/slot 的摘要要求
 - `completion_criteria`: 完成标准
+
+状态字段、执行顺序、依赖选择统一以 `protocols/task-state-contract.md` 和
+`protocols/task-phase-execution.md` 为准，不在本文件重复定义第二套状态机。
 
 ## Splitting Rules
 必须拆分 item，如果任一条件成立：
@@ -305,6 +234,14 @@ slot agent 输出必须至少包含：
 ```
 
 ## 相关引用
-- `references/context-isolator.md`
-- `references/phase-validator.md`
-- `references/phase-index-generator.md`
+- `protocols/runtime-boundaries.md`
+- `protocols/task-state-contract.md`
+- `protocols/task-phase-execution.md`
+- [context-isolator.md](/skills/t-task/references/context-isolator.md)
+- [phase-validator.md](/skills/t-task/references/phase-validator.md)
+- [phase-index-generator.md](/skills/t-task/references/phase-index-generator.md)
+- [compat-all-mode.md](/skills/t-task/examples/compat-all-mode.md)
+- [frontend-blocked-by-backend.md](/skills/t-task/examples/frontend-blocked-by-backend.md)
+- [phased-backend-success.md](/skills/t-task/examples/phased-backend-success.md)
+- [error-response-template.md](/skills/t-task/templates/error-response-template.md)
+- [phase-index-template.md](/skills/t-task/templates/phase-index-template.md)

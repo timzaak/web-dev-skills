@@ -15,16 +15,10 @@ allowed-tools:
 
 # Backend Test Run with Auto-Fix
 
-## Runtime Dependencies
-
-The following paths are target-project runtime dependencies, not plugin-owned resources:
-- `spec/`
-- `docs/`
-- `.ai/`
-
-Plugin-owned references should stay within `skills/`, `agents/`, `protocols/`, and `scripts/`. External paths only refer to files in the target project repository.
+Runtime boundaries: `protocols/runtime-boundaries.md`
 
 Orchestrates the complete test-fix-retest cycle for CAS Rust backend using `cargo nextest`.
+Detailed scope selection and escalation rules live in `protocols/backend-test-execution.md`.
 
 ## Core Workflow
 
@@ -35,12 +29,9 @@ git status
 git diff --name-only
 ```
 
-Map changes to test commands:
-- Single test or helper impact → `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- <test_name>`
-- Single crate / module impact such as `backend/core/src/domain/points/*` → `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- -E 'package(points)'`
-- API-layer impact such as `backend/api/src/*` → `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- -E 'package(api)'`
-- Multiple local impacts in one crate → `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- -E 'package(<crate>) and test(<pattern>)'`
-- Cross-crate or unclear impact → document why targeted scope is insufficient, then escalate to full `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py`
+Map changes to test commands using `protocols/backend-test-execution.md`:
+- prefer a single test or the smallest package-scoped filter
+- document why full-suite escalation is needed when targeted scope is insufficient
 
 ### 2. Run Tests
 
@@ -152,29 +143,9 @@ when the user explicitly asked for full coverage or targeted verification can no
 ```
 
 ## Conflict Resolution
-
-When test vs implementation disagree:
-
-**Priority:** User Stories > PRD > Existing Tests
-
-**Check:**
-1. `docs/user-stories/` - Committed behavior
-2. `docs/prd/` - Product requirements
-3. Existing passing tests - Established patterns
-
-**Decision:**
-- Implementation contradicts user story → Fix implementation
-- Test contradicts user story → Fix test
-- Both contradict user story → Escalate to user
-
-**Document:**
-```markdown
-## Resolution: <test_name>
-- Conflict: Test expects X, implementation does Y
-- Consulted: User Story <US-ID>, PRD <section>
-- Decision: Fixed <implementation|test>
-- Reason: <explanation>
-```
+Follow `protocols/backend-test-execution.md`:
+- `docs/user-stories/` > `docs/prd/` > existing stable tests
+- if ambiguity remains, escalate instead of guessing
 
 ## Error Recovery
 
@@ -217,3 +188,9 @@ Be transparent about:
 ✅ Fix plan fully executed
 ✅ User informed of all changes
 ✅ Full-suite escalation is only used when explicitly justified
+
+## Shared References
+
+- `protocols/runtime-boundaries.md`
+- `protocols/backend-test-execution.md`
+- `protocols/tests-to-run-contract.md`

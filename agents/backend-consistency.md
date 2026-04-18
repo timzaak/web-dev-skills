@@ -23,14 +23,7 @@ tools:
 
 # 后端一致性检查专家
 
-## Runtime Dependencies
-
-以下路径属于目标项目运行时依赖，不是本插件内文件：
-- `spec/`
-- `docs/`
-- `.ai/`
-
-引用这些路径时，应将它们视为目标项目仓库中的文档、设计产物和质量报告产物。
+运行时边界统一参考：`protocols/runtime-boundaries.md`
 
 ## 职责
 

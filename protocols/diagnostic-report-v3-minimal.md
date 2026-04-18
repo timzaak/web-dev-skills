@@ -11,6 +11,8 @@
 - 同时支持单用例失败和整文件失败
 - API 复现信息为条件章节，仅在 API 类失败时出现
 
+本文件是诊断报告结构的唯一真源。`agents/demo-diagnose.md` 只声明何时产出报告，`guides/demo/diagnose-guide.md` 只描述诊断流程；两者不得重新定义另一套字段或章节。
+
 ## 输出路径
 
 - 目录：`.ai/diagnose/`
@@ -140,5 +142,5 @@
 ## 一致性要求
 
 - `agents/demo-diagnose.md` 必须引用本协议
-- `spec/demo/templates/diagnose-report-template-v3-minimal.md` 必须与本协议完全一致
-- `spec/demo/diagnose-guide.md` 只描述流程，不重新定义另一套字段
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/diagnose-guide.md` 只描述流程、证据优先级和产出时机
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/templates/diagnose-report-template-v3-minimal.md` 只是便捷骨架，不得与本协议冲突

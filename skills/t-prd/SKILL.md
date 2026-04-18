@@ -16,14 +16,7 @@ allowed-tools:
 
 # PRD 创建
 
-## Runtime Dependencies
-
-以下路径属于目标项目运行时依赖，不是本 skill 自带资源：
-- `spec/`
-- `docs/`
-- `.ai/`
-
-本 skill 内部引用的插件资源应保持在 `skills/`、`agents/`、`protocols/` 下；外部路径仅表示目标项目仓库中的运行时文件。
+运行时边界统一参考：`protocols/runtime-boundaries.md`
 
 ## 适用范围
 
@@ -78,7 +71,8 @@ allowed-tools:
 上游输入（可选，如果存在会提升质量）：
 - `docs/user-stories/**/*.md` — 用户故事文档
 - `docs/prd/00-index.md` — PRD 索引
-- `spec/product/user-story.md` — 用户故事规范
+- `${CLAUDE_PLUGIN_ROOT}/guides/product/index.md` — 产品规范入口
+- `${CLAUDE_PLUGIN_ROOT}/guides/product/user-story.md` — 用户故事规范
 
 如果上游输入缺失，skill 仍可运行，但会在文档中标记缺失项。
 
@@ -160,7 +154,8 @@ allowed-tools:
 - `docs/user-stories/00-index.md`
 - `docs/user-stories/_README.md`
 - `docs/user-stories/_roles.md`
-- `spec/product/user-story.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/product/index.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/product/user-story.md`
 
 然后搜索真实目录：
 - `docs/user-stories/**/*.md`
@@ -178,7 +173,7 @@ allowed-tools:
 - 以及仓库内已有的专项 story 文件
 
 新增或补充 user story 时必须遵循：
-- 使用 `spec/product/user-story.md` 的结构和约束
+- 使用 `${CLAUDE_PLUGIN_ROOT}/guides/product/user-story.md` 的结构和约束
 - 引用 `docs/user-stories/_roles.md`
 - 聚焦用户行为和价值，不写 API、数据表、实现细节
 - 使用 GWT 风格验收标准

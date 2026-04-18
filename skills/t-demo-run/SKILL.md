@@ -19,14 +19,7 @@ allowed-tools:
 
 # 单文件 Demo 测试运行与修复
 
-## Runtime Dependencies
-
-以下路径属于目标项目运行时依赖，不是本 skill 自带资源：
-- `spec/`
-- `docs/`
-- `.ai/`
-
-本 skill 内部引用的插件资源应保持在 `skills/`、`agents/`、`protocols/` 下；外部路径仅表示目标项目仓库中的运行时文件。
+运行时边界统一参考：`protocols/runtime-boundaries.md`
 
 ## 目标
 - 对一个测试文件按用例粒度执行。
@@ -109,4 +102,8 @@ uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py "[测试文件]" --run-
 - `agents/backend-dev.md`
 - `agents/frontend-dev.md`
 - `protocols/tests-to-run-contract.md`
-- `spec/demo/e2e-testing.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/index.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/common-failures.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/selector-repair.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/test-maintenance.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/e2e-testing.md`

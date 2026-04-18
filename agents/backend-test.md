@@ -18,14 +18,7 @@ tools:
 
 # Backend Test
 
-## Runtime Dependencies
-
-以下路径属于目标项目运行时依赖，不是本插件内文件：
-- `spec/`
-- `docs/`
-- `.ai/`
-
-引用这些路径时，应将它们视为目标项目仓库中的文档、设计产物和测试产物。
+运行时边界统一参考：`protocols/runtime-boundaries.md`
 
 ## 输入契约
 
@@ -63,12 +56,13 @@ tools:
    - 修复现有场景测试
    - 诊断失败测试
 3. 先阅读 `skills/t-backend-test-run/SKILL.md`，按该 skill 的定向测试策略生成最小验证命令。
-4. 编写或修改测试，只覆盖：
+4. 先从 `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md` 进入，再按需读取 `testing.md` / `validation.md` / `quality.md`。
+5. 编写或修改测试，只覆盖：
    - 完整业务流程
    - API 集成
    - 权限/错误路径
-5. 运行定向测试并记录结果。
-6. 若测试失败且证据表明实现有问题：
+6. 运行定向测试并记录结果。
+7. 若测试失败且证据表明实现有问题：
    - 不修改业务代码
    - 输出失败测试、根因和最小修复建议
    - 将 `next_action` 设为 `handoff-backend-dev`
@@ -100,4 +94,5 @@ uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- -E 'package(<crate>) and
 
 - `skills/t-backend-test-run/SKILL.md`
 - `protocols/tests-to-run-contract.md`
-- `spec/backend/testing.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`

@@ -1,6 +1,6 @@
 # [角色名称] 用户故事
 
-> 角色定义见 [docs/user-stories/_roles.md](/docs/user-stories/_roles.md)
+> 角色定义以目标项目中的 `docs/user-stories/_roles.md` 为准。
 
 ## 用户故事
 

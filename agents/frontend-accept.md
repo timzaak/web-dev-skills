@@ -15,14 +15,7 @@ tools:
 
 # Frontend Accept（流程入口）
 
-## Runtime Dependencies
-
-以下路径属于目标项目运行时依赖，不是本插件内文件：
-- `spec/`
-- `docs/`
-- `.ai/`
-
-引用这些路径时，应将它们视为目标项目仓库中的文档、设计产物和验收产物。
+运行时边界统一参考：`protocols/runtime-boundaries.md`
 
 ## 输入契约
 
@@ -60,7 +53,7 @@ tools:
 ## 规范来源（唯一标准）
 
 所有验收标准、检查清单、通过/拒绝规则、报告字段以：
-- `spec/agents/frontend/quality.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/frontend/quality.md`
 
 为准。
 
@@ -96,7 +89,7 @@ tools:
 - [ ] Vitest 仅覆盖 Demo 难以稳定覆盖的边界场景
 
 ### UI 合规检查
-- [ ] `data-testid` 命名符合 `spec/agents/frontend/testid-standards.md`
+- [ ] `data-testid` 命名符合 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/testid-standards.md`
 - [ ] 组件复用 `frontend/src/components/ui/` 中的基础组件
 
 ### 测试代码检查

@@ -17,14 +17,7 @@ tools:
 
 # Demo Dev
 
-## Runtime Dependencies
-
-以下路径属于目标项目运行时依赖，不是本插件内文件：
-- `spec/`
-- `docs/`
-- `.ai/`
-
-引用这些路径时，应将它们视为目标项目仓库中的文档、设计产物和测试产物。
+运行时边界统一参考：`protocols/runtime-boundaries.md`
 
 ## 输入契约
 
@@ -35,13 +28,19 @@ tools:
 ## 输出契约
 
 - 修改后的 Demo 测试文件
-- `task_completion` 结构化结果，必须包含：
-  - `status`
-  - `files_modified`
-  - `change_scope`
-  - `tests_to_run`
+- `task_completion` 结构化结果
 
-`tests_to_run` 统一遵循 `protocols/tests-to-run-contract.md`。
+统一参考：
+
+- `protocols/agent-task-output-contract.md`
+- `protocols/tests-to-run-contract.md`
+
+demo-dev 至少返回：
+
+- `status`
+- `files_modified`
+- `change_scope`
+- `tests_to_run`
 
 ## 职责边界
 
@@ -55,23 +54,33 @@ tools:
   - 在主文档中重复所有 Demo 规范细节
 
 详细规范以下列文件为准，主文档只保留入口和门禁：
-- `spec/demo/e2e-testing.md`
-- `spec/agents/demo/selector-strategy.md`
-- `spec/demo/test-maintenance.md`
+
+插件内置参考：
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/index.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/selector-strategy.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/pom-guide.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/test-maintenance.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/common-failures.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/selector-repair.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/pom-update.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/frontend-sync-checklist.md`
+
+Runtime Dependencies：
 - `demo/e2e/selectors.ts`
 
 ## 工作流程
 
 1. 从测试路径或任务上下文推断用户故事文件，并验证存在。
-2. 读取 `demo/e2e/selectors.ts`，再对照前端 `data-testid` 实现校准关键选择器。
-3. 确定输出文件路径：
+2. 先读取 `${CLAUDE_PLUGIN_ROOT}/guides/demo/index.md`，再进入对应细页。
+3. 读取 `demo/e2e/selectors.ts`，再对照前端 `data-testid` 实现校准关键选择器。
+4. 确定输出文件路径：
    - `super-admin` -> `demo/e2e/super-admin/...`
    - `realm-admin` -> `demo/e2e/realm-admin/...`
    - 其他角色按 `demo/e2e/` 真实目录结构落位
-4. 按用户故事和设计文档生成或修复测试：
+5. 按用户故事和设计文档生成或修复测试：
    - 优先语义化选择器，其次共享 `SELECTORS`
    - 明确环境验证、数据清理和关键断言
-5. 若用于修复 `t-demo-run` 失败，必须返回最小相关补测集合。
+6. 若用于修复 `t-demo-run` 失败，必须返回最小相关补测集合。
 
 ## 最小门禁
 
@@ -90,31 +99,28 @@ tools:
 
 ## 示例输出
 
-```json
-{
-  "task_completion": {
-    "status": "success",
-    "files_modified": ["demo/e2e/super-admin/super-admin-comprehensive-demo.e2e.ts"],
-    "change_scope": {
-      "backend": false,
-      "frontend": false,
-      "demo": true
-    },
-    "tests_to_run": [
-      {
-        "layer": "demo",
-        "command": "uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py demo/e2e/super-admin/super-admin-comprehensive-demo.e2e.ts --grep \"完整用户流程\"",
-        "reason": "修复了当前失败用例，必须重跑 Demo 验证",
-        "required": true
-      }
-    ]
-  }
-}
-```
+按 `protocols/agent-task-output-contract.md` 返回成功结构。
+
+demo-dev 通常只需要最小成功字段：
+
+- `status`
+- `files_modified`
+- `change_scope`
+- `tests_to_run`
+
+不要求补充 `validation_results`。
 
 ## 参考
 
+- `protocols/agent-task-output-contract.md`
 - `protocols/tests-to-run-contract.md`
-- `spec/demo/e2e-testing.md`
-- `spec/agents/demo/selector-strategy.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/index.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/selector-strategy.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/pom-guide.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/test-maintenance.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/common-failures.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/selector-repair.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/pom-update.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/frontend-sync-checklist.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/e2e-testing.md`
 - `demo/e2e/selectors.ts`

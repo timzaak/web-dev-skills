@@ -12,14 +12,7 @@ allowed-tools:
 
 # 批量运行 Demo 测试
 
-## Runtime Dependencies
-
-以下路径属于目标项目运行时依赖，不是本 skill 自带资源：
-- `spec/`
-- `docs/`
-- `.ai/`
-
-本 skill 内部引用的插件资源应保持在 `skills/`、`agents/`、`protocols/` 下；外部路径仅表示目标项目仓库中的运行时文件。
+运行时边界统一参考：`protocols/runtime-boundaries.md`
 
 ## 目标
 - 自动发现全部 Demo 测试并逐个执行。
@@ -126,3 +119,5 @@ JSON 批次状态必须持续写盘，至少包含：
 ## 相关引用
 - `skills/t-demo-run/SKILL.md`
 - `agents/demo-diagnose.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/common-failures.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/test-maintenance.md`

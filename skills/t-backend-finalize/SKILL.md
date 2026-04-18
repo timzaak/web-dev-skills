@@ -19,14 +19,7 @@ allowed-tools:
 
 # 后端收口执行
 
-## Runtime Dependencies
-
-以下路径属于目标项目运行时依赖，不是本 skill 自带资源：
-- `spec/`
-- `docs/`
-- `.ai/`
-
-本 skill 内部引用的插件资源应保持在 `skills/`、`agents/`、`protocols/` 下；外部路径仅表示目标项目仓库中的运行时文件。
+运行时边界统一参考：`protocols/runtime-boundaries.md`
 
 ## Purpose
 - 读取 `.ai/task/[feature]/.state.json` 和 `backend/finalize.md`。
@@ -114,6 +107,6 @@ allowed-tools:
 ## 相关引用
 - `skills/t-task/SKILL.md`
 - `skills/t-run/SKILL.md`
-- `spec/backend/development.md`
-- `spec/backend/testing.md`
-- `spec/agents/backend/quality.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md`

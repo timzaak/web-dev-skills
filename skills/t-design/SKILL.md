@@ -17,14 +17,7 @@ allowed-tools:
 
 # 技术设计文档生成
 
-## Runtime Dependencies
-
-以下路径属于目标项目运行时依赖，不是本 skill 自带资源：
-- `spec/`
-- `docs/`
-- `.ai/`
-
-本 skill 内部引用的插件资源应保持在 `skills/`、`agents/`、`protocols/` 下；外部路径仅表示目标项目仓库中的运行时文件。
+运行时边界统一参考：`protocols/runtime-boundaries.md`
 
 ## 适用范围
 
@@ -62,10 +55,10 @@ allowed-tools:
 - `docs/prd/00-index.md` — PRD 索引
 
 可选输入：
-- `spec/core/environment-and-testing-guide.md` — 环境与测试指南
-- `spec/backend/development.md` — 后端开发规范
-- `spec/frontend/development.md` — 前端开发规范
-- `spec/core/quality.md` — 质量规范
+- `${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md` — 环境与测试指南
+- `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md` — 后端开发规范
+- `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md` — 前端开发规范
+- `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md` — 质量规范
 - `AGENTS.md` — Agent 规范
 
 ## Output Contract
@@ -87,7 +80,7 @@ allowed-tools:
 
 ## 核心约束
 
-- 需求语义以 `docs/` 为准；执行流程与质量门禁以 `spec/` 和 `AGENTS.md` 为准
+- 需求语义以 `docs/` 为准；执行流程与质量门禁以 `${CLAUDE_PLUGIN_ROOT}/guides/` 和 `AGENTS.md` 为准
 - 先读索引，再读相关明细，避免盲搜
 - 只引用用户故事，不粘贴完整故事正文或整段 Gherkin
 - 优先复用现有实现，不凭空设计新架构
@@ -104,9 +97,9 @@ allowed-tools:
 按以下顺序建立上下文：
 1. `docs/user-stories/00-index.md`
 2. `docs/prd/00-index.md`
-3. `spec/core/environment-and-testing-guide.md`
-4. `spec/backend/development.md` 和/或 `spec/frontend/development.md`
-5. `spec/core/quality.md`
+3. `${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md`
+4. `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md` 和/或 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md`
+5. `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md`
 6. `AGENTS.md`
 
 ## 工作流程
@@ -253,7 +246,7 @@ allowed-tools:
 ## 质量检查清单
 
 生成前逐项自检：
-- 是否遵循 `docs/ -> spec/ -> code` 的信息优先级
+- 是否遵循 `docs/ -> ${CLAUDE_PLUGIN_ROOT}/guides/ -> code` 的信息优先级
 - 是否使用真实文件路径
 - 是否避免过度设计
 - 是否与现有 Rust + React 架构一致
