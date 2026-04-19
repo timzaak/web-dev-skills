@@ -17,7 +17,8 @@
 ## 完整工作流
 
 ```text
-/t-tools:t-prd
+/t-tools:t-tech-research (可选，评估需求技术可行性)
+  /t-tools:t-prd
   -> /t-tools:t-prd-check
   -> /t-tools:t-design
   -> /t-tools:t-design-check
@@ -36,6 +37,7 @@
 
 常见辅助命令：
 
+- `/t-tools:t-tech-research`：在写 PRD 之前评估需求的技术可行性，包括依赖缺口分析、库调研、影响分析和可行性判定
 - `/t-tools:t-consistency-check`：复核后端 PRD 与实现是否一致，不承担全域 DDD 总检查
 - `/t-tools:t-demo-run-all`：批量执行 Demo 测试
 
