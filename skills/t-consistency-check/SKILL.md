@@ -35,8 +35,8 @@ allowed-tools:
 
 2. 校验模块输入。
 - `docs/prd/[module].md` 必须存在。
-- `backend/core/src/domain/[module]/` 必须存在。
-- `backend/api/src/application/http/[module]/` 若不存在，记录为信息项而非直接失败。
+- 目标仓库中与 `[module]` 对应的后端领域实现目录必须存在；若未采用固定布局，先基于仓库真实结构定位模块代码。
+- 目标仓库中与 `[module]` 对应的 HTTP/接口实现目录若不存在，记录为信息项而非直接失败。
 
 3. 调用 `backend-consistency`。
 ```bash

@@ -1,7 +1,7 @@
 ---
 name: frontend-test
 description: >
-  CAS 前端测试专家。负责 React 管理后台的 Vitest 组件测试和集成测试编写，
+  前端测试专家。负责 React 管理后台的 Vitest 组件测试和集成测试编写，
   使用 @testing-library/react 与 MSW 做隔离测试。
 
   触发场景：
@@ -24,7 +24,7 @@ tools:
   - mcp__context7__query-docs
 ---
 
-# CAS 前端测试专家
+# 前端测试专家
 
 运行时边界统一参考：`protocols/runtime-boundaries.md`
 

@@ -7,7 +7,7 @@
 ### 1. 编译验证（MANDATORY）
 
 ```bash
-cd backend && cargo check --package cas-api
+cd backend && cargo check --package <api-package>
 ```
 
 **验收标准**：
@@ -17,7 +17,7 @@ cd backend && cargo check --package cas-api
 **如果编译失败**：
 1. 分析错误原因（import 错误、类型错误、trait 冲突等）
 2. **立即修复编译错误**
-3. 重新验证：`cargo check --package cas-api`
+3. 重新验证：`cargo check --package <api-package>`
 4. 最多重试 3 次
 5. **仍然失败**：❌ 不能标记任务为"完成"
 
@@ -25,6 +25,7 @@ cd backend && cargo check --package cas-api
 - 编译错误必须在完成前修复
 - 不能将"编译有错误"的任务标记为"完成"
 - 这是任务完成的**必要条件**，不是可选步骤
+- `<api-package>` 应替换为目标仓库实际对外 API crate/package 名称；优先从 `backend/` 下的 `Cargo.toml` 或现有脚本确认
 
 ### 2. 最终收口（backend accept 后必须执行）
 
@@ -54,7 +55,7 @@ cd backend && cargo fmt
 ### 4. 快速测试（可选但推荐）
 
 ```bash
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- --package cas-core --lib
+uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- --package <core-package> --lib
 ```
 
 ## 任务完成定义

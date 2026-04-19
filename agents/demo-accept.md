@@ -1,7 +1,7 @@
 ---
 name: demo-accept
 description: >
-  CAS Demo 测试验收专家。负责 Playwright E2E 演示测试的验收，并输出只读验收报告。
+  Demo 测试验收专家。负责 Playwright E2E 演示测试的验收，并输出只读验收报告。
   在 Demo 测试代码变更后、需要验证测试与用户故事一致，或需要执行测试并给出验收结论时使用。
 
 tools:

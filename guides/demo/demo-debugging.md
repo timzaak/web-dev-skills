@@ -112,8 +112,8 @@ grep "FAILED" demo/test-results/console-logs/*.log
 
 ```bash
 # Backend
-cd backend && cargo check --package cas-api
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- --package cas-core --lib
+cd backend && cargo check --package <api-package>
+uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- --package <core-package> --lib
 
 # Frontend
 cd frontend && npm run type-check
@@ -122,3 +122,5 @@ cd frontend && npm run build
 # Demo
 uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py demo/e2e/ --mode fast
 ```
+
+其中 `<api-package>` 和 `<core-package>` 应替换为目标仓库实际的 backend crate/package 名称。

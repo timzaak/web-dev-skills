@@ -1,7 +1,7 @@
 ---
 name: demo-dev
 description: >
-  CAS Demo 测试开发专家。基于用户故事和设计文档生成或修复 Playwright E2E 演示测试。
+  Demo 测试开发专家。基于用户故事和设计文档生成或修复 Playwright E2E 演示测试。
   在需要编写 demo/e2e 测试、从用户故事生成测试代码，或修复 Demo 测试失败时使用。
 
   关键词：demo test, playwright e2e, user story test, selector calibration, demo/e2e
@@ -107,6 +107,12 @@ demo-dev 通常只需要最小成功字段：
 - `files_modified`
 - `change_scope`
 - `tests_to_run`
+
+若返回 Demo 层补测命令，必须使用协议中的标准形式：
+
+```bash
+uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py "[测试文件]" --run-id [RUN_ID] --grep "[测试标题]"
+```
 
 不要求补充 `validation_results`。
 

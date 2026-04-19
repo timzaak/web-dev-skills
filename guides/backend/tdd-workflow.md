@@ -74,10 +74,10 @@ impl PasswordPolicy {
 **快速反馈**：
 ```bash
 # 只运行单元测试（秒级）
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- --package cas-core --profile quick
+uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- --package <core-package> --profile quick
 
 # 只运行当前模块的测试
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- --package cas-core -- domain::user::policy::tests
+uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- --package <core-package> -- domain::user::policy::tests
 ```
 
 ## Application 层开发：部分采用 TDD

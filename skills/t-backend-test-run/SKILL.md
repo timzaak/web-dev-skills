@@ -17,7 +17,7 @@ allowed-tools:
 
 Runtime boundaries: `protocols/runtime-boundaries.md`
 
-Orchestrates the complete test-fix-retest cycle for CAS Rust backend using `cargo nextest`.
+Orchestrates the complete test-fix-retest cycle for a target Rust backend using `cargo nextest`.
 Detailed scope selection and escalation rules live in `protocols/backend-test-execution.md`.
 
 ## Core Workflow

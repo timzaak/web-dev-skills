@@ -2,9 +2,9 @@
 name: t-prd
 context: fork
 description: >
-  PRD 创建命令。先补齐相关 user story，再在指定业务域下创建 PRD 草稿。
-  仅在用户明确执行 /t-prd create [feature] 或明确要求产出 PRD 时使用。
-argument-hint: create [feature-name]
+  PRD 维护命令。先补齐相关 user story，再按目标业务域创建或更新 PRD。
+  仅在用户明确执行 /t-prd [feature] 或明确要求产出/更新 PRD 时使用。
+argument-hint: [feature-name]
 allowed-tools:
   - AskUserQuestion
   - Read
@@ -14,35 +14,34 @@ allowed-tools:
   - Bash
 ---
 
-# PRD 创建
+# PRD 维护
 
 运行时边界统一参考：`protocols/runtime-boundaries.md`
 
 ## 适用范围
 
-这是一个有副作用的任务型 skill，负责先补齐 user story，再创建 PRD 文档。
+这是一个有副作用的任务型 skill，负责先补齐 user story，再创建或更新 PRD 文档。
 
 不要用它做：
 - PRD 完整性检查 → 使用 `/t-prd-check`
 - 用户故事质量检查 → 使用 `/t-prd-check`
-- 实施状态更新 → 使用对应 update 命令
+- 实施状态更新 → 使用对应实现阶段命令
 
 ## 目标
 
-基于现有 user story、PRD 索引和用户补充信息，先补齐必要的 user story，再创建一份新的 PRD 草稿，供后续 `/t-design` 使用。
+基于现有 user story、PRD 索引、已有 PRD 和用户补充信息，先补齐必要的 user story，再创建或更新一份 PRD，供后续 `/t-design` 使用。
 
 输出文件：
-- `docs/prd/<domain>/$1.md`
+- `docs/prd/<domain>/[feature].md`
 
 ## 使用方式
 ```bash
-/t-prd create [feature]
+/t-prd [feature]
 ```
 
 ## 参数要求
 
-- `$0` 必须是 `create`
-- `$1` 必须是 feature 名称
+- `[feature]` 必须是 feature 名称
 - 文件名仅允许英文、数字、空格、下划线、连字符
 - 拒绝 `..`, `/`, `\`
 - 长度限制 1 到 50 字符
@@ -51,19 +50,19 @@ allowed-tools:
 
 ## 核心约束
 
-- PRD 必须写入 `docs/prd/<domain>/$1.md`
+- PRD 必须写入 `docs/prd/<domain>/[feature].md`
 - `<domain>` 只能是现有一级目录：`auth`、`billing`、`core`、`integration`
 - 不写入 `docs/prd/` 根目录
 - user story 优先追加到现有角色文件；只有现有分组明显不适合时才新增单独文件
 - PRD 只引用相关用户故事，不复制完整验收文本
 - PRD 聚焦产品边界与规则，不承载接口 schema、数据库建表或技术方案
-- 如果已有同名 PRD，先询问是否覆盖
+- 如果已有同名 PRD，默认进入 update 路径，而不是覆盖重写
 
 ## 职责边界
 
-- `/t-prd` 负责先补齐相关 user story，再创建 PRD 草稿
+- `/t-prd` 负责先补齐相关 user story，再创建或更新 PRD
 - `/t-prd-check` 负责检查 PRD 与用户故事质量
-- `/t-prd` 不负责 `check` 或 `update`
+- `/t-prd` 不负责 `check`
 - `/t-prd` 产出产品语义文档，不负责生成接口明细、数据库设计或技术实现方案
 
 ## Input Contract
@@ -79,7 +78,7 @@ allowed-tools:
 ## Output Contract
 
 下游产出（供 `/t-prd-check` 和 `/t-design` 使用）：
-- `docs/prd/<domain>/$1.md` — PRD 文档，包含：
+- `docs/prd/<domain>/[feature].md` — PRD 文档，包含：
   - 相关用户故事引用（ID、标题、优先级、来源文件）
   - 范围界定（包含/不包含）
   - 需求概述
@@ -93,8 +92,7 @@ allowed-tools:
 
 ### 1. 校验参数
 
-- 检查 `$0 == create`
-- 检查 `$1` 非空且符合文件名规则
+- 检查 `[feature]` 非空且符合文件名规则
 - 缺失 feature：直接失败并提示参数
 
 ### 2. 选择目标域
@@ -115,9 +113,16 @@ allowed-tools:
 ### 3. 检查是否已存在
 
 检查目标文件：
-- `docs/prd/<domain>/$1.md`
+- `docs/prd/<domain>/[feature].md`
 
-如已存在，先询问是否覆盖。
+判定规则：
+- 文件不存在：进入 create 路径
+- 文件已存在：进入 update 路径
+
+update 路径要求：
+- 保留已有有效章节和稳定语义
+- 只补齐缺失内容、修正冲突、整理结构失衡部分
+- 不因局部缺口整篇重写 PRD
 
 ### 4. 收集最小必要信息
 
@@ -199,8 +204,8 @@ allowed-tools:
 
 ### 7. 生成 PRD
 
-使用 [template.md](template.md) 作为模板，写入：
-- `docs/prd/<domain>/$1.md`
+create 路径使用 [template.md](template.md) 作为模板初始化；update 路径以现有 PRD 为基底增补和整理，写入：
+- `docs/prd/<domain>/[feature].md`
 
 文档至少包含：
 - 相关用户故事
@@ -228,13 +233,13 @@ allowed-tools:
 - user story 文件路径和变更方式（新增/追加）
 - 文档路径
 - 所属域
+- 本次执行走的是 create 还是 update 路径
 - 需要重点补充或确认的部分
-- 下一步：`/t-prd-check $1`
-- 如需进入设计：`/t-design $1`
+- 下一步：`/t-prd-check [feature]`
+- 如需进入设计：`/t-design [feature]`
 
 ## 失败处理
 
-- action 非法：提示仅支持 `create`。
 - 缺失 feature：直接失败并提示参数。
 - 目标域无法判断且用户未提供：提示选择 `auth|billing|core|integration`。
 - 文件无法写入：终止并报告。

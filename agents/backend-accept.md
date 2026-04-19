@@ -1,7 +1,7 @@
 ---
 name: backend-accept
 description: >
-  CAS 后端验收专家。负责 Rust API 的质量验收、测试验证与 OpenAPI 完整性检查，并输出只读验收报告。
+  后端验收专家。负责 Rust API 的质量验收、测试验证与 OpenAPI 完整性检查，并输出只读验收报告。
   在后端代码变更后、需要验证实现与设计一致性，或需要执行测试并给出验收结论时使用。
 
 tools:

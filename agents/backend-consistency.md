@@ -1,7 +1,7 @@
 ---
 name: backend-consistency
 description: >
-  CAS 后端一致性检查专家（只读）。负责验证单个模块的 PRD 文档与后端代码实现的一致性。
+  后端一致性检查专家（只读）。负责验证单个模块的 PRD 文档与后端代码实现的一致性。
 
   触发场景：
   - 检查 PRD 与后端代码实现的一致性
@@ -39,7 +39,7 @@ tools:
 
 确定目标模块名，读取 PRD 文件 `docs/prd/${MODULE}.md`。
 
-如果 PRD 不存在：提示先执行 `/t-prd create ${MODULE}`，符合 `bugfix-`、`refactor-`、`test-` 豁免前缀的任务可记录豁免说明。
+如果 PRD 不存在：提示先执行 `/t-prd ${MODULE}`，符合 `bugfix-`、`refactor-`、`test-` 豁免前缀的任务可记录豁免说明。
 
 ### 步骤 2：提取 PRD 需求清单
 
@@ -77,25 +77,25 @@ tools:
 
 #### 3.1 HTTP 能力实现
 
-使用 Grep 工具搜索 `#[utoipa::path` 在 `backend/api/src/application/http/${MODULE}` 中的定义，搜索 `.route(` 在 `backend/api/src/application/http/server/mod.rs` 中的路由注册。
+先在目标仓库定位与模块对应的 HTTP/接口实现目录与路由注册点；若项目采用类似 `backend/api/src/application/http/${MODULE}` 的布局，可直接在该目录中搜索 `#[utoipa::path`，并在对应的路由注册文件中搜索 `.route(`。
 
 用途：确认代码是否覆盖 PRD 要求的能力范围，不要求 PRD 列出端点清单。
 
 #### 3.2 数据模型实现
 
-读取 `backend/core/src/domain/${MODULE}/entities.rs`，使用 Grep 搜索 `pub struct` 和字段定义。
+读取目标仓库中与模块对应的领域实体文件；若项目采用类似 `backend/domain/src/${MODULE}/entities.rs` 的布局，可直接读取该文件并用 Grep 搜索 `pub struct` 和字段定义。
 
 #### 3.3 验证规则实现
 
-读取 `backend/api/src/application/http/${MODULE}/` 下匹配 `*validator*.rs` 的文件，使用 Grep 搜索 `validate`、`length`、`regex`、`must_` 等关键词。
+读取目标仓库中与模块对应的 HTTP/输入校验文件；可优先搜索 `*validator*.rs`、`validate`、`length`、`regex`、`must_` 等关键词。
 
 #### 3.4 权限实现
 
-读取 `backend/core/src/domain/${MODULE}/services.rs`，使用 Grep 搜索 `ensure_policy`、`can_`、`enforcer.enforce` 等权限相关调用。
+读取目标仓库中与模块对应的领域服务或权限编排文件，使用 Grep 搜索 `ensure_policy`、`can_`、`enforcer.enforce` 等权限相关调用。
 
 #### 3.5 业务逻辑实现
 
-读取 `backend/core/src/infrastructure/${MODULE}/mod.rs`，分析关键函数和分支逻辑。
+读取目标仓库中与模块对应的基础设施或持久化实现文件，分析关键函数和分支逻辑。
 
 ### 步骤 4：对比差异并生成报告
 
@@ -153,7 +153,7 @@ tools:
 
 ## 相关文件
 - PRD 文档: `docs/prd/[module].md`
-- Domain 层: `backend/core/src/domain/[module]/`
-- Infrastructure 层: `backend/core/src/infrastructure/[module]/`
-- HTTP 层: `backend/api/src/application/http/[module]/`
+- Domain 层: 目标仓库中与模块对应的领域实现目录（例如 `backend/domain/src/[module]/`）
+- Infrastructure 层: 目标仓库中与模块对应的基础设施实现目录（例如 `backend/infra/src/[module]/`）
+- HTTP 层: 目标仓库中与模块对应的接口实现目录（例如 `backend/api/src/application/http/[module]/`）
 - 报告输出: `.ai/quality/consistency-[module]-[YYYYMMDD].md`

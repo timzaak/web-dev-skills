@@ -103,8 +103,10 @@ hooks:
 
 完成前至少执行最小必要验证：
 ```bash
-cd backend && cargo check --package backend-api
+cd backend && cargo check --package <api-package>
 ```
+其中 `<api-package>` 必须替换为目标仓库实际对外 API crate/package 名称；优先从 `backend/` 下的 `Cargo.toml` 或现有验证脚本中确认。
+
 更完整的验证顺序参考 `${CLAUDE_PLUGIN_ROOT}/guides/backend/validation.md`
 
 ## Completion Gate

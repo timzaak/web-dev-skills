@@ -1,7 +1,7 @@
 ---
 name: frontend-dev
 description: >
-  CAS 前端开发专家。负责 React 管理后台功能实现与前端缺陷修复。
+  前端开发专家。负责 React 管理后台功能实现与前端缺陷修复。
 
   触发场景：
   - 编写或修改 frontend 代码
@@ -31,7 +31,7 @@ hooks:
           command: "uv run ${CLAUDE_PLUGIN_ROOT}/scripts/frontend-format-check.py"
 ---
 
-# CAS 前端开发专家
+# 前端开发专家
 
 运行时边界统一参考：`protocols/runtime-boundaries.md`
 

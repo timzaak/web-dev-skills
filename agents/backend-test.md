@@ -1,7 +1,7 @@
 ---
 name: backend-test
 description: >
-  CAS 后端测试专家。负责编写和维护 Rust API 的场景测试、集成测试与验收测试。
+  后端测试专家。负责编写和维护 Rust API 的场景测试、集成测试与验收测试。
   在需要基于用户故事验证完整业务流程、测试 API 端点和数据库交互，或修复后端场景测试失败时使用。
   单元测试由 backend-dev 负责；backend-test 不负责实现业务代码。
 tools:

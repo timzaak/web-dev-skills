@@ -55,7 +55,8 @@ allowed-tools:
 5. 执行 `cargo fmt --all`。
 6. 执行全量 `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py`。
 7. 导出 OpenAPI 文档并生成前端 API 客户端：
-   - 执行 `cd backend && cargo run --bin backend-app -- --export-openapi ../frontend/api.json && cd ../`
+   - 先根据目标仓库的 backend app crate、现有导出脚本或文档定位实际导出 binary
+   - 执行 `cd backend && cargo run --bin <app-binary> -- --export-openapi ../frontend/api.json && cd ../`
    - 验证生成的 OpenAPI JSON（格式、路径占位符 camelCase）
    - 执行 `cd frontend && npm run generate-api && cd ../`
    - 验证生成的 TypeScript 文件
