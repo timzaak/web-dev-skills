@@ -1,10 +1,5 @@
 ---
 name: t-backend-test-run
-description: >
-  后端测试运行器，支持自动错误检测与修复编排。分析代码变更，使用 nextest filtersets 运行定向测试，
-  捕获错误，创建修复计划，并通过 backend-dev subagent 编排修复。
-  是 /t-run 触发的 backend-test slot 的默认执行路径，也是 /t-task 生成 backend-test slot 的默认规划约束。
-  当测试与实现冲突时，以 PRD/用户故事为优先级仲裁。
 allowed-tools:
   - Bash
   - Read

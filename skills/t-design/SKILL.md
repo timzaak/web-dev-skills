@@ -1,9 +1,5 @@
 ---
 name: t-design
-description: >
-  为明确的功能需求生成技术设计文档。包含 API 接口设计、数据库设计、前端方案、测试策略与风险分析。
-  仅在用户明确要求产出技术设计、架构方案、API/数据模型设计，或明确执行 /t-design 时使用。
-  不要因为用户只是问"怎么实现"就自动触发。
 argument-hint: [方案名称]
 allowed-tools:
   - AskUserQuestion

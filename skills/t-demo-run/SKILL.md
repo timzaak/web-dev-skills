@@ -1,8 +1,6 @@
 ---
 name: t-demo-run
 context: fork
-description: >
-  运行单个 Demo 测试文件并按失败类型触发诊断与修复，支持任务状态跟踪与恢复。
 argument-hint: [测试文件路径]
 allowed-tools:
   - Read

@@ -1,8 +1,6 @@
 ---
 name: t-run
 context: fork
-description: >
-    执行由 /t-task 生成的 item 任务计划，按依赖 DAG 排序并串行调度单个 sub agent。
 argument-hint: [任务名称] [--phase <backend|frontend|demo>]
 allowed-tools:
   - AskUserQuestion

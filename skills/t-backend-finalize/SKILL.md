@@ -1,8 +1,6 @@
 ---
 name: t-backend-finalize
 context: fork
-description: >
-  后端验收后的统一收口命令。固定执行 /simplify、clippy 自动修复、格式化和全量后端测试，并在失败后默认从失败步骤恢复。
 argument-hint: [任务名称]
 allowed-tools:
   - Read

@@ -1,7 +1,5 @@
 ---
 name: t-prd-check
-description: >
-  PRD 和用户故事质量检查。验证 PRD 文档完整性和用户故事质量，量化评分并输出修复清单。
 argument-hint: [feature-name|--all]
 allowed-tools:
   - Read

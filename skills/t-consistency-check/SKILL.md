@@ -1,7 +1,5 @@
 ---
 name: t-consistency-check
-description: >
-  快速检查单个或全部后端模块的 PRD 与实现一致性，输出模块级差异报告。
 argument-hint: [module-name|--all]
 allowed-tools:
   - Read

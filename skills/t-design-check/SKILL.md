@@ -1,7 +1,5 @@
 ---
 name: t-design-check
-description: >
-  技术设计文档质量检查。对 .ai/design/[feature].md 进行量化评分并输出修复清单。
 argument-hint: [方案名称]
 allowed-tools:
   - Read

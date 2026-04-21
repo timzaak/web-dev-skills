@@ -1,7 +1,5 @@
 ---
 name: t-demo-run-all
-description: >
-  批量运行所有 Demo E2E 测试（fast 模式），逐个顺序执行，失败不中断，输出汇总结果。
 allowed-tools:
   - Read
   - Glob

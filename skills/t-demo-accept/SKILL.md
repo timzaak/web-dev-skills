@@ -1,7 +1,5 @@
 ---
 name: t-demo-accept
-description: >
-  Demo 测试验收命令。验证 Playwright E2E 测试与用户故事一致性、可执行性和代码质量。
 argument-hint: [测试文件路径|角色名|all]
 allowed-tools:
   - Read

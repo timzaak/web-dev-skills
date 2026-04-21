@@ -1,10 +1,6 @@
 ---
 name: t-tech-research
 context: fork
-description: >
-  需求技术预研。基于原始需求扫描现有代码库，评估是否需要引入新依赖库，
-  研究库的最佳实践与集成方式，输出对现有代码的影响清单和可行性判定。
-  仅在用户明确执行 /t-tech-research 或在需求阶段需要评估技术可行性时使用。
 argument-hint: [feature-name]
 allowed-tools:
   - AskUserQuestion

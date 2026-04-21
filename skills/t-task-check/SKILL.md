@@ -1,7 +1,5 @@
 ---
 name: t-task-check
-description: >
-  任务规划质量检查。对 .ai/task/[feature]/ 下的新 item 任务结构进行量化评分并输出修复清单。
 argument-hint: [任务名称] [--phase <backend|frontend|demo>]
 allowed-tools:
   - Read

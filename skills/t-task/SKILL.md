@@ -1,8 +1,6 @@
 ---
 name: t-task
 context: fork
-description: >
-  基于设计文档生成实施任务。固定使用分阶段 + 子任务模型，不保留旧模式。
 argument-hint: [任务名称] [--phase <backend|frontend|demo>]
 allowed-tools:
   - AskUserQuestion

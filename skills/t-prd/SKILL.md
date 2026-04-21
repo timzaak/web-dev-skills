@@ -1,9 +1,6 @@
 ---
 name: t-prd
 context: fork
-description: >
-  PRD 维护命令。先补齐相关 user story，再按目标业务域创建或更新 PRD。
-  仅在用户明确执行 /t-prd [feature] 或明确要求产出/更新 PRD 时使用。
 argument-hint: [feature-name]
 allowed-tools:
   - AskUserQuestion
