@@ -155,6 +155,8 @@ allowed-tools:
 │       └── selectors.ts
 ├── scripts/
 │   └── dev-start.py
+├── AGENTS.md                    # Claude Code 行为准则 + 项目描述
+├── CLAUDE.md                    # 引用 AGENTS.md
 └── README.md
 ```
 
@@ -255,7 +257,18 @@ allowed-tools:
 - 默认复用已有容器，`--clean` 参数重建
 - 容器名称使用项目名称前缀避免冲突
 
-### Step 8: 验证
+### Step 8: 生成 AGENTS.md 和 CLAUDE.md
+
+读取 [references/agents-template.md](references/agents-template.md) 获取模板内容。
+
+生成两个根目录文件：
+1. `AGENTS.md` — 项目描述占位符 + Karpathy 行为准则
+2. `CLAUDE.md` — 仅包含 `@AGENTS.md`（Claude Code 引用语法）
+
+这两个文件帮助 Claude Code 在后续开发中遵循项目规范和行为准则。
+生成后提示用户填写 `AGENTS.md` 顶部的项目描述占位符。
+
+### Step 9: 验证
 
 生成完成后，执行以下验证：
 1. 检查所有文件都已创建（Glob 验证）
@@ -295,6 +308,10 @@ allowed-tools:
 - [ ] `scripts/dev-start.py`
 - [ ] `README.md`
 
+**AI 辅助配置（必须）：**
+- [ ] `AGENTS.md`
+- [ ] `CLAUDE.md`
+
 **UnifiedLogger 包（必须）：**
 - [ ] `packages/playwright-unified-logger/package.json`
 - [ ] `packages/playwright-unified-logger/tsconfig.json`
@@ -330,6 +347,7 @@ allowed-tools:
 - UnifiedLogger 包位置和用法
 - Demo 测试运行命令（`cd demo && npm test`）
 - 日志环境变量说明（`UNIFIED_LOG_LEVEL` 等）
+- AGENTS.md 和 CLAUDE.md 已生成，提醒用户填写项目描述
 - 快速启动命令
 - 需要用户手动完成的步骤（如复制 config、安装 Docker 等）
 - 下一步建议（如 `/t-prd` 开始功能规划）
@@ -362,6 +380,7 @@ allowed-tools:
 - UnifiedLogger 包模板：[references/unified-logger-package-template.md](references/unified-logger-package-template.md)
 - Demo E2E 测试模板：[references/demo-template.md](references/demo-template.md)
 - 脚本模板：[references/scripts-template.md](references/scripts-template.md)
+- AGENTS.md 模板：[references/agents-template.md](references/agents-template.md)
 
 ## 相关引用
 
