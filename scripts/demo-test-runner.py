@@ -37,7 +37,6 @@ def normalize_legacy_args(argv: list[str]) -> list[str]:
         "-Grep": "--grep",
         "-NoDedup": "--no-dedup",
         "-NoAggregate": "--no-aggregate",
-        "-NoFilter": "--no-filter",
         "-VerboseLog": "--verbose-log",
         "-QuietMode": "--quiet-mode",
         "-ListTests": "--list-tests",
@@ -64,7 +63,6 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--grep", default="", help="Filter tests by pattern")
     parser.add_argument("--no-dedup", action="store_true", help="Disable log deduplication")
     parser.add_argument("--no-aggregate", action="store_true", help="Disable log aggregation")
-    parser.add_argument("--no-filter", action="store_true", help="Disable log filtering")
     parser.add_argument("--verbose-log", action="store_true", help="Verbose log output")
     parser.add_argument("--quiet-mode", action="store_true", help="Quiet mode (minimal output)")
     parser.add_argument("--list-tests", action="store_true", help="List tests without running")
@@ -113,7 +111,6 @@ def run_tests(
     grep: str,
     no_dedup: bool,
     no_aggregate: bool,
-    no_filter: bool,
     verbose_log: bool,
     quiet_mode: bool,
     list_tests: bool,
@@ -129,7 +126,6 @@ def run_tests(
         grep: 测试过滤模式
         no_dedup: 禁用日志去重
         no_aggregate: 禁用日志聚合
-        no_filter: 禁用日志过滤
         verbose_log: 详细日志
         quiet_mode: 静默模式
         list_tests: 仅列出测试
@@ -191,7 +187,6 @@ def run_tests(
     env["DEMO_LOG_LEVEL"] = log_level
     env["DEMO_LOG_DEDUP"] = "false" if no_dedup else "true"
     env["DEMO_LOG_AGGREGATE"] = "false" if no_aggregate else "true"
-    env["DEMO_LOG_FILTER"] = "false" if no_filter else "true"
     env["DEMO_RUN_ID"] = run_id
     env["DEMO_LOG_COMPACT"] = "true" if compact else "false"
     env["DEBUG"] = env.get("DEBUG", "pw:api")
@@ -292,7 +287,6 @@ def main() -> int:
         grep=args.grep,
         no_dedup=args.no_dedup,
         no_aggregate=args.no_aggregate,
-        no_filter=args.no_filter,
         verbose_log=args.verbose_log,
         quiet_mode=args.quiet_mode,
         list_tests=args.list_tests,

@@ -27,7 +27,7 @@ Demo 使用 `playwright-unified-logger` 包作为日志依赖。
     "lint": "eslint e2e/"
   },
   "dependencies": {
-    "{{PROJECT_NAME}}-playwright-unified-logger": "file:../packages/playwright-unified-logger"
+    "playwright-unified-logger": "file:../packages/playwright-unified-logger"
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",
@@ -535,7 +535,7 @@ async function validateBackendHealth(options: {
  */
 
 import { test as base, type Page } from '@playwright/test'
-import { UnifiedLogger } from '{{PROJECT_NAME}}-playwright-unified-logger'
+import { UnifiedLogger } from 'playwright-unified-logger'
 import { verifyTestEnvironment } from '../helpers/environment-setup'
 import { loginAsAdmin } from '../helpers/auth'
 
@@ -714,7 +714,7 @@ export function generateTestUser(options?: {
  */
 
 import { Page, Locator, expect } from '@playwright/test'
-import type { UnifiedLogger } from '{{PROJECT_NAME}}-playwright-unified-logger'
+import type { UnifiedLogger } from 'playwright-unified-logger'
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:8080'
 
@@ -814,7 +814,7 @@ export class BasePage {
 import { Page, Locator, expect } from '@playwright/test'
 import { SELECTORS } from '../selectors'
 import { BasePage } from './base-page'
-import type { UnifiedLogger } from '{{PROJECT_NAME}}-playwright-unified-logger'
+import type { UnifiedLogger } from 'playwright-unified-logger'
 
 export interface LoginCredentials {
   email: string
