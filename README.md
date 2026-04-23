@@ -83,6 +83,7 @@
 
 ## 常用入口
 
+- 设计思路导读：[human/structure.md](/human/structure.md)（推荐先读，理解 skill、subagent、protocol 如何协同驱动 AI 编程）
 - 产品规范入口：[guides/product/index.md](/guides/product/index.md)
 - 后端开发与门禁：[guides/backend/index.md](/guides/backend/index.md)
 - 前端开发与门禁：[guides/frontend/index.md](/guides/frontend/index.md)
