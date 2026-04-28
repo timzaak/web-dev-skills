@@ -51,20 +51,22 @@ uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py "[测试文件]" --run-
 
 5. 失败修复循环（最多 6 次）。
 - 先调用 `demo-diagnose` 生成结构化诊断。
-- 按诊断结果分发：`demo-dev` / `frontend-dev` / `backend-dev`。
+- 按诊断结果分发：`demo-dev` / `frontend-dev` / `backend-dev` / `miniapp-dev`。
 - 读取修复 agent 返回的 `tests_to_run`（必填）并校验字段：
-  - `layer`: `backend|frontend|demo`
+  - `layer`: `backend|frontend|miniapp|demo`
   - `command`: 可直接执行命令
   - `reason`: 关联说明
   - `required`: 是否必须通过（默认 `true`）
-- 执行补测（按层顺序串行）：`backend -> frontend -> demo`。
+- 执行补测（按层顺序串行）：`backend -> frontend -> miniapp -> demo`。
 - 补测命令必须来自允许入口：
   - 后端：`uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- [filter]`
   - 前端：`cd frontend && npm run test:run -- [pattern]`
+  - 小程序：`cd miniapp && npm run typecheck` 或 `cd miniapp && npm run build:weapp`
   - Demo：`uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py "[测试文件]" --run-id [RUN_ID] --grep "[测试标题]"`
+- miniapp 补测只在目标项目存在 `miniapp/` 或诊断报告明确归因到小程序交付线时执行；未启用 miniapp 的项目跳过该层。
 - 若 agent 未返回 `tests_to_run`：
   - 记录契约缺失（P1）
-  - 执行最小兜底补测（按改动层至少 1 条 backend/frontend 相关测试）
+  - 执行最小兜底补测（按改动层至少 1 条 backend/frontend/miniapp 相关测试）
 - 重新运行当前用例验证修复（即 `demo` 层验证）。
 
 6. 汇总输出。
@@ -99,6 +101,7 @@ uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py "[测试文件]" --run-
 - `agents/demo-dev.md`
 - `agents/backend-dev.md`
 - `agents/frontend-dev.md`
+- `agents/miniapp-dev.md`
 - `protocols/tests-to-run-contract.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/index.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/common-failures.md`

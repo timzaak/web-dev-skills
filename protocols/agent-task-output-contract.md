@@ -16,6 +16,7 @@
     "change_scope": {
       "backend": false,
       "frontend": true,
+      "miniapp": false,
       "demo": false
     },
     "tests_to_run": [
@@ -56,14 +57,16 @@
 {
   "backend": false,
   "frontend": false,
+  "miniapp": false,
   "demo": false
 }
 ```
 
 规则：
 
-- 三个字段都必须出现
+- 四个字段都必须出现
 - 只将实际受影响层标记为 `true`
+- 未启用 miniapp 的项目仍返回 `"miniapp": false`，以保持修复闭环契约稳定
 
 ## `tests_to_run`
 
@@ -95,5 +98,6 @@
 ## Role-Specific Extensions
 
 - `frontend-dev` 可补充 `validation_results`、`components_added`、`components_modified`
+- `miniapp-dev` 可补充 `validation_results`、`components_added`、`components_modified`
 - `demo-dev` 可只保留最小成功字段，不需要 `validation_results`
 - 其他实现类 agent 可在不破坏上述字段语义的前提下扩展

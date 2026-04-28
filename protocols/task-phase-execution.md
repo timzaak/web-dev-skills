@@ -2,22 +2,40 @@
 
 定义 `t-task` 与 `t-run` 共用的 phase/slot/item 编排规则。
 
-## Phase Order
+## Supported And Active Phases
+
+`supported_phases` 固定为：
 
 - `backend`
 - `frontend`
+- `miniapp`
 - `demo`
+
+`active_phases` 是当前项目/feature 实际启用的阶段列表，只包含本次任务需要生成和执行的阶段。
+
+默认检测规则：
+
+- 项目根目录存在 `miniapp/` 时启用 `miniapp`
+- 设计文档明确包含小程序交付内容时启用 `miniapp`
+- 否则不启用 `miniapp`，不得生成或要求执行 miniapp 阶段
 
 依赖关系：
 
 - `backend` 无前置
 - `frontend` 依赖 `backend == completed`
-- `demo` 依赖 `frontend == completed`
+- `miniapp` 依赖 `frontend == completed`
+- `demo` 依赖 `active_phases` 中排在它之前的最后一个交付阶段 completed
+
+默认阶段顺序：
+
+- 无 miniapp：`backend -> frontend -> demo`
+- 有 miniapp：`backend -> frontend -> miniapp -> demo`
 
 ## Slot Order
 
 - backend: `dev -> test -> accept`, 完成后进入 `finalize`
 - frontend: `dev -> test -> accept`
+- miniapp: `dev -> test -> accept`
 - demo: `dev -> accept`
 
 ## Execution Unit
@@ -30,6 +48,9 @@
 - `frontend/dev/*.md`
 - `frontend/test/*.md`
 - `frontend/accept/*.md`
+- `miniapp/dev/*.md`
+- `miniapp/test/*.md`
+- `miniapp/accept/*.md`
 - `demo/dev/*.md`
 - `demo/accept/*.md`
 

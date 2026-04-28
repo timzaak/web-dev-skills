@@ -1,7 +1,7 @@
 ---
 name: t-task
 context: fork
-argument-hint: [任务名称] [--phase <backend|frontend|demo>]
+argument-hint: [任务名称] [--phase <backend|frontend|miniapp|demo>]
 allowed-tools:
   - AskUserQuestion
   - Read
@@ -49,12 +49,15 @@ allowed-tools:
 | 参数 | 说明 |
 |---|---|
 | `[feature]` | 功能名（必填） |
-| `--phase <backend\|frontend\|demo>` | 指定阶段生成；未指定时自动选择第一未完成阶段 |
+| `--phase <backend\|frontend\|miniapp\|demo>` | 指定阶段生成；未指定时自动选择第一未完成阶段 |
 
 ## Preconditions
 - `.ai/design/[feature].md` 必须存在。
 - 阶段依赖、slot 顺序、执行单元统一参考：`protocols/task-phase-execution.md`
 - `frontend` 阶段生成前必须先执行 `cd frontend && npm run generate-api && cd ../`
+- `miniapp` 是可选阶段：仅当项目根目录存在 `miniapp/`，或设计文档明确包含小程序交付内容时启用。
+- 未启用 miniapp 的项目不得自动生成 `.ai/task/[feature]/miniapp/`；显式请求 `--phase miniapp` 时应返回“当前项目未启用 miniapp 阶段”。
+- 启用 miniapp 时，默认阶段顺序为 `backend -> frontend -> miniapp -> demo`。
 - `generate-api` 失败时立即终止，不生成当前阶段任务文件。
 
 ## Output Layout
@@ -89,6 +92,18 @@ frontend 阶段：
 └── accept/FE-A01-*.md
 ```
 
+miniapp 阶段：
+```text
+.ai/task/[feature]/miniapp/
+├── index.md
+├── dev.md
+├── dev/MA-D01-*.md
+├── test.md
+├── test/MA-T01-*.md
+├── accept.md
+└── accept/MA-A01-*.md
+```
+
 demo 阶段：
 ```text
 .ai/task/[feature]/demo/
@@ -106,8 +121,8 @@ demo 阶段：
 
 ## Generation Flow
 1. 校验 `.ai/design/[feature].md` 存在。
-2. 解析 `[feature]` 和 `--phase`；未传 `--phase` 时自动选择第一未完成阶段。
-3. 按 `protocols/task-phase-execution.md` 校验阶段前置和 slot 顺序。
+2. 解析 `[feature]` 和 `--phase`；根据 `protocols/task-phase-execution.md` 检测 active phases；未传 `--phase` 时自动选择第一未完成 active phase。
+3. 按 `protocols/task-phase-execution.md` 校验阶段前置和 slot 顺序；未启用的 phase 不参与校验或生成。
 4. 如目标阶段为 `frontend`，先运行 `generate-api`。
 5. 按当前阶段 slot 串行调度相应 agent。
 6. 每个 slot agent 必须返回：
@@ -151,7 +166,7 @@ slot agent 输出必须至少包含：
 
 ## Item Contract
 每个 item 文件必须包含：
-- `id`: 稳定 ID，例如 `BE-D01`、`FE-T02`、`DE-A01`
+- `id`: 稳定 ID，例如 `BE-D01`、`FE-T02`、`MA-A01`、`DE-A01`
 - `title`: 子任务标题
 - `agent`: 执行 agent
 - `scope`: 本 item 的明确边界
@@ -178,6 +193,8 @@ slot agent 输出必须至少包含：
 - backend dev：数据库/实体、domain、repository、service/use case、HTTP/OpenAPI、外部集成、SDK/API 影响点。
 - backend test：domain/unit、repository/integration、API scenario、regression、高风险业务规则。
 - frontend dev：API/type 适配、schema/query/store、页面主流程、状态与错误处理、权限与空态。
+- miniapp dev：页面注册、组件主流程、主题接线、token/icon 集成、平台差异处理。
+- miniapp test：typecheck、weapp/h5 构建、模板门禁、页面注册与资源产物回归。
 - accept：design consistency、public API contract、business rules、permission/security、test evidence、demo readiness。
 
 ## Backend Finalize
@@ -195,7 +212,7 @@ slot agent 输出必须至少包含：
 - 生成或依赖旧状态字段。
 - 生成或依赖 `agents` 根字段。
 - 支持旧参数。
-- 生成根级 `backend-dev.md`、`backend-test.md`、`frontend-dev.md`、`agents.json` 等旧结构文件。
+- 生成根级 `backend-dev.md`、`backend-test.md`、`frontend-dev.md`、`miniapp-dev.md`、`agents.json` 等旧结构文件。
 - 把 `dev.md`、`test.md`、`accept.md` 当作 `/t-run` 的直接执行输入。
 - 在单个 item 中塞入跨多模块、多天或不可恢复的大任务。
 - 当前阶段 slot 并行生成；slot 必须按依赖串行。

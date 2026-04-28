@@ -1,7 +1,7 @@
 ---
 name: t-run
 context: fork
-argument-hint: [任务名称] [--phase <backend|frontend|demo>]
+argument-hint: [任务名称] [--phase <backend|frontend|miniapp|demo>]
 allowed-tools:
   - AskUserQuestion
   - Read
@@ -32,7 +32,8 @@ allowed-tools:
 
 前置阶段状态要求：
 - `frontend` 依赖 `backend == completed`
-- `demo` 依赖 `frontend == completed`
+- `miniapp` 是可选阶段，启用时依赖 `frontend == completed`
+- `demo` 依赖 active phases 中排在它之前的最后一个交付阶段 completed
 
 ## Output Contract
 
@@ -53,17 +54,18 @@ allowed-tools:
 | 参数 | 说明 |
 |---|---|
 | `[feature]` | 功能名 |
-| `--phase <backend\|frontend\|demo>` | 仅执行指定阶段；未指定时执行 `.state.json` 的当前阶段 |
+| `--phase <backend\|frontend\|miniapp\|demo>` | 仅执行指定阶段；未指定时执行 `.state.json` 的当前阶段 |
 
 ## Preconditions
 - `.ai/task/[feature]/.state.json` 必须存在且可解析。
 - `.state.json` 不得包含旧状态字段或 `agents` 根字段。
+- 目标阶段必须是 supported phase，且存在于当前任务 active phases 中；未启用 miniapp 的项目不得执行 `--phase miniapp`。
 - 目标阶段必须已生成，且 `phases[phase].generated_at` 非空。
 - 前置阶段依赖统一参考 `protocols/task-phase-execution.md`。
 - 当前阶段目录必须存在。
 - 当前阶段必须包含：
   - `index.md`
-  - 对应 slot manifest：backend/frontend 为 `dev.md`, `test.md`, `accept.md`；demo 为 `dev.md`, `accept.md`
+  - 对应 slot manifest：backend/frontend/miniapp 为 `dev.md`, `test.md`, `accept.md`；demo 为 `dev.md`, `accept.md`
   - 对应 item 目录和 item 文件
   - backend 阶段额外要求 `finalize.md`
 
@@ -138,6 +140,7 @@ allowed-tools:
 - 依赖不满足：阻塞后续依赖 item。
 - 状态写入失败：重试一次，失败则终止。
 - 阶段校验失败：提示先完成前置阶段。
+- 阶段未启用：提示当前项目未启用该阶段，并展示 `.state.json.phases` 中的 active phases。
 - 阶段未生成：提示先运行 `/t-task [feature] --phase [phase]`。
 - item 文件缺失或 DAG 非法：提示重建该阶段任务目录。
 

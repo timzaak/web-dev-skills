@@ -126,7 +126,7 @@ cd backend && cargo check --package <api-package>
 ### 修复后补测契约（MANDATORY）
 
 当 backend-dev 被用于修复 `t-demo-run` 失败时，`task_completion` 必须返回：
-- `change_scope`: 标记本次修改影响层（backend/frontend/demo）
+- `change_scope`: 标记本次修改影响层（backend/frontend/miniapp/demo）
 - `tests_to_run`: 相关最小测试集（供 `t-demo-run` 修复门禁执行）
 
 字段结构和允许命令统一参考：`protocols/tests-to-run-contract.md`
@@ -147,6 +147,7 @@ cd backend && cargo check --package <api-package>
     "change_scope": {
       "backend": true,
       "frontend": false,
+      "miniapp": false,
       "demo": false
     },
     "tests_to_run": [

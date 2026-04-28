@@ -19,13 +19,14 @@ tools:
 | 参数 | 必需 | 说明 |
 |---|---|---|
 | `design_doc_path` | 是 | 设计文档路径（如 `.ai/design/feature.md`） |
-| `phase` | 是 | `backend` / `frontend` / `demo` |
+| `phase` | 是 | `backend` / `frontend` / `miniapp` / `demo` |
 
 ## Phase Mapping
 | phase | agents | 文档关注段 |
 |---|---|---|
 | backend | backend-dev, backend-test, backend-accept | API、数据模型、后端实现、后端测试 |
 | frontend | frontend-dev, frontend-test, frontend-accept | 前端实现、前端交互与状态、前端测试 |
+| miniapp | miniapp-dev, miniapp-test, miniapp-accept | 小程序页面、主题、构建与模板门禁 |
 | demo | demo-dev, demo-accept | Demo/E2E、用户故事场景 |
 
 ## Output Contract
@@ -54,6 +55,7 @@ tools:
    - 动态部分：上一个 slot 已写入任务文件的路径与 handoff 摘要
 7. 不允许把 `context-isolator` 输出当作下游 slot 的唯一上下文来源。
 8. `frontend` phase 不把 API 契约作为单独上下文块；若设计文档包含整体 API 设计，只提取前端实现必需的最小事实。
+9. `miniapp` phase 聚焦 `miniapp/` 交付线，不复用 Web 前端或 Demo 的测试约束作为默认事实。
 
 ## Errors
 | 错误 | 处理 |

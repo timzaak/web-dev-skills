@@ -20,11 +20,11 @@
 
 - 不包含旧状态字段或 `agents` 根字段
 - `feature` 存在
-- `phase` 为 `backend|frontend|demo`
-- `phases` 包含 `backend/frontend/demo`
+- `phase` 为 supported phases：`backend|frontend|miniapp|demo`
+- `phases` 包含当前任务的 active phases；未启用 miniapp 的项目不要求包含 `miniapp`
 - `phases[*].status` 存在
 - `tasks[phase]` 存在
-- backend/frontend 含 `dev/test/accept`
+- backend/frontend/miniapp 含 `dev/test/accept`
 - demo 含 `dev/accept`
 - 每个 slot 含 `status/manifest/items`
 - 每个 item 含 `status/file/agent/depends_on`

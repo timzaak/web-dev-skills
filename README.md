@@ -87,6 +87,7 @@
 - 产品规范入口：[guides/product/index.md](/guides/product/index.md)
 - 后端开发与门禁：[guides/backend/index.md](/guides/backend/index.md)
 - 前端开发与门禁：[guides/frontend/index.md](/guides/frontend/index.md)
+- 小程序开发与门禁：[guides/miniapp/index.md](/guides/miniapp/index.md)
 - Demo 测试与诊断：[guides/demo/index.md](/guides/demo/index.md)
 - 跨领域总纲：[guides/core/index.md](/guides/core/index.md)
 - 协议索引：[protocols/index.md](/protocols/index.md)

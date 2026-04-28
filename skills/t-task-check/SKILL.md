@@ -1,6 +1,6 @@
 ---
 name: t-task-check
-argument-hint: [任务名称] [--phase <backend|frontend|demo>]
+argument-hint: [任务名称] [--phase <backend|frontend|miniapp|demo>]
 allowed-tools:
   - Read
   - Glob
@@ -27,7 +27,7 @@ allowed-tools:
 
 ## 使用方式
 ```bash
-/t-task-check [feature] [--phase <backend|frontend|demo>]
+/t-task-check [feature] [--phase <backend|frontend|miniapp|demo>]
 ```
 
 | 参数 | 说明 |
@@ -41,10 +41,10 @@ allowed-tools:
 - 阶段目录：`.ai/task/[feature]/[phase]/`
 - 阶段索引：`index.md`
 - slot manifest：
-  - backend/frontend: `dev.md`、`test.md`、`accept.md`
+  - backend/frontend/miniapp: `dev.md`、`test.md`、`accept.md`
   - demo: `dev.md`、`accept.md`
 - item 文件：
-  - backend/frontend: `dev/*.md`、`test/*.md`、`accept/*.md`
+  - backend/frontend/miniapp: `dev/*.md`、`test/*.md`、`accept/*.md`
   - demo: `dev/*.md`、`accept/*.md`
 - backend 额外文件：`finalize.md`
 
@@ -59,7 +59,7 @@ allowed-tools:
 ## 执行流程
 1. 校验设计文档是否存在。
 2. 读取 `.state.json` 并验证 schema。
-3. 若指定 `--phase`，仅检查该阶段；否则检查当前阶段。
+3. 若指定 `--phase`，仅检查该阶段；否则检查当前阶段。指定阶段必须存在于 `.state.json.phases` 的 active phases 中。
 4. 校验阶段依赖正确性。
 5. 读取阶段目录下的 `index.md`、slot manifest 和 item 文件。
 6. 按 `protocols/task-check-rubric.md` 校验 item DAG 与 manifest 覆盖关系。
@@ -67,6 +67,7 @@ allowed-tools:
    - 根级 `backend-dev.md`
    - 根级 `backend-test.md`
    - 根级 `frontend-dev.md`
+   - 根级 `miniapp-dev.md`
    - 根级 `demo-dev.md`
    - 根级 `README.md`
    - 根级 `agents.json`
@@ -79,6 +80,7 @@ allowed-tools:
 10. 调用当前阶段对应 agent 进行专业校验：
    - backend: `backend-dev`, `backend-test`, `backend-accept`
    - frontend: `frontend-dev`, `frontend-test`, `frontend-accept`
+   - miniapp: `miniapp-dev`, `miniapp-test`, `miniapp-accept`
    - demo: `demo-dev`, `demo-accept`
 11. 聚合 agent 结果并进行主流程复核。
 12. 按评分体系生成评分与问题清单。
@@ -101,7 +103,8 @@ allowed-tools:
 | `STATE_JSON_INVALID` | `.state.json` 格式错误 | 状态文件解析失败 | 修复 JSON 后重试；或重建任务目录 |
 | `TASK_SCHEMA_INVALID` | 缺少 `phase/phases/tasks/status/manifest/items` 字段 | 任务状态结构不完整 | 运行 `/t-task [feature] --phase [phase]` 重建 |
 | `LEGACY_STRUCTURE_FOUND` | 发现旧结构字段或旧任务文件 | 旧结构残留 | 删除旧任务目录后重新运行 `/t-task` |
-| `PHASE_INVALID` | `--phase` 不是 `backend|frontend|demo` | 非法阶段，仅支持 backend/frontend/demo | 使用合法参数后重试 |
+| `PHASE_INVALID` | `--phase` 不是 `backend|frontend|miniapp|demo` | 非法阶段，仅支持 backend/frontend/miniapp/demo | 使用合法参数后重试 |
+| `PHASE_NOT_ACTIVE` | `--phase` 不在当前任务 active phases 中 | 当前项目未启用该阶段 | 使用 `.state.json.phases` 中存在的阶段，或重新运行 `/t-task` 生成该阶段 |
 | `PHASE_DIR_MISSING` | 阶段目录不存在 | 找不到阶段目录 | 运行 `/t-task [feature] --phase [phase]` 生成 |
 | `ITEM_DAG_INVALID` | item 依赖缺失或成环 | 子任务依赖非法 | 修复或重新生成该阶段 |
 | `REPORT_INCONSISTENT` | 报告中的严重度、总分、准入结论或问题数量互相冲突 | 报告自检失败 | 重新聚合证据并重生成报告 |
@@ -154,4 +157,5 @@ P1 问题:
 - `skills/t-task/references/phase-index-generator.md`
 - `agents/backend-dev.md`
 - `agents/frontend-dev.md`
+- `agents/miniapp-dev.md`
 - `agents/demo-accept.md`

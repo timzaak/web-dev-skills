@@ -19,7 +19,7 @@ tools:
 | 参数 | 必需 | 说明 |
 |---|---|---|
 | `feature` | 是 | 功能名 |
-| `phase` | 是 | backend / frontend / demo |
+| `phase` | 是 | backend / frontend / miniapp / demo |
 | `slot_manifests` | 是 | 当前阶段 slot manifest 路径与摘要 |
 | `items` | 是 | 当前阶段全部 item 元数据 |
 | `item_dag` | 是 | item 依赖图 |
@@ -32,6 +32,7 @@ tools:
 |---|---|---|---|
 | backend | `backend/index.md` | `dev.md`, `test.md`, `accept.md`, `finalize.md` | `dev/`, `test/`, `accept/` |
 | frontend | `frontend/index.md` | `dev.md`, `test.md`, `accept.md` | `dev/`, `test/`, `accept/` |
+| miniapp | `miniapp/index.md` | `dev.md`, `test.md`, `accept.md` | `dev/`, `test/`, `accept/` |
 | demo | `demo/index.md` | `dev.md`, `accept.md` | `dev/`, `accept/` |
 
 ## Required Sections in index.md
@@ -110,6 +111,7 @@ graph TD
 - 当前阶段的 `index.md` 应基于 slot manifest 和 item 文件生成后再汇总。
 - item 依赖图必须与 `.state.json` 一致。
 - backend 的 `finalize.md` 只作为 `/t-backend-finalize` 输入，不进入普通 item DAG。
+- miniapp 只在当前任务 active phases 包含 `miniapp` 时生成；未启用 miniapp 的项目不得创建 `miniapp/index.md`。
 
 ## Errors
 | 错误 | 处理 |
