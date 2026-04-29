@@ -1,5 +1,6 @@
 ---
 name: t-task-check
+description: Validate task plan executability and consistency with a 100-point score and P0/P1/P2 fix list.
 argument-hint: [任务名称] [--phase <backend|frontend|miniapp|demo>]
 allowed-tools:
   - Read

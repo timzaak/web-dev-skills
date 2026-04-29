@@ -1,5 +1,6 @@
 ---
 name: t-prd-check
+description: Validate PRD completeness, user story quality (INVEST/GWT), and consistency between PRD and user stories.
 argument-hint: [feature-name|--all]
 allowed-tools:
   - Read

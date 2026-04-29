@@ -1,5 +1,6 @@
 ---
 name: t-consistency-check
+description: Compare PRD with backend implementation to identify gaps in capability boundaries, model constraints, validation, permissions, and business logic.
 argument-hint: [module-name|--all]
 allowed-tools:
   - Read

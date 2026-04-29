@@ -1,5 +1,6 @@
 ---
 name: t-demo-run-all
+description: Discover and run all demo E2E tests sequentially with auto-fix support and summary report generation.
 allowed-tools:
   - Read
   - Glob

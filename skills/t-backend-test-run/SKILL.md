@@ -1,5 +1,6 @@
 ---
 name: t-backend-test-run
+description: Run Rust backend tests with cargo nextest, auto-diagnose failures, and fix issues in a test-fix-retest loop.
 allowed-tools:
   - Bash
   - Read
