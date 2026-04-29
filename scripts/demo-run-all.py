@@ -22,7 +22,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 
-from lib.paths import REPO_ROOT
+from lib.paths import REPO_ROOT, SCRIPTS_DIR
 
 # Configure UTF-8 encoding for Windows console
 if sys.platform == "win32":
@@ -288,7 +288,7 @@ def run_single(test_file: Path, *, log_level: str, batch_run_id: str) -> RunEntr
     per_file_run_id = f"{batch_run_id}-{test_file.stem}"
     cmd = [
         sys.executable,
-        str(REPO_ROOT / "scripts" / "demo-test-runner.py"),
+        str(SCRIPTS_DIR / "demo-test-runner.py"),
         rel_path,
         "--mode",
         "fast",

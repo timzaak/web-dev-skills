@@ -14,7 +14,7 @@ from pathlib import Path
 from . import docker
 from .cli import require_executable
 from .net import wait_for_http_ok, wait_for_tcp
-from .paths import LOG_DIR, REPO_ROOT, ensure_dir
+from .paths import LOG_DIR, REPO_ROOT, SCRIPTS_DIR, ensure_dir
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -177,7 +177,7 @@ def start_environment(
         logger.verbose_info("Executing demo-stop.py script...")
         try:
             stop_result = subprocess.run(
-                [sys.executable, str(REPO_ROOT / "scripts" / "demo-stop.py"), "--quiet"],
+                [sys.executable, str(SCRIPTS_DIR / "demo-stop.py"), "--quiet"],
                 capture_output=True,
                 timeout=30,  # Add 30 second timeout
             )

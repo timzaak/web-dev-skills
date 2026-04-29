@@ -4,12 +4,12 @@ import subprocess
 import sys
 from pathlib import Path
 
-from lib.paths import REPO_ROOT
+from lib.paths import REPO_ROOT, SCRIPTS_DIR
 
 
 def main() -> int:
     test_file = sys.argv[1] if len(sys.argv) > 1 else ""
-    args = [sys.executable, str(REPO_ROOT / "scripts" / "run-test-quiet.py")]
+    args = [sys.executable, str(SCRIPTS_DIR / "run-test-quiet.py")]
     if test_file:
         args.append(test_file)
     args.extend(["--log-level", "verbose"])

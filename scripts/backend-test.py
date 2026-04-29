@@ -12,7 +12,7 @@ from typing import Callable
 from lib.cli import require_executable
 from lib import docker
 from lib.net import is_port_open
-from lib.paths import REPO_ROOT
+from lib.paths import REPO_ROOT, SCRIPTS_DIR
 
 
 def is_windows() -> bool:
@@ -165,7 +165,7 @@ def ensure_container(spec: ContainerSpec) -> tuple[int, ContainerState]:
 
 
 def start_test_environment() -> tuple[int, list[ContainerState]]:
-    command = [sys.executable, str(REPO_ROOT / "scripts" / "test-start.py")]
+    command = [sys.executable, str(SCRIPTS_DIR / "test-start.py")]
     result = subprocess.run(command, cwd=REPO_ROOT)
     return result.returncode, []
 
@@ -450,7 +450,7 @@ def main() -> int:
             )
     finally:
         subprocess.run(
-            [sys.executable, str(REPO_ROOT / "scripts" / "test-stop.py")],
+            [sys.executable, str(SCRIPTS_DIR / "test-stop.py")],
             cwd=REPO_ROOT,
             check=False,
         )

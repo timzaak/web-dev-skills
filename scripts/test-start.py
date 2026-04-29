@@ -8,7 +8,7 @@ import time
 
 from lib import docker
 from lib.net import is_port_open
-from lib.paths import REPO_ROOT
+from lib.paths import REPO_ROOT, SCRIPTS_DIR
 
 
 def _ports_free() -> bool:
@@ -145,7 +145,7 @@ min_pool_size = 1
 
 
 def main() -> int:
-    stop_result = subprocess.run([sys.executable, str(REPO_ROOT / "scripts" / "test-stop.py")])
+    stop_result = subprocess.run([sys.executable, str(SCRIPTS_DIR / "test-stop.py")])
     if stop_result.returncode != 0:
         return stop_result.returncode
 

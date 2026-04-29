@@ -8,11 +8,11 @@ import urllib.request
 from pathlib import Path
 
 from lib.cli import require_executable, run_cmd
-from lib.paths import LOG_DIR, REPO_ROOT
+from lib.paths import LOG_DIR, REPO_ROOT, SCRIPTS_DIR
 
 
 def run_python_script(name: str) -> int:
-    return subprocess.run([sys.executable, str(REPO_ROOT / "scripts" / name)]).returncode
+    return subprocess.run([sys.executable, str(SCRIPTS_DIR / name)]).returncode
 
 
 def health_check(url: str, retries: int = 3, delay: int = 2) -> bool:
