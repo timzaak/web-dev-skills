@@ -43,11 +43,27 @@
 - `/t-tools:t-consistency-check`：复核后端 PRD 与实现是否一致，不承担全域 DDD 总检查
 - `/t-tools:t-demo-run-all`：批量执行 Demo 测试
 
+## 安装
+
+```bash
+# 1. 克隆本仓库
+git clone <repo-url>
+
+# 2. 在目标项目中启动 Claude Code 并加载插件
+cd /your-project
+claude --plugin-dir /path/to/skills
+```
+
+前置依赖：
+
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI 已安装并登录
+- MCP Server `context7` 已配置（用于查询第三方库文档）
+
 ## 3 分钟快速上手
 
 前置条件：
 
-- 已安装 `t-tools` plugin
+- 已按上方 [安装](#安装) 步骤加载 t-tools 插件
 - 目标项目具备运行时目录：`docs/`、`.ai/`
 - 已启用 `context7`
 
