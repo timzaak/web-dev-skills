@@ -12,7 +12,7 @@ from typing import Callable
 from lib.cli import require_executable
 from lib import docker
 from lib.net import is_port_open
-from lib.paths import REPO_ROOT, SCRIPTS_DIR
+from lib.paths import BACKEND_TEST_LOG, REPO_ROOT, SCRIPTS_DIR, ensure_dir
 
 
 def is_windows() -> bool:
@@ -424,7 +424,8 @@ def main() -> int:
     if ddl_guard != 0:
         return ddl_guard
 
-    test_log = REPO_ROOT / "backend-test-output.log"
+    test_log = BACKEND_TEST_LOG
+    ensure_dir(test_log.parent)
     test_cmd = build_nextest_command(nextest_args)
     test_env = os.environ.copy()
     # Required by billing crypto tests

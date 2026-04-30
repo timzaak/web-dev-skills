@@ -8,7 +8,7 @@ import time
 
 from lib import docker
 from lib.net import is_port_open
-from lib.paths import REPO_ROOT, SCRIPTS_DIR
+from lib.paths import PGDOG_TEST_CONFIG, PGDOG_USERS_CONFIG, SCRIPTS_DIR, ensure_dir
 
 
 def _ports_free() -> bool:
@@ -70,15 +70,9 @@ pool_size = 32
 min_pool_size = 1
 """
 
-    # Write config to file in current directory for Docker compatibility
-    config_path = os.path.join(REPO_ROOT, "pgdog-test.toml")
-    with open(config_path, 'w') as f:
-        f.write(pgdog_config)
-
-    # Write users config to file
-    users_path = os.path.join(REPO_ROOT, "users-test.toml")
-    with open(users_path, 'w') as f:
-        f.write(users_config)
+    ensure_dir(PGDOG_TEST_CONFIG.parent)
+    PGDOG_TEST_CONFIG.write_text(pgdog_config, encoding="utf-8")
+    PGDOG_USERS_CONFIG.write_text(users_config, encoding="utf-8")
 
     # Create Docker network if it doesn't exist
     subprocess.run(
@@ -89,11 +83,11 @@ min_pool_size = 1
     # Convert path to Windows format for Docker volume mount (avoid Git Bash path conversion)
     # On Windows, Docker needs native Windows paths
     if os.name == 'nt':
-        config_path_docker = config_path.replace('\\', '\\\\')
-        users_path_docker = users_path.replace('\\', '\\\\')
+        config_path_docker = str(PGDOG_TEST_CONFIG).replace('\\', '\\\\')
+        users_path_docker = str(PGDOG_USERS_CONFIG).replace('\\', '\\\\')
     else:
-        config_path_docker = config_path
-        users_path_docker = users_path
+        config_path_docker = str(PGDOG_TEST_CONFIG)
+        users_path_docker = str(PGDOG_USERS_CONFIG)
 
     # Start PgDog container (mount both config files in working directory)
     # PgDog's working directory is /pgdog and it looks for pgdog.toml and users.toml by default

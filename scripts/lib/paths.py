@@ -12,6 +12,10 @@ def _resolve_repo_root() -> Path:
     3. Walk this scripts tree upward for CLAUDE.md / .git marker
     4. parents[2] relative to this file
     """
+    override = os.environ.get("CLAUDE_PROJECT_DIR")
+    if override:
+        return Path(override).expanduser().resolve()
+
     override = os.environ.get("AI_PROJECT_ROOT")
     if override:
         return Path(override).expanduser().resolve()
@@ -45,6 +49,10 @@ REPO_ROOT = _resolve_repo_root()
 SCRIPTS_DIR = Path(__file__).resolve().parents[1]  # scripts/ directory (sibling of lib/)
 LOG_DIR = REPO_ROOT / "log"
 RUNTIME_DIR = LOG_DIR / "runtime"
+TEST_CONFIG_DIR = RUNTIME_DIR / "test-config"
+BACKEND_TEST_LOG = LOG_DIR / "backend-test-output.log"
+PGDOG_TEST_CONFIG = TEST_CONFIG_DIR / "pgdog-test.toml"
+PGDOG_USERS_CONFIG = TEST_CONFIG_DIR / "users-test.toml"
 
 
 def ensure_dir(path: Path) -> Path:

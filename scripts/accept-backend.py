@@ -8,7 +8,7 @@ import urllib.request
 from pathlib import Path
 
 from lib.cli import require_executable, run_cmd
-from lib.paths import LOG_DIR, REPO_ROOT, SCRIPTS_DIR
+from lib.paths import BACKEND_TEST_LOG, LOG_DIR, REPO_ROOT, SCRIPTS_DIR, ensure_dir
 
 
 def run_python_script(name: str) -> int:
@@ -34,7 +34,8 @@ def health_check(url: str, retries: int = 3, delay: int = 2) -> bool:
 def main() -> int:
     cargo = require_executable("cargo")
     start = time.time()
-    backend_test_log = REPO_ROOT / "backend-test-output.log"
+    backend_test_log = BACKEND_TEST_LOG
+    ensure_dir(backend_test_log.parent)
     with open(backend_test_log, "w", encoding="utf-8") as log_file:
         test_result = subprocess.run(
             [cargo, "nextest", "run", "--workspace"],
@@ -89,4 +90,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-
