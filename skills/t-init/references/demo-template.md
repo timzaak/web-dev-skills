@@ -27,7 +27,7 @@ Demo 使用 `playwright-unified-logger` 包作为日志依赖。
     "lint": "eslint e2e/"
   },
   "dependencies": {
-    "playwright-unified-logger": "file:../packages/playwright-unified-logger"
+    "playwright-unified-logger": "^0.1.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",

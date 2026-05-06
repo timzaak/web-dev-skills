@@ -124,18 +124,6 @@ allowed-tools:
 │       ├── lib/
 │       │   └── api-client.ts
 │       └── routeTree.d.ts
-├── packages/
-│   └── playwright-unified-logger/
-│       ├── package.json         # 独立 npm 包
-│       ├── tsconfig.json
-│       └── src/
-│           ├── index.ts
-│           ├── unified-logger.ts
-│           ├── log-config.ts
-│           ├── console-logger.ts
-│           ├── network-logger.ts
-│           ├── route-logger.ts
-│           └── test-code-logger.ts
 ├── demo/
 │   ├── package.json             # 依赖 unified-logger 包
 │   ├── tsconfig.json
@@ -211,29 +199,12 @@ allowed-tools:
 4. `vite.config.ts` 要有注释说明每个插件的作用
 5. `package.json` 的 scripts 要有注释说明每个命令做什么
 
-### Step 5: 生成 UnifiedLogger 包
-
-读取 [references/unified-logger-package-template.md](references/unified-logger-package-template.md) 获取独立 npm 包的完整文件模板。
-
-生成 `packages/playwright-unified-logger/` 目录，包含：
-1. `package.json` — 包名为 `{{PROJECT_NAME}}-playwright-unified-logger`，peerDependency 为 `@playwright/test`
-2. `tsconfig.json` — 输出到 `dist/`，declaration 生成
-3. `src/index.ts` — 桶导出所有类和类型
-4. `src/unified-logger.ts` — 统一日志协调器
-5. `src/log-config.ts` — 环境变量配置（`UNIFIED_LOG_*` 前缀，兼容 `DEMO_LOG_*`）
-6. `src/console-logger.ts` — 浏览器控制台日志捕获
-7. `src/network-logger.ts` — API 请求/响应捕获（含脱敏）
-8. `src/route-logger.ts` — SPA 路由变化追踪
-9. `src/test-code-logger.ts` — Node.js 测试代码日志捕获
-
-生成后执行 `npm install` 和 `npm run build` 验证包可编译。
-
-### Step 6: 生成 Demo E2E 测试
+### Step 5: 生成 Demo E2E 测试
 
 读取 [references/demo-template.md](references/demo-template.md) 获取 demo 测试的完整文件模板。
 
 生成 `demo/` 目录，包含：
-1. `package.json` — 依赖 `{{PROJECT_NAME}}-playwright-unified-logger`（通过 `file:` 引用）
+1. `package.json` — 依赖 `playwright-unified-logger`（通过 npm install 安装）
 2. `tsconfig.json`
 3. `playwright.config.ts` — 单 worker，headless Chrome
 4. `eslint.config.js` — 禁止 `page.waitForTimeout()`
@@ -249,7 +220,7 @@ allowed-tools:
 
 生成后执行 `npm install` 验证依赖安装。
 
-### Step 7: 生成脚本
+### Step 6: 生成脚本
 
 读取 [references/scripts-template.md](references/scripts-template.md) 获取完整模板。
 
@@ -258,7 +229,7 @@ allowed-tools:
 - 默认复用已有容器，`--clean` 参数重建
 - 容器名称使用项目名称前缀避免冲突
 
-### Step 8: 生成 AGENTS.md 和 CLAUDE.md
+### Step 7: 生成 AGENTS.md 和 CLAUDE.md
 
 读取 [references/agents-template.md](references/agents-template.md) 获取模板内容。
 
@@ -269,14 +240,13 @@ allowed-tools:
 这两个文件帮助 Claude Code 在后续开发中遵循项目规范和行为准则。
 生成后提示用户填写 `AGENTS.md` 顶部的项目描述占位符。
 
-### Step 9: 验证
+### Step 8: 验证
 
 生成完成后，执行以下验证：
 1. 检查所有文件都已创建（Glob 验证）
 2. 后端 `cargo check`（如果 cargo 可用）— 只做语法检查，不编译
 3. 前端 `npm install` + `npm run type-check`（如果 npm 可用）
-4. UnifiedLogger 包 `npm install && npm run build`（在 `packages/playwright-unified-logger/` 目录）
-5. Demo `npm install`（在 `demo/` 目录）
+4. Demo `npm install`（在 `demo/` 目录，会自动安装 `playwright-unified-logger`）
 
 如果验证工具不可用，跳过并提示用户手动验证。
 
@@ -313,17 +283,6 @@ allowed-tools:
 - [ ] `AGENTS.md`
 - [ ] `CLAUDE.md`
 
-**UnifiedLogger 包（必须）：**
-- [ ] `packages/playwright-unified-logger/package.json`
-- [ ] `packages/playwright-unified-logger/tsconfig.json`
-- [ ] `packages/playwright-unified-logger/src/index.ts`
-- [ ] `packages/playwright-unified-logger/src/unified-logger.ts`
-- [ ] `packages/playwright-unified-logger/src/log-config.ts`
-- [ ] `packages/playwright-unified-logger/src/console-logger.ts`
-- [ ] `packages/playwright-unified-logger/src/network-logger.ts`
-- [ ] `packages/playwright-unified-logger/src/route-logger.ts`
-- [ ] `packages/playwright-unified-logger/src/test-code-logger.ts`
-
 **Demo E2E 测试（必须）：**
 - [ ] `demo/package.json`
 - [ ] `demo/tsconfig.json`
@@ -345,7 +304,7 @@ allowed-tools:
 - 项目路径
 - 已生成的文件数量
 - OpenAPI 开关位置（`config.toml` → `server.enable_openapi`）
-- UnifiedLogger 包位置和用法
+- UnifiedLogger 通过 `npm install playwright-unified-logger` 安装
 - Demo 测试运行命令（`cd demo && npm test`）
 - 日志环境变量说明（`UNIFIED_LOG_LEVEL` 等）
 - AGENTS.md 和 CLAUDE.md 已生成，提醒用户填写项目描述
@@ -361,8 +320,7 @@ allowed-tools:
 - 后端是否能编译通过（`cargo check`）
 - 前端代码是否有足够的中文注释
 - 前端类型检查是否通过
-- UnifiedLogger 包是否能编译通过（`npm run build`）
-- demo 中 import 路径是否正确指向 `{{PROJECT_NAME}}-playwright-unified-logger`
+- demo 中 import 路径是否正确指向 `playwright-unified-logger`（npm 包）
 - 配置文件是否有完整的注释说明每个字段
 - 所有占位符是否已替换为实际项目名称
 
@@ -378,7 +336,6 @@ allowed-tools:
 
 - 后端文件模板：[references/backend-template.md](references/backend-template.md)
 - 前端文件模板：[references/frontend-template.md](references/frontend-template.md)
-- UnifiedLogger 包模板：[references/unified-logger-package-template.md](references/unified-logger-package-template.md)
 - Demo E2E 测试模板：[references/demo-template.md](references/demo-template.md)
 - 脚本模板：[references/scripts-template.md](references/scripts-template.md)
 - AGENTS.md 模板：[references/agents-template.md](references/agents-template.md)
