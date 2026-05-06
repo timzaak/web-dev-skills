@@ -46,5 +46,10 @@
     "network-logger",
     "console-logger"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/timzaak/web-dev-skills.git",
+    "directory": "packages/playwright-unified-logger"
+  },
   "license": "MIT"
 }
