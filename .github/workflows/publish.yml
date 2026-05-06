@@ -1,0 +1,47 @@
+name: Publish Packages
+
+on:
+  push:
+    tags:
+      - 'playwright-unified-logger@*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      - name: Resolve package from tag
+        id: pkg
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          PKG_NAME="${TAG%%@*}"
+          # handle scoped packages like @scope/name@version
+          if [[ "$TAG" == *@*/* ]]; then
+            PKG_NAME="@${TAG%%@*}/${TAG#*@/}"
+            PKG_NAME="${PKG_NAME%%@*}"
+          fi
+          echo "name=$PKG_NAME" >> "$GITHUB_OUTPUT"
+          echo "path=packages/$PKG_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Install dependencies
+        working-directory: ${{ steps.pkg.outputs.path }}
+        run: npm ci
+
+      - name: Build
+        working-directory: ${{ steps.pkg.outputs.path }}
+        run: npm run build
+
+      - name: Publish
+        working-directory: ${{ steps.pkg.outputs.path }}
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
