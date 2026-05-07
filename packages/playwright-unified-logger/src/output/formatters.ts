@@ -12,7 +12,7 @@ import type {
   TestSummary,
   AggregatedRequestStats,
   DeduplicationStats,
-} from '../types'
+} from '../types.js'
 
 // ── Network Formatters ──
 

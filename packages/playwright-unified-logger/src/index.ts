@@ -16,19 +16,19 @@
  */
 
 // Core class
-export { UnifiedLogger } from './core/unified-logger'
+export { UnifiedLogger } from './core/unified-logger.js'
 
 // Sub-loggers (can be used independently)
-export { NetworkLogger } from './loggers/network-logger'
-export { ConsoleLogger } from './loggers/console-logger'
-export { RouteLogger } from './loggers/route-logger'
-export { TestCodeLogger } from './loggers/test-code-logger'
+export { NetworkLogger } from './loggers/network-logger.js'
+export { ConsoleLogger } from './loggers/console-logger.js'
+export { RouteLogger } from './loggers/route-logger.js'
+export { TestCodeLogger } from './loggers/test-code-logger.js'
 
 // Event bus
-export { LoggerEventBus } from './core/event-bus'
+export { LoggerEventBus } from './core/event-bus.js'
 
 // Configuration
-export { resolveConfig, isSilentMode, isVerboseMode, isMiniMode, formatLogPath } from './config'
+export { resolveConfig, isSilentMode, isVerboseMode, isMiniMode, formatLogPath } from './config.js'
 
 // All types
 export type {
@@ -50,4 +50,4 @@ export type {
   ConsoleLogEntry,
   RouteChangeLog,
   TestCodeLogEntry,
-} from './types'
+} from './types.js'

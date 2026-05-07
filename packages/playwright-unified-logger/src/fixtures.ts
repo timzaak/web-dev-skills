@@ -15,8 +15,8 @@
  */
 
 import { test as base } from '@playwright/test'
-import { UnifiedLogger } from './core/unified-logger'
-import type { UnifiedLoggerConfig } from './types'
+import { UnifiedLogger } from './core/unified-logger.js'
+import type { UnifiedLoggerConfig } from './types.js'
 
 export interface LoggerFixtures {
   unifiedLogger: UnifiedLogger

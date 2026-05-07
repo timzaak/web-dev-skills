@@ -6,10 +6,10 @@
  */
 
 import * as path from 'path'
-import type { TestCodeLogEntry, TestCodeLoggerOptions } from '../types'
-import { LoggerEventBus } from '../core/event-bus'
-import { WriteBuffer } from '../output/write-buffer'
-import { formatTestCodeLogLine } from '../output/formatters'
+import type { TestCodeLogEntry, TestCodeLoggerOptions } from '../types.js'
+import { LoggerEventBus } from '../core/event-bus.js'
+import { WriteBuffer } from '../output/write-buffer.js'
+import { formatTestCodeLogLine } from '../output/formatters.js'
 
 type ConsoleMethod = 'log' | 'info' | 'warn' | 'error'
 

@@ -5,7 +5,7 @@
  */
 
 import * as path from 'path'
-import type { LogLevel, UnifiedLoggerConfig } from './types'
+import type { LogLevel, UnifiedLoggerConfig } from './types.js'
 
 /** Resolve env var with dual prefix support (new UNIFIED_LOG_* and legacy DEMO_LOG_*) */
 function env(key: string, fallback: string): string {

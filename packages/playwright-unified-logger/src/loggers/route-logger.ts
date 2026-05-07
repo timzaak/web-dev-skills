@@ -5,9 +5,9 @@
  */
 
 import { Page, Frame } from '@playwright/test'
-import type { RouteChangeLog, RouteLoggerOptions, RouteAnalysis } from '../types'
-import { LoggerEventBus } from '../core/event-bus'
-import { formatVerboseRouteLogs, formatMiniRouteSummary } from '../output/formatters'
+import type { RouteChangeLog, RouteLoggerOptions, RouteAnalysis } from '../types.js'
+import { LoggerEventBus } from '../core/event-bus.js'
+import { formatVerboseRouteLogs, formatMiniRouteSummary } from '../output/formatters.js'
 
 /** Default redirect detector: login/register pages to dashboard/manage pages */
 function defaultRedirectDetector(fromUrl: string, toUrl: string): boolean {

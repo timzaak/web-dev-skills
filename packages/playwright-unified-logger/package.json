@@ -1,6 +1,6 @@
 {
   "name": "playwright-unified-logger",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Unified logger for Playwright E2E tests - captures network, console, route changes and test code logs",
   "type": "module",
   "main": "./dist/index.js",

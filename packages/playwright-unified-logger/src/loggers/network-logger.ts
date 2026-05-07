@@ -8,9 +8,9 @@
  */
 
 import { Page, Request, Response } from '@playwright/test'
-import type { ApiRequestLog, NetworkLoggerOptions, AggregatedRequestStats } from '../types'
-import { LoggerEventBus } from '../core/event-bus'
-import { formatVerboseNetworkLogs, formatFailedNetworkLogs, formatMiniNetworkSummary, formatAggregatedNetworkLogs } from '../output/formatters'
+import type { ApiRequestLog, NetworkLoggerOptions, AggregatedRequestStats } from '../types.js'
+import { LoggerEventBus } from '../core/event-bus.js'
+import { formatVerboseNetworkLogs, formatFailedNetworkLogs, formatMiniNetworkSummary, formatAggregatedNetworkLogs } from '../output/formatters.js'
 
 /** Default URL filter: matches /api/ or /_api/ paths */
 function defaultUrlFilter(url: string): boolean {

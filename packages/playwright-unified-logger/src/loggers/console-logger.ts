@@ -6,10 +6,10 @@
  */
 
 import { Page, ConsoleMessage } from '@playwright/test'
-import type { ConsoleLogEntry, ConsoleLoggerOptions, DeduplicationStats } from '../types'
-import { LoggerEventBus } from '../core/event-bus'
-import { WriteBuffer } from '../output/write-buffer'
-import { formatConsoleLogLine, formatConsoleQuietSummary, formatConsoleVerboseSummary } from '../output/formatters'
+import type { ConsoleLogEntry, ConsoleLoggerOptions, DeduplicationStats } from '../types.js'
+import { LoggerEventBus } from '../core/event-bus.js'
+import { WriteBuffer } from '../output/write-buffer.js'
+import { formatConsoleLogLine, formatConsoleQuietSummary, formatConsoleVerboseSummary } from '../output/formatters.js'
 
 /** Default filter patterns for harmless development environment noise */
 const DEFAULT_FILTER_PATTERNS: RegExp[] = [

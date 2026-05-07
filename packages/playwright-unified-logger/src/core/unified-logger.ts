@@ -17,14 +17,14 @@
 
 import { Page } from '@playwright/test'
 import * as fs from 'fs'
-import type { UnifiedLoggerConfig, TestLogs, TestSummary } from '../types'
-import { resolveConfig } from '../config'
-import { LoggerEventBus } from './event-bus'
-import { NetworkLogger } from '../loggers/network-logger'
-import { ConsoleLogger } from '../loggers/console-logger'
-import { RouteLogger } from '../loggers/route-logger'
-import { TestCodeLogger } from '../loggers/test-code-logger'
-import { formatVerboseSummary, formatMiniSummary } from '../output/formatters'
+import type { UnifiedLoggerConfig, TestLogs, TestSummary } from '../types.js'
+import { resolveConfig } from '../config.js'
+import { LoggerEventBus } from './event-bus.js'
+import { NetworkLogger } from '../loggers/network-logger.js'
+import { ConsoleLogger } from '../loggers/console-logger.js'
+import { RouteLogger } from '../loggers/route-logger.js'
+import { TestCodeLogger } from '../loggers/test-code-logger.js'
+import { formatVerboseSummary, formatMiniSummary } from '../output/formatters.js'
 
 export class UnifiedLogger {
   public network: NetworkLogger

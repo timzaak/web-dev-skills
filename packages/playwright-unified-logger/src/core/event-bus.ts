@@ -15,7 +15,7 @@
 import type {
   LoggerEvent,
   LoggerEventHandler,
-} from '../types'
+} from '../types.js'
 
 type HandlerMap = {
   'network:request': LoggerEventHandler<'network:request'>
