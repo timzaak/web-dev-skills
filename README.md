@@ -40,6 +40,7 @@
 
 - `/t-tools:t-init <project-name>`：初始化全栈项目骨架（Rust Axum + React TanStack），生成后端、前端、E2E 测试、开发脚本等完整目录结构
 - `/t-tools:t-tech-research`：在写 PRD 之前评估需求的技术可行性，包括依赖缺口分析、库调研、影响分析和可行性判定
+- `/t-tools:t-doc <project-or-module-name>`：扫描目标项目代码库，生成面向新人的教程文档，默认写入 `docs/tutorials/<name>/`
 - `/t-tools:t-consistency-check`：复核后端 PRD 与实现是否一致，不承担全域 DDD 总检查
 - `/t-tools:t-demo-run-all`：批量执行 Demo 测试
 
@@ -94,6 +95,7 @@ claude --plugin-dir /path/to/skills
 补充说明：
 
 - 本 README 统一使用 `/t-tools:t-*` 作为标准调用形式
+- `t-doc` 用于项目文档、上手教程、API 参考、配置和部署说明，不用于 PRD、技术设计或只改某个文档片段
 - `t-consistency-check` 是后端专项一致性检查，不等价于旧仓库中的全域 DDD 检查
 - `t-backend-test-run` 是内部执行型 skill，供 `backend-test` 等流程复用，不作为推荐的手动入口
 
