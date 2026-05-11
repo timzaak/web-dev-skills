@@ -172,8 +172,32 @@ def _get_pids_by_port_windows(port: int) -> set[str]:
     return _get_pids_by_port_windows_netstat(port)
 
 
+def _get_parent_pid_windows(pid: str) -> str | None:
+    """Get parent PID of a Windows process via WMIC."""
+    try:
+        result = subprocess.run(
+            ["wmic", "process", "where", f"ProcessId={pid}", "get", "ParentProcessId", "/value"],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=5,
+        )
+        for line in result.stdout.splitlines():
+            line = line.strip()
+            if line.startswith("ParentProcessId="):
+                ppid = line.split("=", 1)[1].strip()
+                if ppid.isdigit():
+                    return ppid
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+        pass
+    return None
+
+
 def kill_process_by_port(port: int) -> bool:
     """Kill the process occupying the specified TCP port.
+
+    Also kills the parent process on Windows to handle cargo-run spawning
+    a child binary (cargo.exe holds log file handles).
 
     Returns True if at least one process was killed, False otherwise.
     """
@@ -181,6 +205,7 @@ def kill_process_by_port(port: int) -> bool:
         pids = _get_pids_by_port_windows(port)
         killed = False
         for pid in pids:
+            ppid = _get_parent_pid_windows(pid)
             try:
                 result = subprocess.run(
                     ["taskkill", "/PID", pid, "/F", "/T"],
@@ -192,6 +217,18 @@ def kill_process_by_port(port: int) -> bool:
                 continue
             if result.returncode == 0:
                 killed = True
+            # Kill parent process (e.g. cargo.exe) so it releases log file handles
+            if ppid:
+                try:
+                    subprocess.run(
+                        ["taskkill", "/PID", ppid, "/F", "/T"],
+                        capture_output=True,
+                        text=True,
+                        check=False,
+                        timeout=5,
+                    )
+                except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+                    pass
         return killed
 
     for cmd in (["lsof", "-ti", f":{port}"], ["fuser", "-k", f"{port}/tcp"]):
