@@ -86,6 +86,7 @@ Runtime Dependencies：
 
 - 编写前必须完成选择器校准
 - 测试必须与用户故事建立可追溯关系
+- 测试必须通过统一 fixture 接入 `demoLogger`，不得绕过 fixture 或在测试中手动调用 `logger.finalize()`
 - 不得硬编码选择器字符串
 - 复杂测试优先拆成可维护的 helper 或 page object，而不是继续堆叠单文件逻辑
 
