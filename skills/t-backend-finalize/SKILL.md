@@ -1,7 +1,6 @@
 ---
 name: t-backend-finalize
 description: Run backend finalization after acceptance: simplify, clippy, fmt, tests, and OpenAPI export.
-context: fork
 argument-hint: [任务名称]
 allowed-tools:
   - Read

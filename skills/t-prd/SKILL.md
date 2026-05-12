@@ -1,7 +1,6 @@
 ---
 name: t-prd
 description: Create or update PRD documents with user stories for a given feature.
-context: fork
 argument-hint: [feature-name]
 allowed-tools:
   - AskUserQuestion

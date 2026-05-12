@@ -1,7 +1,6 @@
 ---
 name: t-run
 description: Execute phased task plans by dispatching work to specialized sub-agents for backend, frontend, miniapp, or demo phases.
-context: fork
 argument-hint: [任务名称] [--phase <backend|frontend|miniapp|demo>]
 allowed-tools:
   - AskUserQuestion

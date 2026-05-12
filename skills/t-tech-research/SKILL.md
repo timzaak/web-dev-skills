@@ -1,7 +1,6 @@
 ---
 name: t-tech-research
 description: Research technical feasibility for a feature by scanning the codebase, searching external docs, and producing a research report.
-context: fork
 argument-hint: [feature-name]
 allowed-tools:
   - AskUserQuestion
