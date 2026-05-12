@@ -29,6 +29,7 @@
   -> /t-tools:t-backend-finalize
   -> /t-tools:t-demo-run
   -> /t-tools:t-demo-accept
+  -> /t-tools:t-release [版本号]
 ```
 
 其中：
@@ -43,6 +44,7 @@
 - `/t-tools:t-doc <project-or-module-name>`：扫描目标项目代码库，生成面向新人的教程文档，默认写入 `docs/tutorials/<name>/`
 - `/t-tools:t-consistency-check`：复核后端 PRD 与实现是否一致，不承担全域 DDD 总检查
 - `/t-tools:t-demo-run-all`：批量执行 Demo 测试
+- `/t-tools:t-release [版本号]`：版本发布，更新项目版本号、创建 git commit 和 tag、推送到远程。版本号遵循语义化版本（如 `0.2.0`），留空则基于最新 tag 推荐。仅在 `main` 分支且工作区干净时执行，自动更新 `backend/Cargo.toml`、`frontend/package.json`、`demo/package.json`，编译验证通过后提交并推送
 
 ## 安装
 

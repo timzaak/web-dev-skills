@@ -50,7 +50,7 @@ allowed-tools:
 
 ## 已有文档
 
-目标目录是 `docs/tutorials/<name>/`。如果目录已存在，先告诉用户已有内容，询问覆盖还是增量更新。
+目标目录是 `docs/tutorials/`。如果目录已存在，先告诉用户已有内容，询问覆盖还是增量更新。
 
 - 覆盖：重写目标教程。
 - 增量更新：先读已有文档，只补充或修正变化部分。
@@ -85,7 +85,7 @@ Glob 搜索要避开依赖目录。优先用明确路径，例如 `.github/workf
 默认写到：
 
 ```text
-docs/tutorials/<name>/
+docs/tutorials/
 ├── index.md
 ├── getting-started.md
 ├── architecture.md
