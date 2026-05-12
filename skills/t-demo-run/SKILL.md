@@ -20,8 +20,9 @@ allowed-tools:
 运行时边界统一参考：`protocols/runtime-boundaries.md`
 
 ## 目标
-- 对一个测试文件按用例粒度执行。
-- 失败时先诊断，再分发到对应 agent 修复。
+- 先对一个测试文件整体执行。
+- 整体失败时，再按用例粒度顺序执行。
+- 单个用例失败时先诊断，再分发到对应 agent 修复。
 - 修复后必须执行相关后端/前端补测，不能只跑 Demo。
 - 输出可恢复的任务状态与最终汇总。
 
@@ -39,17 +40,26 @@ allowed-tools:
 uv run ${CLAUDE_PLUGIN_ROOT}/scripts/cleanup-demo.py
 ```
 
-3. 列出测试用例。
+3. 先运行整个测试文件。
+```bash
+uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py "[测试文件]" --run-id [RUN_ID]
+```
+
+4. 若整个测试文件通过。
+- 不再拆分用例运行。
+- 直接进入汇总输出。
+
+5. 若整个测试文件失败，列出测试用例。
 ```bash
 uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py "[测试文件]" --list-tests
 ```
 
-4. 为每个用例创建任务并顺序执行。
+6. 为每个用例创建任务并顺序执行。
 ```bash
 uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py "[测试文件]" --run-id [RUN_ID] --grep "[测试标题]"
 ```
 
-5. 失败修复循环（最多 6 次）。
+7. 单用例失败修复循环（最多 6 次）。
 - 先调用 `demo-diagnose` 生成结构化诊断。
 - 按诊断结果分发：`demo-dev` / `frontend-dev` / `backend-dev` / `miniapp-dev`。
 - 读取修复 agent 返回的 `tests_to_run`（必填）并校验字段：
@@ -69,10 +79,11 @@ uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py "[测试文件]" --run-
   - 执行最小兜底补测（按改动层至少 1 条 backend/frontend/miniapp 相关测试）
 - 重新运行当前用例验证修复（即 `demo` 层验证）。
 
-6. 汇总输出。
+8. 汇总输出。
 - 控制台输出通过/修复/失败统计。
 - 写入 `.ai/quality/demo-run-[name]-[YYYYMMDD-HHMMSS].md`。
 - 报告必须包含：
+  - `whole_file_result`
   - `fix_attempts`
   - `related_tests`（命令、层级、结果、耗时、reason）
   - `demo_result`
@@ -91,7 +102,8 @@ uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py "[测试文件]" --run-
 
 ## 质量门禁
 - 单次执行只处理一个测试文件。
-- 用例执行必须串行。
+- 必须先整体运行测试文件；只有整体失败时才拆分用例。
+- 拆分后的用例执行必须串行。
 - 每个失败用例必须有诊断记录。
 - 每次修复后必须先执行相关层补测，再执行 Demo 验证。
 - 必须输出最终汇总。
