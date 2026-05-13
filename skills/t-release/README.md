@@ -35,8 +35,8 @@ Bump project version, create git tag, and push release commit to remote.
 2. 确认版本号 — 参数提供则直接使用，否则推荐并询问
 3. 更新版本号 — 编辑各文件
 4. 编译验证 — `cargo check`，失败则终止
-5. 提交 & 打 Tag — `git commit` + `git tag v<版本号>`
-6. 推送 — `git push` + `git push origin v<版本号>`
+5. 提交 & 打 Tag — `git commit` + `git tag <版本号>`
+6. 推送 — `git push` + `git push origin <版本号>`
 
 ## Error Handling / 失败处理
 
@@ -58,7 +58,7 @@ Bump project version, create git tag, and push release commit to remote.
 Expected output / 期望输出：
 
 ```
-版本已更新到 0.2.0，commit abc1234 和 tag v0.2.0 已推送到远程。
+版本已更新到 0.2.0，commit abc1234 和 tag 0.2.0 已推送到远程。
 
 修改的文件：
 - backend/Cargo.toml — 0.1.1 → 0.2.0

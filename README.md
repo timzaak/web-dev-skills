@@ -1,5 +1,7 @@
 # T-Tools
 
+[English](README.en.md)
+
 面向 Rust + React 项目的 Claude Code plugin。它把 `PRD -> 设计 -> 任务 -> 开发 -> 验收 -> Demo` 串成一套可复用工作流，让你不用反复设计 prompt、切换上下文或手工维护阶段边界。
 
 适合这类团队和项目：
