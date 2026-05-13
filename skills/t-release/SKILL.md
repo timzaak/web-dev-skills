@@ -61,11 +61,29 @@ allowed-tools:
    - 使用 Edit 工具逐一更新各文件中的版本号。
    - 确保 `frontend/package.json` 存在 `version` 字段（缺失则在 `"name"` 后添加）。
 
-4. **编译验证**
+4. **CI 验证**（任一步骤失败则终止）
+
+   优先从 CI 配置中提取检查命令，动态适配项目实际 CI 流程。
+
+   **a. 读取 CI 配置**
+   用 Read 读取 `.github/workflows/ci.yml`：
+   - 若文件存在，解析其中所有 `run:` 字段，提取检查/验证类命令。
+   - 排除非检查类命令（含 `npm install`、`npm ci`、`checkout`、`cache`、`build`、`deploy` 等关键词的步骤）。
+   - 保留对应的 `working-directory`，作为执行时的 `cd` 前缀。
+   - 同一 `working-directory` 下的多条命令用 `&&` 连接一次执行。
+   - 按 backend / frontend / demo 分组，逐组执行。
+
+   **b. Fallback 默认命令**
+   若 `.github/workflows/ci.yml` 不存在或未能提取到有效命令，使用：
    ```bash
-   cd backend && cargo check 2>&1
+   # 后端
+   cargo fmt --all -- --check
+   cargo clippy --all-targets --all-features --no-deps -- -D warnings
+   # 前端
+   cd frontend && npm run lint && npm run type-check
+   # Demo
+   cd demo && npm run type-check && npm run lint
    ```
-   - 编译失败则终止，不创建 commit。
 
 5. **提交与打 Tag**
    ```bash
@@ -73,13 +91,13 @@ allowed-tools:
    git commit -m "chore: bump version to <版本号>
 
    Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
-   git tag v<版本号>
+   git tag <版本号>
    ```
 
 6. **推送**
    ```bash
    git push
-   git push origin v<版本号>
+   git push origin <版本号>
    ```
 
 7. **输出结果**
@@ -90,7 +108,7 @@ allowed-tools:
 ## 失败处理
 - 工作区脏：提示用户先处理未提交变更，终止发布。
 - 编译失败：终止，不创建 commit，保留已修改的版本文件供用户排查。
-- 推送失败：commit 和 tag 已在本地，提示用户手动 `git push && git push origin v<版本号>`。
+- 推送失败：commit 和 tag 已在本地，提示用户手动 `git push && git push origin <版本号>`。
 - tag 已存在：提示 tag 冲突，终止。
 
 ## Forbidden
@@ -112,7 +130,7 @@ allowed-tools:
 
 期望响应：
 ```
-版本已更新到 0.2.0，commit abc1234 和 tag v0.2.0 已推送到远程。
+版本已更新到 0.2.0，commit abc1234 和 tag 0.2.0 已推送到远程。
 
 修改的文件：
 - backend/Cargo.toml — 0.1.1 → 0.2.0
