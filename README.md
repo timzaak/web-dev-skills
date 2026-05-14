@@ -124,6 +124,11 @@ claude --plugin-dir /path/to/skills
 
 引用插件内部文件时统一使用 `${CLAUDE_PLUGIN_ROOT}` 语义路径。根级 `README.md` 只负责说明优势、工作流和快速上手；更细的规则请进入对应 guide / protocol。
 
+## 使用本插件的项目
+
+- [herald](https://github.com/timzaak/herald) — 多租户认证与授权系统（Rust Axum + SeaORM + PostgreSQL / React 19 + TanStack），支持单租户与多租户场景的认证服务
+- [rmqtt-things](https://github.com/timzaak/rmqtt-things) — 基于 RMQTT 的物联网物模型管理平台（Rust Axum + SQLx + PostgreSQL / React 19 + TanStack），支持设备管理、命令下发、OTA 升级与 TLS 证书签发
+
 ## 依赖
 
 - `Context7`：供 `backend-dev`、`backend-test`、`frontend-dev`、`frontend-test` 查询第三方库文档

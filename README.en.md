@@ -125,6 +125,11 @@ This is the plugin source repository, not a target business repository.
 
 When referencing internal plugin files, use the `${CLAUDE_PLUGIN_ROOT}` semantic path. The root `README.md` only explains value, workflow, and quick start. Detailed rules live in the corresponding guide or protocol.
 
+## Projects Using This Plugin
+
+- [herald](https://github.com/timzaak/herald) — A multi-tenant authentication and authorization system (Rust Axum + SeaORM + PostgreSQL / React 19 + TanStack), providing auth services for both single-tenant and multi-tenant scenarios
+- [rmqtt-things](https://github.com/timzaak/rmqtt-things) — An IoT thing-model management platform built on RMQTT (Rust Axum + SQLx + PostgreSQL / React 19 + TanStack), with device management, command delivery, OTA firmware updates, and TLS certificate issuance
+
 ## Dependencies
 
 - `Context7`: used by `backend-dev`, `backend-test`, `frontend-dev`, and `frontend-test` to query third-party library documentation
