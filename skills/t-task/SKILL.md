@@ -188,13 +188,19 @@ slot agent 输出必须至少包含：
 - 跨越超过 2 个领域模块或页面域。
 - 超过 8 个主要步骤。
 - 单个 item 文件预计超过 12KB 且不是验收清单。
+- scope 中包含两个可独立交付、独立验证的主交付物（例如 `A + B`、两个页面、页面 + 弹窗、helper + 场景测试）。
+- 单个 HTTP/API item 同时包含 5 个以上 endpoint、DTO、路由注册和 OpenAPI/schema 更新。
+- 单个 demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流。
 
 推荐拆分方式：
 - backend dev：数据库/实体、domain、repository、service/use case、HTTP/OpenAPI、外部集成、SDK/API 影响点。
+- backend HTTP/API：DTO 与路由骨架、读模型/list/detail、写操作/create/update、状态操作、配置类接口分别拆分；每个 item 必须能用定向 `cargo check` 或场景测试验证。
 - backend test：domain/unit、repository/integration、API scenario、regression、高风险业务规则。
 - frontend dev：API/type 适配、schema/query/store、页面主流程、状态与错误处理、权限与空态。
+- frontend dev：一个 item 默认只交付一个页面域或一个可复用组件族；配置页、用户页、管理页、dialog 等可独立验证的 UI 不应合并。
 - miniapp dev：页面注册、组件主流程、主题接线、token/icon 集成、平台差异处理。
 - miniapp test：typecheck、weapp/h5 构建、模板门禁、页面注册与资源产物回归。
+- demo dev：先拆 fixtures/helpers，再拆主流程、异常/校验场景、权限场景；不要把 helper 和完整业务流放在同一个 item。
 - accept：design consistency、public API contract、business rules、permission/security、test evidence、demo readiness。
 
 ## Backend Finalize

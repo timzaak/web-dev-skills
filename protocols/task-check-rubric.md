@@ -108,6 +108,9 @@
 - item 缺少关键章节
 - item 超过拆分阈值且无合理说明
 - item 职责混杂，单次 agent 调用高概率无法完成
+- item 合并多个可独立交付、独立验证的主交付物
+- HTTP/API item 同时覆盖 5 个以上 endpoint、DTO、路由注册和 OpenAPI/schema 更新
+- demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流
 - 下游 item 缺少 handoff 追溯
 - backend 缺少 `awaiting_finalize` 收口语义
 - `finalize.md` 缺少必要收口/重试说明
