@@ -114,7 +114,7 @@ description: Research technical feasibility for a feature by scanning the codeba
 
 ### 6. 写入报告
 
-使用 `template.md` 的结构生成 `.ai/tech-research/$ARGUMENTS.md`。
+使用 [template.md](template.md) 的结构生成 `.ai/tech-research/$ARGUMENTS.md`。
 
 如果某章节不适用，保留章节并标记"不适用"及原因，不要直接删除。
 

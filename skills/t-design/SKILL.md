@@ -16,6 +16,8 @@ allowed-tools:
 
 运行时边界统一参考：`protocols/runtime-boundaries.md`
 
+设计生成应保持简单、当前必需、可追溯；如果需求、spec、代码或本 skill 冲突，停止并说明冲突。
+
 ## 适用范围
 
 这是一个有副作用的任务型 skill：会收集信息、分析代码并写入设计文档。
@@ -77,7 +79,7 @@ allowed-tools:
 
 ## 核心约束
 
-- 需求语义以 `docs/` 为准；执行流程与质量门禁以 `${CLAUDE_PLUGIN_ROOT}/guides/` 和 `AGENTS.md` 为准
+- 需求语义以 `docs/` 为准；执行流程与质量门禁以 `${CLAUDE_PLUGIN_ROOT}/guides/` 为准
 - 先读索引，再读相关明细，避免盲搜
 - 只引用用户故事，不粘贴完整故事正文或整段 Gherkin
 - 优先复用现有实现，不凭空设计新架构

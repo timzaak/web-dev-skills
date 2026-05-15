@@ -72,10 +72,8 @@ tools:
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/test-maintenance.md` — 测试可维护性标准
 
 Runtime Dependencies：
-所有验收标准、评分公式、拒绝条件、报告模板以：
+验收标准、评分公式、拒绝条件、报告模板参考：
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/quality.md`
-
-为准。
 
 若目标仓库未提供该规范，则以本文件中的流程、质量门禁和实际仓库证据作为最小验收标准，并在报告中标记“外部规范缺失”。
 

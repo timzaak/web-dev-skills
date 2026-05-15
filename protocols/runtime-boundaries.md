@@ -17,12 +17,15 @@
 
 以下路径属于目标项目仓库，不是插件自带资源：
 
+- `AGENTS.md`
+- `CLAUDE.md`
 - `docs/`
 - `.ai/`
 
 规则：
 
+- 若 `AGENTS.md` 与插件文档、guide、protocol 或既有产物冲突，显式报告冲突。
 - 读取 `docs/`、`.ai/` 时，把它们视为目标项目运行时产物。
-- 项目事实、开发规范、质量门禁优先来自 `guides/`。
+- 项目事实、开发规范、质量门禁来自 `guides/`。
 - 跨 skill 或 agent 的结构化字段、状态结构、报告格式优先来自 `protocols/`。
 - `SKILL.md` 和 agent 文档只定义如何编排、何时读取、需要返回什么，不重写 guide/protocol 中已有规则。

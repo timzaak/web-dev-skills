@@ -53,11 +53,20 @@ tools:
 - 组件内部状态机、分支逻辑、异常路径
 - Demo 难稳定覆盖的前端边界
 - 需要快速反馈的局部回归
+- schema 的边界值、required field、非法 enum、cross-field 约束、transform/default 行为
+- React Query 的数据转换、cache key 隔离、filter 参数传递、自定义错误处理或分页/polling 逻辑
+- callback 中存在 payload 组装、条件性调用、状态跳转或多个 callback 交互
 
 默认不由本 agent 承担的场景：
 - Playwright Demo / E2E
 - 已被 Demo 稳定覆盖的整条用户故事 happy-path
 - 视觉回归、性能预算、a11y 全量验收
+- `renders X` 静态文本存在性断言
+- CSS class、Tailwind class 或 DOM 结构断言
+- help text、label、placeholder 这类组件库职责的展示断言
+- zod、React Query、React、浏览器和 TypeScript 已保证的框架行为
+- 组件只是原样转发 prop callback 时的 `clicking X calls vi.fn()`
+- 纯 UI 包装组件、常量文件、纯类型导出文件
 
 Demo 相关测试由 `demo-dev` 负责。
 
@@ -95,6 +104,10 @@ cd frontend && npm run lint
 - API mock 使用 MSW，不打真实后端
 - 测试行为，不测试第三方库实现细节
 - 不为 Demo 已覆盖的完整故事重复补一条同路径 Vitest
+- 按用户场景组织 `describe`，不要默认按 rendering/state/callbacks 这类实现细节分组
+- 用工厂函数构造测试数据，避免散落硬编码 fixture
+- 同类 enum、边界值和非法输入用 `it.each` 合并
+- 验证 request body 时优先通过 MSW handler 观察请求，不 mock 内部 API 函数
 
 若需要返回结构化完成结果，优先遵循：
 
@@ -111,4 +124,5 @@ Context7 常用库 ID：
 - 不编写 Playwright E2E 测试
 - 不硬编码等待或用 `setTimeout` 代替测试库等待
 - 不混用真实 API 与 MSW 假数据
+- 不写只验证静态渲染、样式类名、DOM 层级或 prop 原样转发的低价值测试
 - 不在 agent 文档里重复 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/testing.md` 的长篇教程

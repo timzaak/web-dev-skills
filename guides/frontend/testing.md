@@ -26,6 +26,14 @@ npm run test:ui
 
 ## 测试边界
 
+### 核心原则
+
+- 测行为，不测渲染：验证用户交互、业务规则、条件显示、状态转换和错误处理。
+- 测契约，不测框架：schema、query options、API mock 应保护前后端契约和项目逻辑，不验证第三方库本身。
+- 测集成，不测转发：只有 callback 内有业务逻辑、状态变化或多个 callback 交互时才写测试。
+- 不重复测试：同一逻辑在 schema、组件、Demo 中已有覆盖时，不再复制同一路径。
+- 自检问题：如果代码重写但行为不变时测试仍需要改，说明测试测到了实现细节。
+
 ### 何时编写 Vitest
 
 仅在以下场景编写 Vitest：
@@ -33,6 +41,9 @@ npm run test:ui
 - 组件内部状态机、派生状态、条件分支
 - Demo 难以稳定覆盖的异常边界和特殊错误场景
 - 需要快速反馈的局部回归
+- zod schema 的边界值、required field、非法 enum、cross-field 约束、transform/default 行为
+- React Query 的数据转换、cache key 隔离、filter 参数传递、自定义 error/retry/polling/pagination 行为
+- callback 中的 payload 组装、条件性调用、提交后 loading/success/navigation 状态变化
 
 ### 不应规划为 Vitest 的场景
 
@@ -44,6 +55,13 @@ npm run test:ui
 - 可访问性合规验证
 - 性能预算验证
 - 视觉回归验证
+- `renders X` 静态文本存在性断言
+- CSS class、Tailwind class name 或 DOM 层级断言
+- help text、label、placeholder 这类组件库职责的展示断言
+- `z.boolean()` 接受 true/false、`z.optional()` 接受 undefined、`z.nullable()` 接受 null 等库行为
+- `typeof queryFn === 'function'`、`typeof result === 'object'` 等 TypeScript 或框架保证的事实
+- 组件只是 `onClick={onConfirm}` 原样转发时的 “clicking X calls vi.fn() prop”
+- `open={false} does not render`、受控 input 可输入等 React/浏览器行为
 
 ### 与 Demo-first 的关系
 
@@ -159,6 +177,7 @@ await userEvent.click(screen.getByRole('button', { name: /submit/i }))
 实现层要求：
 - P0/P1/P2 元素必须添加 `data-testid`
 - 规则见 [data-testid 编写规范](/guides/frontend/testid-standards.md)
+- 不用 CSS class、Tailwind class 或 DOM 结构定位元素。
 
 ### 异步断言
 
@@ -178,6 +197,20 @@ expect(screen.findByTestId('loading')).toBeDefined()
 ```
 
 ## 推荐测试模式
+
+### describe 组织
+
+按用户场景分组，不按实现细节分组：
+
+```tsx
+describe('ClientAppWizard', () => {
+  describe('device code grant configuration', () => {
+    // tests
+  })
+})
+```
+
+避免使用 `rendering`、`state`、`callbacks` 作为默认分组名，除非它们就是用户可理解的业务场景。
 
 ### 逻辑型组件测试
 
@@ -242,6 +275,18 @@ function createTestQueryClient() {
 说明：
 - 当前 `frontend/src/test/test-utils.tsx` 不是稳定的仓库级标准入口
 - 新测试优先在文件内按需声明 wrapper，只有形成稳定复用后再统一收敛
+- 不单测 `retry === 1`、`staleTime === 120000` 这类常量赋值；只在它们承载业务契约时测试行为结果。
+- query key 不展开测试每个字段，选择 1-2 个代表性 key shape 覆盖隔离性。
+
+### 数据构造
+
+用工厂函数表达业务默认值，避免大量硬编码 fixture：
+
+```ts
+function makeInvoice(overrides?: Partial<Invoice>): Invoice {
+  return { id: 'inv-1', status: 'draft', ...overrides }
+}
+```
 
 ## 断言与调试
 
@@ -272,7 +317,8 @@ console.log(container.innerHTML)
 1. 测试用户可观察行为，而不是第三方库实现细节。
 2. 用最小 mock 覆盖当前场景，避免过度伪造整条业务链路。
 3. 对业务状态、权限、错误提示、禁用态做断言。
-4. 保留业务驱动的类名断言，避免纯视觉样式断言。
+4. 使用 `it.each` 合并同类 enum/边界测试，避免重复用例。
+5. 用 MSW 验证 request body，而不是 mock 内部函数调用参数。
 
 ### DON'T
 
@@ -281,6 +327,7 @@ console.log(container.innerHTML)
 3. 不要依赖脆弱选择器、纯样式类名或 DOM 层级。
 4. 不要使用硬编码等待代替异步查询。
 5. 不要把历史仓库或旧模板的测试工具包装器当成当前标准。
+6. 不要为纯 UI 包装组件、常量定义、纯类型导出、第三方 type wrapper 写测试，除非存在自定义 transform 或业务逻辑。
 
 ## 测试类型说明
 

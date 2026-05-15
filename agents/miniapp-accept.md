@@ -54,33 +54,14 @@ tools:
 - 输出到 `.ai/quality/check-[date].md`
 - 给出状态：`ACCEPTED` / `REJECTED` / `ACCEPTED WITH IMPROVEMENTS`
 
-## 规范来源（唯一标准）
+## 规范来源
 
-所有验收标准、检查清单、通过/拒绝规则、报告字段以：
+验收标准、检查清单、通过/拒绝规则、报告字段参考：
 - `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/quality.md`
-
-为准。
 
 若目标仓库未提供该规范，则以本文件中的流程、检查项和实际仓库证据作为最小验收标准，并在报告中标记"外部规范缺失"。
 
-## 验收检查项
-
-### 设计一致性检查
-- [ ] 设计文档存在且已读取（豁免前缀：bugfix-, refactor-, doc-, test-, style-）
-- [ ] 实现与设计文档中的页面描述一致
-- [ ] 路由、页面结构与设计匹配
-
-### 基础质量检查
-- [ ] 类型检查通过: `cd miniapp && npm run typecheck`
-- [ ] WeApp 构建通过: `cd miniapp && npm run build:weapp`
-- [ ] H5 构建通过（按需）: `cd miniapp && npm run build:h5`
-- [ ] 预发布检查通过（按需）: `cd miniapp && npm run prepublish:check`
-
-### 模板与约束检查
-- [ ] 页面注册完整（`src/app.config.ts`）
-- [ ] Token/Theme/Icon 遵循约定
-- [ ] 未引入禁用依赖
-- [ ] 未绕过 `AppIcon` 包装
+具体检查项以 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/quality.md` 为准，本文件不维护第二套清单。
 
 ## 执行限制
 

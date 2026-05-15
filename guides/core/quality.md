@@ -52,5 +52,5 @@
 ## 5. 执行约束
 
 - 需求语义冲突时，以 `docs/`（PRD + User Stories）为准
-- 执行流程与测试约束，以 `${CLAUDE_PLUGIN_ROOT}/guides/` 与 `AGENTS.md` 为准
+- 执行流程与测试约束，以 `${CLAUDE_PLUGIN_ROOT}/guides/` 为准
 - 未经授权不得修改与当前任务无关的文件

@@ -15,6 +15,8 @@ allowed-tools:
 
 运行时边界统一参考：`protocols/runtime-boundaries.md`
 
+若本 skill、spec 或既有文档之间冲突，停止、说明冲突并等待澄清；不要平均折中。
+
 ## 适用范围
 
 这是一个有副作用的任务型 skill，负责先补齐 user story，再创建或更新 PRD 文档。

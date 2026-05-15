@@ -50,12 +50,10 @@ tools:
 - 输出到 `.ai/quality/frontend-accept-[feature]-[YYYYMMDD-HHMMSS].md`
 - 给出状态：`ACCEPTED` / `REJECTED` / `ACCEPTED WITH IMPROVEMENTS`
 
-## 规范来源（唯一标准）
+## 规范来源
 
-所有验收标准、检查清单、通过/拒绝规则、报告字段以：
+验收标准、检查清单、通过/拒绝规则、报告字段参考：
 - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/quality.md`
-
-为准。
 
 若目标仓库未提供该规范，则以本文件中的流程、检查项和实际仓库证据作为最小验收标准，并在报告中标记“外部规范缺失”。
 
@@ -65,34 +63,4 @@ tools:
 - ✅ 每条结论必须标明文件来源
 - ❌ 禁止空泛建议
 
-## 验收检查项
-
-### 设计一致性检查
-- [ ] 设计文档存在且已读取（豁免前缀：bugfix-, refactor-, doc-, test-, style-）
-- [ ] 实现与设计文档中的交互描述一致
-- [ ] 路由、页面结构与设计匹配
-
-### 基础质量检查
-- [ ] 类型检查通过: `cd frontend && npm run type-check`
-- [ ] 构建通过: `cd frontend && npm run build`
-- [ ] 相关测试通过: `cd frontend && npm run test:run -- [pattern]`
-- [ ] Lint 无新增错误: `cd frontend && npm run lint`
-
-### API 一致性检查
-- [ ] API 路径与后端 OpenAPI spec 或设计文档匹配
-- [ ] 请求参数（路径参数、查询参数、请求体）类型正确
-- [ ] 响应类型与 `frontend/src/lib/api-generated/` 一致
-- [ ] 认证头和权限处理正确
-
-### 测试策略校验
-- [ ] Demo-first 策略满足（核心用户故事有 Demo 覆盖）
-- [ ] Vitest 仅覆盖 Demo 难以稳定覆盖的边界场景
-
-### UI 合规检查
-- [ ] `data-testid` 命名符合 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/testid-standards.md`
-- [ ] 组件复用 `frontend/src/components/ui/` 中的基础组件
-
-### 测试代码检查
-- [ ] userEvent 导入方式: 命名导入
-- [ ] 用户交互: 统一使用 userEvent，无 DOM 直接操作
-- [ ] 异步等待: 使用 waitFor 或 findBy*，无 setTimeout
+具体检查项以 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/quality.md` 为准，本文件不维护第二套清单。

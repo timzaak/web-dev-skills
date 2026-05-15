@@ -20,6 +20,8 @@ allowed-tools:
 
 运行时边界统一参考：`protocols/runtime-boundaries.md`
 
+执行时以当前 item 的成功标准和最小必要验证为目标；遇到冲突、缺失上下文或无法判断的语义问题时停止并说明。
+
 ## Input Contract
 
 上游输入（来自 `/t-task` 产出）：
@@ -87,6 +89,13 @@ allowed-tools:
 
 - `protocols/task-phase-execution.md`
 - `protocols/backend-test-execution.md`
+
+backend/test 特例：
+- 必须读取 `test_item_type`，只允许 `authoring` 或 `runner`。
+- 缺少 `test_item_type` 时拒绝执行，提示先运行 `/t-task-check` 或重建/修正 item。
+- `authoring`：不加载 `t-backend-test-run`，只编写或调整场景测试并做编译验证。
+- `runner`：加载 `skills/t-backend-test-run/SKILL.md`，执行定向测试、失败分类、生产代码修复委派和重测。
+- 同一 item 同时包含“写新场景测试”和“修复生产代码直到通过”时拒绝执行。
 
 ## Recovery Protocol
 

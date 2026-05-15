@@ -202,6 +202,7 @@ allowed-tools:
 ### Step 5: 生成 Demo E2E 测试
 
 读取 [references/demo-template.md](references/demo-template.md) 获取 demo 测试的完整文件模板。
+读取 [references/unified-logger-package-template.md](references/unified-logger-package-template.md) 获取 `playwright-unified-logger` 本地包模板。
 
 生成 `demo/` 目录，包含：
 1. `package.json` — 依赖 `playwright-unified-logger`（通过 npm install 安装）
@@ -235,9 +236,8 @@ allowed-tools:
 
 生成两个根目录文件：
 1. `AGENTS.md` — 项目描述占位符 + 项目行为准则
-2. `CLAUDE.md` — 仅包含 `@AGENTS.md`（Claude Code 引用语法）
+2. `CLAUDE.md` — 仅包含 `@AGENTS.md`
 
-这两个文件帮助 Claude Code 在后续开发中遵循项目规范和行为准则。
 生成后提示用户填写 `AGENTS.md` 顶部的项目描述占位符。
 
 ### Step 8: 验证
@@ -247,6 +247,7 @@ allowed-tools:
 2. 后端 `cargo check`（如果 cargo 可用）— 只做语法检查，不编译
 3. 前端 `npm install` + `npm run type-check`（如果 npm 可用）
 4. Demo `npm install`（在 `demo/` 目录，会自动安装 `playwright-unified-logger`）
+5. 如生成本地 unified logger 包，确认模板来自 [references/unified-logger-package-template.md](references/unified-logger-package-template.md)
 
 如果验证工具不可用，跳过并提示用户手动验证。
 
@@ -337,6 +338,7 @@ allowed-tools:
 - 后端文件模板：[references/backend-template.md](references/backend-template.md)
 - 前端文件模板：[references/frontend-template.md](references/frontend-template.md)
 - Demo E2E 测试模板：[references/demo-template.md](references/demo-template.md)
+- Unified Logger 包模板：[references/unified-logger-package-template.md](references/unified-logger-package-template.md)
 - 脚本模板：[references/scripts-template.md](references/scripts-template.md)
 - AGENTS.md 模板：[references/agents-template.md](references/agents-template.md)
 
