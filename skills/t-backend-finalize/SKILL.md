@@ -1,18 +1,6 @@
 ---
 name: t-backend-finalize
-description: Run backend finalization after acceptance: simplify, clippy, fmt, tests, and OpenAPI export.
-argument-hint: [任务名称]
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - Task
-  - TaskCreate
-  - TaskUpdate
-  - TaskList
-  - TaskGet
-  - Write
-  - Bash
+description: Run backend finalization after backend acceptance by simplifying code, running clippy, formatting, full backend tests, exporting OpenAPI, and generating the frontend API client. Use when the user runs /t-backend-finalize with a feature name after backend acceptance is completed.
 ---
 
 # 后端收口执行
