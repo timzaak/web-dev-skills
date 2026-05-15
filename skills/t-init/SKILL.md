@@ -234,7 +234,7 @@ allowed-tools:
 读取 [references/agents-template.md](references/agents-template.md) 获取模板内容。
 
 生成两个根目录文件：
-1. `AGENTS.md` — 项目描述占位符 + Karpathy 行为准则
+1. `AGENTS.md` — 项目描述占位符 + 项目行为准则
 2. `CLAUDE.md` — 仅包含 `@AGENTS.md`（Claude Code 引用语法）
 
 这两个文件帮助 Claude Code 在后续开发中遵循项目规范和行为准则。
