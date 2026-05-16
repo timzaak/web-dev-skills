@@ -10,14 +10,16 @@ Bump project version, create git tag, and push release commit to remote.
 /t-release [版本号]
 ```
 
-- 语义化版本号，如 `0.2.0`、`1.0.0`（不需要 `v` 前缀）
-- 留空时基于最新 tag 推荐下一版本号（patch +1）
+- 语义化版本号，如 `0.2.0`、`1.0.0`
+- 最终 tag 必须是纯版本号，例如 `0.2.0`；输入 `v0.2.0` 会按 `0.2.0` 发布
+- 留空时基于最新 semver tag 推荐下一版本号
 
 ## Preconditions / 前置条件
 
 - 当前分支为 `main`
 - 工作区干净（无未提交变更）
 - 远程可访问
+- 目标 tag 不存在，且对应的 `v<版本号>` tag 也不存在
 
 ## Updated Files / 更新文件
 
@@ -31,19 +33,19 @@ Bump project version, create git tag, and push release commit to remote.
 
 ## Flow / 执行流程
 
-1. 前置检查 — 确认工作区干净，读取当前版本号
-2. 确认版本号 — 参数提供则直接使用，否则推荐并询问
-3. 更新版本号 — 编辑各文件
-4. 编译验证 — `cargo check`，失败则终止
-5. 提交 & 打 Tag — `git commit` + `git tag <版本号>`
-6. 推送 — `git push` + `git push origin <版本号>`
+运行发布脚本：
+
+```bash
+python scripts/release.py [版本号]
+```
+
+脚本负责版本规范化、前置检查、版本文件更新、验证、commit、tag 和 push。不要手工拼接 release 命令。
 
 ## Error Handling / 失败处理
 
-- 工作区脏：提示用户先处理，终止发布
-- 编译失败：终止，保留已修改文件供排查
-- 推送失败：commit 和 tag 已在本地，提示手动推送
-- tag 已存在：提示冲突，终止
+- 按脚本错误输出处理
+- 验证失败时终止，不创建 commit/tag
+- 推送失败时，本地 commit/tag 已保留，提示手动推送
 
 ## Examples / 示例
 
