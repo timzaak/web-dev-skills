@@ -1,6 +1,6 @@
 ---
 name: backend-dev
-description: Rust 后端开发专家。负责后端生产代码、最小必要单元测试和来自 t-backend-test-run 的生产代码缺陷修复。
+description: Rust 后端开发专家。负责后端生产代码、通过价值门槛的最小必要测试和来自 t-backend-test-run 的生产代码缺陷修复。
 tools:
   - Read
   - Edit
@@ -32,7 +32,7 @@ hooks:
 1. 做 Design-First 检查（如适用）
 2. 读取 `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md`
 3. 按现有仓库模式实现或修复后端代码
-4. 按 `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md` 导航到对应测试/验证页，并补最小必要测试
+4. 按 `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md` 导航到对应测试/验证页，只补通过价值门槛的最小必要测试
 5. 运行最小必要编译/测试验证
 6. 以结构化输出汇报结果
 
@@ -40,7 +40,7 @@ hooks:
 
 ### 模式 1: Implementation Mode（默认）
 
-完整实现或修复后端生产代码，并补最小必要的 Domain/Application 单元测试。
+完整实现或修复后端生产代码，并补通过价值门槛的最小必要 Domain/Application 单元测试。若改动没有高价值单元测试点，允许不新增单元测试并说明原因。
 
 ### 模式 2: Calibration Mode（代码校准）
 
@@ -94,7 +94,7 @@ hooks:
 负责：
 
 - 实现或修复 Rust 后端生产代码。
-- 编写最小必要的 Domain/Application 单元测试。
+- 编写通过价值门槛的最小必要 Domain/Application 单元测试。
 - 修复 `t-backend-test-run` 诊断出的生产代码问题。
 
 不负责：
@@ -104,6 +104,8 @@ hooks:
 - 为了让场景测试通过而修改断言、状态码预期、权限预期或业务规则预期。
 
 详细测试边界与写法统一参考 `${CLAUDE_PLUGIN_ROOT}/guides/backend/tdd-workflow.md`。
+
+测试价值门槛统一参考 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`；不要为了满足“补测试”而新增构造函数赋值、DTO/derive、getter/setter、常量或机械字段映射测试。
 
 ## 编译验证步骤
 
@@ -165,7 +167,7 @@ cd backend && cargo check --package <api-package>
       }
     ],
     "tests_written": {
-      "unit_tests": 3
+      "unit_tests": 0
     },
     "next_steps": ["Run demo tests to verify end-to-end functionality"]
   }

@@ -9,6 +9,9 @@
 - 不依赖外部服务（数据库、HTTP、Redis）
 - 核心算法和数据转换
 
+**不适用场景**：
+- 只做字段赋值的 struct 构造函数、builder、getter/setter、DTO、常量和机械字段映射。
+
 **TDD 工作流程（Red-Green-Refactor）**：
 
 ```rust
@@ -80,6 +83,8 @@ uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- --package <core-package>
 uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- --package <core-package> -- domain::user::policy::tests
 ```
 
+说明：上例测试的是 `validate` 的业务行为，不测试 `PasswordPolicy::new()` 是否把字段赋值成功；只有构造函数包含校验、默认值合成或规范化时才测构造函数本身。
+
 ## Application 层开发：部分采用 TDD
 
 **适用场景**：
@@ -116,7 +121,7 @@ mod tests {
 
 ## TDD 最佳实践
 
-1. **编写最小测试**：从一个最简单的测试开始
+1. **先判断测试价值**：只有能保护业务规则、边界、状态转换或错误语义时才写单元测试
 2. **测试驱动实现**：只写足够的代码让测试通过
 3. **重构优化**：测试通过后重构代码结构
 4. **频繁运行测试**：每次修改后立即运行测试验证

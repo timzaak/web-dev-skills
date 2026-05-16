@@ -217,6 +217,7 @@ slot agent 输出必须至少包含：
 - backend dev：数据库/实体、domain、repository、service/use case、HTTP/OpenAPI、外部集成、SDK/API 影响点。
 - backend HTTP/API：DTO 与路由骨架、读模型/list/detail、写操作/create/update、状态操作、配置类接口分别拆分；每个 item 必须能用定向 `cargo check` 或场景测试验证。
 - backend test：按场景测试 authoring 与测试执行 runner 拆分；不要把创建场景测试和修复实现直到测试通过放在同一个 item。
+- backend unit test：不得规划“为新增 struct/DTO/builder/getter/常量补单测”这类低价值 item。
 - frontend dev：API/type 适配、schema/query/store、页面主流程、状态与错误处理、权限与空态。
 - frontend dev：一个 item 默认只交付一个页面域或一个可复用组件族；配置页、用户页、管理页、dialog 等可独立验证的 UI 不应合并。
 - miniapp dev：页面注册、组件主流程、主题接线、token/icon 集成、平台差异处理。
@@ -247,6 +248,8 @@ backend/test slot 必须按当前契约生成，不做旧格式兼容：
 authoring item 只创建或修改场景测试、测试 helper 和模块注册；完成标准只要求编译验证或建议 runner 命令，不要求目标测试全部通过。
 
 runner item 只执行定向测试、分析失败、委派生产代码修复和重测；测试语义可能错误时停止并输出诊断报告。
+
+backend/test slot 不规划源文件内单元测试；确有必要的高价值单元测试归入对应 backend/dev item。
 
 accept item 必须依赖 runner item，不能只依赖 authoring item。`t-backend-test-run` 是 skill，不是 agent；不得生成 `agent: backend-test-run`。
 
