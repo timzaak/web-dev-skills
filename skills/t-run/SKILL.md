@@ -14,6 +14,7 @@ allowed-tools:
   - TaskGet
   - Write
   - Bash
+  - Agent
 ---
 
 # 任务执行
@@ -85,6 +86,8 @@ allowed-tools:
 - 若 DAG 成环、依赖缺失或 item 文件缺失，立即终止并提示重新运行 `/t-task-check`
 
 ## Sub Agent Context Contract
+每个 item 必须通过 `Agent` tool 启动，`subagent_type` 为 item 文件中的 `agent` 字段值。传入 prompt 必须包含最小上下文（见下方），agent 规范文件路径作为指令引用。
+
 最小上下文、可选增强上下文以及 backend-test 额外要求统一参考：
 
 - `protocols/task-phase-execution.md`

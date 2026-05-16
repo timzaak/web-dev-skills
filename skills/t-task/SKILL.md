@@ -10,6 +10,7 @@ allowed-tools:
   - Task
   - Write
   - Bash
+  - Agent
 ---
 
 # 任务规划生成
@@ -126,7 +127,7 @@ demo 阶段：
 2. 解析 `[feature]` 和 `--phase`；根据 `protocols/task-phase-execution.md` 检测 active phases；未传 `--phase` 时自动选择第一未完成 active phase。
 3. 按 `protocols/task-phase-execution.md` 校验阶段前置和 slot 顺序；未启用的 phase 不参与校验或生成。
 4. 如目标阶段为 `frontend`，先运行 `generate-api`。
-5. 按当前阶段 slot 串行调度相应 agent。
+5. 按当前阶段 slot 串行调度相应 agent。每个 slot agent 必须通过 `Agent` tool 启动，`subagent_type` 按 Agent Dispatch Mapping 映射。传入 prompt 必须包含：设计文档相关节、上游 slot handoff（如有）、guide 路径、Agent Output Contract 要求的字段列表。
 6. 每个 slot agent 必须返回：
    - slot manifest 正文
    - item 文件集合
@@ -137,6 +138,22 @@ demo 阶段：
 8. 当前阶段 slot 齐备后生成 `<phase>/index.md`。
 9. 写入或更新 `.state.json`。
 10. 返回下一步建议：`/t-run [feature] --phase [phase]`。
+
+## Agent Dispatch Mapping
+
+| phase | slot | subagent_type |
+|-------|------|---------------|
+| backend | dev | backend-dev |
+| backend | test | backend-test |
+| backend | accept | backend-accept |
+| frontend | dev | frontend-dev |
+| frontend | test | frontend-test |
+| frontend | accept | frontend-accept |
+| miniapp | dev | miniapp-dev |
+| miniapp | test | miniapp-test |
+| miniapp | accept | miniapp-accept |
+| demo | dev | demo-dev |
+| demo | accept | demo-accept |
 
 ## Slot Manifest Contract
 每个 slot manifest 必须包含：

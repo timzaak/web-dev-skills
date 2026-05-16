@@ -13,6 +13,7 @@ allowed-tools:
   - TaskList
   - TaskGet
   - Write
+  - Agent
 ---
 
 # 单文件 Demo 测试运行与修复
@@ -60,8 +61,8 @@ uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py "[测试文件]" --run-
 ```
 
 7. 单用例失败修复循环（最多 6 次）。
-- 先调用 `demo-diagnose` 生成结构化诊断。
-- 按诊断结果分发：`demo-dev` / `frontend-dev` / `backend-dev` / `miniapp-dev`。
+- 先通过 `Agent(subagent_type="demo-diagnose")` 启动诊断 subagent，传入 testFile、runId、testCaseTitle，生成结构化诊断。
+- 按诊断结果通过 `Agent` tool 分发到对应修复 subagent：`Agent(subagent_type="demo-dev")` / `Agent(subagent_type="frontend-dev")` / `Agent(subagent_type="backend-dev")` / `Agent(subagent_type="miniapp-dev")`。
 - 读取修复 agent 返回的 `tests_to_run`（必填）并校验字段：
   - `layer`: `backend|frontend|miniapp|demo`
   - `command`: 可直接执行命令

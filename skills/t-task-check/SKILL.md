@@ -8,6 +8,7 @@ allowed-tools:
   - Grep
   - Task
   - Write
+  - Agent
 ---
 
 # 任务规划质量检查
@@ -81,17 +82,19 @@ allowed-tools:
    - 单个 HTTP/API item 同时包含 5 个以上 endpoint、DTO、路由注册和 OpenAPI/schema 更新时，必须拆分，否则记 P1
    - 单个 demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流时，必须拆分，否则记 P1
 9. 核对设计文档与任务文档的一致性。
-10. 调用当前阶段对应 agent 进行专业校验：
-   - backend: `backend-dev`, `backend-test`, `backend-accept`
-   - frontend: `frontend-dev`, `frontend-test`, `frontend-accept`
-   - miniapp: `miniapp-dev`, `miniapp-test`, `miniapp-accept`
-   - demo: `demo-dev`, `demo-accept`
+10. 通过 `Agent` tool 调度当前阶段对应 subagent 做专业校验。每个 subagent 独立启动，传入 prompt 包含：item 文件内容、设计文档相关节、验证范围、输出格式要求（score/findings/fixes/summary）。可并行调度同阶段多个 subagent。
+   - backend: subagent_type="backend-dev", "backend-test", "backend-accept"
+   - frontend: subagent_type="frontend-dev", "frontend-test", "frontend-accept"
+   - miniapp: subagent_type="miniapp-dev", "miniapp-test", "miniapp-accept"
+   - demo: subagent_type="demo-dev", "demo-accept"
 11. 聚合 agent 结果并进行主流程复核。
 12. 按评分体系生成评分与问题清单。
 13. 执行报告一致性自检。
 14. 写入报告：`.ai/quality/task-check-[feature]-[YYYYMMDD-HHMMSS].md`。
 
 ## Agent Review Contract
+调度方式：通过 `Agent(subagent_type="<agent-name>")` 启动。主流程收集所有 subagent 返回后进行交叉验证（证据优先级：仓库证据 > subagent 发现 > 假设）。
+
 当前阶段 agent 输出字段和主流程补证要求统一参考：
 
 - `protocols/task-check-rubric.md`

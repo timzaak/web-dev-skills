@@ -7,6 +7,7 @@ allowed-tools:
   - Write
   - Edit
   - Task
+  - Agent
 ---
 
 # Backend Test Run
@@ -40,7 +41,7 @@ If test semantics may be wrong, stop and use the stop report from `protocols/bac
 
 ## Delegation Contract
 
-When delegating to `backend-dev`, include:
+When delegating to `backend-dev`, use `Agent(subagent_type="backend-dev")` and include in the prompt:
 
 ```markdown
 Task: Fix this backend test failure in production code.

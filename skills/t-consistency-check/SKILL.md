@@ -9,6 +9,7 @@ allowed-tools:
   - Bash
   - Task
   - Write
+  - Agent
 ---
 
 # 后端一致性检查
@@ -38,10 +39,7 @@ allowed-tools:
 - 目标仓库中与 `[module]` 对应的 HTTP/接口实现目录若不存在，记录为信息项而非直接失败。
 
 3. 调用 `backend-consistency`。
-```bash
-Task: backend-consistency
-prompt: 检查 [module] PRD 与后端实现一致性
-```
+通过 `Agent(subagent_type="backend-consistency")` 启动，传入 prompt 包含模块名和 PRD 路径。
 
 4. 写入报告。
 - 单模块：`.ai/quality/consistency-[module]-[YYYYMMDD-HHMMSS].md`
