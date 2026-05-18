@@ -46,7 +46,7 @@ Common helper commands:
 - `/t-tools:t-doc <project-or-module-name>`: scans the target project codebase and generates newcomer-oriented tutorial documentation under `docs/tutorials/<name>/` by default
 - `/t-tools:t-consistency-check`: checks whether the backend PRD and implementation are consistent; it is not a global DDD inspection command
 - `/t-tools:t-demo-run-all`: runs demo tests in batch
-- `/t-tools:t-release [version]`: releases a version by updating project versions, creating a git commit and tag, and pushing to the remote. The version follows semantic versioning, such as `0.2.0`; the final tag never uses a `v` prefix. If omitted, the command recommends one based on the latest semver tag and strips any historical `v` prefix. It only runs on a clean `main` branch, updates `backend/Cargo.toml`, `frontend/package.json`, and `demo/package.json`, then commits and pushes after compilation checks pass.
+- `/t-tools:t-release [version]`: releases a version by updating project versions, creating a git commit and tag, and pushing to the remote. Version files use semantic versioning, such as `0.2.0`, while the final git tag always uses a `v` prefix, such as `v0.2.0`. If omitted, the command recommends one based on the latest semver tag. It only runs on a clean `main` branch, updates `backend/Cargo.toml`, `frontend/package.json`, and `demo/package.json`, then commits and pushes after compilation checks pass.
 
 ## Installation
 

@@ -227,6 +227,7 @@ def run_validation() -> None:
 
 
 def commit_tag_and_push(version: str, push: bool) -> str:
+    release_tag = f"v{version}"
     release_paths = [
         "backend/Cargo.toml",
         "backend/Cargo.lock",
@@ -246,8 +247,8 @@ def commit_tag_and_push(version: str, push: bool) -> str:
     commit = git("commit", "-m", f"chore: bump version to {version}")
     ensure_success(commit, "Unable to create release commit.")
 
-    tag = git("tag", version)
-    ensure_success(tag, f"Unable to create tag {version}.")
+    tag = git("tag", release_tag)
+    ensure_success(tag, f"Unable to create tag {release_tag}.")
 
     rev = git("rev-parse", "--short", "HEAD", capture=True)
     ensure_success(rev, "Unable to resolve release commit hash.")
@@ -256,11 +257,11 @@ def commit_tag_and_push(version: str, push: bool) -> str:
     if push:
         push_commit = git("push")
         if push_commit.returncode != 0:
-            raise RuntimeError(f"Push failed. Commit {commit_hash} and tag {version} remain local.")
+            raise RuntimeError(f"Push failed. Commit {commit_hash} and tag {release_tag} remain local.")
 
-        push_tag = git("push", "origin", version)
+        push_tag = git("push", "origin", release_tag)
         if push_tag.returncode != 0:
-            raise RuntimeError(f"Tag push failed. Commit {commit_hash} and tag {version} remain local.")
+            raise RuntimeError(f"Tag push failed. Commit {commit_hash} and tag {release_tag} remain local.")
 
     return commit_hash
 
@@ -269,7 +270,7 @@ def resolve_target_version(raw_version: str | None, assume_yes: bool, tags: list
     if raw_version:
         version = str(Semver.parse(raw_version))
         if raw_version.startswith("v"):
-            print(f"Normalized input version {raw_version} -> {version}; release tag will be {version}.")
+            print(f"Normalized input version {raw_version} -> {version}; release tag will be v{version}.")
         return version
 
     latest = latest_semver_tag(tags)
@@ -284,8 +285,8 @@ def resolve_target_version(raw_version: str | None, assume_yes: bool, tags: list
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Release project version without v-prefixed tags.")
-    parser.add_argument("version", nargs="?", help="Target version, X.Y.Z or vX.Y.Z. Final tag is always X.Y.Z.")
+    parser = argparse.ArgumentParser(description="Release project version with v-prefixed git tags.")
+    parser.add_argument("version", nargs="?", help="Target version, X.Y.Z or vX.Y.Z. Final tag is always vX.Y.Z.")
     parser.add_argument("--yes", action="store_true", help="Accept the auto-recommended version when version is omitted.")
     parser.add_argument("--no-push", action="store_true", help="Create the release commit and tag locally without pushing.")
     parser.add_argument("--dry-run", action="store_true", help="Run preflight checks and print the resolved version without editing files.")
@@ -300,7 +301,8 @@ def main() -> int:
         ensure_tag_available(version, tags)
 
         print(f"Release version: {version}")
-        print(f"Release tag: {version}")
+        release_tag = f"v{version}"
+        print(f"Release tag: {release_tag}")
         if args.dry_run:
             return 0
 
@@ -313,7 +315,7 @@ def main() -> int:
         run_validation()
         commit_hash = commit_tag_and_push(version, push=not args.no_push)
         push_text = "pushed" if not args.no_push else "created locally"
-        print(f"Release {version} {push_text}: commit {commit_hash}, tag {version}")
+        print(f"Release {version} {push_text}: commit {commit_hash}, tag {release_tag}")
         return 0
     except Exception as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
