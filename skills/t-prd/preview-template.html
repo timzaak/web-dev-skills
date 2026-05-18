@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="zh-CN" data-prd-source="docs/prd/<domain>/<feature>.md">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>[功能名称] PRD Preview</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f8fa;
+      --panel: #ffffff;
+      --text: #20242a;
+      --muted: #5f6875;
+      --line: #d8dde5;
+      --accent: #2563eb;
+      --ok: #0f766e;
+      --warn: #b45309;
+      --bad: #b91c1c;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, "Microsoft YaHei", sans-serif;
+      line-height: 1.5;
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    main,
+    .header-inner {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .header-inner {
+      padding: 24px 0;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 8px;
+      font-size: 28px;
+      line-height: 1.2;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin-bottom: 12px;
+    }
+
+    h3 {
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 10px;
+      background: #f9fafb;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .summary {
+      max-width: 860px;
+      color: var(--muted);
+      margin-bottom: 0;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 20px;
+      padding: 20px 0 32px;
+    }
+
+    nav,
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    nav {
+      position: sticky;
+      top: 12px;
+      align-self: start;
+      padding: 12px;
+    }
+
+    nav a {
+      display: block;
+      padding: 8px 10px;
+      border-radius: 6px;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    nav a:hover {
+      background: #eef2ff;
+    }
+
+    .content {
+      display: grid;
+      gap: 16px;
+    }
+
+    section {
+      padding: 18px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .box {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 12px;
+      background: #fbfcfe;
+    }
+
+    .flow {
+      display: grid;
+      gap: 10px;
+    }
+
+    .step {
+      border-left: 4px solid var(--accent);
+      padding: 10px 12px;
+      background: #f8fbff;
+      border-radius: 6px;
+    }
+
+    .state-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+    }
+
+    .state {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px;
+    }
+
+    .state.ok {
+      border-color: #99f6e4;
+    }
+
+    .state.warn {
+      border-color: #fed7aa;
+    }
+
+    .state.bad {
+      border-color: #fecaca;
+    }
+
+    .prototype {
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fcfcfd;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 7px 10px;
+      background: #ffffff;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    button.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: #eff6ff;
+    }
+
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 820px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      nav {
+        position: static;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <h1 data-prd-section="title">[功能名称] PRD Preview</h1>
+      <div class="meta">
+        <span class="pill">状态：[Draft]</span>
+        <span class="pill">优先级：[P0/P1/P2]</span>
+        <span class="pill">来源：docs/prd/&lt;domain&gt;/&lt;feature&gt;.md</span>
+      </div>
+      <p class="summary" data-prd-section="goal">[一句话说明功能目标和用户价值]</p>
+    </div>
+  </header>
+
+  <main>
+    <nav aria-label="PRD Preview sections">
+      <a href="#stories">Stories</a>
+      <a href="#scope">Scope</a>
+      <a href="#flow">Flow</a>
+      <a href="#states">States</a>
+      <a href="#rules">Rules</a>
+      <a href="#acceptance">Acceptance</a>
+      <a href="#assumptions">Assumptions</a>
+    </nav>
+
+    <div class="content">
+      <section id="stories" data-prd-section="Stories">
+        <h2>Stories</h2>
+        <div class="grid">
+          <article class="box" data-prd-story-id="US-XXX-001">
+            <h3>[US-XXX-001] [故事标题]</h3>
+            <p>[故事摘要]</p>
+            <p class="note">来源：docs/user-stories/...</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="scope" data-prd-section="Scope">
+        <h2>Scope</h2>
+        <div class="grid">
+          <div class="box">
+            <h3>In Scope</h3>
+            <ul>
+              <li>[包含功能]</li>
+            </ul>
+          </div>
+          <div class="box">
+            <h3>Out of Scope</h3>
+            <ul>
+              <li>[不包含功能]</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="flow" data-prd-section="Flow">
+        <h2>Flow</h2>
+        <div class="flow">
+          <div class="step">1. [入口或触发条件]</div>
+          <div class="step">2. [关键动作]</div>
+          <div class="step">3. [结果或状态变化]</div>
+        </div>
+
+        <div class="prototype" aria-label="Low fidelity preview">
+          <div class="toolbar">
+            <button class="active" type="button" data-panel-target="happy">成功路径</button>
+            <button type="button" data-panel-target="empty">空态</button>
+            <button type="button" data-panel-target="error">异常态</button>
+          </div>
+          <div class="panel active" data-panel="happy">[成功路径的低保真示意或后端流程图]</div>
+          <div class="panel" data-panel="empty">[空态、无数据、无权限或前置条件缺失时的表现]</div>
+          <div class="panel" data-panel="error">[失败、冲突、校验不通过或外部依赖异常时的表现]</div>
+        </div>
+      </section>
+
+      <section id="states" data-prd-section="States">
+        <h2>States</h2>
+        <div class="state-list">
+          <div class="state ok">
+            <h3>正常</h3>
+            <p>[正常状态说明]</p>
+          </div>
+          <div class="state warn">
+            <h3>待处理</h3>
+            <p>[加载、等待、部分完成或需确认状态]</p>
+          </div>
+          <div class="state bad">
+            <h3>异常</h3>
+            <p>[错误、拒绝、冲突或失败状态]</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="rules" data-prd-section="Rules">
+        <h2>Rules</h2>
+        <ul>
+          <li>[关键业务规则]</li>
+        </ul>
+      </section>
+
+      <section id="acceptance" data-prd-section="Acceptance">
+        <h2>Acceptance</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>目标</th>
+              <th>可验收表现</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>[验收目标]</td>
+              <td>[人类可审阅的结果]</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="assumptions" data-prd-section="Assumptions">
+        <h2>Assumptions</h2>
+        <p class="note">如使用示例数据：示例数据，不是接口契约。</p>
+        <ul>
+          <li>[待确认假设；如无则写“无”]</li>
+        </ul>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const buttons = document.querySelectorAll("[data-panel-target]");
+    const panels = document.querySelectorAll("[data-panel]");
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const target = button.getAttribute("data-panel-target");
+        buttons.forEach((item) => item.classList.toggle("active", item === button));
+        panels.forEach((panel) => {
+          panel.classList.toggle("active", panel.getAttribute("data-panel") === target);
+        });
+      });
+    });
+  </script>
+</body>
+</html>

@@ -4,13 +4,17 @@
 
 本规范用于约束 `docs/prd/**/*.md` 的内容边界，确保 PRD 聚焦“做什么/为什么做”，并与技术实现文档分层。
 
+每份 PRD 必须同步具备同目录同名 HTML Preview，用于人类快速审阅、反馈和迭代。
+
 ## 核心原则
 
 1. PRD 描述产品语义、业务边界、验收目标，不承载底层实现细节。
 2. 接口详细定义不在 PRD 中展开，PRD 只保留与产品语义相关的能力边界和约束。
-3. 用户故事、PRD、技术设计三类文档职责分离：
+3. HTML Preview 是 PRD 的可视化审阅和协作视图，不替代 Markdown PRD，不引入新需求。
+4. 用户故事、PRD、HTML Preview、技术设计四类文档职责分离：
    - 用户故事：用户行为与价值
    - PRD：范围、规则、约束和验收目标
+   - HTML Preview：低保真可视化、关键流程、状态和待确认假设
    - 技术设计 / 接口文档：实现与接口细节
 
 ## 明确禁止项
@@ -53,6 +57,32 @@ PRD 中前端相关章节禁止包含：
 - 具体框架、库、Hook、表单 schema 设计
 - 详细 API 调用代码或数据映射策略
 
+## HTML Preview 规范
+
+HTML Preview 路径必须与 PRD 同目录同名：
+
+- PRD: `docs/prd/<domain>/<feature>.md`
+- Preview: `docs/prd/<domain>/<feature>.html`
+
+Preview 应结合“可视化 PRD 阅读器”和“低保真交互原型”，帮助人类快速理解：
+
+- 这个功能解决什么问题
+- 哪些用户故事相关
+- 做什么、不做什么
+- 关键流程如何走
+- 关键状态、异常和权限可见性是什么
+- 哪些内容仍是待确认假设
+
+Preview 必须目标技术栈无关，使用单文件 HTML、内联 CSS 和少量原生 JS。不得依赖 React/Vue/Svelte/miniapp 组件、npm、构建工具、CDN 或目标项目源码。
+
+纯后端或无用户界面的功能仍需生成 Preview，但不生成伪 UI；应使用流程图、状态图、调用方场景、能力边界矩阵或验收矩阵表达。
+
+`/t-prd` 生成或更新 Preview 后，应立即打开 HTML 供人类审阅。后续沟通优先围绕 HTML Preview 进行；如果审阅中调整了功能意图、流程、状态或验收目标，必须同步修改 Markdown PRD 和 HTML Preview。
+
+`/t-prd-check` 必须验证 Markdown PRD 与 HTML Preview 描述一致。不一致时，必须修正到一致后才能通过。
+
+详细契约参考 `protocols/prd-preview-contract.md`。
+
 ## 与一致性检查的关系
 
 PRD 一致性检查聚焦业务规则、访问控制语义、能力边界和验收目标，不要求 PRD 承担接口明细说明。
@@ -69,5 +99,16 @@ PRD 至少应包含：
 - API 相关约束（如适用）
 - 前端/交互约束（如适用）
 - 技术设计承接（如适用）
+- 已确认决策与待确认假设
 - 相关文件索引
 - 参考资料
+
+对应 HTML Preview 至少应包含：
+
+- Stories
+- Scope
+- Flow
+- States
+- Rules
+- Acceptance
+- Assumptions

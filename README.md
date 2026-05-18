@@ -36,7 +36,7 @@
 
 其中：
 
-- `/t-tools:t-prd-check` 是 PRD 与 user story 质量门禁，不是可有可无的补充命令
+- `/t-tools:t-prd-check` 是 PRD、HTML Preview 与 user story 质量门禁，不是可有可无的补充命令
 - `/t-tools:t-demo-accept` 是 Demo 阶段验收门禁，用来确认测试覆盖、可运行性和交付质量
 
 常见辅助命令：
@@ -86,8 +86,8 @@ claude --plugin-dir /path/to/skills
 
 执行顺序可以这样理解：
 
-- `/t-tools:t-prd user-management`：若 PRD 不存在则创建，已存在则基于现有内容补齐或更新相关 PRD 与 user story
-- `/t-tools:t-prd-check user-management`：马上做产品文档质量门禁，避免把问题带入设计阶段
+- `/t-tools:t-prd user-management`：若 PRD 不存在则创建，已存在则基于现有内容补齐或更新相关 PRD、同目录 HTML Preview 与 user story，并立即打开 HTML 供审阅
+- `/t-tools:t-prd-check user-management`：马上做产品文档与 HTML Preview 质量门禁，避免把问题带入设计阶段
 - `/t-tools:t-design user-management`：基于 PRD 产出技术设计
 - `/t-tools:t-task user-management`：把设计转换成可执行任务
 - `/t-tools:t-run user-management --phase backend`：按阶段驱动实现与测试

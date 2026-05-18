@@ -5,6 +5,7 @@
 ## Evaluation Goals
 
 - 验证 PRD 文档完整性和规范性
+- 检查 PRD HTML Preview 的存在性、可审阅性和 PRD 一致性
 - 评估用户故事质量
 - 检查 PRD 与用户故事的一致性
 - 检查是否错误混入接口、建表、schema 等实现细节
@@ -26,7 +27,7 @@
 | API 相关约束 | `^## [0-9]+\. API 相关约束` | 10 |
 | 前端/交互约束 | `^## [0-9]+\. 前端/交互约束` | 5 |
 | 技术设计承接 | `^## [0-9]+\. 技术设计承接` | 5 |
-| 相关文件索引 | `^## 9\. 相关文件索引` | 5 |
+| 相关文件索引 | `^## (9|10)\. 相关文件索引` | 5 |
 | 参考资料 | `^## (1[0-2]|10|11|12)\. 参考资料` | 5 |
 
 ### User Story References
@@ -51,6 +52,20 @@
 | 禁止 schema 表格 | 不出现请求/响应字段表或参数表 | 0 / -5 |
 | 禁止数据库设计 | 不出现 `CREATE TABLE`、`ALTER TABLE`、`migration`、`数据库表` | 0 / -5 |
 | 禁止代码类型示例 | 不出现 `pub struct`、`interface Xxx`、技术代码块 | 0 / -5 |
+
+### HTML Preview Checks
+
+权重 20%。具体契约参考 `protocols/prd-preview-contract.md`。
+
+| 检查项 | 验证内容 | 权重 / 扣分 |
+|---|---|---:|
+| Preview 存在性 | `docs/prd/<domain>/<feature>.html` 与 PRD 同目录同名 | 5 |
+| 来源可追溯 | 包含来源 PRD 路径和 `data-prd-source` | 3 |
+| 固定审阅区域 | 包含 `Stories`、`Scope`、`Flow`、`States`、`Rules`、`Acceptance`、`Assumptions` | 5 |
+| 技术栈无关 | 不依赖 npm、构建工具、CDN、目标项目组件或外部脚本样式 | 3 |
+| 示例数据声明 | 使用示例数据时标注“示例数据，不是接口契约” | 2 |
+| PRD 一致性 | 与 PRD 的目标、范围、流程、状态、规则和验收目标一致，不引入未声明的新业务规则、权限规则或验收目标 | 0 / -10 |
+| Preview 禁止内容 | 不出现端点清单、schema、建表、迁移、类型定义 | 0 / -10 |
 
 ## User Story Checks
 
@@ -112,9 +127,10 @@
 ## Final Score
 
 - `PRD Score = 基础章节得分 + 用户故事引用得分 - PRD 分层扣分`
+- `Preview Score = Preview 存在性 + 来源可追溯 + 固定审阅区域 + 技术栈无关 + 示例数据声明 - Preview 一致性扣分 - Preview 禁止内容扣分`
 - `User Story Score = 故事结构得分 + INVEST 得分 - 禁止内容扣分 - 质量门禁扣分`
 - `Consistency Score = 链接有效性 + 优先级一致性 + 角色引用正确性`
-- `Total Score = (PRD Score × 50%) + (User Story Score × 50%) + Consistency Score`
+- `Total Score = (PRD Score × 45%) + (User Story Score × 40%) + (Preview Score × 15%) + Consistency Score`
 
 ## Severity
 
@@ -124,6 +140,7 @@
 - 用户故事无验收标准
 - 新文档含【技术实现】章节
 - PRD 含端点、schema、建表等实现细节
+- HTML Preview 含端点、schema、建表、迁移、类型定义等禁止内容
 
 ### P1
 
@@ -131,11 +148,15 @@
 - 验收标准模糊
 - INVEST 原则明显违反
 - 旧文档含技术表格
+- 缺失同目录同名 HTML Preview
+- HTML Preview 与 PRD 在目标、范围、流程、状态、规则或验收目标上描述不一致
+- HTML Preview 依赖目标项目技术栈、构建工具或外部 CDN
 
 ### P2
 
 - 前端/交互约束不完整
 - 一般格式问题
+- HTML Preview 缺少必要审阅区域、来源 PRD 路径或示例数据声明
 
 ## Output Requirements
 
@@ -145,6 +166,7 @@
 - P0/P1/P2 统计
 - 质量门禁结果
 - PRD 分层检查结果
+- HTML Preview 检查结果
 - 前 3 个关键问题
 - 报告路径
 
@@ -153,6 +175,7 @@
 - 总体评估
 - 质量门禁
 - PRD 分层检查
+- HTML Preview 检查
 - 各功能详细得分
 - P0/P1/P2 问题
 - 优先修复建议

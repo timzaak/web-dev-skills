@@ -20,6 +20,21 @@ def _resolve_repo_root() -> Path:
     if override:
         return Path(override).expanduser().resolve()
 
+    # Detect project from current working directory (CWD).
+    # When invoked from a project directory (e.g. via Claude Code Bash tool),
+    # the CWD is the project root — not the scripts repo.
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            capture_output=True, text=True, timeout=5,
+        )
+        if result.returncode == 0:
+            cwd_root = Path(result.stdout.strip()).resolve()
+            if cwd_root.is_dir():
+                return cwd_root
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+
     script_project_root = Path(__file__).resolve().parents[2]
 
     # Try git detection from the scripts tree, not the caller's CWD.

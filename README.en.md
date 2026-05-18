@@ -36,7 +36,7 @@ It is designed for teams and projects that:
 
 Notes:
 
-- `/t-tools:t-prd-check` is the quality gate for PRDs and user stories. It is not an optional helper command.
+- `/t-tools:t-prd-check` is the quality gate for PRDs, HTML Previews, and user stories. It is not an optional helper command.
 - `/t-tools:t-demo-accept` is the demo-stage acceptance gate. It verifies test coverage, runnability, and delivery quality.
 
 Common helper commands:
@@ -86,8 +86,8 @@ Minimal end-to-end example:
 
 Execution flow:
 
-- `/t-tools:t-prd user-management`: creates the PRD if it does not exist, or completes and updates the existing PRD and user stories
-- `/t-tools:t-prd-check user-management`: immediately runs the product-document quality gate, so upstream issues do not enter the design stage
+- `/t-tools:t-prd user-management`: creates the PRD if it does not exist, or completes and updates the existing PRD, same-directory HTML Preview, and user stories, then opens the HTML for review
+- `/t-tools:t-prd-check user-management`: immediately runs the product-document and HTML Preview quality gate, so upstream issues do not enter the design stage
 - `/t-tools:t-design user-management`: produces the technical design from the PRD
 - `/t-tools:t-task user-management`: converts the design into executable tasks
 - `/t-tools:t-run user-management --phase backend`: drives implementation and testing by phase
