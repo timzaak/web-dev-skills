@@ -31,6 +31,7 @@ It is designed for teams and projects that:
   -> /t-tools:t-backend-finalize
   -> /t-tools:t-demo-run
   -> /t-tools:t-demo-accept
+  -> /t-tools:t-push (optional, run scoped local CI, then commit and push)
   -> /t-tools:t-release [version]
 ```
 
@@ -46,6 +47,7 @@ Common helper commands:
 - `/t-tools:t-doc <project-or-module-name>`: scans the target project codebase and generates newcomer-oriented tutorial documentation under `docs/tutorials/<name>/` by default
 - `/t-tools:t-consistency-check`: checks whether the backend PRD and implementation are consistent; it is not a global DDD inspection command
 - `/t-tools:t-demo-run-all`: runs demo tests in batch
+- `/t-tools:t-push`: detects backend, frontend, and demo changes from git diff, runs only the affected local CI checks, then generates a commit message and runs `git commit` plus `git push` after confirmation
 - `/t-tools:t-release [version]`: releases a version by updating project versions, creating a git commit and tag, and pushing to the remote. Version files use semantic versioning, such as `0.2.0`, while the final git tag always uses a `v` prefix, such as `v0.2.0`. If omitted, the command recommends one based on the latest semver tag. It only runs on a clean `main` branch, updates `backend/Cargo.toml`, `frontend/package.json`, and `demo/package.json`, then commits and pushes after compilation checks pass.
 
 ## Installation

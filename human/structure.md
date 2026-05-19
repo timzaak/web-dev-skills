@@ -17,11 +17,15 @@ T-Tools 不是一组零散 prompt，而是一套面向工程交付的 AI 编程�
 Skill 是命令式工作流入口，例如：
 
 - `/t-tools:t-prd`
+- `/t-tools:t-prd-check`
 - `/t-tools:t-design`
+- `/t-tools:t-design-check`
 - `/t-tools:t-task`
+- `/t-tools:t-task-check`
 - `/t-tools:t-run`
 - `/t-tools:t-demo-run`
 - `/t-tools:t-demo-accept`
+- `/t-tools:t-push`
 
 Skill 的职责不是“写一段提示词让模型自由发挥”，而是控制阶段推进：
 
@@ -44,6 +48,7 @@ Subagent 按工程角色拆分，例如：
 - `frontend-dev`：React 前端实现。
 - `frontend-test`：Vitest、Testing Library、MSW 测试。
 - `frontend-accept`：前端只读验收。
+- `prd-preview`：把 Markdown PRD 和用户故事转成同目录 HTML Preview，用于人类审阅产品语义和关键路径。
 - `demo-dev`：基于用户故事维护独立的 Playwright Demo/E2E 测试。
 - `demo-accept`：验收 Demo 测试与用户故事、执行结果和测试质量是否一致。
 
@@ -57,6 +62,7 @@ Subagent 按工程角色拆分，例如：
 - `phase -> slot -> item` 的执行顺序。
 - agent 完成或失败时的结构化输出。
 - 修复后需要返回的 `tests_to_run` 补测集合。
+- PRD HTML Preview 的文件位置、内容模型、技术边界和检查范围。
 - PRD、设计、任务检查的评分与阻塞规则。
 
 这样可以避免每个 skill 或 agent 重复定义一套字段、状态机和质量标准。更新共享规则时，优先改 protocol，而不是在多个 agent 文档里复制同步。
@@ -92,6 +98,24 @@ PRD
 这条链路把 AI 编程拆成产品、设计、任务规划、实现、测试、验收、Demo 交付多个阶段。每个阶段都有输入契约、输出契约和质量门禁。
 
 关键点是不要跳过 check / accept。这个项目的价值不只是生成内容，而是在每个阶段收口，避免把上游问题带到下游。
+
+## t-prd 的设计思路：让 AI 产物先被人看懂
+
+`/t-tools:t-prd` 的核心变化不是“多生成一个 HTML 文件”，而是改变人类审阅 AI 产物的方式。
+
+传统 PRD 流程里，AI 很容易产出一千行 Markdown。它对模型来说结构清楚，但对人类来说阅读成本很高：要在长文里找目标、范围、流程、状态、权限、异常和验收标准，还要自己判断这些内容是否互相矛盾。人在这个阶段看不懂或看不完，后面的设计、任务和实现就会沿着错误理解继续放大。
+
+HTML Preview 的设计目的，是把 AI 对需求的理解转换成更容易被人快速浏览、质疑和修正的形态。人不需要先完整读完 Markdown，先看 Preview 就能知道：
+
+- AI 认为这个功能要解决什么问题。
+- 用户会经过哪些关键路径。
+- 哪些状态、边界、异常和权限被考虑到了。
+- 哪些地方仍然只是待确认假设。
+- 这个需求进入设计阶段前是否已经足够清楚。
+
+因此，`/t-tools:t-prd` 更像是一个“产品理解可视化”阶段。Markdown 仍然是正式契约，但 Preview 是人类审阅契约的入口。它把长文档里的产品语义变成可扫描、可讨论、可反馈的界面，让人类更早发现 AI 的误解，而不是等到技术设计或代码实现后才发现方向偏了。
+
+这个思路也改变了 `/t-tools:t-prd-check` 的意义。PRD Check 不只是检查文档格式，而是确认“AI 写下的产品理解”和“人类通过 Preview 看到的产品理解”是否一致。只有这两者对齐，后续 `/t-tools:t-design` 才有稳定输入。
 
 ## Demo 的独立质量验证
 
@@ -169,6 +193,19 @@ T-Tools 把质量控制做成显式流程：
 - `/t-tools:t-demo-run` 失败时先诊断，再分发给 `demo-dev`、`frontend-dev` 或 `backend-dev` 修复。
 
 修复 agent 必须返回 `tests_to_run`，说明修复后应该补测哪些后端、前端或 Demo 命令。这样 Demo 通过但底层回归失败的风险会被显式暴露。
+
+## 提交前的本地 CI 收口
+
+`/t-tools:t-push` 是日常提交入口，不替代完整发布流程。它根据 git diff 判断变更范围：
+
+- `backend/**` 触发 Backend CI。
+- `frontend/**` 触发 Frontend CI。
+- `demo/**` 触发 Demo CI。
+- 仅文档、脚本或配置变更时跳过业务区域 CI，直接进入提交确认。
+
+所有受影响检查通过后，它会 `git add -A`，基于暂存 diff 生成符合项目惯例的 commit message，经用户确认后执行 `git commit` 和 `git push`。如果任一 CI 失败，流程停止，不提交、不推送。
+
+正式版本发布仍由 `/t-tools:t-release [版本号]` 约束；版本文件使用不带 `v` 的 semver，git tag 使用 `v` 前缀。
 
 ## 设计取舍
 

@@ -17,11 +17,15 @@ The core idea can be summarized as:
 A skill is an imperative workflow entry point, for example:
 
 - `/t-tools:t-prd`
+- `/t-tools:t-prd-check`
 - `/t-tools:t-design`
+- `/t-tools:t-design-check`
 - `/t-tools:t-task`
+- `/t-tools:t-task-check`
 - `/t-tools:t-run`
 - `/t-tools:t-demo-run`
 - `/t-tools:t-demo-accept`
+- `/t-tools:t-push`
 
 The responsibility of a skill is not to "write a prompt and let the model improvise." Its responsibility is to control stage progression:
 
@@ -44,6 +48,7 @@ Subagents are split by engineering role, for example:
 - `frontend-dev`: implements the React frontend.
 - `frontend-test`: handles Vitest, Testing Library, and MSW tests.
 - `frontend-accept`: performs read-only frontend acceptance.
+- `prd-preview`: converts Markdown PRDs and user stories into same-directory HTML Previews for human review of product semantics and key paths.
 - `demo-dev`: maintains independent Playwright demo/E2E tests based on user stories.
 - `demo-accept`: verifies whether demo tests align with user stories, execution results, and test quality expectations.
 
@@ -57,6 +62,7 @@ The key point of this split is responsibility boundaries. Development agents may
 - The execution order of `phase -> slot -> item`.
 - Structured output when an agent completes or fails.
 - The `tests_to_run` set that must be returned after a fix.
+- The file location, content model, technology boundary, and check scope for PRD HTML Previews.
 - Scoring and blocking rules for PRD, design, and task checks.
 
 This avoids having every skill or agent redefine its own fields, state machine, and quality criteria. When a shared rule needs to change, the protocol should be updated first instead of copying the same change across multiple agent documents.
@@ -92,6 +98,24 @@ PRD
 This path breaks AI programming into product definition, design, task planning, implementation, testing, acceptance, and demo delivery. Every stage has an input contract, an output contract, and quality gates.
 
 The important point is not to skip check or acceptance steps. The value of this project is not only content generation. It is also the ability to close each stage before upstream problems flow downstream.
+
+## t-prd Design: Make AI Output Understandable First
+
+The core change in `/t-tools:t-prd` is not "generate one more HTML file." It changes how humans review AI output.
+
+In a traditional PRD flow, AI can easily produce a thousand lines of Markdown. That structure may be clear to the model, but it is expensive for humans to read: they have to hunt through a long document for the goal, scope, flow, states, permissions, exceptions, and acceptance criteria, then judge whether those pieces contradict each other. If humans cannot understand or finish reviewing the PRD at this stage, design, task planning, and implementation will amplify the wrong understanding downstream.
+
+The purpose of the HTML Preview is to turn the AI's understanding of the requirement into a form that humans can scan, question, and correct quickly. Instead of reading the entire Markdown first, humans can use the Preview to see:
+
+- What problem the AI thinks the feature should solve.
+- Which key paths users will go through.
+- Which states, boundaries, exceptions, and permissions were considered.
+- Which parts are still only assumptions.
+- Whether the requirement is clear enough to enter design.
+
+So `/t-tools:t-prd` is closer to a "product-understanding visualization" stage. Markdown remains the formal contract, but the Preview becomes the human entry point for reviewing that contract. It turns product semantics buried in a long document into a scannable, discussable, feedback-friendly interface, so humans can catch AI misunderstandings earlier instead of finding them after technical design or code implementation.
+
+This also changes what `/t-tools:t-prd-check` means. PRD Check is not just a document-format check. It verifies that "the product understanding written by the AI" and "the product understanding humans see through the Preview" are aligned. Only after those two views agree does `/t-tools:t-design` have stable input.
 
 ## Independent Demo Quality Verification
 
@@ -169,6 +193,19 @@ T-Tools makes quality control explicit:
 - When `/t-tools:t-demo-run` fails, it diagnoses first, then dispatches fixes to `demo-dev`, `frontend-dev`, or `backend-dev`.
 
 A fixing agent must return `tests_to_run`, explaining which backend, frontend, or demo commands should be rerun after the fix. This makes the risk of "demo passes but lower-level regression fails" explicit.
+
+## Local CI Closure Before Push
+
+`/t-tools:t-push` is the daily commit entry point. It does not replace the release workflow. It detects the changed scope from git diff:
+
+- `backend/**` triggers Backend CI.
+- `frontend/**` triggers Frontend CI.
+- `demo/**` triggers Demo CI.
+- Documentation, scripts, or configuration-only changes skip business-area CI and go straight to commit confirmation.
+
+After all affected checks pass, it runs `git add -A`, generates a commit message from the staged diff following project conventions, asks for confirmation, then runs `git commit` and `git push`. If any CI step fails, the flow stops and does not commit or push.
+
+Formal version publishing remains governed by `/t-tools:t-release [version]`; version files use semver without `v`, while git tags use the `v` prefix.
 
 ## Design Tradeoff
 
