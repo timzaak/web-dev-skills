@@ -30,7 +30,7 @@
 - ApiDoc 路径和 schema 注册完整
 
 ### P2（可改进）
-- 复杂度和重复代码优化
+- 复杂度和重复代码优化（重复代码检查结果必须写入 accept 报告）
 - OpenAPI 描述信息增强
 
 ## 4. 执行步骤与命令
@@ -39,6 +39,7 @@
 cargo build --workspace
 uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- <targeted filter>
 cat backend-test-output.log | grep -E "(error\[E|FAILED)" | head -20
+npx jscpd --pattern "**/*.rs" --reporters console backend
 ```
 
 规则：
@@ -123,6 +124,7 @@ cd frontend && npm run generate-api
 ### 报告最小字段
 - 测试结果（总数/通过/失败）
 - 构建与静态检查结果
+- 重复代码检查结果（命令、重复率/重复块数量、关键文件位置；未执行时必须说明原因）
 - 环境验证结果
 - OpenAPI 检查结果
 - 阻塞问题与修复建议

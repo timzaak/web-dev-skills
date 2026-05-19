@@ -32,6 +32,7 @@
 
 ### P2（可改进）
 - 组件拆分、目录组织、可维护性优化
+- 重复代码可控（检查结果必须写入 accept 报告）
 
 ## 4. 执行步骤与命令
 
@@ -39,6 +40,7 @@
 cd miniapp
 npm run typecheck
 npm run build:weapp
+npx jscpd src/ --reporters console
 ```
 
 按需执行：
@@ -69,6 +71,7 @@ cd miniapp && npm run starter:ci-gate -- --target taro-react-taroify-tailwind
 
 ### 报告最小字段
 - 类型检查、构建、模板门禁结果
+- 重复代码检查结果（命令、重复率/重复块数量、关键文件位置；未执行时必须说明原因）
 - 页面注册与主题/图标约束检查结果
 - 风险与修复建议（P0/P1/P2）
 

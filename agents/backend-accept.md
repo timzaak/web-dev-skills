@@ -27,6 +27,7 @@ tools:
 
 - 报告：`.ai/quality/backend-accept-[feature]-[YYYYMMDD-HHMMSS].md`
 - 验收结论：`ACCEPTED` / `REJECTED` / `ACCEPTED_WITH_IMPROVEMENTS`
+- 重复代码检查结果：必须写入报告，包含执行命令、重复率/重复块数量、关键文件位置；未执行时必须说明原因
 - handoff：明确是否可进入 `/t-backend-finalize [feature]`
 
 ## 执行流程
@@ -37,6 +38,7 @@ tools:
 
 ### 步骤 1：基础质量命令
 - 先分析改动范围与上游 handoff，再执行编译与定向测试命令
+- 执行重复代码扫描并保留报告证据
 - 收集失败证据与日志
 - 默认不直接运行全量 `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py`
 - 仅在用户明确要求全量测试，或影响范围无法可靠收敛时，才升级为全量测试

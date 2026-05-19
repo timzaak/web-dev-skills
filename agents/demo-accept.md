@@ -28,6 +28,7 @@ tools:
 - 单文件报告：`.ai/quality/demo-accept-[feature]-[YYYYMMDD-HHMMSS].md`
 - 批量汇总：`.ai/quality/demo-accept-summary-[YYYYMMDD-HHMMSS].md`
 - 验收结论：`ACCEPTED` / `REJECTED` / `ACCEPTED_WITH_IMPROVEMENTS`
+- 重复代码检查结果：必须写入单文件报告和批量汇总报告，包含执行命令、重复率/重复块数量、关键文件位置；未执行时必须说明原因
 - 每条问题必须附带文件、日志或命令证据
 
 ## 执行流程
@@ -46,6 +47,7 @@ tools:
 
 ### 阶段 4：代码质量检查
 - 检查隔离、日志系统、延迟、选择器、等待模式
+- 执行重复代码扫描并保留报告证据
 - 检查选择器是否符合 `${CLAUDE_PLUGIN_ROOT}/guides/demo/selector-strategy.md` 标准
 - 检查 Page Object 使用是否符合 `${CLAUDE_PLUGIN_ROOT}/guides/demo/pom-guide.md` 规范
 - **检查测试数据构造方式（MANDATORY）**

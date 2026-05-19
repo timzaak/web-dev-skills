@@ -57,12 +57,14 @@ grep -n "verifyTestEnvironment\|cleanupDemoTestData" [测试文件路径]
 grep -n "UnifiedLogger\|logger\." [测试文件路径]
 grep -n "waitForTimeout" [测试文件路径]
 grep -n "data-testid\|getByRole\|getByText" [测试文件路径]
+npx jscpd --pattern "**/*.ts" --reporters console demo/e2e
 wc -l [测试文件路径]
 ```
 
 6. 生成报告。
 - 单文件：`.ai/quality/demo-accept-[name]-[YYYYMMDD-HHMMSS].md`
 - 批量：同时生成汇总 `.ai/quality/demo-accept-summary-[YYYYMMDD-HHMMSS].md`
+- 报告必须包含重复代码检查结果：执行命令、重复率/重复块数量、关键文件位置；未执行时必须说明原因。
 
 ## 输出格式
 每个文件产出：
@@ -70,6 +72,7 @@ wc -l [测试文件路径]
 - 分数：0-100
 - 问题清单：P0 / P1 / P2
 - 证据：失败命令、日志路径、相关代码位置
+- 重复代码检查结果：命令、重复率/重复块数量、关键文件位置或未执行原因
 
 日志路径统一使用仓库相对路径：
 - `log/backend-demo.log`

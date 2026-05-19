@@ -27,6 +27,7 @@ tools:
 
 - 质量报告：`.ai/quality/frontend-accept-[feature]-[YYYYMMDD-HHMMSS].md`
 - 验收结论：`ACCEPTED` / `REJECTED` / `ACCEPTED_WITH_IMPROVEMENTS`
+- 重复代码检查结果：必须写入报告，包含执行命令、重复率/重复块数量、关键文件位置；未执行时必须说明原因
 - 每条结论都必须包含证据文件或命令输出来源
 
 ## 执行流程
@@ -37,6 +38,7 @@ tools:
 
 ### 步骤 1：基础质量命令
 - 运行 `type-check`、`test`、`lint`
+- 执行重复代码扫描并保留报告证据
 - 收集类型与测试失败证据
 
 ### 步骤 2：API 一致性检查
