@@ -59,7 +59,7 @@ Preview 应结合“可视化 PRD 阅读器”和“低保真交互原型”两�
 
 - 功能名、状态、优先级、来源 PRD 路径。
 - 一句话目标。
-- 相关用户故事摘要和链接。
+- 需求背景或待建设目标概述。
 - In Scope / Out of Scope。
 - 关键业务规则。
 - 主要用户路径或业务流程。
@@ -71,9 +71,10 @@ Preview 应结合“可视化 PRD 阅读器”和“低保真交互原型”两�
 前端或交互功能应包含：
 
 - 页面入口。
-- 关键页面或区域的低保真示意。
+- 尚未完成、待建设或待变更的关键页面/区域低保真示意。
 - 可点击或可切换的核心交互状态。
 - 成功、失败、空态、加载态或禁用态中的关键状态。
+- 已有代码实现的 UI 只可作为入口、约束或现状差距说明，不作为 Preview 主体复刻。
 
 纯后端或无用户界面的功能不生成伪 UI，但仍必须生成 Preview：
 
@@ -87,8 +88,8 @@ Preview 应结合“可视化 PRD 阅读器”和“低保真交互原型”两�
 
 - 页面标题使用 `<feature> PRD Preview`。
 - 顶部 summary 区展示元数据和一句话目标。
-- 主体使用固定区域：`Stories`、`Scope`、`Flow`、`States`、`Rules`、`Acceptance`、`Assumptions`。
-- 页面元素使用语义化 `data-prd-*` 属性标记来源，例如 `data-prd-source`, `data-prd-section`, `data-prd-story-id`。
+- 主体使用固定区域：`Overview`、`Scope`、`Flow`、`States`、`Rules`、`Acceptance`、`Assumptions`。
+- 页面元素使用语义化 `data-prd-*` 属性标记来源，例如 `data-prd-source`, `data-prd-section`。
 - 样式应保持中性、低保真、易读，不追求目标项目视觉还原。
 
 ## Check Scope
@@ -101,8 +102,9 @@ Preview 应结合“可视化 PRD 阅读器”和“低保真交互原型”两�
 - Preview 文件是否存在且与 PRD 同目录同名。
 - 是否为单文件 HTML，且不依赖外部脚本、样式、CDN 或目标项目构建产物。
 - 是否包含来源 PRD 路径。
-- 是否包含固定区域：`Stories`、`Scope`、`Flow`、`States`、`Rules`、`Acceptance`、`Assumptions`。
+- 是否包含固定区域：`Overview`、`Scope`、`Flow`、`States`、`Rules`、`Acceptance`、`Assumptions`。
 - 是否包含示例数据声明（当页面出现示例数据时）。
+- 对前端/交互功能，是否聚焦尚未完成、待建设或待变更的 UI，而不是复刻已有实现。
 - 是否没有引入 PRD 未声明的新业务规则或验收目标。
 - 是否与 Markdown PRD 的目标、范围、流程、状态、规则和验收目标一致。
 - 是否没有出现接口端点清单、请求响应 schema、数据库设计或代码类型定义。

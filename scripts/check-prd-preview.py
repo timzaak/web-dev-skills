@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 REQUIRED_SECTIONS = [
-    "Stories",
+    "Overview",
     "Scope",
     "Flow",
     "States",

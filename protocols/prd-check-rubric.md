@@ -61,9 +61,10 @@
 |---|---|---:|
 | Preview 存在性 | `docs/prd/<domain>/<feature>.html` 与 PRD 同目录同名 | 5 |
 | 来源可追溯 | 包含来源 PRD 路径和 `data-prd-source` | 3 |
-| 固定审阅区域 | 包含 `Stories`、`Scope`、`Flow`、`States`、`Rules`、`Acceptance`、`Assumptions` | 5 |
+| 固定审阅区域 | 包含 `Overview`、`Scope`、`Flow`、`States`、`Rules`、`Acceptance`、`Assumptions` | 5 |
 | 技术栈无关 | 不依赖 npm、构建工具、CDN、目标项目组件或外部脚本样式 | 3 |
 | 示例数据声明 | 使用示例数据时标注“示例数据，不是接口契约” | 2 |
+| UI 待建设边界 | 前端/交互 Preview 聚焦尚未完成、待建设或待变更 UI，不复刻已有实现 | 0 / -5 |
 | PRD 一致性 | 与 PRD 的目标、范围、流程、状态、规则和验收目标一致，不引入未声明的新业务规则、权限规则或验收目标 | 0 / -10 |
 | Preview 禁止内容 | 不出现端点清单、schema、建表、迁移、类型定义 | 0 / -10 |
 

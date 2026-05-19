@@ -65,6 +65,7 @@ allowed-tools:
 
 **HTML Preview 边界**：
 - 是 Markdown PRD 的可视化审阅视图，不能引入 PRD 未声明的新需求或规则
+- 有前端/交互入口时，UI 示意聚焦尚未完成、待建设或待变更的目标体验，不复刻代码库已经具备的现有页面或组件；已有 UI 只作为入口、约束或现状差距说明
 - 使用单文件 HTML、内联 CSS 和少量原生 JS，不依赖外部构建工具或 CDN
 - 技术栈无关，浏览器直接打开即可审阅
 
@@ -119,8 +120,8 @@ allowed-tools:
 
 `docs/prd/<domain>/[feature].html` — HTML Preview，包含：
 - 元数据、来源路径和一句话目标
-- 用户故事、范围、流程、状态、规则、验收目标和待确认假设
-- 前端功能低保真交互示意，或后端场景的流程图/状态图/能力矩阵
+- 待建设目标、范围、流程、状态、规则、验收目标和待确认假设
+- 前端功能待建设/待变更 UI 的低保真交互示意，或后端场景的流程图/状态图/能力矩阵
 
 可能更新用户故事文件（追加或新建）。
 
@@ -200,7 +201,6 @@ create 路径使用 [template.md](template.md)；update 路径以现有 PRD 为�
 
 委派 prompt 必须包含：
 - PRD 路径和 Preview 输出路径
-- 相关用户故事路径和摘要
 - 本次是 create 还是 update
 - 用户当前确认的目标、范围、流程、状态、规则、验收目标和待确认假设
 
@@ -211,8 +211,8 @@ create 路径使用 [template.md](template.md)；update 路径以现有 PRD 为�
 PRD: docs/prd/<domain>/[feature].md
 Preview: docs/prd/<domain>/[feature].html
 Mode: create|update
-Related stories: <paths and IDs>
 要求：遵循 protocols/prd-preview-contract.md；如为纯后端场景，使用流程图/状态图/能力矩阵，不生成伪 UI。
+前端 UI 示意只展示待建设或待变更内容，不复刻已有实现。
 ```
 
 subagent 的详细规则见 `agents/prd-preview.md` 和 `protocols/prd-preview-contract.md`。
