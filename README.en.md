@@ -16,6 +16,52 @@ It is designed for teams and projects that:
 - Stable delivery: key stages include check and acceptance commands to reduce document drift, missed task breakdowns, and non-runnable demos
 - Clear collaboration: skills, agents, guides, and protocols are layered for reuse across teams and long-running projects
 
+## Design Overview
+
+Recommended first reading: [human/structure.en.md](human/structure.en.md) — understand how skills, subagents, and protocols work together to drive AI programming.
+
+## 3-Minute Quick Start
+
+Prerequisites:
+
+- The t-tools plugin has been loaded by following the [Installation](#installation) steps
+- The target project has runtime directories: `docs/` and `.ai/`
+- `context7` is enabled
+
+Minimal end-to-end example:
+
+```bash
+# Creates PRD if absent, or updates existing PRD/HTML Preview/user stories, then opens HTML for review
+/t-tools:t-prd user-management
+
+# Quality gate: prevent upstream issues from entering the design stage
+/t-tools:t-prd-check user-management
+
+# Produce technical design from the PRD
+/t-tools:t-design user-management
+
+# Convert design into executable tasks
+/t-tools:t-task user-management
+
+# Drive implementation and testing by phase
+/t-tools:t-run user-management --phase backend
+
+# Run Demo/E2E tests for the role
+/t-tools:t-demo-run super-admin
+
+# Final acceptance: verify story mapping, compilation, execution, and quality requirements
+/t-tools:t-demo-accept super-admin
+```
+
+If you only remember one thing: do not skip check or accept stages. This plugin is not only for generating content. It is also designed to close each stage before problems flow downstream.
+
+Additional notes:
+
+- This README consistently uses `/t-tools:t-*` as the standard invocation format.
+- `t-doc` is for project documentation, onboarding tutorials, API references, configuration, and deployment notes. It is not for PRDs, technical designs, or small document edits.
+- `t-consistency-check` is a backend-specific consistency check and is not equivalent to the old repository's global DDD inspection.
+- `t-backend-test-run` is an internal execution skill reused by flows such as `backend-test`; it is not recommended as a manual entry point.
+
 ## Full Workflow
 
 ```text
@@ -66,67 +112,6 @@ Prerequisites:
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI is installed and logged in
 - MCP Server `context7` is configured for third-party library documentation lookup
 
-## 3-Minute Quick Start
-
-Prerequisites:
-
-- The t-tools plugin has been loaded by following the [Installation](#installation) steps
-- The target project has runtime directories: `docs/` and `.ai/`
-- `context7` is enabled
-
-Minimal end-to-end example:
-
-```bash
-/t-tools:t-prd user-management
-/t-tools:t-prd-check user-management
-/t-tools:t-design user-management
-/t-tools:t-task user-management
-/t-tools:t-run user-management --phase backend
-/t-tools:t-demo-run super-admin
-/t-tools:t-demo-accept super-admin
-```
-
-Execution flow:
-
-- `/t-tools:t-prd user-management`: creates the PRD if it does not exist, or completes and updates the existing PRD, same-directory HTML Preview, and user stories, then opens the HTML for review
-- `/t-tools:t-prd-check user-management`: immediately runs the product-document and HTML Preview quality gate, so upstream issues do not enter the design stage
-- `/t-tools:t-design user-management`: produces the technical design from the PRD
-- `/t-tools:t-task user-management`: converts the design into executable tasks
-- `/t-tools:t-run user-management --phase backend`: drives implementation and testing by phase
-- `/t-tools:t-demo-run super-admin`: runs the Demo/E2E tests for the role
-- `/t-tools:t-demo-accept super-admin`: performs final acceptance and verifies story mapping, compilation, execution, and quality requirements
-
-If you only remember one thing: do not skip check or accept stages. This plugin is not only for generating content. It is also designed to close each stage before problems flow downstream.
-
-Additional notes:
-
-- This README consistently uses `/t-tools:t-*` as the standard invocation format.
-- `t-doc` is for project documentation, onboarding tutorials, API references, configuration, and deployment notes. It is not for PRDs, technical designs, or small document edits.
-- `t-consistency-check` is a backend-specific consistency check and is not equivalent to the old repository's global DDD inspection.
-- `t-backend-test-run` is an internal execution skill reused by flows such as `backend-test`; it is not recommended as a manual entry point.
-
-## Common Entry Points
-
-- Design overview: [human/structure.en.md](human/structure.en.md), recommended first reading to understand how skills, subagents, and protocols work together to drive AI programming
-- Chinese design overview: [human/structure.md](human/structure.md)
-- Product standards: [guides/product/index.md](guides/product/index.md)
-- Backend development and gates: [guides/backend/index.md](guides/backend/index.md)
-- Frontend development and gates: [guides/frontend/index.md](guides/frontend/index.md)
-- Mini app development and gates: [guides/miniapp/index.md](guides/miniapp/index.md)
-- Demo testing and diagnosis: [guides/demo/index.md](guides/demo/index.md)
-- Cross-domain overview: [guides/core/index.md](guides/core/index.md)
-- Protocol index: [protocols/index.md](protocols/index.md)
-
-## Repository Boundary
-
-This is the plugin source repository, not a target business repository.
-
-- Plugin resources mainly live under `skills/`, `agents/`, `guides/`, `protocols/`, and `scripts/`
-- The plugin manifest is `.claude-plugin/plugin.json`
-- Target projects mainly depend on runtime directories such as `docs/` and `.ai/`
-
-When referencing internal plugin files, use the `${CLAUDE_PLUGIN_ROOT}` semantic path. The root `README.md` only explains value, workflow, and quick start. Detailed rules live in the corresponding guide or protocol.
-
 ## Projects Using This Plugin
 
 - [herald](https://github.com/timzaak/herald) — A multi-tenant authentication and authorization system (Rust Axum + SeaORM + PostgreSQL / React 19 + TanStack), providing auth services for both single-tenant and multi-tenant scenarios
@@ -135,4 +120,4 @@ When referencing internal plugin files, use the `${CLAUDE_PLUGIN_ROOT}` semantic
 ## Dependencies
 
 - `Context7`: used by `backend-dev`, `backend-test`, `frontend-dev`, and `frontend-test` to query third-party library documentation
-- `/simplify`: optional, used by `t-backend-finalize` for final review
+- `/simplify`: required, used by `t-backend-finalize` for final review

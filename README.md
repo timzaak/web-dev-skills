@@ -7,7 +7,7 @@
 适合这类团队和项目：
 
 - 已经有明确的产品文档、设计、任务拆解、开发、测试、Demo 交付链路
-- 希望把 Claude Code 从“临时问答”升级成“可执行的工程工作流”
+- 希望把 Claude Code 从"临时问答"升级成"可执行的工程工作流"
 - 需要 sub-agent 分工、阶段门禁、标准化产物，而不是一次性自由发挥
 
 ## 为什么用它
@@ -15,6 +15,52 @@
 - 上手快：直接按 `/t-tools:t-*` 命令顺序推进，不需要自己设计整套提示词和协作流程
 - 交付稳：关键阶段自带检查和验收命令，减少文档跑偏、任务漏拆、Demo 不可执行
 - 协作清：skill、agent、guide、protocol 已分层，适合多人或长期项目持续复用
+
+## 设计思路导读
+
+推荐先读 [human/structure.md](/human/structure.md)，理解 skill、subagent、protocol 如何协同驱动 AI 编程。
+
+## 3 分钟快速上手
+
+前置条件：
+
+- 已按下方 [安装](#安装) 步骤加载 t-tools 插件
+- 目标项目具备运行时目录：`docs/`、`.ai/`
+- 已启用 `context7`
+
+最短闭环示例：
+
+```bash
+# 若 PRD 不存在则创建，已存在则补齐更新，并打开 HTML 供审阅
+/t-tools:t-prd user-management
+
+# 质量门禁：避免把问题带入设计阶段
+/t-tools:t-prd-check user-management
+
+# 基于 PRD 产出技术设计
+/t-tools:t-design user-management
+
+# 把设计转换成可执行任务
+/t-tools:t-task user-management
+
+# 按阶段驱动实现与测试
+/t-tools:t-run user-management --phase backend
+
+# 运行该角色的 Demo/E2E 测试
+/t-tools:t-demo-run super-admin
+
+# 最终验收：确认故事映射、编译、执行和质量要求都通过
+/t-tools:t-demo-accept super-admin
+```
+
+如果你只想记住一件事：不要跳过 check / accept 阶段。这个 plugin 的价值不只是"帮你生成内容"，而是"帮你在每个阶段收口"。
+
+补充说明：
+
+- 本 README 统一使用 `/t-tools:t-*` 作为标准调用形式
+- `t-doc` 用于项目文档、上手教程、API 参考、配置和部署说明，不用于 PRD、技术设计或只改某个文档片段
+- `t-consistency-check` 是后端专项一致性检查，不等价于旧仓库中的全域 DDD 检查
+- `t-backend-test-run` 是内部执行型 skill，供 `backend-test` 等流程复用，不作为推荐的手动入口
 
 ## 完整工作流
 
@@ -66,66 +112,6 @@ claude --plugin-dir /path/to/skills
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI 已安装并登录
 - MCP Server `context7` 已配置（用于查询第三方库文档）
 
-## 3 分钟快速上手
-
-前置条件：
-
-- 已按上方 [安装](#安装) 步骤加载 t-tools 插件
-- 目标项目具备运行时目录：`docs/`、`.ai/`
-- 已启用 `context7`
-
-最短闭环示例：
-
-```bash
-/t-tools:t-prd user-management
-/t-tools:t-prd-check user-management
-/t-tools:t-design user-management
-/t-tools:t-task user-management
-/t-tools:t-run user-management --phase backend
-/t-tools:t-demo-run super-admin
-/t-tools:t-demo-accept super-admin
-```
-
-执行顺序可以这样理解：
-
-- `/t-tools:t-prd user-management`：若 PRD 不存在则创建，已存在则基于现有内容补齐或更新相关 PRD、同目录 HTML Preview 与 user story，并立即打开 HTML 供审阅
-- `/t-tools:t-prd-check user-management`：马上做产品文档与 HTML Preview 质量门禁，避免把问题带入设计阶段
-- `/t-tools:t-design user-management`：基于 PRD 产出技术设计
-- `/t-tools:t-task user-management`：把设计转换成可执行任务
-- `/t-tools:t-run user-management --phase backend`：按阶段驱动实现与测试
-- `/t-tools:t-demo-run super-admin`：运行该角色的 Demo/E2E 测试
-- `/t-tools:t-demo-accept super-admin`：做最终验收，确认故事映射、编译、执行和质量要求都通过
-
-如果你只想记住一件事：不要跳过 check / accept 阶段。这个 plugin 的价值不只是“帮你生成内容”，而是“帮你在每个阶段收口”。
-
-补充说明：
-
-- 本 README 统一使用 `/t-tools:t-*` 作为标准调用形式
-- `t-doc` 用于项目文档、上手教程、API 参考、配置和部署说明，不用于 PRD、技术设计或只改某个文档片段
-- `t-consistency-check` 是后端专项一致性检查，不等价于旧仓库中的全域 DDD 检查
-- `t-backend-test-run` 是内部执行型 skill，供 `backend-test` 等流程复用，不作为推荐的手动入口
-
-## 常用入口
-
-- 设计思路导读：[human/structure.md](/human/structure.md)（推荐先读，理解 skill、subagent、protocol 如何协同驱动 AI 编程）
-- 产品规范入口：[guides/product/index.md](/guides/product/index.md)
-- 后端开发与门禁：[guides/backend/index.md](/guides/backend/index.md)
-- 前端开发与门禁：[guides/frontend/index.md](/guides/frontend/index.md)
-- 小程序开发与门禁：[guides/miniapp/index.md](/guides/miniapp/index.md)
-- Demo 测试与诊断：[guides/demo/index.md](/guides/demo/index.md)
-- 跨领域总纲：[guides/core/index.md](/guides/core/index.md)
-- 协议索引：[protocols/index.md](/protocols/index.md)
-
-## 仓库边界
-
-这是 plugin 源码仓库，不是目标业务仓库。
-
-- 插件资源主要在 `skills/`、`agents/`、`guides/`、`protocols/`、`scripts/`
-- 插件清单位于 `.claude-plugin/plugin.json`
-- 目标项目运行时主要依赖 `docs/`、`.ai/`
-
-引用插件内部文件时统一使用 `${CLAUDE_PLUGIN_ROOT}` 语义路径。根级 `README.md` 只负责说明优势、工作流和快速上手；更细的规则请进入对应 guide / protocol。
-
 ## 使用本插件的项目
 
 - [herald](https://github.com/timzaak/herald) — 多租户认证与授权系统（Rust Axum + SeaORM + PostgreSQL / React 19 + TanStack），支持单租户与多租户场景的认证服务
@@ -134,4 +120,4 @@ claude --plugin-dir /path/to/skills
 ## 依赖
 
 - `Context7`：供 `backend-dev`、`backend-test`、`frontend-dev`、`frontend-test` 查询第三方库文档
-- `/simplify`：可选，用于 `t-backend-finalize` 收口审查
+- `/simplify`：必选，用于 `t-backend-finalize` 收口审查
