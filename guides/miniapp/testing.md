@@ -36,7 +36,7 @@ npm run starter:ci-gate -- --target taro-react-taroify-tailwind
 
 ## 4. 测试边界
 
-- 当前仓库未建立独立的小程序单元测试框架时，优先用类型检查与构建验证保证回归
+- 目标项目未建立独立的小程序单元测试框架时，优先用类型检查与构建验证保证回归
 - 页面注册、token 产物、icon manifest、模板文件完整性，优先用构建与 gate 脚本验证
 - 不把 Web 前端的 Vitest/MSW/Playwright 规则机械套到 miniapp
 

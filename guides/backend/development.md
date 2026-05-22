@@ -1,11 +1,11 @@
 # 后端开发规范
 
-当前 backend 的主规范。既说明当前仓库后端是怎么组织的，也说明新增或重构代码时必须遵守哪些稳定约束。
+Backend 主规范。它定义插件级稳定约束；目标项目的真实架构、crate 名称、依赖版本和目录职责以目标项目代码与 `docs/`、`.ai/` 产物为准。
 
 ## 1. 文档定位
 
 本页保留：
-- 当前 backend 的 crate 边界与依赖方向
+- backend crate 边界与依赖方向的确认方法
 - 日常编码必须遵守的稳定工程约束
 - handler、错误处理、响应契约和 OpenAPI 的默认写法
 - 完成前最低验证命令
@@ -18,39 +18,27 @@
 相关入口：
 - 测试规则：`./testing.md`
 - backend 规范入口：`./index.md`
-- 完成前验证：`../agents/backend/validation.md`
-- 完整验收：`../agents/backend/quality.md`
-- 错误与响应收敛规划：`../../.ai/future/error_refactor.md`
+- 完成前验证：`${CLAUDE_PLUGIN_ROOT}/guides/backend/validation.md`
+- 完整验收：`${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md`
 
 ## 2. 当前架构事实
 
 ### 2.1 Workspace 与 crate 职责
 
-| crate | 当前职责 |
-| --- | --- |
-| `api/` | HTTP 路由、handler、DTO、OpenAPI 暴露 |
-| `domain-core/` | 共享领域模型、业务逻辑、错误类型、基础设施实现 |
-| `app/` | 服务启动与迁移入口 |
-| `test-db/` | 测试数据库隔离工具 |
-| `test-support/` | 测试上下文、fixtures 与辅助函数 |
-| `integration-tests/` | 集成测试 |
+先读取目标项目的 `backend/Cargo.toml`、各 crate 的 `Cargo.toml`、`README.md`、`docs/` 与 `.ai/design/`，确认实际 crate 职责。不要把历史项目中的 `api/`、`domain-core/`、`app/`、`test-support/` 等名称当作默认结构。
 
 ### 2.2 依赖方向
 
-- `domain-core/` 是共享业务核心，不应反向依赖上层 HTTP 逻辑。
-- `api/` 负责对外 HTTP 暴露与路由装配，可依赖 `domain-core/`。
-- `app/` 负责进程启动、配置装配和迁移运行。
+- 共享业务核心不应反向依赖上层 HTTP 逻辑。
+- HTTP/API crate 负责对外 HTTP 暴露与路由装配，可依赖业务核心。
+- 应用启动 crate 负责进程启动、配置装配和迁移运行。
 - 运行期配置与 workspace 级依赖真相以 `backend/Cargo.toml` 和各 crate 源码为准。
 
 ### 2.3 当前技术基线
 
-- Rust 2021 edition
-- Tokio 异步运行时
-- Axum 0.8
-- SeaORM 与 SQLx
-- `utoipa` + Swagger UI
-- `tracing`
-- `thiserror` 与 `anyhow`
+- Rust + Tokio + Axum 是默认后端技术方向。
+- ORM、SQL toolkit、迁移工具、错误库和日志库以目标项目实际依赖为准。
+- 若目标项目使用 OpenAPI，优先沿用项目当前的 OpenAPI 工具链；默认模板使用 `utoipa`。
 
 ## 3. 稳定工程约束
 
@@ -63,11 +51,11 @@
 ### 3.2 类型、错误与 ID
 
 - 共享业务语义优先使用结构体和枚举表达，不传递松散字符串协议。
-- 跨 crate 共享的协议类型优先放在 `domain-core/`。
+- 跨 crate 共享的协议类型优先放在目标项目已有的共享业务核心 crate。
 - 共享错误优先使用项目内稳定错误类型，不向客户端直接暴露底层错误对象。
 - 新增 `domain-core/` 领域错误时，不要继续扩大对 HTTP 类型的依赖；HTTP 状态码和响应 body 优先在 `api/` 层处理。
 - 新增 `api/` handler 时，不再新增 `(StatusCode, String)`、裸 `StatusCode` 错误或手写 `{"error": "..."}` 风格。
-- 新增业务 ID 默认继续遵循 UUID v7 约束；不要回退到 UUID v4。
+- 新增业务 ID 必须沿用目标项目已有 ID 策略；没有明确策略时，先在设计文档中定下来，不在实现中临时混用。
 - 不使用 `unwrap()` 处理业务路径和 I/O 错误。
 
 ### 3.3 HTTP 与 OpenAPI
@@ -97,7 +85,7 @@
 - 新增普通 REST handler 时，优先选择明确的返回类型，不用 `impl IntoResponse` 隐藏契约，除非接口本身就是协议例外。
 - 新增 DTO 时，请求和响应对象优先与领域对象分离，避免 API 契约被内部模型绑死。
 - 新增共享 HTTP 基础设施时，优先放在 `api` 层已有共享落点，不新建第二套重复抽象。
-- 新增校验逻辑时，优先沿用当前 `axum-valid` 和现有校验路径，不随意引入新的 extractor 范式。
+- 新增校验逻辑时，优先沿用目标项目现有校验路径，不随意引入新的 extractor 范式。
 
 ## 4. 当前实现边界
 
@@ -119,11 +107,11 @@ cd backend
 /simplify
 cargo clippy --fix --allow-dirty --allow-staged --all-targets --all-features
 cargo fmt --all
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py
 ```
 
 说明：
-- 上述顺序用于 backend `accept` 通过后的统一收口，不替代 `backend-test` 的定向测试闭环。
+- 上述顺序用于 backend `accept` 通过后的统一收口。
+- 后端测试执行与补测证据属于 backend/test、backend-accept 或显式测试命令。
 - 在任务流中，这一步由 `/t-backend-finalize [feature]` 负责，默认从失败步骤恢复。
 
-如需更完整门禁、环境启动和 OpenAPI 一致性检查，按 `../agents/backend/validation.md` 与 `../agents/backend/quality.md` 执行。
+如需更完整门禁、环境启动和 OpenAPI 一致性检查，按 `${CLAUDE_PLUGIN_ROOT}/guides/backend/validation.md` 与 `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md` 执行。

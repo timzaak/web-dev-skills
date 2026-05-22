@@ -231,7 +231,6 @@ slot agent 输出必须至少包含：
   - `/simplify` 目标范围
   - `cargo clippy --fix --allow-dirty --allow-staged --all-targets --all-features`
   - `cargo fmt --all`
-  - 全量 `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py`
   - OpenAPI 导出与前端 API 生成
   - 失败后从失败步骤恢复
 - `finalize.md` 不拆 item，不由 `/t-run` 执行。
@@ -276,10 +275,10 @@ accept item 必须依赖 runner item，不能只依赖 authoring item。`t-backe
 ## Examples
 ```bash
 # 生成 backend 阶段任务
-/t-task realm-user-rbac --phase backend
+/t-task <feature> --phase backend
 
 # 未指定 phase 时自动选择第一未完成阶段
-/t-task realm-user-rbac
+/t-task <feature>
 ```
 
 期望响应：
@@ -292,7 +291,7 @@ accept item 必须依赖 runner item，不能只依赖 authoring item。`t-backe
 - finalize.md
 
 状态已更新：phase=backend, phases.backend.generated_at=<timestamp>
-下一步: /t-run realm-user-rbac --phase backend
+下一步: /t-run <feature> --phase backend
 ```
 
 ## 相关引用

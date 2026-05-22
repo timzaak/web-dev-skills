@@ -21,7 +21,7 @@
 - 编译通过（0 errors）
 - 受影响测试通过（0 failed）
 - 环境可启动
-- 健康检查通过（`/health` 返回 healthy，database/redis 均为 true）
+- 健康检查通过（以目标项目健康检查契约为准）
 - OpenAPI 关键注解完整（无阻塞缺失）
 
 ### P1（应通过）
@@ -46,8 +46,8 @@ npx jscpd --pattern "**/*.rs" --reporters console backend
 - `backend-accept` 默认先做改动分析，再执行定向 `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- <targeted filter>`；不得默认直接跑全量 `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py`。
 - 只有在用户明确要求全量测试，或影响范围无法可靠收敛时，`backend-accept` 才允许升级到全量测试；一旦升级，则全量结果也必须通过。
 - `backend-accept` 完成后，必须继续执行 backend finalize 收口。
-- 收口入口固定为 `/t-backend-finalize [feature]`，`/simplify -> cargo clippy --fix -> cargo fmt --all -> 全量 uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py` 只属于该阶段，不应塞回 `backend-accept`。
-- 若 `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py` 在收口阶段失败，修复后至少重新执行 `cargo clippy --fix -> cargo fmt --all -> uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py`。
+- 收口入口固定为 `/t-backend-finalize [feature]`，负责 `/simplify -> cargo clippy --fix -> cargo fmt --all -> OpenAPI 导出 -> 前端 API 生成`。
+- 若 OpenAPI 导出或前端 API 生成在收口阶段失败，修复后至少重新执行 `cargo clippy --fix -> cargo fmt --all -> OpenAPI 导出 -> 前端 API 生成`。
 
 ## 5. 环境验证（MANDATORY）
 
@@ -55,22 +55,12 @@ npx jscpd --pattern "**/*.rs" --reporters console backend
 uv run ${CLAUDE_PLUGIN_ROOT}/scripts/dev-start.py
 ```
 
-健康检查（PowerShell 示例）：
+健康检查（PowerShell 示例；路径和响应结构以目标项目契约为准）：
 
 ```powershell
 Start-Sleep -Seconds 5
-$response = Invoke-WebRequest -Uri "http://localhost:8080/health" -UseBasicParsing
+$response = Invoke-WebRequest -Uri "http://localhost:<backend-port>/<health-path>" -UseBasicParsing
 if ($response.StatusCode -ne 200) { exit 1 }
-```
-
-预期响应：
-
-```json
-{
-  "status": "healthy",
-  "database": true,
-  "redis": true
-}
 ```
 
 清理：

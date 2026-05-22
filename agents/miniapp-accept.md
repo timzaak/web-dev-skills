@@ -1,7 +1,7 @@
 ---
 name: miniapp-accept
 description: >
-  CAS 微信小程序验收专家（只读）。负责 miniapp 类型安全、
+  微信小程序验收专家（只读）。负责 miniapp 类型安全、
   构建质量、模板完整性与技术线合规验收。
 
   触发场景：

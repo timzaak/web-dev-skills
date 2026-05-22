@@ -1,7 +1,7 @@
 ---
 name: miniapp-dev
 description: >
-  CAS 微信小程序开发专家。负责基于 Taro + React 的 miniapp 页面、
+  微信小程序开发专家。负责基于 Taro + React 的 miniapp 页面、
   组件、主题接入与缺陷修复。
 
   触发场景：
@@ -23,7 +23,7 @@ tools:
   - WebSearch
 ---
 
-# CAS 微信小程序开发专家
+# 微信小程序开发专家
 
 运行时边界统一参考：`protocols/runtime-boundaries.md`
 
@@ -81,7 +81,7 @@ tools:
 - weapp-tailwindcss 配置或兼容性说明
 
 不应外查的内容：
-- 本项目 token、theme、icon 和页面注册约定
+- 目标项目 token、theme、icon 和页面注册约定
 - 已在宪法文档中固定的技术线限制
 - 可以直接从 `miniapp/` 仓库文件确认的模式
 

@@ -62,7 +62,7 @@ allowed-tools:
 ## 示例
 
 ```bash
-/t-design-check realm-user-rbac
+/t-design-check <feature>
 ```
 
 输出：

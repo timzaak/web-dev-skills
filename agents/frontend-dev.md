@@ -108,7 +108,7 @@ hooks:
 - Zod / Radix UI 文档
 
 不应外查的内容：
-- 本项目 API 路径、字段、Realm 约定
+- 目标项目 API 路径、字段和租户/权限约定
 - 已在设计文档中固定的交互
 - 可以直接从仓库现有代码确认的模式
 
@@ -152,10 +152,10 @@ cd frontend && npm run lint
 
 ## 实现约束
 
-- 路由、目录、生成代码、Realm 约定以 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md` 为准
+- 路由、目录、生成代码和项目约定以 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md` 为准
 - Query、Form、API、Tailwind 常用模式以 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/patterns.md` 为准
-- 优先复用 `frontend/src/components/ui/`、已有 hooks、`frontend/src/lib/api-generated/`
-- 不手工维护 `frontend/src/lib/api-generated/` 业务逻辑
+- 优先复用目标项目已有 UI 组件、hooks 和生成的 API 客户端目录
+- 不手工维护 API 生成物中的业务逻辑
 - 不硬编码 API 路径
 - 不用 `any` 和不安全断言绕过类型系统
 - UI 组件不直接承担不必要的数据访问和全局状态写入

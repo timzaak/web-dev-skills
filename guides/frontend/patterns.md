@@ -1,9 +1,9 @@
 # Frontend 常用模式
 
-本页只记录当前项目已经采用、且值得重复复用的前端实现模式。
+本页只记录目标项目已经采用、且值得重复复用的前端实现模式。
 
 使用规则：
-- 这里写“本项目怎么做”，不写长篇库教程
+- 这里写“目标项目怎么做”，不写长篇库教程
 - 如与仓库真实实现冲突，以 `frontend/src/` 当前事实为准
 - 更底层的架构事实看 `./development.md`
 
@@ -29,8 +29,8 @@ export function userListOptions() {
 
 ## 2. Router
 
-- 路由真相以 `frontend/src/routes/` 和 `frontend/src/routeTree.gen.ts` 为准
-- 当前默认使用固定单租户路径
+- 路由真相以目标项目当前路由文件、路由生成物和路由配置为准
+- 不把示例路径或历史模板路径当作默认路由结构
 - 列表页搜索参数优先使用 `validateSearch`
 - 参数访问和跳转保持类型安全，优先复用当前路由文件已有模式
 
@@ -38,7 +38,7 @@ export function userListOptions() {
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
 
-export const Route = createFileRoute('/manage/users')({
+export const Route = createFileRoute('/example')({
   validateSearch: z.object({
     page: z.number().default(1).catch(1),
     search: z.string().default(''),
@@ -67,7 +67,7 @@ const form = useAppForm({
 
 ## 4. API
 
-- API 调用优先复用 `frontend/src/lib/api-generated/`
+- API 调用优先复用目标项目现有生成目录
 - 响应处理优先走 `handleApiResponse`
 - OpenAPI 契约变化后先刷新生成物，再继续改页面逻辑
 

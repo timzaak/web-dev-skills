@@ -1,11 +1,11 @@
 # 前端开发规范
 
-当前 frontend 的事实型主规范。只描述仓库现状、稳定约束和最低验证，不承担 React、TanStack 或 Zod 的教学职责。
+Frontend 主规范。它定义插件级稳定约束；目标项目的真实路由、目录职责、组件体系和依赖版本以目标项目代码与 `docs/`、`.ai/` 产物为准。
 
 ## 1. 文档定位
 
 本页保留：
-- 当前 frontend 的技术基线、目录职责和路由事实
+- frontend 技术基线、目录职责和路由事实的确认方法
 - 数据访问、生成代码、组件复用的稳定约束
 - 完成前最低验证命令
 
@@ -17,56 +17,42 @@
 相关入口：
 - frontend 规范入口：`./index.md`
 - 测试规则：`./testing.md`
-- 完成前验证：`../agents/frontend/validation.md`
-- 验收与 Demo-first 要求：`../agents/frontend/quality.md`
-- `data-testid` 规则：`../agents/frontend/testid-standards.md`
+- 完成前验证：`${CLAUDE_PLUGIN_ROOT}/guides/frontend/validation.md`
+- 验收与 Demo-first 要求：`${CLAUDE_PLUGIN_ROOT}/guides/frontend/quality.md`
+- `data-testid` 规则：`${CLAUDE_PLUGIN_ROOT}/guides/frontend/testid-standards.md`
 
 ## 2. 当前技术基线
 
-`frontend/package.json` 当前可确认的主栈：
+先读取目标项目的 `frontend/package.json`、路由入口、API 客户端生成配置和现有页面代码，确认真实技术栈。默认模板倾向以下组合，但不得覆盖目标项目事实：
 
-- React 19
-- TypeScript 5
-- Vite 7
+- React
+- TypeScript
+- Vite
 - TanStack Router
 - TanStack Query
 - TanStack Form
-- Zod 4
-- Tailwind CSS 4
+- Zod
+- Tailwind CSS
 - Radix UI
 - Vitest + Testing Library + MSW
 - `@hey-api/openapi-ts` 生成的 API 客户端
 
-补充事实：
-- `npm run build` 当前执行 `vite build && tsc --noEmit`。
+构建、类型检查和测试命令以 `frontend/package.json` scripts 为准。
 
 ## 3. 当前目录与职责
 
-以 `frontend/src/` 当前实现为准：
-
-| 路径 | 当前职责 |
-| --- | --- |
-| `routes/` | 页面路由入口与路由树节点 |
-| `components/` | 页面组件、共享 UI、业务组件 |
-| `data/` | 查询参数与数据访问辅助 |
-| `hooks/` | 页面相关状态与复用逻辑 |
-| `lib/` | 工具函数、query provider、生成的 API 客户端 |
-| `stores/` | 全局状态 |
-| `test/` / `tests/` | Vitest 初始化、mocks 和测试代码 |
-
-生成代码目录 `frontend/src/lib/api-generated/` 视为派生物，不手工维护业务逻辑。
+以目标项目 `frontend/src/` 当前实现为准。先确认路由、组件、hooks、数据访问、测试初始化和生成代码目录的实际落点，再写入或修改文件。生成代码目录视为派生物，不手工维护业务逻辑。
 
 ## 4. 路由与页面事实
 
 稳定事实：
-- 路由真相以 `frontend/src/routes/` 和 `frontend/src/routeTree.gen.ts` 为准。
+- 路由真相以目标项目当前路由文件、路由生成物和路由配置为准。
 - 新页面优先遵循当前文件路由结构和现有路由分组方式。
-- 当前默认使用固定单租户路径，如 `/auth/login`、`/manage`、`/manage/users`。
-- 不要把历史文档里的旧租户前缀路由当作默认事实。
+- 不要把历史文档里的旧路径、固定管理路径或示例路由当作默认事实。
 
 ## 5. 数据访问与组件约束
 
-- API 类型和客户端调用优先复用 `frontend/src/lib/api-generated/`。
+- API 类型和客户端调用优先复用目标项目现有生成目录。
 - API 契约变化后，先刷新 OpenAPI 生成物，再继续写页面逻辑。
 - 页面级查询与缓存行为优先复用现有 QueryClient 配置、query options 和 hooks。
 - 优先复用 `components/ui/` 与已有共享组件；不要为一次性页面逻辑平行造一套全局框架。
@@ -76,7 +62,7 @@
 
 以下内容不再视为 frontend 主规范的默认事实：
 
-- 任何带租户前缀的旧模板路由是默认路由架构
+- 任何旧模板路由是默认路由架构
 - 主指南内保留完整 TanStack Router / Form / Zod 教学
 - 所有表单都必须走同一套全局样板组件
 - 长代码示例可以替代仓库真实实现
@@ -91,4 +77,4 @@ npm run type-check
 npm run build
 ```
 
-如需更完整门禁、Vitest 范围或 Demo-first 验收，按 `./testing.md`、`../agents/frontend/validation.md` 和 `../agents/frontend/quality.md` 执行。
+如需更完整门禁、Vitest 范围或 Demo-first 验收，按 `./testing.md`、`${CLAUDE_PLUGIN_ROOT}/guides/frontend/validation.md` 和 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/quality.md` 执行。

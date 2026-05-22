@@ -1,12 +1,12 @@
 {
   "name": "t-tools",
-  "description": "DDD-driven development skills, sub-agents and workflow commands for CAS (Rust + React) project",
+  "description": "DDD-driven development skills, sub-agents and workflow commands for Rust + React projects",
   "version": "1.0.0",
   "author": {
     "name": "T Team"
   },
   "targetStack": {
-    "backend": "Rust / Axum / SeaORM",
+    "backend": "Rust / Axum",
     "frontend": "React / TanStack Router & Query / Tailwind / Radix UI",
     "testing": "cargo nextest / Vitest / Playwright"
   },

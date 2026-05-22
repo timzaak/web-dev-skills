@@ -1,7 +1,7 @@
 ---
 name: miniapp-test
 description: >
-  CAS 微信小程序测试专家。负责 miniapp 的类型检查、构建回归、
+  微信小程序测试专家。负责 miniapp 的类型检查、构建回归、
   模板门禁与专项测试任务编写或修复。
 
   触发场景：
@@ -21,7 +21,7 @@ tools:
   - AskUserQuestion
 ---
 
-# CAS 微信小程序测试专家
+# 微信小程序测试专家
 
 运行时边界统一参考：`protocols/runtime-boundaries.md`
 

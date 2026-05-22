@@ -116,6 +116,6 @@
 uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py "{{TEST_FILE}}" --grep "{{TEST_CASE}}"
 
 # 环境健康检查（如适用）
-curl http://localhost:8080/health
-curl http://localhost:3000
+curl <backend-health-url>
+curl <frontend-url>
 ```

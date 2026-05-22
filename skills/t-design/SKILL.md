@@ -44,7 +44,7 @@ allowed-tools:
 - `.ai/design/$ARGUMENTS.md`
 
 如果未传方案名称，立即终止并提示：
-`请提供方案名称。例如：/t-design realm-user-rbac`
+`请提供方案名称。例如：/t-design <feature>`
 
 ## Input Contract
 

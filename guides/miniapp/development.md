@@ -1,11 +1,11 @@
 # 小程序开发规范
 
-当前 `miniapp/` 的事实型主规范。只描述仓库现状、稳定约束和最低验证，不承担 Taro 或 Taroify 的教学职责。
+Miniapp 主规范。它定义插件级稳定约束；目标项目的真实目录、页面注册、主题和构建脚本以目标项目代码与 `docs/`、`.ai/` 产物为准。
 
 ## 1. 文档定位
 
 本页保留：
-- 当前 miniapp 的技术基线、目录职责和页面注册事实
+- miniapp 技术基线、目录职责和页面注册事实的确认方法
 - token、theme、icon、模板契约的稳定约束
 - 完成前最低验证命令
 
@@ -24,53 +24,38 @@
 
 ## 2. 当前技术基线
 
-`miniapp/package.json` 当前可确认的主栈：
+先读取目标项目的 `miniapp/package.json`、Taro 配置、页面注册文件、主题/token 配置和现有页面代码，确认真实技术栈。默认模板倾向以下组合，但不得覆盖目标项目事实：
 
-- Taro 4
-- React 18 + TypeScript 5
+- Taro
+- React + TypeScript
 - Taroify
-- Tailwind CSS 4
+- Tailwind CSS
 - weapp-tailwindcss
 - Style Dictionary
 - Tokens Studio transforms
 - Iconify 离线图标构建
 
-补充事实：
-- `npm run typecheck` 当前会先执行 `npm run design:build`，再执行 `tsc --noEmit`
-- `npm run build:weapp` 与 `npm run build:h5` 当前都会先执行 `npm run design:build`
+类型检查、设计 token 构建和小程序构建命令以 `miniapp/package.json` scripts 为准。
 
 ## 3. 当前目录与职责
 
-以 `miniapp/` 当前实现为准：
-
-| 路径 | 当前职责 |
-| --- | --- |
-| `src/app.tsx` | 小程序应用入口 |
-| `src/app.config.ts` | 页面注册真相 |
-| `src/pages/` | 页面入口文件 |
-| `src/components/` | 共享组件与基础包装 |
-| `src/theme/` | token 编译产物、主题 CSS、图标 manifest、Taroify 主题映射 |
-| `src/styles/` | Tailwind 入口与共享样式 |
-| `tokens/` | 设计 token 源文件，主题唯一真相 |
-| `scripts/` | token、icon、模板门禁脚本 |
-| `config/` | Taro 构建配置 |
+以目标项目 `miniapp/` 当前实现为准。先确认应用入口、页面注册、页面目录、共享组件、服务层、主题/token、脚本和 Taro 配置的实际落点，再写入或修改文件。
 
 ## 4. 页面与路由事实
 
 稳定事实：
-- 新页面放在 `src/pages/<page>/index.tsx`
-- 新页面必须在 `src/app.config.ts` 注册
-- `src/app.config.ts` 是页面注册唯一真相
-- 当前仓库的 miniapp 是独立于 `frontend/` 的交付线，不复用 React Router
+- 新页面位置和注册方式以目标项目现有页面结构为准。
+- 页面注册文件是页面可达性的唯一真相，修改页面时必须同步检查。
+- miniapp 是独立于 Web `frontend/` 的交付线，不复用 React Router。
 
 ## 5. 主题、token 与 icon 约束
 
-- `tokens/*.json` 是主题唯一真相
-- 运行时代码消费 `src/theme/` 中的编译结果，而不是直接读取 token 源文件
+- 主题 token 源文件是主题唯一真相，具体路径以目标项目配置为准。
+- 运行时代码消费已编译的主题结果，而不是直接读取 token 源文件。
 - Tailwind 只用于布局和组合效率，不是主题真相
-- `src/components/AppIcon.tsx` 是业务代码使用图标的唯一入口
+- 图标入口以目标项目现有封装为准。
 - 不直接在业务页面里引入 `@taroify/icons`、运行时 Iconify 包或散落的 SVG 组件
-- 对 theme/token 的修改应从 `tokens/*.json` 开始，而不是手改编译产物
+- 对 theme/token 的修改应从 token 源文件开始，而不是手改编译产物。
 
 ## 6. 当前实现边界
 
@@ -79,7 +64,7 @@
 - 可以使用 `react-router-dom`、`next-themes`、`framer-motion` 等 Web-only 依赖
 - 可以让 Tailwind 成为主题系统主来源
 - 可以绕过 `AppIcon` 直接接入第二套图标系统
-- 可以把 `src/theme/` 手工维护成业务逻辑目录
+- 可以把主题编译产物目录手工维护成业务逻辑目录
 
 如某个 feature 需要特殊模板扩展、平台差异处理或局部构建技巧，应写到该 feature 设计文档、测试文档或具体实现附近，而不是回写成 miniapp 全局主规范。
 

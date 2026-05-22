@@ -97,7 +97,7 @@ description: Research technical feasibility for a feature by scanning the codeba
 
 对每个候选库调研：
 - 核心用法和 API 概览
-- 与本项目技术栈的集成方式
+- 与目标项目技术栈的集成方式
 - 版本迁移注意事项（如适用）
 - 常见陷阱、限制和兼容性问题
 - 推荐版本和引入方式

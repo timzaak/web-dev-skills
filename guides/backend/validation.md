@@ -33,12 +33,11 @@ cd backend && cargo check --package <api-package>
 /simplify
 cd backend && cargo clippy --fix --allow-dirty --allow-staged --all-targets --all-features
 cd backend && cargo fmt --all
-cd backend && uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py
 ```
 
 规则：
 - 这一步对应 `/t-backend-finalize [feature]`。
-- 这里的 `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py` 是全量测试，只属于 finalize，不属于 `backend-accept` 的默认步骤。
+- 后端测试执行与补测证据属于 backend/test、backend-accept 或显式测试命令。
 - 同一 feature 再次执行时，默认从失败步骤恢复，无需额外参数。
 
 ### 3. 格式化检查（可选但推荐）

@@ -69,20 +69,15 @@ npm run test:ui
 - 已由 Demo 覆盖的完整流程，不再重复补同路径 Vitest。
 - 如改动只影响页面主链路且 Demo 已覆盖，可在任务中明确写“不新增 Vitest，由 Demo 覆盖”。
 
-## 当前仓库测试基线
+## 项目测试基线
 
 ### Vitest 配置事实
 
-当前仓库前端测试基线以 `frontend/vitest.config.ts` 和 `frontend/src/test/setup.ts` 为准：
-- 环境为 `jsdom`
-- 启用 `globals: true`
-- `testTimeout` 为 5000ms
-- `setupFiles` 指向 `src/test/setup.ts`
-- 测试间隔离开启，MSW 在全局 setup 中启动
+目标项目前端测试基线以 `frontend/vitest.config.*`、`frontend/src/test/`、`frontend/tests/` 和 `package.json` scripts 为准。先确认实际 setup、mock server、测试目录和超时配置，再新增或修改用例。
 
 ### 全局 setup 行为
 
-MSW 和全局 mock 在 `src/test/setup.ts` 中统一处理：
+MSW 和全局 mock 应沿用目标项目现有 setup。若项目已使用 MSW，通常应具备如下隔离语义：
 
 ```ts
 beforeAll(() => {
@@ -109,19 +104,13 @@ afterAll(() => {
 
 ### 测试目录分布
 
-当前仓库的 Vitest 用例分布主要在：
-- `frontend/src/lib/__tests__/`
-- `frontend/src/components/**/__tests__/`
-- `frontend/src/test/__tests__/`
-
-`frontend/src/test/` 同时承载 setup 和 mocks。`frontend/tests/` 不是当前主测试目录事实。
+测试目录以目标项目现有分布为准。常见位置包括 `frontend/src/**/__tests__/`、`frontend/src/test/` 或 `frontend/tests/`；不要把历史仓库的目录选择当作默认事实。
 
 ## MSW 使用规则
 
 ### Mock Handlers 位置
 
-- 全局 handlers 定义在 `frontend/src/test/mocks/handlers.ts`
-- server 定义在 `frontend/src/test/mocks/server.ts`
+- 全局 handlers 和 server 定义位置以目标项目现有测试 setup 为准
 - 测试内临时覆盖使用 `server.use(...)`
 
 ### 推荐写法
@@ -273,7 +262,7 @@ function createTestQueryClient() {
 ```
 
 说明：
-- 当前 `frontend/src/test/test-utils.tsx` 不是稳定的仓库级标准入口
+- 不把历史项目中的 `test-utils.tsx` 或 wrapper 路径当作稳定标准入口
 - 新测试优先在文件内按需声明 wrapper，只有形成稳定复用后再统一收敛
 - 不单测 `retry === 1`、`staleTime === 120000` 这类常量赋值；只在它们承载业务契约时测试行为结果。
 - query key 不展开测试每个字段，选择 1-2 个代表性 key shape 覆盖隔离性。

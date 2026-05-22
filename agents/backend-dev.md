@@ -86,7 +86,7 @@ hooks:
 
 ## Context7 文档查询
 
-**常用库 ID**: `/tokio-rs/tokio`, `/tokio-rs/axum`, `/SeaQL/sea-orm`
+**常用库 ID**: `/tokio-rs/tokio`, `/tokio-rs/axum`；数据库、ORM、迁移和验证库按目标项目实际依赖解析。
 
 **自动使用**: 查询库文档时自动使用（MCP 工具）
 
@@ -162,8 +162,8 @@ cd backend && cargo check --package <api-package>
     "tests_to_run": [
       {
         "layer": "backend",
-        "command": "uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- tests::scenarios::user_register_test::test_scenario_user_register_duplicate_email",
-        "reason": "修改了用户注册后端逻辑，需要回归注册场景",
+        "command": "uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- <related_test_filter>",
+        "reason": "修改了后端业务逻辑，需要回归相关场景",
         "required": true
       }
     ],
