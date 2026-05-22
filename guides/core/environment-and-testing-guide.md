@@ -9,7 +9,7 @@
 
 | 任务 | 推荐入口 |
 | --- | --- |
-| 日常开发环境 | `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/dev-start.py` |
+| 日常开发环境 | 手动启动 PostgreSQL + Redis + cargo run + npm run dev |
 | 后端测试 | `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py` |
 | 前端类型检查与构建 | `cd frontend && npm run type-check` / `npm run build` |
 | Demo / E2E | `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py demo/e2e/[test].ts` |

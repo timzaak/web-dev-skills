@@ -143,7 +143,6 @@ allowed-tools:
 │       │   └── login-page.ts
 │       └── selectors.ts
 ├── scripts/
-│   └── dev-start.py
 ├── AGENTS.md                    # Claude Code 行为准则 + 项目描述
 ├── CLAUDE.md                    # 引用 AGENTS.md
 └── README.md
@@ -221,16 +220,7 @@ allowed-tools:
 
 生成后执行 `npm install` 验证依赖安装。
 
-### Step 6: 生成脚本
-
-读取 [references/scripts-template.md](references/scripts-template.md) 获取完整模板。
-
-生成 `scripts/dev-start.py`：
-- Docker 容器管理（PostgreSQL、Redis）
-- 默认复用已有容器，`--clean` 参数重建
-- 容器名称使用项目名称前缀避免冲突
-
-### Step 7: 生成 AGENTS.md 和 CLAUDE.md
+### Step 6: 生成 AGENTS.md 和 CLAUDE.md
 
 读取 [references/agents-template.md](references/agents-template.md) 获取模板内容。
 
@@ -240,7 +230,7 @@ allowed-tools:
 
 生成后提示用户填写 `AGENTS.md` 顶部的项目描述占位符。
 
-### Step 8: 验证
+### Step 7: 验证
 
 生成完成后，执行以下验证：
 1. 检查所有文件都已创建（Glob 验证）
@@ -277,7 +267,6 @@ allowed-tools:
 - [ ] `frontend/src/lib/api-client.ts`
 
 **脚本和文档：**
-- [ ] `scripts/dev-start.py`
 - [ ] `README.md`
 
 **AI 辅助配置（必须）：**
