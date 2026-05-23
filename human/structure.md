@@ -17,6 +17,7 @@ T-Tools 不是一组零散 prompt，而是一套面向工程交付的 AI 编程�
 Skill 是命令式工作流入口，例如：
 
 - `/t-tools:t-prd`
+- `/t-tools:t-prd-preview`
 - `/t-tools:t-prd-check`
 - `/t-tools:t-design`
 - `/t-tools:t-design-check`
@@ -115,7 +116,9 @@ HTML Preview 的设计目的，是把 AI 对需求的理解转换成更容易被
 
 因此，`/t-tools:t-prd` 更像是一个“产品理解可视化”阶段。Markdown 仍然是正式契约，但 Preview 是人类审阅契约的入口。它把长文档里的产品语义变成可扫描、可讨论、可反馈的界面，让人类更早发现 AI 的误解，而不是等到技术设计或代码实现后才发现方向偏了。
 
-这个思路也改变了 `/t-tools:t-prd-check` 的意义。PRD Check 不只是检查文档格式，而是确认“AI 写下的产品理解”和“人类通过 Preview 看到的产品理解”是否一致。只有这两者对齐，后续 `/t-tools:t-design` 才有稳定输入。
+这个思路也改变了 `/t-tools:t-prd-check` 的意义。PRD Check 不只是检查文档格式，而是确认”AI 写下的产品理解”和”人类通过 Preview 看到的产品理解”是否一致。只有这两者对齐，后续 `/t-tools:t-design` 才有稳定输入。
+
+`/t-prd-preview` 已从 `/t-prd` 中提取为独立 skill。`/t-prd` 在流程中会自动触发它，但也可以单独调用来重新生成 Preview。Preview 输出到 `.ai/preview/<domain>/[feature].html`，不进入版本控制。PRD 不再跟踪实现进度，而是聚焦于业务规则和目标体验。
 
 ## Demo 的独立质量验证
 

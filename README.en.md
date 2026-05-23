@@ -91,6 +91,7 @@ Common helper commands:
 - `/t-tools:t-init <project-name>`: initializes a full-stack project scaffold for Rust Axum + React TanStack, including backend, frontend, E2E tests, development scripts, and the complete directory structure
 - `/t-tools:t-tech-research`: evaluates technical feasibility before writing the PRD, including dependency gap analysis, library research, impact analysis, and feasibility judgment
 - `/t-tools:t-doc <project-or-module-name>`: scans the target project codebase and generates newcomer-oriented tutorial documentation under `docs/tutorials/<name>/` by default
+- `/t-tools:t-prd-preview <feature>`: generates or updates the PRD HTML Preview for quick human review of product semantics and key paths. Usually triggered automatically by `/t-prd`, but can also be run independently to regenerate the Preview
 - `/t-tools:t-consistency-check`: checks whether the backend PRD and implementation are consistent; it is not a global DDD inspection command
 - `/t-tools:t-demo-run-all`: runs demo tests in batch
 - `/t-tools:t-push`: detects backend, frontend, and demo changes from git diff, runs only the affected local CI checks, then generates a commit message and runs `git commit` plus `git push` after confirmation

@@ -17,6 +17,7 @@ The core idea can be summarized as:
 A skill is an imperative workflow entry point, for example:
 
 - `/t-tools:t-prd`
+- `/t-tools:t-prd-preview`
 - `/t-tools:t-prd-check`
 - `/t-tools:t-design`
 - `/t-tools:t-design-check`
@@ -116,6 +117,8 @@ The purpose of the HTML Preview is to turn the AI's understanding of the require
 So `/t-tools:t-prd` is closer to a "product-understanding visualization" stage. Markdown remains the formal contract, but the Preview becomes the human entry point for reviewing that contract. It turns product semantics buried in a long document into a scannable, discussable, feedback-friendly interface, so humans can catch AI misunderstandings earlier instead of finding them after technical design or code implementation.
 
 This also changes what `/t-tools:t-prd-check` means. PRD Check is not just a document-format check. It verifies that "the product understanding written by the AI" and "the product understanding humans see through the Preview" are aligned. Only after those two views agree does `/t-tools:t-design` have stable input.
+
+`/t-prd-preview` has been extracted from `/t-prd` into a standalone skill. `/t-prd` triggers it automatically during its workflow, but it can also be invoked independently to regenerate the Preview. Preview output goes to `.ai/preview/<domain>/[feature].html`, outside version control. The PRD no longer tracks implementation progress; it focuses on business rules and target experience.
 
 ## Independent Demo Quality Verification
 
