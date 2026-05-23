@@ -29,7 +29,7 @@ tools:
 负责生成和维护 `docs/prd/<domain>/<feature>.html`。
 
 只处理 PRD 的可视化审阅表达：
-- 前端或交互功能：待建设或待变更 UI 的低保真页面、关键路径、状态切换、示例数据。
+- 前端或交互功能：目标体验的低保真页面、关键路径、业务状态切换、示例数据。
 - 后端或无 UI 功能：流程图、状态图、调用方场景、能力边界矩阵、验收矩阵。
 
 不负责：
@@ -66,7 +66,7 @@ tools:
 
 1. 从 PRD 提取目标、范围、流程、状态、规则、验收目标和待确认假设。
 2. 判断表达形态：
-   - 有前端/交互入口：生成可点击的低保真交互 Preview，聚焦尚未完成、待建设或待变更的目标体验。
+   - 有前端/交互入口：生成可点击的低保真交互 Preview，聚焦 PRD 定义的目标体验和关键状态。
    - 纯后端或无 UI：生成流程图、状态图、调用方场景、能力边界矩阵或验收矩阵。
 3. 使用 `skills/t-prd/preview-template.html` 的结构创建或更新 Preview。
 4. 保持单文件 HTML，CSS 和少量原生 JS 内联。
@@ -109,7 +109,7 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-prd-preview.py <feature> --root . --j
 
 - Preview 必须和 PRD 描述一致。
 - Preview 不得引入 PRD 未声明的新业务规则、权限规则或验收目标。
-- 前端/交互 Preview 必须展示待建设或待变更 UI；已有实现只能作为入口、约束或现状差距说明出现。
+- 前端/交互 Preview 必须展示 PRD 定义的目标体验和关键状态；已有实现只能作为入口或约束说明出现。
 - Preview 不得出现端点清单、请求响应 schema、数据库设计、迁移或类型定义。
 - Preview 不得依赖 React、Vue、Svelte、miniapp 组件、npm、CDN 或目标项目构建产物。
 - Preview 视觉风格保持中性、低保真、可审阅，不追求最终 UI。
