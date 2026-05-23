@@ -14,7 +14,7 @@
 - backend/accept.md + backend/accept/*.md
 - backend/finalize.md
 
-下一步: /t-run sample-feature --phase backend
+下一步: /t-task-check sample-feature --phase backend
 ```
 
 ## State Delta

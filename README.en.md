@@ -43,8 +43,14 @@ Minimal end-to-end example:
 # Convert design into executable tasks
 /t-tools:t-task user-management
 
+# Check task breakdown, dependencies, and executability
+/t-tools:t-task-check user-management --phase backend
+
 # Drive implementation and testing by phase
 /t-tools:t-run user-management --phase backend
+
+# Finalize backend after backend acceptance
+/t-tools:t-backend-finalize user-management
 
 # Run Demo/E2E tests for the role
 /t-tools:t-demo-run super-admin
@@ -84,6 +90,7 @@ Additional notes:
 Notes:
 
 - `/t-tools:t-prd-check` is the quality gate for PRDs, HTML Previews, and user stories. It is not an optional helper command.
+- `/t-tools:t-task-check` is the gate for task breakdown, DAG validity, and item executability. Across multiple runs, it rechecks prior findings and marks new, carried, resolved, and disputed items.
 - `/t-tools:t-demo-accept` is the demo-stage acceptance gate. It verifies test coverage, runnability, and delivery quality.
 
 Common helper commands:

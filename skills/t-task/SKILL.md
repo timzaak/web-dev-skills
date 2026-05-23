@@ -128,16 +128,27 @@ demo 阶段：
 3. 按 `protocols/task-phase-execution.md` 校验阶段前置和 slot 顺序；未启用的 phase 不参与校验或生成。
 4. 如目标阶段为 `frontend`，先运行 `generate-api`。
 5. 按当前阶段 slot 串行调度相应 agent。每个 slot agent 必须通过 `Agent` tool 启动，`subagent_type` 按 Agent Dispatch Mapping 映射。传入 prompt 必须包含：设计文档相关节、上游 slot handoff（如有）、guide 路径、Agent Output Contract 要求的字段列表。
+   - prompt 必须引用 `protocols/task-check-rubric.md`，要求 agent 在返回前自检 P0/P1 规则。
+   - prompt 必须引用 `protocols/task-phase-execution.md`，避免生成无法被 `/t-run` 执行的 item。
 6. 每个 slot agent 必须返回：
    - slot manifest 正文
    - item 文件集合
    - item DAG
    - slot completion criteria
    - handoff summary
-7. 主流程在每个 slot 返回后立即写入 manifest 与 item 文件。
-8. 当前阶段 slot 齐备后生成 `<phase>/index.md`。
-9. 写入或更新 `.state.json`。
-10. 返回下一步建议：`/t-run [feature] --phase [phase]`。
+   - self_check：对必填字段、DAG、拆分阈值、backend test item 类型和 finalize 规则的自检结果
+7. 主流程在每个 slot 返回后先执行写入前硬校验：
+   - item 必填字段齐备
+   - item ID 唯一，依赖存在且无环
+   - manifest 覆盖全部 items，路径与 item 文件一致
+   - item 未触发必须拆分规则；触发时必须返回拆分后的 items
+   - backend/test item 含合法 `test_item_type`，runner 含 `uses_skill: skills/t-backend-test-run/SKILL.md`
+   - accept item 不得只依赖 backend/test authoring item
+8. 硬校验失败时终止当前 slot，不写入成功状态，要求重新生成该 slot。
+9. 硬校验通过后写入当前 slot manifest 和 item 文件，再继续调用下游 slot。
+10. 当前阶段 slot 齐备后生成 `<phase>/index.md`。
+11. 写入或更新 `.state.json`。
+12. 返回下一步建议：`/t-task-check [feature] --phase [phase]`。
 
 ## Agent Dispatch Mapping
 
@@ -175,10 +186,13 @@ slot agent 输出必须至少包含：
 - `item_dag`
 - `completion_criteria`
 - `handoff_summary`
+- `self_check`: 必填字段、DAG、拆分、阶段执行规则和 P0/P1 风险自检结果
 
 主流程必须：
 - 校验 `slot` 与被调度 agent 是否匹配。
 - 校验 item 依赖合法且无环。
+- 校验 manifest、item 文件路径和 `.state.json` 计划一致。
+- 校验 `self_check` 存在且未声明未解决 P0/P1。
 - 先写入当前 slot manifest 和 item 文件，再继续调用下游 slot。
 - 在当前阶段要求的 slot 结果齐备后再生成 `index.md`。
 - 文档写入与 `.state.json` 更新保持同轮完成。
@@ -271,6 +285,7 @@ accept item 必须依赖 runner item，不能只依赖 authoring item。`t-backe
 - `frontend` 阶段 `npm run generate-api` 失败：立即终止，并返回失败命令与错误摘要。
 - 任一 slot agent 生成失败：终止本次任务生成，不写入该 slot 的成功状态，并返回失败 agent 与失败原因。
 - slot agent 返回 item 缺少必填字段、依赖不存在或形成环：拒绝写入成功状态，要求重新生成该 slot。
+- slot agent 返回缺失 `self_check`、manifest 覆盖不完整、backend/test 类型非法或触发必须拆分规则：拒绝写入成功状态，要求重新生成该 slot。
 
 ## Examples
 ```bash
@@ -291,7 +306,7 @@ accept item 必须依赖 runner item，不能只依赖 authoring item。`t-backe
 - finalize.md
 
 状态已更新：phase=backend, phases.backend.generated_at=<timestamp>
-下一步: /t-run <feature> --phase backend
+下一步: /t-task-check <feature> --phase backend
 ```
 
 ## 相关引用

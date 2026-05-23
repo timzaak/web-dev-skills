@@ -2,6 +2,15 @@
 
 定义 `t-task-check` 的统一评分、阻塞条件和报告要求。
 
+## Source Of Truth Boundaries
+
+避免多处定义同一规则：
+
+- 状态字段、状态取值和聚合规则只以 `protocols/task-state-contract.md` 为准。
+- phase/slot/item 执行顺序、active phases、backend test item 类型只以 `protocols/task-phase-execution.md` 为准。
+- 评分、严重度、报告字段和 task-check 收敛规则只以本文件为准。
+- skill、agent、README 可以引用上述协议，但不得复制出第二套冲突规则。
+
 ## Evidence Priority
 
 最终结论的证据优先级必须为：
@@ -63,6 +72,13 @@
 - `fixes`
 - `summary`
 
+agent 评审边界：
+
+- 只报告会影响 `/t-run` 执行、item 可恢复性、设计一致性或验收闭环的问题。
+- P2 文风、命名、排版类建议默认不阻塞，不得升级为 P0/P1。
+- 不得因为 agent 自身偏好的实现方式不同而报告问题；必须引用任务文档或真源规范。
+- 同类问题应合并为一条 finding，并列出受影响 item，避免跨轮重复刷屏。
+
 主流程补全每条 finding：
 
 - `status`: `confirmed | disputed | assumption`
@@ -71,6 +87,19 @@
 - `repo_evidence`
 - `why_blocking`
 - `fix`
+- `lifecycle`: `new | carried | resolved | disputed`
+
+## Convergence Protocol
+
+`t-task-check` 每次运行必须读取同一 feature/phase 最近一份 task-check 报告（如存在），并按以下顺序收敛：
+
+1. 先复核上一轮 P0/P1 是否已修复。
+2. 对仍存在的问题标记为 `carried`，保留原问题编号或摘要。
+3. 对已修复的问题标记为 `resolved`，写入简短证据。
+4. 只在完成旧问题复核后报告新增问题，新增问题标记为 `new`。
+5. 对证据不足、规范冲突或 agent 之间意见冲突的问题标记为 `disputed`，不得计入 P0。
+
+报告摘要必须展示 `new / carried / resolved / disputed` 数量。连续两轮没有新增 P0/P1 且只剩 P2 时，应明确提示可进入下一阶段或由人工决定是否处理 P2。
 
 ## Scoring
 
@@ -135,6 +164,7 @@
 - 每个维度得分与扣分证据
 - 实际调用的 agent 集合
 - `confirmed / disputed / assumption` 分类摘要
+- `new / carried / resolved / disputed` 生命周期摘要
 - P0/P1/P2 问题列表
 - 明确修复步骤
 - 已排除的误报/争议项（如有）
@@ -153,3 +183,4 @@
 - 每个 P0/P1 必须同时有任务文档证据和真源证据
 - `confirmed P0 > 0` 时，不得进入 `/t-run`
 - `disputed` 或 `assumption` 不得计入 P0
+- P2 不阻塞 `/t-run`

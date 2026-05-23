@@ -52,6 +52,7 @@ allowed-tools:
 - `/t-run` 的执行单元、slot 顺序、失败处理、所需上下文统一参考 `protocols/task-phase-execution.md`。
 - `index.md` 和 slot manifest 只作为上下文和导航，不作为直接执行输入。
 - backend 的 `finalize.md` 不由 `/t-run` 执行。
+- backend `accept` slot 完成后，`/t-run` 必须停止并提示执行 `/t-backend-finalize [feature]`；不得自动执行 `finalize.md`。
 
 ## Args
 | 参数 | 说明 |
@@ -144,7 +145,7 @@ backend/test 特例：
 - 一次启动多个 sub agents 或批量下发多个 item。
 - 当前 item 未完成并写回状态时，预取、提前执行或跨 slot 执行其他 item。
 - 对 `backend-test` 直接下发"先跑全量 `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py`"而不做变更分析。
-- backend `accept` 完成后自动执行 `finalize.md`。
+- backend `accept` 完成后，不得自动执行 `finalize.md`。
 
 ## Failure
 - 状态文件缺失/损坏：终止并提示先运行 `/t-task [feature] --phase [phase]`。

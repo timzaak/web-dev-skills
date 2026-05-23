@@ -43,8 +43,14 @@
 # 把设计转换成可执行任务
 /t-tools:t-task user-management
 
+# 检查任务拆分、依赖和可执行性
+/t-tools:t-task-check user-management --phase backend
+
 # 按阶段驱动实现与测试
 /t-tools:t-run user-management --phase backend
+
+# 后端验收后执行收口
+/t-tools:t-backend-finalize user-management
 
 # 运行该角色的 Demo/E2E 测试
 /t-tools:t-demo-run super-admin
@@ -84,6 +90,7 @@
 其中：
 
 - `/t-tools:t-prd-check` 是 PRD、HTML Preview 与 user story 质量门禁，不是可有可无的补充命令
+- `/t-tools:t-task-check` 是任务拆分、DAG 和 item 可执行性门禁；多轮运行时会复核上一轮问题并标记新增、延续、已解决和争议项
 - `/t-tools:t-demo-accept` 是 Demo 阶段验收门禁，用来确认测试覆盖、可运行性和交付质量
 
 常见辅助命令：
