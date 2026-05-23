@@ -14,7 +14,7 @@
 4. 用户故事、PRD、HTML Preview、技术设计四类文档职责分离：
    - 用户故事：用户行为与价值
    - PRD：范围、规则、约束和验收目标
-   - HTML Preview：目标能力的低保真可视化、关键流程、业务状态和待确认假设
+   - HTML Preview：目标能力的低保真可视化、关键流程、业务状态和待确认项
    - 技术设计 / 接口文档：实现与接口细节
 5. 如需技术细节，使用 `/t-design` 单独产出。
 6. PRD 只保留当前有效的架构设计约束，不写过去时或历史变更说明。
@@ -64,10 +64,12 @@ PRD 中前端相关章节禁止包含：
 
 ## HTML Preview 规范
 
-HTML Preview 路径必须与 PRD 同目录同名：
+HTML Preview 路径：
 
 - PRD: `docs/prd/<domain>/<feature>.md`
-- Preview: `docs/prd/<domain>/<feature>.html`
+- Preview: `.ai/preview/<domain>/<feature>.html`
+
+Preview 不进入代码仓库，由 `/t-prd-preview` 自动生成。
 
 Preview 应结合“可视化 PRD 阅读器”和“低保真交互原型”，帮助人类快速理解：
 
@@ -76,7 +78,7 @@ Preview 应结合“可视化 PRD 阅读器”和“低保真交互原型”，�
 - 做什么、不做什么
 - 关键流程如何走
 - 关键业务状态、异常和权限可见性是什么
-- 哪些内容仍是待确认假设
+- 哪些内容仍待确认（以审阅对话承接，不写入 Markdown PRD）
 
 有前端/交互入口时，Preview 的 UI 示意必须聚焦 PRD 定义的目标体验和关键状态，不复刻代码库已经具备的现有页面或组件。已有 UI 只能作为入口或约束说明出现。
 
@@ -105,7 +107,7 @@ PRD 至少应包含：
 - 功能需求
 - API 相关约束（如适用）
 - 前端/交互约束（如适用）
-- 已确认决策与待确认假设
+- 已确认决策
 - 参考资料
 
 对应 HTML Preview 至少应包含：

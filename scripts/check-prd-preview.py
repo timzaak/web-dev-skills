@@ -65,14 +65,22 @@ def find_prd_files(root: Path, feature: str | None) -> list[Path]:
 
 
 def validate_preview(prd_path: Path, root: Path) -> PreviewResult:
-    preview_path = prd_path.with_suffix(".html")
+    relative = prd_path.relative_to(root)
+    parts = relative.parts
+    # prd_path is docs/prd/<domain>/<feature>.md
+    # preview_path is .ai/preview/<domain>/<feature>.html
+    if len(parts) >= 4 and parts[0] == "docs" and parts[1] == "prd":
+        domain = parts[2]
+        preview_path = root / ".ai" / "preview" / domain / prd_path.with_suffix(".html").name
+    else:
+        preview_path = prd_path.with_suffix(".html")
     result = PreviewResult(
-        prd=str(prd_path.relative_to(root)),
-        preview=str(preview_path.relative_to(root)),
+        prd=relative.as_posix(),
+        preview=preview_path.relative_to(root).as_posix(),
     )
 
     if not preview_path.exists():
-        result.fail("missing same-directory HTML Preview")
+        result.fail("missing HTML Preview")
         return result
 
     html = preview_path.read_text(encoding="utf-8", errors="replace")

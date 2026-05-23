@@ -32,7 +32,7 @@ allowed-tools:
 
 ## 输入范围
 - PRD 文档: `docs/prd/**/*.md`（排除 `00-index.md`）
-- PRD HTML Preview: `docs/prd/**/*.html`
+- PRD HTML Preview: `.ai/preview/**/*.html`
 - 用户故事: `docs/user-stories/**/*.md`
 - 排除文件: `00-index.md`, `_roles.md`, `_README.md`, `client-app-settings.md`, `builtin_protection.md`
 
@@ -57,7 +57,7 @@ allowed-tools:
 按 `protocols/prd-preview-contract.md` 执行：
 
 - 先运行 `${CLAUDE_PLUGIN_ROOT}/scripts/check-prd-preview.py [feature-name|--all] --root . --json` 获取机械检查结果
-- 检查同目录同名 HTML Preview 是否存在
+- 检查 `.ai/preview/<domain>/<feature>.html` 是否存在
 - 检查 Preview 是否为目标技术栈无关的单文件 HTML
 - 检查 Preview 是否包含来源 PRD 路径和固定审阅区域
 - 对前端/交互功能，检查 Preview 是否聚焦 PRD 定义的目标体验和关键状态，而不是复刻现有代码已经具备的 UI

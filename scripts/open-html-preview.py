@@ -26,7 +26,7 @@ def open_path(path: Path) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Open a PRD HTML Preview.")
-    parser.add_argument("preview", help="Path to docs/prd/<domain>/<feature>.html")
+    parser.add_argument("preview", help="Path to .ai/preview/<domain>/<feature>.html")
     parser.add_argument("--root", default=".", help="Target project root, defaults to current directory")
     args = parser.parse_args()
 

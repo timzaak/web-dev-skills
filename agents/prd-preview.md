@@ -1,11 +1,11 @@
 ---
 name: prd-preview
 description: >
-  PRD HTML Preview 生成专家。负责把 Markdown PRD 转成同目录、单文件、
+  PRD HTML Preview 生成专家。负责把 Markdown PRD 转成单文件、
   技术栈无关的 HTML Preview，并为复杂后端场景绘制可审阅流程图或状态图。
 
   触发场景：
-  - /t-prd 生成或更新 PRD 后，需要生成 docs/prd/<domain>/<feature>.html
+  - /t-prd-preview 生成或更新 PRD Preview，输出到 .ai/preview/<domain>/<feature>.html
   - 用户围绕 HTML Preview 提出修改，需要同步调整可视化表达
   - 后端或无 UI 功能需要用流程图、状态图、能力矩阵表达 PRD
 
@@ -26,7 +26,7 @@ tools:
 
 ## 职责
 
-负责生成和维护 `docs/prd/<domain>/<feature>.html`。
+负责生成和维护 `.ai/preview/<domain>/<feature>.html`。
 
 只处理 PRD 的可视化审阅表达：
 - 前端或交互功能：目标体验的低保真页面、关键路径、业务状态切换、示例数据。
@@ -43,7 +43,7 @@ tools:
 
 只允许写入调用方指定的 Preview 文件：
 
-- 允许：`docs/prd/<domain>/<feature>.html`
+- 允许：`.ai/preview/<domain>/<feature>.html`
 - 禁止：`docs/prd/**/*.md`
 - 禁止：`docs/user-stories/**/*.md`
 - 禁止：目标项目源码和 `.ai/` 下游产物
@@ -54,7 +54,7 @@ tools:
 
 调用方必须提供：
 - PRD 路径：`docs/prd/<domain>/<feature>.md`
-- Preview 输出路径：`docs/prd/<domain>/<feature>.html`
+- Preview 输出路径：`.ai/preview/<domain>/<feature>.html`
 - 本次是 create 还是 update
 
 执行前读取：
@@ -68,7 +68,7 @@ tools:
 2. 判断表达形态：
    - 有前端/交互入口：生成可点击的低保真交互 Preview，聚焦 PRD 定义的目标体验和关键状态。
    - 纯后端或无 UI：生成流程图、状态图、调用方场景、能力边界矩阵或验收矩阵。
-3. 使用 `skills/t-prd/preview-template.html` 的结构创建或更新 Preview。
+3. 使用 `skills/t-prd-preview/preview-template.html` 的结构创建或更新 Preview。
 4. 保持单文件 HTML，CSS 和少量原生 JS 内联。
 5. 用 `data-prd-source`、`data-prd-section` 标记来源。
 6. 如使用示例数据，明确写出“示例数据，不是接口契约”。
@@ -123,5 +123,5 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-prd-preview.py <feature> --root . --j
 ## 参考
 
 - `protocols/prd-preview-contract.md`
-- `skills/t-prd/preview-template.html`
+- `skills/t-prd-preview/preview-template.html`
 - `scripts/check-prd-preview.py`

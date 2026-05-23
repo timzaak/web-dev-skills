@@ -1,6 +1,6 @@
 # PRD HTML Preview Contract
 
-定义 `/t-prd` 生成的 HTML Preview 契约，以及 `/t-prd-check` 对该预览的检查边界。
+定义 `/t-prd-preview` 生成的 HTML Preview 契约，以及 `/t-prd-check` 对该预览的检查边界。
 
 ## Purpose
 
@@ -10,12 +10,12 @@ HTML Preview 是 PRD 的可视化审阅和协作产物，用于帮助人类快�
 
 ## File Location
 
-每份 PRD 必须在同目录生成同名 HTML Preview：
+每份 PRD 必须在 `.ai/preview/` 下生成对应 HTML Preview（不进入代码仓库）：
 
 - PRD: `docs/prd/<domain>/<feature>.md`
-- Preview: `docs/prd/<domain>/<feature>.html`
+- Preview: `.ai/preview/<domain>/<feature>.html`
 
-`<feature>.html` 必须和 `<feature>.md` 一起进入后续迭代。
+Preview 是临时验证产物，不纳入版本控制。每次 `/t-prd-preview` 或 `/t-prd` 运行时会重新生成。
 
 ## Source of Truth
 
@@ -38,7 +38,7 @@ HTML Preview 必须保持目标项目技术栈无关：
 
 ## Review Workflow
 
-`/t-prd` 生成或更新 Preview 后，必须立即打开 `docs/prd/<domain>/<feature>.html` 供人类审阅。
+`/t-prd-preview` 生成或更新 Preview 后，必须立即打开 `.ai/preview/<domain>/<feature>.html` 供人类审阅。
 
 推荐流程：
 
@@ -99,7 +99,7 @@ Preview 应结合“可视化 PRD 阅读器”和“低保真交互原型”两�
 检查项：
 
 - 可使用 `${CLAUDE_PLUGIN_ROOT}/scripts/check-prd-preview.py` 执行机械检查。
-- Preview 文件是否存在且与 PRD 同目录同名。
+- Preview 文件是否存在且路径为 `.ai/preview/<domain>/<feature>.html`。
 - 是否为单文件 HTML，且不依赖外部脚本、样式、CDN 或目标项目构建产物。
 - 是否包含来源 PRD 路径。
 - 是否包含固定区域：`Overview`、`Scope`、`Flow`、`States`、`Rules`、`Acceptance`、`Assumptions`。

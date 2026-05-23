@@ -33,7 +33,6 @@ allowed-tools:
 
 输出文件：
 - `docs/prd/<domain>/[feature].md`
-- `docs/prd/<domain>/[feature].html`
 
 ## 使用方式
 ```bash
@@ -54,7 +53,7 @@ allowed-tools:
 以下约束在本 skill 中为唯一权威来源，工作流步骤不再重复声明。
 
 **路径与域**：
-- PRD 写入 `docs/prd/<domain>/[feature].md`，HTML Preview 写入同目录 `[feature].html`
+- PRD 写入 `docs/prd/<domain>/[feature].md`，HTML Preview 由 `/t-prd-preview` 写入 `.ai/preview/<domain>/[feature].html`
 - `<domain>` 只能是 `auth`、`billing`、`core`、`integration`
 - 不写入 `docs/prd/` 根目录；若父目录缺失，仅在目标域已明确时创建所需目录
 
@@ -71,7 +70,7 @@ allowed-tools:
 - 技术栈无关，浏览器直接打开即可审阅
 
 **更新行为**：
-- 已有同名 PRD → update 路径，逐章比对本次确认信息：冲突章节替换冲突部分，一致章节保留，未涉及章节保留（代表之前决策），模板要求但缺失的章节补齐；已确认的"待确认假设"迁移至"已确认决策"
+- 已有同名 PRD → update 路径，逐章比对本次确认信息：冲突章节替换冲突部分，一致章节保留，未涉及章节保留（代表之前决策），模板要求但缺失的章节补齐；本次对话中已确认的待确认项迁移至"已确认决策"
 - 已有同名 user story 文件 → 追加到合适章节，不重建
 - 已有同名 HTML Preview → 以当前 PRD 语义为基准更新
 
@@ -85,12 +84,13 @@ allowed-tools:
 - 先读取现有文档和代码上下文，不询问可直接查明的事实
 - 只在目标域、范围边界或补充 user story 所需信息无法可靠推断时，才使用 `AskUserQuestion`
 - 一次只问一个；每个问题给出推荐答案，用户可接受、修改或拒绝
-- 记录已确认决策和待确认假设，后续 PRD 与 HTML Preview 必须沿用
+- PRD 只记录已确认决策；仍待确认的信息在对话收尾中列出，不写入 Markdown PRD
 - 信息足够生成可审阅 PRD 时停止追问，不为了完美而继续打断
 
 ## 职责边界
 
-- `/t-prd`：补齐 user story → 创建/更新 PRD → 生成 HTML Preview → 打开供人类审阅
+- `/t-prd`：补齐 user story → 创建/更新 PRD → 触发 `/t-prd-preview` 生成 HTML Preview
+- `/t-prd-preview`：基于 PRD 生成 HTML Preview（通过本 skill 自动触发）
 - `/t-prd-check`：检查 PRD、HTML Preview 与用户故事质量（不在本 skill 范围内）
 - `/t-design`：基于 PRD 生成技术设计（不在本 skill 范围内）
 - 本 skill 产出产品语义文档，不负责接口明细、数据库设计或技术实现方案
@@ -116,15 +116,12 @@ allowed-tools:
 - 范围界定、需求概述、业务规则与状态
 - 功能需求与验收目标
 - API 相关约束 / 前端交互约束（各标明适用或不适用）
-- 已确认决策与待确认假设
+- 已确认决策
 - 参考资料
 
-`docs/prd/<domain>/[feature].html` — HTML Preview，包含：
-- 元数据、来源路径和一句话目标
-- 目标能力、范围、流程、业务状态、规则、验收目标和待确认假设
-- 前端功能目标体验的低保真交互示意，或后端场景的流程图/状态图/能力矩阵
-
 可能更新用户故事文件（追加或新建）。
+
+HTML Preview 由 `/t-prd-preview` 自动生成到 `.ai/preview/<domain>/[feature].html`，不进入代码仓库。
 
 ## 工作流程
 
@@ -145,7 +142,7 @@ allowed-tools:
 
 ### 3. 检查已有文件
 
-检查 `docs/prd/<domain>/[feature].md` 和 `.html`：
+检查 `docs/prd/<domain>/[feature].md`：
 - 不存在 → create 路径
 - 已存在 → update 路径
 
@@ -192,37 +189,31 @@ create 路径使用 [template.md](template.md)；update 路径以现有 PRD 为�
 - 相关用户故事、范围界定、需求概述、业务规则与状态
 - 功能需求、验收目标
 - API 相关约束 / 前端交互约束（各标明适用或不适用）
-- 已确认决策与待确认假设、参考资料
+- 已确认决策、参考资料
 
 不适用的章节保留并标记"不适用"。如需技术细节，建议执行 `/t-design`。
 
 ### 7. 生成 HTML Preview
 
-通过 Agent tool 委派 `prd-preview` subagent 生成或更新 `docs/prd/<domain>/[feature].html`。
+通过 Agent tool 委派 `prd-preview` subagent 自动生成或更新 HTML Preview。
 
-委派 prompt 必须包含：
+委派 prompt 包含：
 - PRD 路径和 Preview 输出路径
 - 本次是 create 还是 update
-- 用户当前确认的目标、范围、流程、业务状态、规则、验收目标和待确认假设
 
 示例委派 prompt：
 
 ```text
 使用 prd-preview 生成 PRD HTML Preview。
 PRD: docs/prd/<domain>/[feature].md
-Preview: docs/prd/<domain>/[feature].html
+Preview: .ai/preview/<domain>/[feature].html
 Mode: create|update
-要求：遵循 protocols/prd-preview-contract.md；如为纯后端场景，使用流程图/状态图/能力矩阵，不生成伪 UI。
-前端 UI 示意只展示 PRD 定义的目标体验，不复刻已有实现。
+要求：遵循 protocols/prd-preview-contract.md；生成完成后运行 scripts/check-prd-preview.py 验证。
 ```
 
-subagent 的详细规则见 `agents/prd-preview.md` 和 `protocols/prd-preview-contract.md`。
+`prd-preview` subagent 会基于指定 PRD 生成 `.ai/preview/<domain>/[feature].html`。生成完成后运行 `scripts/open-html-preview.py` 打开浏览器。
 
-生成完成后，运行：
-
-```bash
-python ${CLAUDE_PLUGIN_ROOT}/scripts/open-html-preview.py docs/prd/<domain>/[feature].html --root .
-```
+如果 t-prd-preview 失败，终止并报告，不能只交付 Markdown PRD。
 
 ### 8. 人机迭代
 
@@ -235,12 +226,14 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/open-html-preview.py docs/prd/<domain>/[fea
 
 完成后明确说明：
 - user story 文件路径和变更方式（新增/追加）
-- PRD 和 HTML Preview 路径、所属域
+- PRD 路径、所属域
+- HTML Preview 路径（`.ai/preview/<domain>/[feature].html`）
 - 本次走 create 还是 update
 - 需要重点补充或确认的部分
+- 待确认项：明确说明"无"或以对话形式列出，不写入 Markdown PRD
 - 下一步：`/t-prd-check [feature]` 或 `/t-design [feature]`
 
-推断部分需显式列出：哪些来自现有文档、哪些来自当前对话、哪些仍是待确认假设。
+推断部分需在收尾对话中显式列出：哪些来自现有文档、哪些来自当前对话、哪些仍待确认；未确认内容不写入 Markdown PRD。
 
 ## 失败处理
 
@@ -249,7 +242,7 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/open-html-preview.py docs/prd/<domain>/[fea
 - 文件无法写入 → 终止并报告
 - user story 信息不足 → 先补问；仍不足则继续，PRD 中标记缺口
 - HTML Preview 无法生成 → 终止并报告，不能只交付 Markdown PRD
-- HTML Preview 无法打开 → 报告失败和文件路径，保留已生成文件
+- HTML Preview 无法打开 → 报告失败和文件路径（`.ai/preview/<domain>/[feature].html`），保留已生成文件
 
 ## 质量门禁
 
@@ -262,12 +255,9 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/open-html-preview.py docs/prd/<domain>/[fea
 
 - PRD 模板：[template.md](template.md)
 - User Story 模板：[user-story-template.md](user-story-template.md)
-- HTML Preview 模板：[preview-template.html](preview-template.html)
-- HTML Preview 契约：`protocols/prd-preview-contract.md`
-- HTML Preview 打开脚本：`${CLAUDE_PLUGIN_ROOT}/scripts/open-html-preview.py`
-- HTML Preview subagent：`agents/prd-preview.md`
 
 ## 相关引用
 
+- `skills/t-prd-preview/SKILL.md`
 - `skills/t-prd-check/SKILL.md`
 - `skills/t-design/SKILL.md`
