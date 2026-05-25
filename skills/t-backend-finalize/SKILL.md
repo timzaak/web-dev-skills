@@ -10,7 +10,7 @@ description: Run backend finalization after backend acceptance by simplifying co
 ## Purpose
 - 读取 `.ai/task/[feature]/.state.json` 和 `backend/finalize.md`。
 - 在 `backend-accept` 通过后执行统一收口：
-  - `/simplify`
+  - `/code-review`
   - `cargo clippy --fix --allow-dirty --allow-staged --all-targets --all-features`
   - `cargo fmt --all`
   - OpenAPI 文档导出与前端 API 生成
@@ -32,10 +32,10 @@ description: Run backend finalization after backend acceptance by simplifying co
 
 ## Fixed Flow
 1. 读取 `backend/accept.md` manifest、`backend/accept/*.md` item handoff、`backend/finalize.md`、backend 改动范围和最小必要状态。
-2. 确定 `/simplify` 作用范围：
+2. 确定 `/code-review` 作用范围：
    - 优先使用 `finalize.md` 中声明的 feature 相关 backend 改动文件
    - 若未显式声明，则回退到当前工作区 `backend/**` 改动集
-3. 执行 `/simplify`，简化目标范围内代码。
+3. 执行 `/code-review`，简化目标范围内代码。
 4. 执行 `cargo clippy --fix --allow-dirty --allow-staged --all-targets --all-features`。
 5. 执行 `cargo fmt --all`。
 6. 导出 OpenAPI 文档并生成前端 API 客户端：
@@ -53,7 +53,7 @@ description: Run backend finalization after backend acceptance by simplifying co
    - `phases.backend.status = awaiting_finalize`
 2. 维护步骤级状态：
    - `tasks.backend.finalize.current_step`
-   - `tasks.backend.finalize.steps.simplify|clippy|fmt|openapi_export|frontend_api_gen`
+   - `tasks.backend.finalize.steps.code_review|clippy|fmt|openapi_export|frontend_api_gen`
 3. 某一步成功后，写入对应 step 为 `completed`。
 4. 某一步失败后：
    - `tasks.backend.finalize.status = failed`
@@ -69,7 +69,7 @@ description: Run backend finalization after backend acceptance by simplifying co
    - `phases.backend.status = completed`
 
 ## Success Criteria
-- `/simplify` 已执行且没有遗留待处理冲突。
+- `/code-review` 已执行且没有遗留待处理冲突。
 - `cargo clippy --fix --allow-dirty --allow-staged --all-targets --all-features` 执行完成，收口结束时无 warning。
 - `cargo fmt --all` 已执行。
 - OpenAPI 文档已成功导出到 `frontend/api.json`。

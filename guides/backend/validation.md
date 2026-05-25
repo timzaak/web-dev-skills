@@ -30,7 +30,7 @@ cd backend && cargo check --package <api-package>
 ### 2. 最终收口（backend accept 后必须执行）
 
 ```bash
-/simplify
+/code-review
 cd backend && cargo clippy --fix --allow-dirty --allow-staged --all-targets --all-features
 cd backend && cargo fmt --all
 ```

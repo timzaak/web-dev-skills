@@ -128,4 +128,4 @@ Prerequisites:
 ## Dependencies
 
 - `Context7`: used by `backend-dev`, `backend-test`, `frontend-dev`, and `frontend-test` to query third-party library documentation
-- `/simplify`: required, used by `t-backend-finalize` for final review
+- `/code-review`: required, used by `t-backend-finalize` for final review

@@ -49,7 +49,7 @@ uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- -R latest
 
 ```bash
 cd backend
-/simplify
+/code-review
 cargo clippy --fix --allow-dirty --allow-staged --all-targets --all-features
 cargo fmt --all
 ```

@@ -242,7 +242,7 @@ slot agent 输出必须至少包含：
 ## Backend Finalize
 - backend 阶段必须额外生成 `<phase>/finalize.md`。
 - `finalize.md` 必须明确：
-  - `/simplify` 目标范围
+  - `/code-review` 目标范围
   - `cargo clippy --fix --allow-dirty --allow-staged --all-targets --all-features`
   - `cargo fmt --all`
   - OpenAPI 导出与前端 API 生成

@@ -128,4 +128,4 @@ claude --plugin-dir /path/to/skills
 ## 依赖
 
 - `Context7`：供 `backend-dev`、`backend-test`、`frontend-dev`、`frontend-test` 查询第三方库文档
-- `/simplify`：必选，用于 `t-backend-finalize` 收口审查
+- `/code-review`：必选，用于 `t-backend-finalize` 收口审查
