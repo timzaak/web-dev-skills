@@ -193,6 +193,25 @@ def _get_parent_pid_windows(pid: str) -> str | None:
     return None
 
 
+def _get_process_name_windows(pid: str) -> str | None:
+    """Get process image name on Windows via WMIC."""
+    try:
+        result = subprocess.run(
+            ["wmic", "process", "where", f"ProcessId={pid}", "get", "Name", "/value"],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=5,
+        )
+        for line in result.stdout.splitlines():
+            line = line.strip()
+            if line.startswith("Name="):
+                return line.split("=", 1)[1].strip()
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+        pass
+    return None
+
+
 def kill_process_by_port(port: int) -> bool:
     """Kill the process occupying the specified TCP port.
 
@@ -217,18 +236,20 @@ def kill_process_by_port(port: int) -> bool:
                 continue
             if result.returncode == 0:
                 killed = True
-            # Kill parent process (e.g. cargo.exe) so it releases log file handles
+            # Kill cargo.exe parent only; other parents may be terminals or shells.
             if ppid:
-                try:
-                    subprocess.run(
-                        ["taskkill", "/PID", ppid, "/F", "/T"],
-                        capture_output=True,
-                        text=True,
-                        check=False,
-                        timeout=5,
-                    )
-                except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
-                    pass
+                parent_name = _get_process_name_windows(ppid)
+                if parent_name and parent_name.lower() == "cargo.exe":
+                    try:
+                        subprocess.run(
+                            ["taskkill", "/PID", ppid, "/F", "/T"],
+                            capture_output=True,
+                            text=True,
+                            check=False,
+                            timeout=5,
+                        )
+                    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+                        pass
         return killed
 
     for cmd in (["lsof", "-ti", f":{port}"], ["fuser", "-k", f"{port}/tcp"]):
@@ -261,5 +282,44 @@ def kill_process_by_port(port: int) -> bool:
             return killed
 
         return True
+
+    return False
+
+
+def is_cargo_compiling() -> bool:
+    """Return True when cargo or rustc appears to be active."""
+    if os.name == "nt":
+        command = (
+            "Get-Process cargo, rustc -ErrorAction SilentlyContinue | "
+            "Measure-Object | "
+            "Select-Object -ExpandProperty Count"
+        )
+        try:
+            result = subprocess.run(
+                ["powershell", "-NoProfile", "-Command", command],
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=5,
+            )
+            if result.returncode == 0:
+                return int(result.stdout.strip() or "0") > 0
+        except (ValueError, subprocess.TimeoutExpired, OSError):
+            pass
+        return False
+
+    for cmd in (["pgrep", "-f", "cargo"], ["pgrep", "-f", "rustc"]):
+        try:
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=5,
+            )
+        except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+            continue
+        if result.returncode == 0 and result.stdout.strip():
+            return True
 
     return False

@@ -9,6 +9,7 @@ import argparse
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -23,9 +24,9 @@ from lib import demo_env
 
 def escape_regex_pattern(pattern: str) -> str:
     """转义正则表达式中的特殊字符，使其字面匹配。"""
-    # 需要转义的特殊字符：. ^ $ * + ? { } [ ] \ | ( )
-    special_chars = r'.^$*+?{}[]\|()'
-    return re.escape(pattern)
+    result = re.escape(pattern)
+    # Keep Playwright's test-title hierarchy separator readable in --grep.
+    return result.replace("\\>", ">")
 
 
 def normalize_legacy_args(argv: list[str]) -> list[str]:
@@ -37,6 +38,7 @@ def normalize_legacy_args(argv: list[str]) -> list[str]:
         "-Grep": "--grep",
         "-NoDedup": "--no-dedup",
         "-NoAggregate": "--no-aggregate",
+        "-NoFilter": "--no-filter",
         "-VerboseLog": "--verbose-log",
         "-QuietMode": "--quiet-mode",
         "-ListTests": "--list-tests",
@@ -63,6 +65,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--grep", default="", help="Filter tests by pattern")
     parser.add_argument("--no-dedup", action="store_true", help="Disable log deduplication")
     parser.add_argument("--no-aggregate", action="store_true", help="Disable log aggregation")
+    parser.add_argument("--no-filter", action="store_true", help="Disable log filtering")
     parser.add_argument("--verbose-log", action="store_true", help="Verbose log output")
     parser.add_argument("--quiet-mode", action="store_true", help="Quiet mode (minimal output)")
     parser.add_argument("--list-tests", action="store_true", help="List tests without running")
@@ -111,6 +114,7 @@ def run_tests(
     grep: str,
     no_dedup: bool,
     no_aggregate: bool,
+    no_filter: bool,
     verbose_log: bool,
     quiet_mode: bool,
     list_tests: bool,
@@ -126,6 +130,7 @@ def run_tests(
         grep: 测试过滤模式
         no_dedup: 禁用日志去重
         no_aggregate: 禁用日志聚合
+        no_filter: 禁用日志过滤
         verbose_log: 详细日志
         quiet_mode: 静默模式
         list_tests: 仅列出测试
@@ -147,6 +152,7 @@ def run_tests(
     # Playwright testDir is './e2e', so we need path relative to that
     # Input can be: 'demo/e2e/regular-user/test.e2e.ts' or 'e2e/regular-user/test.e2e.ts'
     # Output should be: 'regular-user/test.e2e.ts'
+    original_test_file = test_file
     test_file = test_file.replace("\\", "/")
 
     # Remove 'demo/' prefix if present
@@ -156,6 +162,19 @@ def run_tests(
     # Remove 'e2e/' prefix if present (since testDir is './e2e')
     if test_file.startswith("e2e/"):
         test_file = test_file[4:]  # Remove 'e2e/'
+
+    if verbose_log:
+        print(f"[DEBUG] Original test file path: {original_test_file}")
+        print(f"[DEBUG] Normalized test file path: {test_file}")
+        print(f"[DEBUG] Current working directory: {os.getcwd()}")
+
+    test_file_full = demo_dir / "e2e" / test_file
+    if not test_file_full.exists():
+        print(f"Error: Test file not found at: {test_file_full}")
+        print(f"Original input: {original_test_file}")
+        print(f"Transformed to: {test_file}")
+        print(f"Expected location: {test_file_full}")
+        return 1
 
     # 确定日志级别
     if verbose_log:
@@ -187,6 +206,7 @@ def run_tests(
     env["DEMO_LOG_LEVEL"] = log_level
     env["DEMO_LOG_DEDUP"] = "false" if no_dedup else "true"
     env["DEMO_LOG_AGGREGATE"] = "false" if no_aggregate else "true"
+    env["DEMO_LOG_FILTER"] = "false" if no_filter else "true"
     env["DEMO_RUN_ID"] = run_id
     env["DEMO_LOG_COMPACT"] = "true" if compact else "false"
     env["DEBUG"] = env.get("DEBUG", "pw:api")
@@ -198,11 +218,18 @@ def run_tests(
         # 转义正则表达式特殊字符，使其字面匹配
         escaped_grep = escape_regex_pattern(grep)
         cmd.append(f"--grep={escaped_grep}")
+        if verbose_log:
+            print(f"[DEBUG] Original grep pattern: {grep}")
+            print(f"[DEBUG] Escaped grep pattern: {escaped_grep}")
     if list_tests:
         cmd.append("--list")
         print(f"Listing tests in: {test_file}")
     else:
         cmd.append("--quiet")
+
+    if verbose_log:
+        print(f"[DEBUG] Working directory: {os.getcwd()}")
+        print(f"[DEBUG] Playwright command: {' '.join(shlex.quote(arg) for arg in cmd)}")
 
     # 运行测试
     start = time.time()
@@ -232,6 +259,16 @@ def run_tests(
         exit_code = proc.wait()
     duration = round(time.time() - start, 1)
 
+    all_skipped = False
+    if not list_tests and exit_code == 0:
+        log_content = playwright_log.read_text(encoding="utf-8", errors="replace")
+        has_passed = bool(re.search(r"\d+ passed", log_content))
+        has_failed = bool(re.search(r"\d+ failed", log_content))
+        has_skipped = bool(re.search(r"\d+ skipped", log_content))
+        if has_skipped and not has_passed and not has_failed:
+            all_skipped = True
+            exit_code = 2
+
     # 生成摘要
     summary = {
         "success": "true" if exit_code == 0 else "false",
@@ -244,9 +281,13 @@ def run_tests(
         "runId": run_id,
         "grep": grep,
     }
+    if all_skipped:
+        summary["error"] = "All tests skipped"
 
     # 打印结果
     if not list_tests and exit_code != 0:
+        if all_skipped:
+            print("[!] All tests were skipped; no tests actually executed")
         try:
             print(f"✗ Failed ({exit_code})")
         except UnicodeEncodeError:
@@ -287,6 +328,7 @@ def main() -> int:
         grep=args.grep,
         no_dedup=args.no_dedup,
         no_aggregate=args.no_aggregate,
+        no_filter=args.no_filter,
         verbose_log=args.verbose_log,
         quiet_mode=args.quiet_mode,
         list_tests=args.list_tests,

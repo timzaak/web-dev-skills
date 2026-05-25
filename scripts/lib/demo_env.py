@@ -13,7 +13,7 @@ from pathlib import Path
 
 from . import docker
 from .cli import require_executable
-from .net import wait_for_http_ok, wait_for_tcp
+from .net import wait_for_http_ok, wait_for_tcp, wait_for_tcp_with_compile_awareness
 from .paths import LOG_DIR, REPO_ROOT, SCRIPTS_DIR, ensure_dir
 from typing import TYPE_CHECKING
 
@@ -287,7 +287,7 @@ def start_environment(
             env=backend_env,
         )
 
-        if not wait_for_tcp("127.0.0.1", BACKEND_PORT, 60, logger=logger):
+        if not wait_for_tcp_with_compile_awareness("127.0.0.1", BACKEND_PORT, 60, logger=logger):
             logger.error(f"Backend start failed. Check {backend_out}")
             return False
 

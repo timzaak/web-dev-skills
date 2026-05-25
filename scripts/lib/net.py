@@ -96,3 +96,58 @@ def wait_for_http_ok(url: str, timeout_seconds: int, interval_seconds: float = 1
                 logger.progress(f"{url}", check_count, int(timeout_seconds / interval_seconds))
 
     return False
+
+
+def wait_for_tcp_with_compile_awareness(
+    host: str,
+    port: int,
+    timeout_seconds: int,
+    interval_seconds: float = 1.0,
+    logger: "Logger | None" = None,
+    check_compilation: bool = True,
+) -> bool:
+    """Wait for a TCP port, extending the deadline while Rust compilation is active."""
+    from .proc import is_cargo_compiling
+
+    deadline = time.time() + timeout_seconds
+    start_time = time.time()
+    check_count = 0
+    extension_count = 0
+    max_extensions = 5
+    extension_time = 60
+
+    if logger and logger.level >= 2:
+        logger.verbose_info(f"Waiting for {host}:{port} (with compilation awareness)...")
+
+    while time.time() < deadline:
+        if is_port_open(host, port):
+            elapsed = time.time() - start_time
+            if logger and logger.level >= 2:
+                total_extended = extension_count * extension_time
+                logger.verbose_info(
+                    f"{host}:{port} ready after {elapsed:.1f}s "
+                    f"({check_count} checks, extended {total_extended}s)"
+                )
+            return True
+
+        if check_compilation and extension_count < max_extensions and is_cargo_compiling():
+            if logger and logger.level >= 2:
+                logger.verbose_info(
+                    f"Detected cargo compilation, extending timeout by {extension_time}s"
+                )
+            deadline += extension_time
+            extension_count += 1
+            time.sleep(5)
+            continue
+
+        time.sleep(interval_seconds)
+        check_count += 1
+
+        if logger and logger.level >= 2 and (check_count % 10 == 0 or check_count == 1):
+            logger.progress(
+                f"{host}:{port}",
+                check_count,
+                int((deadline - start_time) / interval_seconds),
+            )
+
+    return False

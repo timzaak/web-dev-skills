@@ -1,3 +1,4 @@
+import os
 import subprocess
 import time
 from typing import TYPE_CHECKING
@@ -7,7 +8,9 @@ if TYPE_CHECKING:
 
 
 def _run(args: list[str], *, capture: bool = False) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(["docker", *args], text=True, capture_output=True)
+    env = os.environ.copy()
+    env["MSYS_NO_PATHCONV"] = "1"
+    return subprocess.run(["docker", *args], text=True, capture_output=True, env=env)
 
 
 def container_exists(name: str) -> bool:
@@ -38,9 +41,11 @@ def run_detached(args: list[str]) -> bool:
 
 
 def exec_check(container: str, args: list[str]) -> tuple[int, str]:
+    env = os.environ.copy()
+    env["MSYS_NO_PATHCONV"] = "1"
     result = subprocess.run(
         ["docker", "exec", container, *args],
-        text=True, capture_output=True,
+        text=True, capture_output=True, env=env,
     )
     output = result.stdout.strip() if result.returncode == 0 else result.stderr.strip()
     return result.returncode, output

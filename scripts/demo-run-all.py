@@ -32,7 +32,7 @@ if sys.platform == "win32":
 
 QUALITY_DIR = REPO_ROOT / ".ai" / "quality"
 E2E_DIR = REPO_ROOT / "demo" / "e2e"
-EXCLUDED_DIR_NAMES = {"fixtures", "templates", "verification"}
+EXCLUDED_DIR_NAMES = {"fixtures", "templates", "verification", "live"}
 
 
 @dataclass
@@ -70,6 +70,15 @@ def build_parser() -> argparse.ArgumentParser:
         help="Log level for test execution",
     )
     parser.add_argument(
+        "--filter-file",
+        type=Path,
+        default=None,
+        help=(
+            "Path to a file listing test files relative to demo/e2e/, one per line. "
+            "Blank lines and lines starting with # are skipped."
+        ),
+    )
+    parser.add_argument(
         "--direct-script",
         action="store_true",
         help="Use direct demo-test-runner.py script instead of Claude CLI (fallback mode)",
@@ -77,16 +86,35 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def discover_test_files() -> list[Path]:
-    files: list[Path] = []
+def discover_test_files(*, filter_file: Path | None = None) -> list[Path]:
+    all_files: list[Path] = []
     for path in sorted(E2E_DIR.rglob("*.e2e.ts")):
         rel = path.relative_to(E2E_DIR)
         if any(part in EXCLUDED_DIR_NAMES for part in rel.parts):
             continue
         if "test-" in path.name:
             continue
-        files.append(path)
-    return files
+        all_files.append(path)
+
+    if filter_file is None:
+        return all_files
+
+    filter_path = filter_file if filter_file.is_absolute() else REPO_ROOT / filter_file
+    if not filter_path.exists():
+        raise FileNotFoundError(f"Filter file not found: {filter_path}")
+
+    wanted: set[str] = set()
+    for line in filter_path.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        wanted.add(stripped)
+
+    return [
+        path
+        for path in all_files
+        if path.relative_to(E2E_DIR).as_posix() in wanted
+    ]
 
 
 def print_header(text: str) -> None:
@@ -480,7 +508,11 @@ def ensure_quality_dir() -> None:
 
 def main() -> int:
     args = build_parser().parse_args()
-    test_files = discover_test_files()
+    try:
+        test_files = discover_test_files(filter_file=args.filter_file)
+    except FileNotFoundError as exc:
+        print(f"ERROR: {exc}")
+        return 1
     if not test_files:
         print("ERROR: No demo test files found")
         return 1

@@ -1,14 +1,12 @@
 #!/usr/bin/env python
-import os
-import socket
+import platform
 import subprocess
 import sys
-import tempfile
 import time
 
 from lib import docker
 from lib.net import is_port_open
-from lib.paths import PGDOG_TEST_CONFIG, PGDOG_USERS_CONFIG, SCRIPTS_DIR, ensure_dir
+from lib.paths import SCRIPTS_DIR
 
 
 def _ports_free() -> bool:
@@ -18,6 +16,52 @@ def _ports_free() -> bool:
         return True
     print("ERROR: Occupied test ports:", ", ".join(str(p) for p in occupied))
     return False
+
+
+def _host_gateway_args() -> list[str]:
+    if platform.system() == "Linux":
+        return ["--add-host", "host.docker.internal:host-gateway"]
+    return []
+
+
+def _build_pgdog_bootstrap_command(pgdog_config: str, users_config: str) -> str:
+    return f"""cat > /tmp/pgdog.toml <<'PGDOG_CONFIG'
+{pgdog_config}
+PGDOG_CONFIG
+cat > /tmp/users.toml <<'USERS_CONFIG'
+{users_config}
+USERS_CONFIG
+exec /usr/local/bin/pgdog -c /tmp/pgdog.toml -u /tmp/users.toml run
+"""
+
+
+def _print_pgdog_failure_diagnostics(last_probe_output: str) -> None:
+    if last_probe_output:
+        print(f"PgDog last probe output: {last_probe_output}")
+
+    inspect = subprocess.run(
+        [
+            "docker",
+            "inspect",
+            "t-test-pgdog",
+            "--format",
+            "{{json .State}} {{json .Mounts}}",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    if inspect.returncode == 0 and inspect.stdout.strip():
+        print(f"PgDog inspect: {inspect.stdout.strip()}")
+
+    logs = subprocess.run(
+        ["docker", "logs", "t-test-pgdog", "--tail", "50"],
+        capture_output=True,
+        text=True,
+    )
+    log_output = (logs.stdout or logs.stderr).strip()
+    if log_output:
+        print("PgDog logs:")
+        print(log_output)
 
 
 def _start_pgdog() -> bool:
@@ -70,27 +114,13 @@ pool_size = 32
 min_pool_size = 1
 """
 
-    ensure_dir(PGDOG_TEST_CONFIG.parent)
-    PGDOG_TEST_CONFIG.write_text(pgdog_config, encoding="utf-8")
-    PGDOG_USERS_CONFIG.write_text(users_config, encoding="utf-8")
-
     # Create Docker network if it doesn't exist
     subprocess.run(
         ["docker", "network", "create", "t-test-network"],
         capture_output=True,
     )
 
-    # Convert path to Windows format for Docker volume mount (avoid Git Bash path conversion)
-    # On Windows, Docker needs native Windows paths
-    if os.name == 'nt':
-        config_path_docker = str(PGDOG_TEST_CONFIG).replace('\\', '\\\\')
-        users_path_docker = str(PGDOG_USERS_CONFIG).replace('\\', '\\\\')
-    else:
-        config_path_docker = str(PGDOG_TEST_CONFIG)
-        users_path_docker = str(PGDOG_USERS_CONFIG)
-
-    # Start PgDog container (mount both config files in working directory)
-    # PgDog's working directory is /pgdog and it looks for pgdog.toml and users.toml by default
+    bootstrap_cmd = _build_pgdog_bootstrap_command(pgdog_config, users_config)
     if not docker.run_detached(
         [
             "--name",
@@ -98,8 +128,6 @@ min_pool_size = 1
             "--memory=256m",
             "--cpus=0.25",
             "--restart=unless-stopped",
-            "--add-host",
-            "host.docker.internal:host-gateway",
             "--log-opt",
             "max-size=10m",
             "--log-opt",
@@ -108,19 +136,21 @@ min_pool_size = 1
             "RUST_LOG=error",  # Reduce pgdog logging to errors only
             "-e",
             "RUST_BACKTRACE=0",  # Disable backtrace
+            *_host_gateway_args(),
             "-p",
             "16432:6432",
-            "-v",
-            f"{config_path_docker}:/pgdog/pgdog.toml",
-            "-v",
-            f"{users_path_docker}:/pgdog/users.toml",
+            "--entrypoint",
+            "sh",
             "ghcr.io/pgdogdev/pgdog:v0.1.35",
+            "-lc",
+            bootstrap_cmd,
         ]
     ):
         print("ERROR: PgDog container failed to start")
         return False
 
     # Wait for PgDog to accept authenticated SQL traffic, not just TCP connections.
+    last_probe_output = ""
     for attempt in range(30):
         code, out = docker.exec_check(
             "t-test-postgres",
@@ -131,12 +161,14 @@ min_pool_size = 1
                 "select 1",
             ],
         )
+        last_probe_output = out
         if code == 0 and "1" in out:
             print("PgDog is ready")
             return True
         time.sleep(1)
 
     print("ERROR: PgDog failed to start")
+    _print_pgdog_failure_diagnostics(last_probe_output)
     return False
 
 
@@ -161,10 +193,9 @@ def main() -> int:
             "--name",
             "t-test-postgres",
             "--memory=1g",
+            "--shm-size=512m",
             "--cpus=0.5",
             "--restart=unless-stopped",
-            "--add-host",
-            "host.docker.internal:host-gateway",
             "--log-opt",
             "max-size=10m",
             "--log-opt",
@@ -175,6 +206,7 @@ def main() -> int:
             "POSTGRES_PASSWORD=postgres",
             "-e",
             "POSTGRES_DB=postgres",
+            *_host_gateway_args(),
             "-p",
             "15433:5432",
             "postgres:18-alpine",
@@ -186,6 +218,38 @@ def main() -> int:
     if not docker.wait_pg_ready("t-test-postgres", "postgres"):
         print("ERROR: PostgreSQL test container failed to start")
         return 1
+
+    print("Cleaning up leftover test schemas...")
+    cleanup_cmd = [
+        "docker",
+        "exec",
+        "t-test-postgres",
+        "psql",
+        "-U",
+        "postgres",
+        "-h",
+        "localhost",
+        "-d",
+        "postgres",
+        "-c",
+        """DO $$
+DECLARE
+    schema_record RECORD;
+BEGIN
+    FOR schema_record IN
+        SELECT schema_name FROM information_schema.schemata
+        WHERE schema_name LIKE 'test_%' OR schema_name LIKE 'template_test_schema_%'
+    LOOP
+        EXECUTE 'DROP SCHEMA IF EXISTS "' || schema_record.schema_name || '" CASCADE';
+        RAISE NOTICE 'Dropped schema: %', schema_record.schema_name;
+    END LOOP;
+END $$;""",
+    ]
+    result = subprocess.run(cleanup_cmd, capture_output=True, text=True)
+    if result.returncode == 0:
+        print("[OK] Test schema cleanup completed")
+    else:
+        print(f"[WARN] Schema cleanup had issues: {result.stderr}")
 
     if docker.container_running("t-test-redis"):
         docker.stop_container("t-test-redis")
