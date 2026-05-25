@@ -9,6 +9,7 @@ allowed-tools:
   - Grep
   - Write
   - Bash
+  - Agent
   - WebSearch
   - mcp__context7__resolve-library-id
   - mcp__context7__query-docs
@@ -42,9 +43,53 @@ allowed-tools:
 如果参数不合法，终止并提示：
 `请提供合法的项目名称。例如：/t-init my-project`
 
-## 先做什么
+## 占位符
 
-在生成代码之前，使用 Context7 查询关键依赖的最新文档，确保生成的代码使用当前最佳实践。
+整个流程中使用以下占位符：
+
+- `{{PROJECT_NAME}}` — 项目名称（kebab-case，如 `my-project`）
+- `{{PROJECT_NAME_PASCAL}}` — PascalCase（如 `MyProject`）
+- `{{PROJECT_NAME_SNAKE}}` — snake_case（如 `my_project`）
+
+## 生成流程
+
+### Step 1: 验证参数（主 Agent）
+
+- 校验 `$ARGUMENTS` 非空且合法
+- 检查目标目录是否已存在同名目录
+- 如果目录已存在且非空，询问用户是否覆盖
+- 创建所有目录结构：
+
+```
+<project-name>/
+├── backend/
+│   ├── core/
+│   │   └── src/
+│   │       ├── domain/
+│   │       └── infrastructure/
+│   ├── api/
+│   │   └── src/
+│   │       └── application/
+│   │           └── http/
+│   ├── app/
+│   │   └── src/
+│   └── migrations/
+├── frontend/
+│   └── src/
+│       ├── routes/
+│       ├── components/ui/
+│       └── lib/
+├── demo/
+│   └── e2e/
+│       ├── fixtures/
+│       ├── helpers/
+│       └── pages/
+└── scripts/
+```
+
+### Step 2: 查询文档（主 Agent）
+
+使用 Context7 查询关键依赖的最新文档，确保生成的代码使用当前最佳实践。
 
 ### 必查依赖（按顺序）
 
@@ -70,6 +115,160 @@ allowed-tools:
 
 如果某个 Context7 查询失败，降级到 `WebSearch` 搜索官方文档。如果都无法获取，基于已有知识生成但标注可能需要调整版本。
 
+将查询结果中的版本号和 API 用法保存，传递给后续 subagent。
+
+### Step 3: 生成后端（backend-dev subagent）
+
+使用 Agent 工具调度 `t-tools:backend-dev` subagent。
+
+**Subagent Prompt 模板**：
+
+```
+初始化后端项目 {{PROJECT_NAME}}。
+
+工作目录：<project-name>/backend/
+
+任务：
+1. 读取后端模板文件 C:\code\ai\skills\skills\t-init\references\backend-template.md
+2. 按模板生成所有文件，替换以下占位符：
+   - {{PROJECT_NAME}} → <实际项目名>
+   - {{PROJECT_NAME_PASCAL}} → <PascalCase>
+   - {{PROJECT_NAME_SNAKE}} → <snake_case>
+3. 注意目录名为 core/，Cargo crate 名为 {{PROJECT_NAME}}-core
+4. Rust 代码中使用 {{PROJECT_NAME_SNAKE}}_core:: 引用核心 crate
+5. 根据 Context7 查询结果调整依赖版本（版本信息：[附上 Step 2 收集的版本]）
+
+关键约束：
+- sqlx::postgres::PgPoolOptions 没有 connect_timeout 方法，用 acquire_timeout 替代
+- OpenAPI 开关：enable_openapi = true 时暴露 /swagger，否则返回 404
+- 健康检查：GET /health 检查数据库和 Redis 连接
+- 自动迁移：启动时运行 SQLx 迁移
+
+完成后执行 cargo check 验证编译。
+```
+
+后端关键特性：
+- **OpenAPI 开关**：通过 `config.toml` 中的 `server.enable_openapi` 控制
+- **健康检查**：`GET /health` 检查数据库和 Redis 连接
+- **自动迁移**：启动时自动运行 SQLx 迁移
+- **静态文件服务**：开发环境可代理前端，生产环境从 `static_dir` 提供前端文件
+
+### Step 4: 生成前端（frontend-dev subagent）
+
+使用 Agent 工具调度 `t-tools:frontend-dev` subagent。
+
+**Subagent Prompt 模板**：
+
+```
+初始化前端项目 {{PROJECT_NAME}}。
+
+工作目录：<project-name>/frontend/
+
+任务分两阶段：
+
+## 阶段一：写入配置和自定义文件
+
+读取前端模板文件 C:\code\ai\skills\skills\t-init\references\frontend-template.md，
+生成以下自定义文件（需要 AI 编写的内容）：
+
+必须由 AI 编写的文件（从模板生成）：
+- package.json（含所有依赖）
+- tsconfig.json
+- vite.config.ts（Tailwind + TanStack Router + React 插件）
+- openapi-ts.config.ts
+- index.html
+- src/main.tsx（React Query + TanStack Router 初始化）
+- src/styles.css（Tailwind v4 主题 + 暗色模式）
+- src/routes/__root.tsx（根布局 + Toaster + DevTools）
+- src/routes/index.tsx（首页）
+- src/lib/api-client.ts（Axios 实例）
+- src/routeTree.d.ts（类型声明占位）
+
+替换占位符：
+- {{PROJECT_NAME}} → <实际项目名>
+- {{PROJECT_NAME_PASCAL}} → <PascalCase>
+
+## 阶段二：CLI 驱动的组件初始化
+
+这些文件不要 AI 手写，必须通过 CLI 命令生成：
+
+1. npm install（安装所有依赖）
+2. npx shadcn@latest init -d --defaults
+   - 自动生成 components.json、button.tsx、utils.ts，更新 styles.css
+   - 自动安装额外依赖（@base-ui/react、next-themes 等）
+3. npx shadcn@latest add sonner --overwrite（生成 sonner.tsx）
+   - 生成的 sonner.tsx 使用 next-themes，main.tsx 已包含 ThemeProvider
+4. npm run type-check 验证
+
+注意：routeTree.gen.ts 在首次 npm run dev 时才会生成，type-check 可能因此报错，这是正常的。
+
+关键约束：
+- 每个关键文件都要有中文注释说明用途、技术选择、修改指南
+- package.json 的 scripts 要有注释说明每个命令做什么
+- 根据 Context7 查询结果调整依赖版本（版本信息：[附上 Step 2 收集的版本]）
+```
+
+前端文件要求：
+1. **代码注释**：每个关键文件都要有注释，解释用途、技术选择、修改指南
+2. 路由文件 (`__root.tsx`) 要有注释说明文件路由的工作方式
+3. `main.tsx` 要有注释说明 React 应用启动流程
+4. `vite.config.ts` 要有注释说明每个插件的作用
+5. **UI 组件（sonner 等）不要 AI 手写**，必须通过 `npx shadcn@latest add` 生成
+
+### Step 5: 生成 Demo E2E 测试（demo-dev subagent）
+
+使用 Agent 工具调度 `t-tools:demo-dev` subagent。
+
+**Subagent Prompt 模板**：
+
+```
+初始化 Demo E2E 测试项目 {{PROJECT_NAME}}。
+
+工作目录：<project-name>/demo/
+
+任务：
+1. 读取 demo 模板文件 C:\code\ai\skills\skills\t-init\references\demo-template.md
+2. 按模板生成所有文件，替换占位符
+3. 生成后执行 npm install 安装依赖
+4. 运行 smoke test 验证 demo 环境正常
+
+替换占位符：
+- {{PROJECT_NAME}} → <实际项目名>
+- {{PROJECT_NAME_PASCAL}} → <PascalCase>
+- {{BASE_URL}} → http://localhost:8080
+
+必须包含的 smoke test（smoke.e2e.ts）：
+- 不依赖后端服务
+- 验证 Playwright 能启动浏览器
+- 验证页面导航基本功能
+- 验证测试基础设施（fixtures、helpers）可正常导入
+- 这个测试必须在 npm install 后立即可运行通过
+
+完成后执行 cd demo && npx playwright install chromium && npx playwright test e2e/smoke.e2e.ts
+确保 smoke test 全部通过。
+```
+
+### Step 6: 生成 AGENTS.md、CLAUDE.md 和 README.md（主 Agent）
+
+读取 [references/agents-template.md](references/agents-template.md) 获取模板内容。
+
+生成三个根目录文件：
+1. `AGENTS.md` — 项目描述占位符 + 项目行为准则
+2. `CLAUDE.md` — 仅包含 `@AGENTS.md`
+3. `README.md` — 快速启动指南（从 [references/scripts-template.md](references/scripts-template.md) 获取 Docker 命令）
+
+生成后提示用户填写 `AGENTS.md` 顶部的项目描述占位符。
+
+### Step 7: 验证（主 Agent）
+
+收集各 subagent 的验证结果，汇总报告：
+1. 后端：`cargo check` 是否通过
+2. 前端：`npm install` + `type-check` 是否通过（routeTree.gen.ts 错误除外）
+3. Demo：`npm install` + smoke test 是否通过
+4. 检查所有文件都已创建（Glob 验证）
+
+如果验证工具不可用，跳过并提示用户手动验证。
+
 ## 项目结构
 
 生成的项目结构如下：
@@ -81,7 +280,7 @@ allowed-tools:
 │   ├── config.example.toml      # 配置模板
 │   ├── migrations/              # SQLx 数据库迁移
 │   │   └── 00001_init.sql
-│   ├── domain-core/
+│   ├── core/                    # 领域核心（crate: {{PROJECT_NAME}}-core）
 │   │   ├── Cargo.toml
 │   │   └── src/
 │   │       ├── lib.rs
@@ -120,18 +319,19 @@ allowed-tools:
 │       │   └── index.tsx
 │       ├── components/
 │       │   └── ui/
-│       │       └── sonner.tsx
+│       │       └── sonner.tsx      # 由 npx shadcn add sonner 生成
 │       ├── lib/
 │       │   └── api-client.ts
 │       └── routeTree.d.ts
 ├── demo/
-│   ├── package.json             # 依赖 unified-logger 包
+│   ├── package.json             # 依赖 playwright-unified-logger
 │   ├── tsconfig.json
 │   ├── playwright.config.ts
 │   ├── eslint.config.js
 │   ├── .gitignore
 │   └── e2e/
-│       ├── demo-basic.e2e.ts
+│       ├── smoke.e2e.ts          # 冒烟测试（不依赖后端）
+│       ├── demo-basic.e2e.ts     # 基础验证测试
 │       ├── fixtures/
 │       │   ├── demo-auth.fixtures.ts
 │       │   └── test-data.ts
@@ -148,106 +348,13 @@ allowed-tools:
 └── README.md
 ```
 
-## 生成流程
-
-### Step 1: 验证参数
-
-- 校验 `$ARGUMENTS` 非空且合法
-- 检查目标目录是否已存在同名目录
-- 如果目录已存在且非空，询问用户是否覆盖
-
-### Step 2: 查询文档
-
-按"先做什么"部分的顺序查询 Context7，收集关键依赖的最新用法。
-将查询到的版本信息用于后续文件生成。
-
-### Step 3: 生成后端
-
-读取 [references/backend-template.md](references/backend-template.md) 获取完整的后端文件模板。
-模板中的占位符说明：
-
-- `{{PROJECT_NAME}}` — 项目名称（kebab-case，如 `my-project`）
-- `{{PROJECT_NAME_PASCAL}}` — PascalCase（如 `MyProject`）
-- `{{PROJECT_NAME_SNAKE}}` — snake_case（如 `my_project`）
-
-生成后端文件时：
-1. 先创建目录结构
-2. 按模板生成每个文件，替换占位符
-3. 根据 Context7 查询结果调整依赖版本和 API 用法
-4. 确保 OpenAPI 开关逻辑正确：`enable_openapi = true` 时暴露 `/swagger`，否则返回 404
-5. 生成 `config.example.toml`，用户复制为 `config.toml` 后修改
-
-后端关键特性：
-- **OpenAPI 开关**：通过 `config.toml` 中的 `server.enable_openapi` 控制
-- **健康检查**：`GET /health` 检查数据库和 Redis 连接
-- **自动迁移**：启动时自动运行 SQLx 迁移
-- **静态文件服务**：开发环境可代理前端，生产环境从 `static_dir` 提供前端文件
-
-### Step 4: 生成前端
-
-读取 [references/frontend-template.md](references/frontend-template.md) 获取完整的前端文件模板。
-
-前端文件要求：
-1. **代码注释**：每个关键文件都要有注释，解释：
-   - 这个文件的用途
-   - 使用的技术和为什么选择它
-   - 如何修改/扩展
-   - 相关的配置文件在哪里
-2. 路由文件 (`__root.tsx`) 要有注释说明文件路由的工作方式
-3. `main.tsx` 要有注释说明 React 应用启动流程
-4. `vite.config.ts` 要有注释说明每个插件的作用
-5. `package.json` 的 scripts 要有注释说明每个命令做什么
-
-### Step 5: 生成 Demo E2E 测试
-
-读取 [references/demo-template.md](references/demo-template.md) 获取 demo 测试的完整文件模板。
-读取 [references/unified-logger-package-template.md](references/unified-logger-package-template.md) 获取 `playwright-unified-logger` 本地包模板。
-
-生成 `demo/` 目录，包含：
-1. `package.json` — 依赖 `playwright-unified-logger`（通过 npm install 安装）
-2. `tsconfig.json`
-3. `playwright.config.ts` — 单 worker，headless Chrome
-4. `eslint.config.js` — 禁止 `page.waitForTimeout()`
-5. `.gitignore`
-6. `e2e/fixtures/demo-auth.fixtures.ts` — demoLogger 和 authenticatedPage fixture
-7. `e2e/fixtures/test-data.ts` — 测试数据管理
-8. `e2e/helpers/auth.ts` — 登录/登出辅助函数
-9. `e2e/helpers/environment-setup.ts` — 后端健康检查验证
-10. `e2e/pages/base-page.ts` — Page Object 基类
-11. `e2e/pages/login-page.ts` — 登录页 Page Object
-12. `e2e/selectors.ts` — 集中式选择器定义
-13. `e2e/demo-basic.e2e.ts` — 基础验证测试
-
-生成后执行 `npm install` 验证依赖安装。
-
-### Step 6: 生成 AGENTS.md 和 CLAUDE.md
-
-读取 [references/agents-template.md](references/agents-template.md) 获取模板内容。
-
-生成两个根目录文件：
-1. `AGENTS.md` — 项目描述占位符 + 项目行为准则
-2. `CLAUDE.md` — 仅包含 `@AGENTS.md`
-
-生成后提示用户填写 `AGENTS.md` 顶部的项目描述占位符。
-
-### Step 7: 验证
-
-生成完成后，执行以下验证：
-1. 检查所有文件都已创建（Glob 验证）
-2. 后端 `cargo check`（如果 cargo 可用）— 只做语法检查，不编译
-3. 前端 `npm install` + `npm run type-check`（如果 npm 可用）
-4. Demo `npm install`（在 `demo/` 目录，会自动安装 `playwright-unified-logger`）
-5. 如生成本地 unified logger 包，确认模板来自 [references/unified-logger-package-template.md](references/unified-logger-package-template.md)
-
-如果验证工具不可用，跳过并提示用户手动验证。
-
 ## 输出文件清单
 
 完成后确认以下文件存在：
 
 **后端（必须）：**
 - [ ] `backend/Cargo.toml`
-- [ ] `backend/domain-core/Cargo.toml` + `src/lib.rs` + `src/config.rs` + `src/domain/health.rs` + `src/infrastructure/redis.rs`
+- [ ] `backend/core/Cargo.toml` + `src/lib.rs` + `src/config.rs` + `src/domain/health.rs` + `src/infrastructure/redis.rs`
 - [ ] `backend/api/Cargo.toml` + `src/lib.rs` + `src/config.rs` + `src/application/http/*.rs`
 - [ ] `backend/app/Cargo.toml` + `src/main.rs`
 - [ ] `backend/config.example.toml`
@@ -263,7 +370,7 @@ allowed-tools:
 - [ ] `frontend/src/styles.css`
 - [ ] `frontend/src/routes/__root.tsx`
 - [ ] `frontend/src/routes/index.tsx`
-- [ ] `frontend/src/components/ui/sonner.tsx`
+- [ ] `frontend/src/components/ui/sonner.tsx`（由 shadcn CLI 生成）
 - [ ] `frontend/src/lib/api-client.ts`
 
 **脚本和文档：**
@@ -279,6 +386,7 @@ allowed-tools:
 - [ ] `demo/playwright.config.ts`
 - [ ] `demo/eslint.config.js`
 - [ ] `demo/.gitignore`
+- [ ] `demo/e2e/smoke.e2e.ts`（冒烟测试，不依赖后端）
 - [ ] `demo/e2e/demo-basic.e2e.ts`
 - [ ] `demo/e2e/fixtures/demo-auth.fixtures.ts`
 - [ ] `demo/e2e/fixtures/test-data.ts`
@@ -293,9 +401,10 @@ allowed-tools:
 完成后在响应中明确说明：
 - 项目路径
 - 已生成的文件数量
+- 各 subagent 验证结果（cargo check / npm install / smoke test）
 - OpenAPI 开关位置（`config.toml` → `server.enable_openapi`）
 - UnifiedLogger 通过 `npm install playwright-unified-logger` 安装
-- Demo 测试运行命令（`cd demo && npm test`）
+- Demo smoke test 运行命令（`cd demo && npx playwright test e2e/smoke.e2e.ts`）
 - 日志环境变量说明（`UNIFIED_LOG_LEVEL` 等）
 - AGENTS.md 和 CLAUDE.md 已生成，提醒用户填写项目描述
 - 快速启动命令
@@ -306,10 +415,12 @@ allowed-tools:
 
 生成前逐项自检：
 - 是否查询了 Context7 确认依赖版本和用法
+- 后端目录名为 `core/`，crate 名为 `{{PROJECT_NAME}}-core`，Rust 代码用 `{{PROJECT_NAME_SNAKE}}_core::`
 - 后端 OpenAPI 开关逻辑是否正确（enable_openapi 控制路由注册）
 - 后端是否能编译通过（`cargo check`）
+- 前端 sonner 等组件是否通过 CLI 命令生成（不是 AI 手写）
 - 前端代码是否有足够的中文注释
-- 前端类型检查是否通过
+- demo smoke test 是否不依赖后端且能独立运行通过
 - demo 中 import 路径是否正确指向 `playwright-unified-logger`（npm 包）
 - 配置文件是否有完整的注释说明每个字段
 - 所有占位符是否已替换为实际项目名称
@@ -321,6 +432,8 @@ allowed-tools:
 - Context7 查询失败：降级到 WebSearch，最终降级到已有知识
 - cargo/npm 不可用：生成文件但跳过验证，提示用户手动检查
 - Docker 不可用：提示用户需自行安装 PostgreSQL 和 Redis
+- Subagent 失败：报告错误，提示用户手动重试对应步骤
+- shadcn CLI 失败：降级为手动写入 sonner.tsx（从模板）
 
 ## 附加资源
 

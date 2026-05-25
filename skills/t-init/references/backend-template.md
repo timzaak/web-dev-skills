@@ -11,7 +11,7 @@
 [workspace]
 resolver = "2"
 members = [
-    "domain-core",
+    "core",  # crate name: {{PROJECT_NAME}}-core
     "api",
     "app",
 ]
@@ -63,11 +63,11 @@ redis = { version = "0.27", features = ["connection-manager", "tokio-comp", "aio
 
 ---
 
-## 2. backend/domain-core/Cargo.toml
+## 2. backend/core/Cargo.toml
 
 ```toml
 [package]
-name = "domain-core"
+name = "{{PROJECT_NAME}}-core"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -101,7 +101,7 @@ toml = { workspace = true }
 
 ---
 
-## 3. backend/domain-core/src/lib.rs
+## 3. backend/core/src/lib.rs
 
 ```rust
 pub mod config;
@@ -115,7 +115,7 @@ pub use infrastructure::redis::{ManagerConfig, RedisConnectionManager};
 
 ---
 
-## 4. backend/domain-core/src/config.rs
+## 4. backend/core/src/config.rs
 
 ```rust
 use serde::{Deserialize, Serialize};
@@ -170,8 +170,6 @@ pub struct DatabaseConfig {
     pub idle_timeout_secs: u64,
     /// 连接最大生命周期（秒）
     pub max_lifetime_secs: u64,
-    /// 连接超时（秒）
-    pub connect_timeout_secs: u64,
 }
 
 /// Redis 配置
@@ -184,7 +182,7 @@ pub struct RedisConfig {
 
 ---
 
-## 5. backend/domain-core/src/domain/health.rs
+## 5. backend/core/src/domain/health.rs
 
 ```rust
 use serde::{Deserialize, Serialize};
@@ -235,7 +233,7 @@ impl Default for HealthStatus {
 
 ---
 
-## 6. backend/domain-core/src/infrastructure/redis.rs
+## 6. backend/core/src/infrastructure/redis.rs
 
 ```rust
 use redis::aio::ConnectionManager;
@@ -294,7 +292,7 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
-domain-core = { path = "../domain-core" }
+{{PROJECT_NAME}}-core = { path = "../core" }
 
 # Workspace dependencies
 tokio = { workspace = true }
@@ -353,11 +351,11 @@ pub fn export_openapi(output_path: &str) -> Result<()> {
 ## 9. backend/api/src/config.rs
 
 ```rust
-use domain_core::AppConfig;
+use {{PROJECT_NAME_SNAKE}}_core::AppConfig;
 
 /// API 层配置
 ///
-/// 直接复用 domain-core 的 AppConfig。
+/// 直接复用 core 的 AppConfig。
 /// 如需扩展 API 层特有的配置项，可在此添加。
 pub type ApiConfig = AppConfig;
 ```
@@ -382,7 +380,7 @@ pub use state::AppState;
 ## 11. backend/api/src/application/http/state.rs
 
 ```rust
-use domain_core::infrastructure::redis::RedisConnectionManager;
+use {{PROJECT_NAME_SNAKE}}_core::infrastructure::redis::RedisConnectionManager;
 use sea_orm::DatabaseConnection;
 use sqlx::PgPool;
 use std::sync::Arc;
@@ -435,7 +433,7 @@ use utoipa::openapi::security::{HttpAuthScheme, HttpBuilder, SecurityScheme};
         crate::application::http::handlers::health_check,
     ),
     components(
-        schemas(domain_core::domain::health::HealthStatus)
+        schemas({{PROJECT_NAME_SNAKE}}_core::domain::health::HealthStatus)
     ),
     tags(
         (name = "health", description = "Health check endpoints")
@@ -474,7 +472,7 @@ impl utoipa::Modify for SecurityAddon {
 
 ```rust
 use axum::{extract::State, Json};
-use domain_core::domain::health::HealthStatus;
+use {{PROJECT_NAME_SNAKE}}_core::domain::health::HealthStatus;
 use std::sync::Arc;
 use utoipa::ToSchema;
 
@@ -600,7 +598,7 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
-domain-core = { path = "../domain-core" }
+{{PROJECT_NAME}}-core = { path = "../core" }
 api = { path = "../api" }
 
 # Workspace dependencies
@@ -680,7 +678,6 @@ async fn main() -> Result<()> {
         .acquire_timeout(std::time::Duration::from_secs(config.database.acquire_timeout_secs))
         .idle_timeout(std::time::Duration::from_secs(config.database.idle_timeout_secs))
         .max_lifetime(std::time::Duration::from_secs(config.database.max_lifetime_secs))
-        .connect_timeout(std::time::Duration::from_secs(config.database.connect_timeout_secs))
         .connect(&config.database.url)
         .await?;
 
@@ -696,18 +693,17 @@ async fn main() -> Result<()> {
         .max_connections(config.database.max_connections)
         .acquire_timeout(std::time::Duration::from_secs(config.database.acquire_timeout_secs))
         .idle_timeout(std::time::Duration::from_secs(config.database.idle_timeout_secs))
-        .max_lifetime(std::time::Duration::from_secs(config.database.max_lifetime_secs))
-        .connect_timeout(std::time::Duration::from_secs(config.database.connect_timeout_secs));
+        .max_lifetime(std::time::Duration::from_secs(config.database.max_lifetime_secs));
     let db: sea_orm::DatabaseConnection = sea_orm::Database::connect(db_opts).await?;
 
     // 连接 Redis
-    let redis_config = domain_core::infrastructure::redis::ManagerConfig {
+    let redis_config = {{PROJECT_NAME_SNAKE}}_core::infrastructure::redis::ManagerConfig {
         url: config.redis.url.clone(),
         default_db: 0,
         test_mode: config.server.app_env == "test",
         test_db: 1,
     };
-    let redis_manager = domain_core::infrastructure::redis::RedisConnectionManager::new(redis_config)
+    let redis_manager = {{PROJECT_NAME_SNAKE}}_core::infrastructure::redis::RedisConnectionManager::new(redis_config)
         .await
         .map_err(|e| anyhow::anyhow!("Failed to create Redis manager: {}", e))?;
 
@@ -767,7 +763,6 @@ max_connections = 10
 acquire_timeout_secs = 30
 idle_timeout_secs = 600
 max_lifetime_secs = 1800
-connect_timeout_secs = 10
 
 [redis]
 # Redis 连接字符串
@@ -799,6 +794,9 @@ url = "redis://127.0.0.1:6379"
 1. 所有 `{{PROJECT_NAME}}` 替换为实际项目名（kebab-case，如 `my-project`）
 2. 所有 `{{PROJECT_NAME_PASCAL}}` 替换为 PascalCase（如 `MyProject`）
 3. 所有 `{{PROJECT_NAME_SNAKE}}` 替换为 snake_case（如 `my_project`）
-4. 依赖版本应根据 Context7 查询结果更新
-5. 如果 Axum 版本更新导致 API 变化，调整路由和状态共享代码
-6. 确保 `sqlx::migrate!` 宏的路径与实际 migrations 目录匹配
+4. 目录名为 `core/`，Cargo crate 名为 `{{PROJECT_NAME}}-core`（避免与 Rust 内置 `core` 冲突）
+5. Rust 代码中使用 `{{PROJECT_NAME_SNAKE}}_core::` 引用核心 crate
+6. 依赖版本应根据 Context7 查询结果更新
+7. 如果 Axum 版本更新导致 API 变化，调整路由和状态共享代码
+8. 确保 `sqlx::migrate!` 宏的路径与实际 migrations 目录匹配
+9. `sqlx::postgres::PgPoolOptions` 没有 `connect_timeout` 方法，使用 `acquire_timeout` 替代

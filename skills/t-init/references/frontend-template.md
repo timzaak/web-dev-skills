@@ -35,6 +35,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.562.0",
+    "next-themes": "^0.4.6",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "sonner": "^2.0.7",
@@ -247,7 +248,7 @@ export default defineConfig({
  *
  * 扩展指南：
  * - 修改全局配置（如 staleTime）→ 修改 queryClient 的 defaultOptions
- * - 添加全局 Provider（如主题、国际化）→ 在 StrictMode 内添加
+ * - 修改主题模式 → 调整 ThemeProvider 的 defaultTheme 属性
  * - 修改路由行为 → 编辑 src/routes/__root.tsx
  */
 import './styles.css'
@@ -256,6 +257,7 @@ import { createRouter } from '@tanstack/react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider } from '@tanstack/react-router'
 import ReactDOM from 'react-dom/client'
+import { ThemeProvider } from 'next-themes'
 import { routeTree } from './routeTree.gen'
 
 // React Query 客户端配置
@@ -308,9 +310,11 @@ const rootElement = document.getElementById('app')!
 
 ReactDOM.createRoot(rootElement).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </ThemeProvider>
   </StrictMode>
 )
 ```
@@ -655,21 +659,12 @@ export default apiClient
 
 ## 11. frontend/src/components/ui/sonner.tsx
 
+此文件由 `npx shadcn@latest add sonner` 自动生成，不需要 AI 编写。
+生成的 sonner.tsx 使用 `next-themes` 的 `useTheme`，因此 main.tsx 必须包含 `ThemeProvider`。
+
+如果 shadcn CLI 失败，降级为手动创建最小版本：
+
 ```typescript
-/**
- * Toast 通知组件
- *
- * 基于 sonner 库的 Toast 通知组件。
- * 使用方式：
- *
- * import { toast } from 'sonner'
- * toast.success('操作成功')
- * toast.error('操作失败')
- * toast('普通消息')
- *
- * 这个组件只是重新导出 sonner，方便统一管理和自定义主题。
- * 如果需要自定义 Toast 样式，修改此文件即可。
- */
 export { Toaster, toast } from 'sonner'
 ```
 
@@ -709,3 +704,37 @@ declare module './routeTree.gen' {
 4. 依赖版本应根据 Context7 查询结果更新
 5. TanStack Router 版本更新可能影响路由 API，需确认兼容性
 6. 如果不需要暗色主题，可以简化 styles.css 中的 .dark 块
+7. **UI 组件（sonner 等）不要 AI 手写**，必须通过 CLI 命令生成：
+
+### CLI 驱动的组件初始化
+
+以下步骤在 `npm install` 之后执行，用于生成 UI 组件：
+
+```bash
+# 1. 初始化 shadcn/ui（非交互式）
+npx shadcn@latest init -d --defaults
+#    自动生成：
+#    - components.json（shadcn 配置）
+#    - src/components/ui/button.tsx（基础按钮组件）
+#    - src/lib/utils.ts（cn 工具函数）
+#    - 更新 src/styles.css（补充 CSS 变量）
+#    - 安装额外依赖：@base-ui/react, next-themes 等
+
+# 2. 添加 sonner 组件（自动生成 sonner.tsx）
+npx shadcn@latest add sonner --overwrite
+```
+
+如果 shadcn CLI 初始化失败（网络问题等），降级为手动创建 `src/components/ui/sonner.tsx`：
+
+```typescript
+export { Toaster, toast } from 'sonner'
+```
+
+### 验证步骤
+
+```bash
+# 类型检查（routeTree.gen.ts 报错是正常的，首次 npm run dev 后会消失）
+npm run type-check
+```
+
+注意：`routeTree.gen.ts` 在首次 `npm run dev` 时由 TanStack Router 插件自动生成。
