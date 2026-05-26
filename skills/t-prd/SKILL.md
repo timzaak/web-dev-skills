@@ -82,10 +82,39 @@ allowed-tools:
 
 - `$ARGUMENTS` 是 Claude Code 传入的 feature 名称；用户已在命令或当前对话中给出的信息不重复追问
 - 先读取现有文档和代码上下文，不询问可直接查明的事实
-- 只在目标域、范围边界或补充 user story 所需信息无法可靠推断时，才使用 `AskUserQuestion`
+- 只在目标域、范围边界、成功标准或补充 user story 所需信息无法可靠推断时，才使用 `AskUserQuestion`
 - 一次只问一个；每个问题给出推荐答案，用户可接受、修改或拒绝
 - PRD 只记录已确认决策；仍待确认的信息在对话收尾中列出，不写入 Markdown PRD
 - 信息足够生成可审阅 PRD 时停止追问，不为了完美而继续打断
+
+## PRD 前置澄清门禁
+
+`/t-prd` 在写入 PRD 前必须完成轻量澄清门禁。该门禁吸收 grill-me 的核心思想：先研究事实，再对真正阻塞 PRD 的判断点逐一追问，直到足以形成可审阅的产品语义。
+
+运行时维护一个临时 `PRD Grill Snapshot`，不写入 PRD 正文：
+
+```text
+PRD Grill Snapshot
+- Problem statement: [一句话说明要解决的问题或目标能力]
+- Success criteria: [可验收的成功信号，至少 1 条]
+- Facts: [来自现有文档、代码、tech research 或当前对话的事实]
+- Confirmed decisions: [用户已确认的产品决策]
+- Open questions: [仍阻塞 PRD 的判断题]
+```
+
+门禁规则：
+- Discover first：先读取 `docs/user-stories/`、`docs/prd/`、`.ai/tech-research/`、产品 guide 和必要代码上下文；能查明的事实不得问用户。
+- Define next：只追问判断题，包括目标、范围边界、非目标、成功标准、关键异常、优先级取舍、角色价值和验收信号。
+- Depth-first：同一问题分支未澄清前，不同时抛出多个无关问题；每轮只问一个，并给出推荐答案。
+- Concrete only：若用户回答仍是"更好"、"尽快"、"合理"等模糊表达，继续追问同一判断点，要求给出可判断的范围、指标、状态或验收信号。
+- Stop early：当 Snapshot 已能支撑一份可审阅 PRD 时停止追问；其余非阻塞疑问作为待确认项在收尾对话列出。
+- Hard boundary：Snapshot 是运行时澄清工具，不是交付物；PRD 只能写入已确认决策和已确认成功标准，不能写入未确认假设。
+
+通过门禁的最低条件：
+- 能写出一句话 `Problem statement`
+- 至少确认 1 条 `Success criteria`
+- 已确认本次包含范围和至少 1 条明确 out of scope 或"暂无明确排除项"
+- 没有会改变 PRD 主体方向的阻塞问题
 
 ## 职责边界
 
@@ -164,7 +193,24 @@ HTML Preview 由 `/t-prd-preview` 自动生成到 `.ai/preview/<domain>/[feature
 5. 至少 1 个主验收场景
 6. 默认优先级（P0/P1/P2）
 
-### 5. 检查、补齐并关联 user story
+### 5. 执行 PRD 前置澄清门禁
+
+基于已收集信息建立临时 `PRD Grill Snapshot`，并按"PRD 前置澄清门禁"检查是否满足最低条件。
+
+执行：
+- 先把已知事实填入 Snapshot，区分来源：现有文档、tech research、代码上下文、当前对话
+- 判断是否已有一句话问题陈述、成功标准、包含范围、out of scope 和关键验收信号
+- 若缺少阻塞信息，使用 `AskUserQuestion` 一次只问一个判断题，并提供推荐答案
+- 将用户确认内容加入 `Confirmed decisions`，将仍未确认但不阻塞 PRD 的内容保留为收尾待确认项
+- 若回答引入新范围、新依赖或优先级冲突，继续围绕该分支追问，直到确认纳入、排除或延后
+
+不得：
+- 把 Snapshot 原文写入 PRD
+- 把未确认的 open question 写成 PRD 决策
+- 为追求完整性持续追问非阻塞细节
+- 询问仓库中可直接查明的事实
+
+### 6. 检查、补齐并关联 user story
 
 读取：
 - `docs/user-stories/00-index.md`、`_README.md`、`_roles.md`
@@ -181,7 +227,7 @@ HTML Preview 由 `/t-prd-preview` 自动生成到 `.ai/preview/<domain>/[feature
 
 补齐后仍不够 → 继续生成 PRD，在文档中标记"待补充用户故事"。
 
-### 6. 生成 PRD
+### 7. 生成 PRD
 
 create 路径使用 [template.md](template.md)；update 路径以现有 PRD 为基底，按核心约束中的"更新行为"逐章处理。
 
@@ -193,7 +239,7 @@ create 路径使用 [template.md](template.md)；update 路径以现有 PRD 为�
 
 不适用的章节保留并标记"不适用"。如需技术细节，建议执行 `/t-design`。
 
-### 7. 生成 HTML Preview
+### 8. 生成 HTML Preview
 
 通过 Agent tool 委派 `prd-preview` subagent 自动生成或更新 HTML Preview。
 
@@ -215,14 +261,14 @@ Mode: create|update
 
 如果 t-prd-preview 失败，终止并报告，不能只交付 Markdown PRD。
 
-### 8. 人机迭代
+### 9. 人机迭代
 
 如果用户基于 HTML Preview 提出修改意见：
 - 表达方式调整 → 只更新 HTML
 - 产品语义调整 → 先更新 Markdown PRD，再同步 HTML
 - 两者不一致时，以用户最新确认的意图为准
 
-### 9. 收尾
+### 10. 收尾
 
 完成后明确说明：
 - user story 文件路径和变更方式（新增/追加）
