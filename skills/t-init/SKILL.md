@@ -89,6 +89,7 @@ allowed-tools:
 │       ├── helpers/
 │       └── pages/
 └── scripts/
+    └── lib/
 ```
 
 ### Step 2: 查询文档（主 Agent）
@@ -256,18 +257,44 @@ allowed-tools:
 确保 smoke test 全部通过。
 ```
 
-### Step 6: 生成 AGENTS.md、CLAUDE.md 和 README.md（主 Agent）
+### Step 6: 生成项目本地 scripts（主 Agent）
+
+将插件运行时脚本复制到目标项目根目录 `scripts/`，作为该项目后续环境启动、测试执行和 Demo 运行的优先入口。
+
+复制来源：`${CLAUDE_PLUGIN_ROOT}/scripts/`
+
+必须复制：
+- `backend-test.py`
+- `test-start.py`
+- `test-stop.py`
+- `demo-start.py`
+- `demo-stop.py`
+- `demo-test-runner.py`
+- `demo-run-all.py`
+- `debug-test.py`
+- `cleanup-demo.py`
+- `cleanup-test-logs.py`
+- `demo-failure-summary.py`
+- `lib/*.py`
+
+复制后按当前项目调整脚本默认配置：
+- Docker 镜像、容器名和端口必须使用当前项目语义，避免多个初始化项目互相冲突。
+- 默认数据库名、Redis 端口、后端/前端启动命令应与本次生成的 `backend/`、`frontend/`、`demo/` 保持一致。
+- 脚本文件名、主要 CLI 参数和输出 JSON/日志契约保持稳定，便于 `/t-tools:t-*` 流程复用。
+- 运行类命令优先使用 `uv run scripts/<name>.py`；只有目标项目缺少对应脚本时，才回退到 `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/<name>.py`。
+
+### Step 7: 生成 AGENTS.md、CLAUDE.md 和 README.md（主 Agent）
 
 读取 [references/agents-template.md](references/agents-template.md) 获取模板内容。
 
 生成三个根目录文件：
 1. `AGENTS.md` — 项目描述占位符 + 项目行为准则
 2. `CLAUDE.md` — 仅包含 `@AGENTS.md`
-3. `README.md` — 快速启动指南（从 [references/scripts-template.md](references/scripts-template.md) 获取 Docker 命令）
+3. `README.md` — 快速启动指南（从 [references/scripts-template.md](references/scripts-template.md) 获取项目本地脚本命令）
 
 生成后提示用户填写 `AGENTS.md` 顶部的项目描述占位符。
 
-### Step 7: 验证（主 Agent）
+### Step 8: 验证（主 Agent）
 
 收集各 subagent 的验证结果，汇总报告：
 1. 后端：`cargo check` 是否通过
@@ -353,6 +380,12 @@ allowed-tools:
 │       │   └── login-page.ts
 │       └── selectors.ts
 ├── scripts/
+│   ├── backend-test.py
+│   ├── test-start.py
+│   ├── test-stop.py
+│   ├── demo-test-runner.py
+│   ├── demo-run-all.py
+│   └── lib/
 ├── AGENTS.md                    # Claude Code 行为准则 + 项目描述
 ├── CLAUDE.md                    # 引用 AGENTS.md
 └── README.md
@@ -386,6 +419,14 @@ allowed-tools:
 - [ ] `frontend/src/lib/api-client.ts`
 
 **脚本和文档：**
+- [ ] `scripts/backend-test.py`
+- [ ] `scripts/test-start.py`
+- [ ] `scripts/test-stop.py`
+- [ ] `scripts/demo-test-runner.py`
+- [ ] `scripts/demo-run-all.py`
+- [ ] `scripts/demo-start.py`
+- [ ] `scripts/demo-stop.py`
+- [ ] `scripts/lib/*.py`
 - [ ] `README.md`
 
 **AI 辅助配置（必须）：**
@@ -416,6 +457,7 @@ allowed-tools:
 - 各 subagent 验证结果（cargo check / npm install / smoke test）
 - OpenAPI 开关位置（`config.toml` → `server.enable_openapi`）
 - UnifiedLogger 通过 `npm install playwright-unified-logger` 安装
+- 项目本地脚本已生成到 `scripts/`，后续优先执行 `uv run scripts/<name>.py`
 - Demo smoke test 运行命令（`cd demo && npx playwright test e2e/smoke.e2e.ts`）
 - 日志环境变量说明（`UNIFIED_LOG_LEVEL` 等）
 - AGENTS.md 和 CLAUDE.md 已生成，提醒用户填写项目描述

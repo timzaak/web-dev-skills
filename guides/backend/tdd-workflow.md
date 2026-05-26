@@ -77,10 +77,10 @@ impl PasswordPolicy {
 **快速反馈**：
 ```bash
 # 只运行单元测试（秒级）
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- --package <core-package> --profile quick
+uv run scripts/backend-test.py -- --package <core-package> --profile quick
 
 # 只运行当前模块的测试
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- --package <core-package> -- domain::user::policy::tests
+uv run scripts/backend-test.py -- --package <core-package> -- domain::user::policy::tests
 ```
 
 说明：上例测试的是 `validate` 的业务行为，不测试 `PasswordPolicy::new()` 是否把字段赋值成功；只有构造函数包含校验、默认值合成或规范化时才测构造函数本身。

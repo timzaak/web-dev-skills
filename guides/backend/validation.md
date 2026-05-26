@@ -54,7 +54,7 @@ cd backend && cargo fmt
 ### 4. 快速测试（可选但推荐）
 
 ```bash
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- --package <core-package> --lib
+uv run scripts/backend-test.py -- --package <core-package> --lib
 ```
 
 ## 任务完成定义

@@ -20,7 +20,7 @@ Runtime boundaries: `protocols/runtime-boundaries.md`
 
 1. Analyze scope with `git status` and `git diff --name-only`.
 2. Choose the narrowest reliable command from `protocols/backend-test-execution.md`.
-3. Run targeted tests via `${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py`.
+3. Run targeted tests via `scripts/backend-test.py`.
 4. Classify failures as compilation, runtime, assertion, environment, or unclear semantics.
 5. Delegate production-code fixes to `backend-dev` with scenario-test write restrictions.
 6. Rerun the targeted command.

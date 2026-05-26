@@ -113,7 +113,7 @@
 
 ```bash
 # 重跑当前失败测试
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py "{{TEST_FILE}}" --grep "{{TEST_CASE}}"
+uv run scripts/demo-test-runner.py "{{TEST_FILE}}" --grep "{{TEST_CASE}}"
 
 # 环境健康检查（如适用）
 curl <backend-health-url>

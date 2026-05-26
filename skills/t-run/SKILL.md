@@ -144,7 +144,7 @@ backend/test 特例：
 - 同一 DAG 层并发执行多个 item。
 - 一次启动多个 sub agents 或批量下发多个 item。
 - 当前 item 未完成并写回状态时，预取、提前执行或跨 slot 执行其他 item。
-- 对 `backend-test` 直接下发"先跑全量 `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py`"而不做变更分析。
+- 对 `backend-test` 直接下发"先跑全量 `uv run scripts/backend-test.py`"而不做变更分析。
 - backend `accept` 完成后，不得自动执行 `finalize.md`。
 
 ## Failure

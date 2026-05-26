@@ -1,24 +1,28 @@
 # Scripts 模板
 
-本项目不再提供 `dev-start.py` 一键脚本。开发环境请手动启动：
+初始化会在项目根目录生成 `scripts/`。这些脚本是当前项目的运行时入口，可以按项目需要调整 Docker 镜像、容器名、端口和启动命令；脚本文件名和主要参数保持稳定，便于 `/t-tools:t-*` 流程复用。
+
+常用命令：
 
 ```bash
-# 1. 启动 PostgreSQL
-docker run -d --name {{PROJECT_NAME}}-postgres \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB={{PROJECT_NAME}} \
-  -p 5432:5432 \
-  postgres:17-alpine
+# 启动测试依赖（PostgreSQL / Redis / PgDog 等，按 scripts/test-start.py 配置）
+uv run scripts/test-start.py
 
-# 2. 启动 Redis
-docker run -d --name {{PROJECT_NAME}}-redis \
-  -p 6379:6379 \
-  redis:7-alpine
+# 运行后端测试
+uv run scripts/backend-test.py
 
-# 3. 启动后端
-cd backend && cargo run
+# 停止测试依赖
+uv run scripts/test-stop.py
 
-# 4. 启动前端（另一个终端）
-cd frontend && npm run dev
+# 运行单个 Demo E2E
+uv run scripts/demo-test-runner.py demo/e2e/smoke.e2e.ts --mode fast
+
+# 批量运行 Demo E2E
+uv run scripts/demo-run-all.py
 ```
+
+如需手动启动开发环境，可直接查看并调整：
+
+- `scripts/test-start.py`
+- `scripts/demo-start.py`
+- `scripts/demo-stop.py`

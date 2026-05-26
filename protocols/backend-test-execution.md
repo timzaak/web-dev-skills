@@ -32,11 +32,11 @@
 
 ## Allowed Commands
 
-- `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py`
-- `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- <test_name>`
-- `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- -E 'package(<crate>)'`
-- `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- -E 'test(<pattern>)'`
-- `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- -E 'package(<crate>) and test(<pattern>)'`
+- `uv run scripts/backend-test.py`
+- `uv run scripts/backend-test.py -- <test_name>`
+- `uv run scripts/backend-test.py -- -E 'package(<crate>)'`
+- `uv run scripts/backend-test.py -- -E 'test(<pattern>)'`
+- `uv run scripts/backend-test.py -- -E 'package(<crate>) and test(<pattern>)'`
 
 ## Ownership
 

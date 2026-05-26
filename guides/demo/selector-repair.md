@@ -36,6 +36,6 @@
 ## 验证命令
 
 ```powershell
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/debug-test.py demo/e2e/[测试文件].ts
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py demo/e2e/[测试文件].ts --mode fast
+uv run scripts/debug-test.py demo/e2e/[测试文件].ts
+uv run scripts/demo-test-runner.py demo/e2e/[测试文件].ts --mode fast
 ```

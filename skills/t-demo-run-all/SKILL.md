@@ -32,16 +32,16 @@ allowed-tools:
 
 等价脚本入口：
 ```bash
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-run-all.py
+uv run scripts/demo-run-all.py
 ```
 
 ```bash
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-run-all.py continue
+uv run scripts/demo-run-all.py continue
 ```
 
 可选回退模式：
 ```bash
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-run-all.py --direct-script
+uv run scripts/demo-run-all.py --direct-script
 ```
 
 ## 执行流程
@@ -64,7 +64,7 @@ claude -p "/t-demo-run demo/e2e/..."
 ```
 回退模式：
 ```bash
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-run-all.py --direct-script
+uv run scripts/demo-run-all.py --direct-script
 ```
 关键规则：
 - 一次只运行一个文件。

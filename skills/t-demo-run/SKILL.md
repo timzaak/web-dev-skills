@@ -38,12 +38,12 @@ allowed-tools:
 
 2. 运行前清理。
 ```bash
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/cleanup-demo.py
+uv run scripts/cleanup-demo.py
 ```
 
 3. 先运行整个测试文件。
 ```bash
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py "[测试文件]" --run-id [RUN_ID]
+uv run scripts/demo-test-runner.py "[测试文件]" --run-id [RUN_ID]
 ```
 
 4. 若整个测试文件通过。
@@ -52,12 +52,12 @@ uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py "[测试文件]" --run-
 
 5. 若整个测试文件失败，列出测试用例。
 ```bash
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py "[测试文件]" --list-tests
+uv run scripts/demo-test-runner.py "[测试文件]" --list-tests
 ```
 
 6. 为每个用例创建任务并顺序执行。
 ```bash
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py "[测试文件]" --run-id [RUN_ID] --grep "[测试标题]"
+uv run scripts/demo-test-runner.py "[测试文件]" --run-id [RUN_ID] --grep "[测试标题]"
 ```
 
 7. 单用例失败修复循环（最多 6 次）。
@@ -70,10 +70,10 @@ uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py "[测试文件]" --run-
   - `required`: 是否必须通过（默认 `true`）
 - 执行补测（按层顺序串行）：`backend -> frontend -> miniapp -> demo`。
 - 补测命令必须来自允许入口：
-  - 后端：`uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- [filter]`
+  - 后端：`uv run scripts/backend-test.py -- [filter]`
   - 前端：`cd frontend && npm run test:run -- [pattern]`
   - 小程序：`cd miniapp && npm run typecheck` 或 `cd miniapp && npm run build:weapp`
-  - Demo：`uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py "[测试文件]" --run-id [RUN_ID] --grep "[测试标题]"`
+  - Demo：`uv run scripts/demo-test-runner.py "[测试文件]" --run-id [RUN_ID] --grep "[测试标题]"`
 - miniapp 补测只在目标项目存在 `miniapp/` 或诊断报告明确归因到小程序交付线时执行；未启用 miniapp 的项目跳过该层。
 - 若 agent 未返回 `tests_to_run`：
   - 记录契约缺失（P1）

@@ -47,7 +47,7 @@ cd demo && npm run build
 
 4. 测试执行检查（必须）。
 ```bash
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py "[测试文件]" --mode fast --log-level mini
+uv run scripts/demo-test-runner.py "[测试文件]" --mode fast --log-level mini
 ```
 - 若任一测试失败、超时或编译失败，直接判定该文件 `REJECTED`。
 

@@ -32,10 +32,10 @@ demo/e2e/
 ## 标准命令
 
 ```powershell
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py demo/e2e/[test-file].ts
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-run-all.py
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/debug-test.py demo/e2e/[test-file].ts
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-stop.py
+uv run scripts/demo-test-runner.py demo/e2e/[test-file].ts
+uv run scripts/demo-run-all.py
+uv run scripts/debug-test.py demo/e2e/[test-file].ts
+uv run scripts/demo-stop.py
 ```
 
 ## 自检

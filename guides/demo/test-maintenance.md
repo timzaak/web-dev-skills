@@ -8,7 +8,7 @@
 2. 根据问题类型进入对应 recipe。
 
 ```powershell
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py demo/e2e/[测试文件].ts --log-level verbose
+uv run scripts/demo-test-runner.py demo/e2e/[测试文件].ts --log-level verbose
 ```
 
 ## 维护入口

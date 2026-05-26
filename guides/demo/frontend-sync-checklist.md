@@ -30,6 +30,6 @@
 ## 推荐命令
 
 ```powershell
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py demo/e2e/[相关测试].ts --mode fast
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py demo/e2e/[相关测试].ts --log-level verbose
+uv run scripts/demo-test-runner.py demo/e2e/[相关测试].ts --mode fast
+uv run scripts/demo-test-runner.py demo/e2e/[相关测试].ts --log-level verbose
 ```
