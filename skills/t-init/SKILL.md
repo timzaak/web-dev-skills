@@ -63,6 +63,10 @@ allowed-tools:
 ```
 <project-name>/
 ├── backend/
+│   ├── .cargo/
+│   │   └── config.toml
+│   ├── .config/
+│   │   └── nextest.toml
 │   ├── core/
 │   │   └── src/
 │   │       ├── domain/
@@ -137,6 +141,10 @@ allowed-tools:
 3. 注意目录名为 core/，Cargo crate 名为 {{PROJECT_NAME}}-core
 4. Rust 代码中使用 {{PROJECT_NAME_SNAKE}}_core:: 引用核心 crate
 5. 根据 Context7 查询结果调整依赖版本（版本信息：[附上 Step 2 收集的版本]）
+
+6. 生成构建和测试配置文件：
+   a. backend/.cargo/config.toml（sccache 加速 + dev/release/test profile 优化）
+   b. backend/.config/nextest.toml（nextest 测试运行器配置）
 
 关键约束：
 - sqlx::postgres::PgPoolOptions 没有 connect_timeout 方法，用 acquire_timeout 替代
@@ -277,6 +285,8 @@ allowed-tools:
 <project-name>/
 ├── backend/
 │   ├── Cargo.toml              # Workspace 根配置
+│   ├── .cargo/config.toml      # Cargo 构建优化（sccache、profile）
+│   ├── .config/nextest.toml    # Nextest 测试运行器配置
 │   ├── config.example.toml      # 配置模板
 │   ├── migrations/              # SQLx 数据库迁移
 │   │   └── 00001_init.sql
@@ -354,6 +364,8 @@ allowed-tools:
 
 **后端（必须）：**
 - [ ] `backend/Cargo.toml`
+- [ ] `backend/.cargo/config.toml`
+- [ ] `backend/.config/nextest.toml`
 - [ ] `backend/core/Cargo.toml` + `src/lib.rs` + `src/config.rs` + `src/domain/health.rs` + `src/infrastructure/redis.rs`
 - [ ] `backend/api/Cargo.toml` + `src/lib.rs` + `src/config.rs` + `src/application/http/*.rs`
 - [ ] `backend/app/Cargo.toml` + `src/main.rs`
@@ -416,6 +428,8 @@ allowed-tools:
 生成前逐项自检：
 - 是否查询了 Context7 确认依赖版本和用法
 - 后端目录名为 `core/`，crate 名为 `{{PROJECT_NAME}}-core`，Rust 代码用 `{{PROJECT_NAME_SNAKE}}_core::`
+- 后端 `.cargo/config.toml` 是否已生成（sccache + profile 优化）
+- 后端 `.config/nextest.toml` 是否已生成（测试运行器配置）
 - 后端 OpenAPI 开关逻辑是否正确（enable_openapi 控制路由注册）
 - 后端是否能编译通过（`cargo check`）
 - 前端 sonner 等组件是否通过 CLI 命令生成（不是 AI 手写）

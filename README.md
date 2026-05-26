@@ -101,7 +101,7 @@
 - `/t-tools:t-prd-preview <feature>`：独立生成或更新 PRD 的 HTML Preview，供人类快速审阅产品语义和关键路径。通常由 `/t-prd` 自动触发，也可单独执行以重新生成 Preview
 - `/t-tools:t-consistency-check`：复核后端 PRD 与实现是否一致，不承担全域 DDD 总检查
 - `/t-tools:t-demo-run-all`：批量执行 Demo 测试
-- `/t-tools:t-push`：根据 git diff 自动判断 backend、frontend、demo 变更范围，只运行受影响区域的本地 CI；全部通过后生成提交信息，确认后执行 `git commit` 和 `git push`
+- `/t-tools:t-push`：根据 git diff 自动判断 backend、frontend、demo 变更范围，并发准备提交信息和运行受影响区域的本地 CI；CI 全部通过后直接执行 `git commit` 和 `git push`
 - `/t-tools:t-release [版本号]`：版本发布，更新项目版本号、创建 git commit 和 tag、推送到远程。版本文件使用语义化版本（如 `0.2.0`），最终 git tag 一律使用 `v` 前缀（如 `v0.2.0`）；留空则基于最新 semver tag 推荐。仅在 `main` 分支且工作区干净时执行，自动更新 `backend/Cargo.toml`、`frontend/package.json`、`demo/package.json`，编译验证通过后提交并推送
 
 ## 安装
