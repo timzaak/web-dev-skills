@@ -1,6 +1,7 @@
 ---
 name: t-backend-test-run
 description: Run targeted Rust backend tests, diagnose failures, delegate production-code fixes, and retest without weakening scenario-test semantics.
+disable-model-invocation: true
 allowed-tools:
   - Bash
   - Read

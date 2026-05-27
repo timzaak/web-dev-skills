@@ -1,7 +1,8 @@
 ---
 name: t-prd
 description: Create or update PRD, HTML Preview, and user stories for a feature.
-argument-hint: [feature-name]
+disable-model-invocation: true
+argument-hint: "[feature-name]"
 allowed-tools:
   - AskUserQuestion
   - Read

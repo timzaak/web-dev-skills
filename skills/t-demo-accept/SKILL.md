@@ -1,7 +1,8 @@
 ---
 name: t-demo-accept
 description: Validate demo tests cover user stories, compile and pass, and output structured acceptance reports.
-argument-hint: [测试文件路径|角色名|all]
+disable-model-invocation: true
+argument-hint: "[测试文件路径|角色名|all]"
 allowed-tools:
   - Read
   - Glob

@@ -1,6 +1,7 @@
 ---
 name: t-tech-research
 description: Research technical feasibility for a feature by scanning the codebase, checking dependencies, researching new libraries when needed, and writing a report under .ai/tech-research/. Use when the user runs /t-tech-research with a feature name, asks for a technical feasibility study, or requests evaluation before PRD work for a feature involving new dependencies, new technology, or significant architecture changes. Do not use for casual "how would this work" questions, ordinary bug fixes, or small refactors.
+disable-model-invocation: true
 ---
 
 # 需求技术预研

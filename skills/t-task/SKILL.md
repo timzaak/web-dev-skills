@@ -1,7 +1,8 @@
 ---
 name: t-task
 description: Convert technical design documents into executable phased task plans with work breakdown and dependencies.
-argument-hint: [任务名称] [--phase <backend|frontend|miniapp|demo>]
+disable-model-invocation: true
+argument-hint: "[任务名称] [--phase <backend|frontend|miniapp|demo>]"
 allowed-tools:
   - AskUserQuestion
   - Read
