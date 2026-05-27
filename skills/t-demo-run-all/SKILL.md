@@ -46,19 +46,19 @@ uv run scripts/demo-run-all.py --direct-script
 ```
 
 ## 执行流程
-1. 动态发现测试文件。
+- 动态发现测试文件。
 ```bash
 Glob: demo/e2e/**/*.e2e.ts
 ```
 排除：`fixtures/`、`templates/`、`verification/`、文件名包含 `test-`。
 
-2. fresh 模式从头运行；`continue` 模式读取最近一次 `demo-run-all-*.json`。
+- fresh 模式从头运行；`continue` 模式读取最近一次 `demo-run-all-*.json`。
 - 若存在 `current_file`，从该中断文件重跑。
 - 否则从最近一个失败文件重跑，并继续其后尚未重跑的文件。
 - 已确认完成的前序文件不重跑。
 - 若没有可继续的批次或失败点，直接报错。
 
-3. 按字母序逐个执行，必须串行。
+- 按字母序逐个执行，必须串行。
 默认模式：
 ```bash
 claude -p "/t-demo-run demo/e2e/..."
@@ -74,7 +74,7 @@ uv run scripts/demo-run-all.py --direct-script
 - 若单文件在 Claude 模式下自动修复成功，汇总中标记为 `FIXED`。
 - `/t-demo-run-all` 调用脚本时，超时固定为 7200 秒（2 小时）。
 
-4. 收集结果并生成汇总。
+- 收集结果并生成汇总。
 输出：
 - `.ai/quality/demo-run-all-[YYYYMMDD-HHMMSS].md`
 - `.ai/quality/demo-run-all-[YYYYMMDD-HHMMSS].json`
@@ -87,7 +87,7 @@ JSON 批次状态必须持续写盘，至少包含：
 - `entries`
 - `updated_at`
 
-5. 对失败文件逐个调用 `demo-diagnose` 做结构化分类。
+- 对失败文件逐个调用 `demo-diagnose` 做结构化分类。
 输入建议：
 - `testFile`: 失败文件路径
 - `runId`: `demo-run-all` 记录的 `run_id`

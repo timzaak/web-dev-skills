@@ -114,10 +114,10 @@ docs/tutorials/
 
 ## 工作流程
 
-1. 信息收集：按上面的来源扫描，用批量搜索建立项目事实。
-2. 确认大纲：告诉用户准备写哪些章节、各章覆盖什么，等用户确认或调整。
-3. 逐章编写：确认后按章节写入目标目录。
-4. 自检修订：按 [references/writing-style.md](references/writing-style.md) 检查所有文件，改掉 AI 味、空话和不可验证内容。
+- 信息收集：按上面的来源扫描，用批量搜索建立项目事实。
+- 确认大纲：告诉用户准备写哪些章节、各章覆盖什么，等用户确认或调整。
+- 逐章编写：确认后按章节写入目标目录。
+- 自检修订：按 [references/writing-style.md](references/writing-style.md) 检查所有文件，改掉 AI 味、空话和不可验证内容。
 
 不要跳过大纲确认。先确认再写，避免整套文档返工。
 
@@ -125,12 +125,12 @@ docs/tutorials/
 
 推荐顺序：
 
-1. `index.md`
-2. `getting-started.md`
-3. `architecture.md`
-4. `api-reference.md`（如果需要）
-5. `configuration.md`（如果需要）
-6. `deployment.md`（如果需要）
+- `index.md`
+- `getting-started.md`
+- `architecture.md`
+- `api-reference.md`（如果需要）
+- `configuration.md`（如果需要）
+- `deployment.md`（如果需要）
 
 可以用 subagent 分章写。每个 subagent 必须拿到：
 

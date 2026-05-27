@@ -32,39 +32,39 @@ disable-model-invocation: true
 - `tasks.backend.accept.status` 必须为 `completed`。
 
 ## Fixed Flow
-1. 读取 `backend/accept.md` manifest、`backend/accept/*.md` item handoff、`backend/finalize.md`、backend 改动范围和最小必要状态。
-2. 确定 `/code-review` 作用范围：
+- 读取 `backend/accept.md` manifest、`backend/accept/*.md` item handoff、`backend/finalize.md`、backend 改动范围和最小必要状态。
+- 确定 `/code-review` 作用范围：
    - 优先使用 `finalize.md` 中声明的 feature 相关 backend 改动文件
    - 若未显式声明，则回退到当前工作区 `backend/**` 改动集
-3. 执行 `/code-review`，简化目标范围内代码。
-4. 执行 `cargo clippy --fix --allow-dirty --allow-staged --all-targets --all-features`。
-5. 执行 `cargo fmt --all`。
-6. 导出 OpenAPI 文档并生成前端 API 客户端：
+- 执行 `/code-review`，简化目标范围内代码。
+- 执行 `cargo clippy --fix --allow-dirty --allow-staged --all-targets --all-features`。
+- 执行 `cargo fmt --all`。
+- 导出 OpenAPI 文档并生成前端 API 客户端：
    - 先根据目标仓库的 backend app crate、现有导出脚本或文档定位实际导出 binary
    - 执行 `cd backend && cargo run --bin <app-binary> -- --export-openapi ../frontend/api.json && cd ../`
    - 验证生成的 OpenAPI JSON（格式、路径占位符 camelCase）
    - 执行 `cd frontend && npm run generate-api && cd ../`
    - 验证生成的 TypeScript 文件
-7. 若任一步出现问题，则修复并从失败步骤恢复。
+- 若任一步出现问题，则修复并从失败步骤恢复。
 
 ## State Transition
-1. 开始前写入：
+- 开始前写入：
    - `tasks.backend.finalize.status = running`
    - `tasks.backend.finalize.started_at = <timestamp>`
    - `phases.backend.status = awaiting_finalize`
-2. 维护步骤级状态：
+- 维护步骤级状态：
    - `tasks.backend.finalize.current_step`
    - `tasks.backend.finalize.steps.code_review|clippy|fmt|openapi_export|frontend_api_gen`
-3. 某一步成功后，写入对应 step 为 `completed`。
-4. 某一步失败后：
+- 某一步成功后，写入对应 step 为 `completed`。
+- 某一步失败后：
    - `tasks.backend.finalize.status = failed`
    - `tasks.backend.finalize.last_error = <summary>`
    - `tasks.backend.finalize.current_step = <failed_step>`
    - `phases.backend.status = failed`
-5. 再次执行同一命令时：
+- 再次执行同一命令时：
    - 默认从 `current_step` 或最后失败步骤恢复
    - 若失败发生在 `openapi_export` 或之后，修复后至少重新执行 `clippy -> fmt -> openapi_export -> frontend_api_gen`
-6. 全部成功后：
+- 全部成功后：
    - `tasks.backend.finalize.status = completed`
    - `tasks.backend.finalize.completed_at = <timestamp>`
    - `phases.backend.status = completed`

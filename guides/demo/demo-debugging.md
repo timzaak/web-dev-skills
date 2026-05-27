@@ -104,9 +104,9 @@ grep "FAILED" demo/test-results/console-logs/*.log
 ## 与诊断 Agent 协作
 
 复杂失败优先走 demo-diagnose：
-1. 读取统一日志并分类
-2. 生成诊断报告
-3. 路由给 frontend-dev / backend-dev 修复
+- 读取统一日志并分类
+- 生成诊断报告
+- 路由给 frontend-dev / backend-dev 修复
 
 ## 提交前预防性检查
 

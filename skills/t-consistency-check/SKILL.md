@@ -30,19 +30,19 @@ allowed-tools:
 ```
 
 ## 执行流程
-1. 解析参数。
+- 解析参数。
 - `--all`：扫描 `docs/prd/**/*.md` 自动提取模块名。
 - 模块名：只检查指定模块。
 
-2. 校验模块输入。
+- 校验模块输入。
 - `docs/prd/[module].md` 必须存在。
 - 目标仓库中与 `[module]` 对应的后端领域实现目录必须存在；若未采用固定布局，先基于仓库真实结构定位模块代码。
 - 目标仓库中与 `[module]` 对应的 HTTP/接口实现目录若不存在，记录为信息项而非直接失败。
 
-3. 调用 `backend-consistency`。
+- 调用 `backend-consistency`。
 通过 `Agent(subagent_type="backend-consistency")` 启动，传入 prompt 包含模块名和 PRD 路径。
 
-4. 写入报告。
+- 写入报告。
 - 单模块：`.ai/quality/consistency-[module]-[YYYYMMDD-HHMMSS].md`
 - 全量：额外生成 `.ai/quality/consistency-summary-[YYYYMMDD-HHMMSS].md`
 

@@ -124,32 +124,34 @@ demo 阶段：
 - `protocols/task-state-contract.md`
 
 ## Generation Flow
-1. 校验 `.ai/design/[feature].md` 存在。
-2. 解析 `[feature]` 和 `--phase`；根据 `protocols/task-phase-execution.md` 检测 active phases；未传 `--phase` 时自动选择第一未完成 active phase。
-3. 按 `protocols/task-phase-execution.md` 校验阶段前置和 slot 顺序；未启用的 phase 不参与校验或生成。
-4. 如目标阶段为 `frontend`，先运行 `generate-api`。
-5. 按当前阶段 slot 串行调度相应 agent。每个 slot agent 必须通过 `Agent` tool 启动，`subagent_type` 按 Agent Dispatch Mapping 映射。传入 prompt 必须包含：设计文档相关节、上游 slot handoff（如有）、guide 路径、Agent Output Contract 要求的字段列表。
+- 校验 `.ai/design/[feature].md` 存在。
+- 解析 `[feature]` 和 `--phase`；根据 `protocols/task-phase-execution.md` 检测 active phases；未传 `--phase` 时自动选择第一未完成 active phase。
+- 按 `protocols/task-phase-execution.md` 校验阶段前置和 slot 顺序；未启用的 phase 不参与校验或生成。
+- 如目标阶段为 `frontend`，先运行 `generate-api`。
+- 按当前阶段 slot 串行调度相应 agent。每个 slot agent 必须通过 `Agent` tool 启动，`subagent_type` 按 Agent Dispatch Mapping 映射。传入 prompt 必须包含：设计文档相关节、上游 slot handoff（如有）、guide 路径、Agent Output Contract 要求的字段列表。
    - prompt 必须引用 `protocols/task-check-rubric.md`，要求 agent 在返回前自检 P0/P1 规则。
    - prompt 必须引用 `protocols/task-phase-execution.md`，避免生成无法被 `/t-run` 执行的 item。
-6. 每个 slot agent 必须返回：
+   - backend/test slot prompt 必须明确要求：为每个场景测试 authoring item 生成对应 runner item，runner item 使用 `agent: backend-test` 和 `uses_skill: skills/t-backend-test-run/SKILL.md`。
+- 每个 slot agent 必须返回：
    - slot manifest 正文
    - item 文件集合
    - item DAG
    - slot completion criteria
    - handoff summary
    - self_check：对必填字段、DAG、拆分阈值、backend test item 类型和 finalize 规则的自检结果
-7. 主流程在每个 slot 返回后先执行写入前硬校验：
+- 主流程在每个 slot 返回后先执行写入前硬校验：
    - item 必填字段齐备
    - item ID 唯一，依赖存在且无环
    - manifest 覆盖全部 items，路径与 item 文件一致
    - item 未触发必须拆分规则；触发时必须返回拆分后的 items
    - backend/test item 含合法 `test_item_type`，runner 含 `uses_skill: skills/t-backend-test-run/SKILL.md`
+   - backend/test slot 中每个 authoring item 都有对应 runner item，且 runner 依赖 authoring
    - accept item 不得只依赖 backend/test authoring item
-8. 硬校验失败时终止当前 slot，不写入成功状态，要求重新生成该 slot。
-9. 硬校验通过后写入当前 slot manifest 和 item 文件，再继续调用下游 slot。
-10. 当前阶段 slot 齐备后生成 `<phase>/index.md`。
-11. 写入或更新 `.state.json`。
-12. 返回下一步建议：`/t-task-check [feature] --phase [phase]`。
+- 硬校验失败时终止当前 slot，不写入成功状态，要求重新生成该 slot。
+- 硬校验通过后写入当前 slot manifest 和 item 文件，再继续调用下游 slot。
+- 当前阶段 slot 齐备后生成 `<phase>/index.md`。
+- 写入或更新 `.state.json`。
+- 返回下一步建议：`/t-task-check [feature] --phase [phase]`。
 
 ## Agent Dispatch Mapping
 

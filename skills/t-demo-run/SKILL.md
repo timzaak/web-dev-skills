@@ -34,34 +34,34 @@ allowed-tools:
 ```
 
 ## 执行流程
-1. 参数校验。
+- 参数校验。
 - 测试文件必须存在且扩展名为 `.e2e.ts`。
 
-2. 运行前清理。
+- 运行前清理。
 ```bash
 uv run scripts/cleanup-demo.py
 ```
 
-3. 先运行整个测试文件。
+- 先运行整个测试文件。
 ```bash
 uv run scripts/demo-test-runner.py "[测试文件]" --run-id [RUN_ID]
 ```
 
-4. 若整个测试文件通过。
+- 若整个测试文件通过。
 - 不再拆分用例运行。
 - 直接进入汇总输出。
 
-5. 若整个测试文件失败，列出测试用例。
+- 若整个测试文件失败，列出测试用例。
 ```bash
 uv run scripts/demo-test-runner.py "[测试文件]" --list-tests
 ```
 
-6. 为每个用例创建任务并顺序执行。
+- 为每个用例创建任务并顺序执行。
 ```bash
 uv run scripts/demo-test-runner.py "[测试文件]" --run-id [RUN_ID] --grep "[测试标题]"
 ```
 
-7. 单用例失败修复循环（最多 6 次）。
+- 单用例失败修复循环（最多 6 次）。
 - 先通过 `Agent(subagent_type="demo-diagnose")` 启动诊断 subagent，传入 testFile、runId、testCaseTitle，生成结构化诊断。
 - 按诊断结果通过 `Agent` tool 分发到对应修复 subagent：`Agent(subagent_type="demo-dev")` / `Agent(subagent_type="frontend-dev")` / `Agent(subagent_type="backend-dev")` / `Agent(subagent_type="miniapp-dev")`。
 - 读取修复 agent 返回的 `tests_to_run`（必填）并校验字段：
@@ -81,7 +81,7 @@ uv run scripts/demo-test-runner.py "[测试文件]" --run-id [RUN_ID] --grep "[�
   - 执行最小兜底补测（按改动层至少 1 条 backend/frontend/miniapp 相关测试）
 - 重新运行当前用例验证修复（即 `demo` 层验证）。
 
-8. 汇总输出。
+- 汇总输出。
 - 控制台输出通过/修复/失败统计。
 - 写入 `.ai/quality/demo-run-[name]-[YYYYMMDD-HHMMSS].md`。
 - 报告必须包含：

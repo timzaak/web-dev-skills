@@ -79,6 +79,6 @@ Default to surfacing uncertainty, not hiding it.
 
 ## 生成时的注意事项
 
-1. `CLAUDE.md` 仅包含 `@AGENTS.md` 一行
-2. `AGENTS.md` 顶部的项目描述占位符需提示用户填写
-3. 行为准则内容为静态文本，无需替换占位符
+- `CLAUDE.md` 仅包含 `@AGENTS.md` 一行
+- `AGENTS.md` 顶部的项目描述占位符需提示用户填写
+- 行为准则内容为静态文本，无需替换占位符

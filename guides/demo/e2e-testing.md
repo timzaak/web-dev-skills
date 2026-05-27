@@ -10,11 +10,11 @@
 
 ## 核心规则
 
-1. 完整用户故事主路径优先用 Demo / E2E 覆盖。
-2. 业务数据优先通过 UI 创建或通过 Demo seed 预置，不在测试文件里走业务旁路。
-3. 当前默认使用单租户固定路径，如 `/auth/login`、`/manage`、`/manage/users`。
-4. 选择器优先 `data-testid`、语义 role、稳定文本，不依赖脆弱 CSS。
-5. 运行和清理优先使用项目脚本与统一 fixture。
+- 完整用户故事主路径优先用 Demo / E2E 覆盖。
+- 业务数据优先通过 UI 创建或通过 Demo seed 预置，不在测试文件里走业务旁路。
+- 当前默认使用单租户固定路径，如 `/auth/login`、`/manage`、`/manage/users`。
+- 选择器优先 `data-testid`、语义 role、稳定文本，不依赖脆弱 CSS。
+- 运行和清理优先使用项目脚本与统一 fixture。
 
 ## 当前目录事实
 

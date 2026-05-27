@@ -111,29 +111,29 @@ backend/test 特例：
 - 若上游 item 无 `handoff_summary`，可降级启动，但必须显式标注 handoff 缺失
 
 ## State Transition
-1. 读取状态并确定执行范围。
-2. 依据 `protocols/task-state-contract.md` 与 `protocols/task-phase-execution.md` 校验状态与 DAG。
-3. 执行 item 前检查当前 phase 是否已有任何 item 为 `running`：
+- 读取状态并确定执行范围。
+- 依据 `protocols/task-state-contract.md` 与 `protocols/task-phase-execution.md` 校验状态与 DAG。
+- 执行 item 前检查当前 phase 是否已有任何 item 为 `running`：
    - 若存在，立即终止，不启动新 agent。
    - 提示先确认该 item 的真实执行结果，并恢复或修正 `.state.json` 后再重试。
-4. 执行 item 前写入：
+- 执行 item 前写入：
    - `tasks[phase][slot].items[item_id].status = running`
    - `tasks[phase][slot].items[item_id].started_at = <timestamp>`
    - `tasks[phase][slot].status = running`
    - `phases[phase].status = running`
-5. item 成功后写入：
+- item 成功后写入：
    - `tasks[phase][slot].items[item_id].status = completed`
    - `tasks[phase][slot].items[item_id].completed_at = <timestamp>`
    - `tasks[phase][slot].items[item_id].handoff_summary = <summary>`
-6. item 失败后写入：
+- item 失败后写入：
    - `tasks[phase][slot].items[item_id].status = failed`
    - `tasks[phase][slot].items[item_id].last_error = <summary>`
    - `tasks[phase][slot].status = failed`
    - `phases[phase].status = failed`
    - 停止依赖该 item 的后续执行
-7. 每个 item 完成或失败后重新聚合 slot 和 phase 状态。
-8. 若当前 item 成功且仍有可执行 item，则返回 Item Selection，继续串行选择下一个 item。
-9. backend 阶段在 `accept` slot 全部 completed 后停止，并提示执行 `/t-backend-finalize [feature]`。
+- 每个 item 完成或失败后重新聚合 slot 和 phase 状态。
+- 若当前 item 成功且仍有可执行 item，则返回 Item Selection，继续串行选择下一个 item。
+- backend 阶段在 `accept` slot 全部 completed 后停止，并提示执行 `/t-backend-finalize [feature]`。
 
 ## Forbidden
 - 生成或依赖旧状态字段。

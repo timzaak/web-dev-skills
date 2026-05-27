@@ -45,11 +45,11 @@ tools:
 ### 1. 收集失败上下文
 
 按以下优先级读取证据：
-1. `demo/test-results/runs/${runId}/playwright-output.log`
-2. `demo/test-results/unified-logs/*`
-3. `log/backend-demo.log`
-4. 失败测试文件与相关 page object / helper
-5. 必要时读取前端相关组件和用户故事
+- `demo/test-results/runs/${runId}/playwright-output.log`
+- `demo/test-results/unified-logs/*`
+- `log/backend-demo.log`
+- 失败测试文件与相关 page object / helper
+- 必要时读取前端相关组件和用户故事
 
 至少提取：
 - 失败测试名
@@ -73,11 +73,11 @@ tools:
 ### 3. 再做运行时分类
 
 使用以下判定顺序：
-1. 测试代码 / 测试数据问题
-2. 权限与认证问题
-3. 前端渲染或交互问题
-4. 后端 API 或查询问题
-5. 环境问题
+- 测试代码 / 测试数据问题
+- 权限与认证问题
+- 前端渲染或交互问题
+- 后端 API 或查询问题
+- 环境问题
 
 具体分类值与推荐处理方映射见 `protocols/diagnostic-report-v3-minimal.md`。
 

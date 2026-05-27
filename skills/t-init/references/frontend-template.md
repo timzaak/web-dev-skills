@@ -698,13 +698,13 @@ declare module './routeTree.gen' {
 
 ## 生成时的注意事项
 
-1. 所有 `{{PROJECT_NAME}}` 替换为实际项目名（kebab-case）
-2. 所有 `{{PROJECT_NAME_PASCAL}}` 替换为 PascalCase
-3. 前端文件的注释必须保留 — 这些注释帮助开发者理解项目结构
-4. 依赖版本应根据 Context7 查询结果更新
-5. TanStack Router 版本更新可能影响路由 API，需确认兼容性
-6. 如果不需要暗色主题，可以简化 styles.css 中的 .dark 块
-7. **UI 组件（sonner 等）不要 AI 手写**，必须通过 CLI 命令生成：
+- 所有 `{{PROJECT_NAME}}` 替换为实际项目名（kebab-case）
+- 所有 `{{PROJECT_NAME_PASCAL}}` 替换为 PascalCase
+- 前端文件的注释必须保留 — 这些注释帮助开发者理解项目结构
+- 依赖版本应根据 Context7 查询结果更新
+- TanStack Router 版本更新可能影响路由 API，需确认兼容性
+- 如果不需要暗色主题，可以简化 styles.css 中的 .dark 块
+- **UI 组件（sonner 等）不要 AI 手写**，必须通过 CLI 命令生成：
 
 ### CLI 驱动的组件初始化
 

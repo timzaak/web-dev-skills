@@ -15,11 +15,11 @@ cd miniapp && npm run typecheck
 - token/icon 编译链未报错
 
 如果失败：
-1. 分析 TypeScript、token、icon 或导入错误
-2. 立即修复
-3. 重新执行 `npm run typecheck`
-4. 最多重试 3 次
-5. 仍然失败则不能标记完成
+- 分析 TypeScript、token、icon 或导入错误
+- 立即修复
+- 重新执行 `npm run typecheck`
+- 最多重试 3 次
+- 仍然失败则不能标记完成
 
 ### 2. WeChat 构建验证（MANDATORY）
 
@@ -32,10 +32,10 @@ cd miniapp && npm run build:weapp
 - 页面注册、主题产物、图标 manifest 无阻塞错误
 
 如果失败：
-1. 分析构建、页面注册、token 编译或平台兼容错误
-2. 立即修复
-3. 重新执行 `npm run build:weapp`
-4. 最多重试 3 次
+- 分析构建、页面注册、token 编译或平台兼容错误
+- 立即修复
+- 重新执行 `npm run build:weapp`
+- 最多重试 3 次
 
 ### 3. H5 预览验证（按需）
 

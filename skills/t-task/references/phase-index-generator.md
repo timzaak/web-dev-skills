@@ -36,17 +36,17 @@ tools:
 | demo | `demo/index.md` | `dev.md`, `accept.md` | `dev/`, `accept/` |
 
 ## Required Sections in index.md
-1. 阶段概述
-2. 相关用户故事（可空）
-3. 设计文档参考（仅列该阶段相关章节）
-4. 前置条件
-5. Slot Manifest 列表
-6. Item 任务列表（ID、文件、agent、依赖、状态）
-7. Item DAG（Mermaid，可简化）
-8. Handoff 规则
-9. 验收标准
-10. 下一步动作
-11. 执行说明：明确 `/t-run` 执行 item 文件，不执行 manifest，且任意时刻只运行一个 item agent
+- 阶段概述
+- 相关用户故事（可空）
+- 设计文档参考（仅列该阶段相关章节）
+- 前置条件
+- Slot Manifest 列表
+- Item 任务列表（ID、文件、agent、依赖、状态）
+- Item DAG（Mermaid，可简化）
+- Handoff 规则
+- 验收标准
+- 下一步动作
+- 执行说明：明确 `/t-run` 执行 item 文件，不执行 manifest，且任意时刻只运行一个 item agent
 
 ## Next Step Rule
 ```python

@@ -791,12 +791,12 @@ url = "redis://127.0.0.1:6379"
 
 ## 生成时的注意事项
 
-1. 所有 `{{PROJECT_NAME}}` 替换为实际项目名（kebab-case，如 `my-project`）
-2. 所有 `{{PROJECT_NAME_PASCAL}}` 替换为 PascalCase（如 `MyProject`）
-3. 所有 `{{PROJECT_NAME_SNAKE}}` 替换为 snake_case（如 `my_project`）
-4. 目录名为 `core/`，Cargo crate 名为 `{{PROJECT_NAME}}-core`（避免与 Rust 内置 `core` 冲突）
-5. Rust 代码中使用 `{{PROJECT_NAME_SNAKE}}_core::` 引用核心 crate
-6. 依赖版本应根据 Context7 查询结果更新
-7. 如果 Axum 版本更新导致 API 变化，调整路由和状态共享代码
-8. 确保 `sqlx::migrate!` 宏的路径与实际 migrations 目录匹配
-9. `sqlx::postgres::PgPoolOptions` 没有 `connect_timeout` 方法，使用 `acquire_timeout` 替代
+- 所有 `{{PROJECT_NAME}}` 替换为实际项目名（kebab-case，如 `my-project`）
+- 所有 `{{PROJECT_NAME_PASCAL}}` 替换为 PascalCase（如 `MyProject`）
+- 所有 `{{PROJECT_NAME_SNAKE}}` 替换为 snake_case（如 `my_project`）
+- 目录名为 `core/`，Cargo crate 名为 `{{PROJECT_NAME}}-core`（避免与 Rust 内置 `core` 冲突）
+- Rust 代码中使用 `{{PROJECT_NAME_SNAKE}}_core::` 引用核心 crate
+- 依赖版本应根据 Context7 查询结果更新
+- 如果 Axum 版本更新导致 API 变化，调整路由和状态共享代码
+- 确保 `sqlx::migrate!` 宏的路径与实际 migrations 目录匹配
+- `sqlx::postgres::PgPoolOptions` 没有 `connect_timeout` 方法，使用 `acquire_timeout` 替代

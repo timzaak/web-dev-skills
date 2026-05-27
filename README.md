@@ -91,7 +91,7 @@
 其中：
 
 - `/t-tools:t-prd-check` 是 PRD、HTML Preview 与 user story 质量门禁，不是可有可无的补充命令
-- `/t-tools:t-task-check` 是任务拆分、DAG 和 item 可执行性门禁；多轮运行时会复核上一轮问题并标记新增、延续、已解决和争议项
+- `/t-tools:t-task-check` 是任务拆分、DAG 和 item 可执行性门禁，用来确认任务文档可进入实施
 - `/t-tools:t-demo-accept` 是 Demo 阶段验收门禁，用来确认测试覆盖、可运行性和交付质量
 
 常见辅助命令：

@@ -29,16 +29,16 @@ tools:
 
 执行前按这个顺序读取：
 
-1. `docs/user-stories/00-index.md`
-2. `${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md`
-3. `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/index.md`
-4. 按需进入：
+- `docs/user-stories/00-index.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/index.md`
+- 按需进入：
    - `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/testing.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/validation.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/quality.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/ai-rules.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/constitution.md`
-5. 若任务有设计文档，再读 `.ai/design/[任务名].md`
+- 若任务有设计文档，再读 `.ai/design/[任务名].md`
 
 规则：
 - `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/testing.md` 是测试与构建 how-to 主入口

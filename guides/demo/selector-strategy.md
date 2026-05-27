@@ -28,10 +28,10 @@ AVOID：
 
 ## 决策流程
 
-1. 能用 `getByRole` 则直接使用。
-2. 表单元素优先 `getByLabel` / `getByPlaceholder`。
-3. 语义弱或文本不稳定时使用 `getByTestId`。
-4. 必须使用 CSS/XPath 时，限制作用域并记录原因。
+- 能用 `getByRole` 则直接使用。
+- 表单元素优先 `getByLabel` / `getByPlaceholder`。
+- 语义弱或文本不稳定时使用 `getByTestId`。
+- 必须使用 CSS/XPath 时，限制作用域并记录原因。
 
 ## 与 data-testid 协同
 
@@ -69,11 +69,11 @@ export const SELECTORS = {
 
 ## 常见反模式
 
-1. 使用 `waitForTimeout` 代替断言自动等待。
-2. 测试文件中重复硬编码选择器。
-3. 关键路径只靠文本定位，文案变更即失败。
-4. 使用不可维护的 CSS 链式路径。
-5. 选择器无法表达业务意图。
+- 使用 `waitForTimeout` 代替断言自动等待。
+- 测试文件中重复硬编码选择器。
+- 关键路径只靠文本定位，文案变更即失败。
+- 使用不可维护的 CSS 链式路径。
+- 选择器无法表达业务意图。
 
 ## 质量检查清单
 

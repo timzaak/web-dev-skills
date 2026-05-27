@@ -62,8 +62,8 @@
 **推荐方案**: {{RECOMMENDED_FIX}}
 
 **最小修改点**:
-1. {{FIX_STEP_1}}
-2. {{FIX_STEP_2}}
+- {{FIX_STEP_1}}
+- {{FIX_STEP_2}}
 
 **次要观察**（可选）:
 - {{SECONDARY_NOTE_1}}

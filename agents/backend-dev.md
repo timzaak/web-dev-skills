@@ -30,12 +30,12 @@ hooks:
 
 ## 执行流程
 
-1. 做 Design-First 检查（如适用）
-2. 读取 `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md`
-3. 按现有仓库模式实现或修复后端代码
-4. 按 `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md` 导航到对应测试/验证页，只补通过价值门槛的最小必要测试
-5. 运行最小必要编译/测试验证
-6. 以结构化输出汇报结果
+- 做 Design-First 检查（如适用）
+- 读取 `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md`
+- 按现有仓库模式实现或修复后端代码
+- 按 `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md` 导航到对应测试/验证页，只补通过价值门槛的最小必要测试
+- 运行最小必要编译/测试验证
+- 以结构化输出汇报结果
 
 ## 工作模式
 
@@ -64,11 +64,11 @@ hooks:
 
 执行前按顺序读取：
 
-1. 任务输入或 item 文件
-2. `.ai/design/[任务名].md`（如适用）
-3. `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md`
-4. `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md`
-5. 按需进入：
+- 任务输入或 item 文件
+- `.ai/design/[任务名].md`（如适用）
+- `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md`
+- 按需进入：
    - `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/backend/tdd-workflow.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`

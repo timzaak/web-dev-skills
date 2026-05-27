@@ -167,13 +167,13 @@ This design allows tasks to be broken down, ordered, retried, and audited.
 
 `/t-tools:t-run` allows at most one item to be `running` at any time. It will:
 
-1. Read `.state.json`.
-2. Validate the phase, slot, item, and DAG.
-3. Find the first dependency-satisfied `pending` or `failed` item.
-4. Mark it as `running`.
-5. Dispatch the corresponding subagent.
-6. Write back `completed` or `failed` based on the result.
-7. Aggregate slot and phase status.
+- Read `.state.json`.
+- Validate the phase, slot, item, and DAG.
+- Find the first dependency-satisfied `pending` or `failed` item.
+- Mark it as `running`.
+- Dispatch the corresponding subagent.
+- Write back `completed` or `failed` based on the result.
+- Aggregate slot and phase status.
 
 This mechanism trades some concurrency for stronger control:
 

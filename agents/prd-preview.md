@@ -58,29 +58,29 @@ tools:
 - 本次是 create 还是 update
 
 执行前读取：
-1. `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md`
-2. `skills/t-prd/preview-template.html`
-3. PRD Markdown
+- `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md`
+- `skills/t-prd/preview-template.html`
+- PRD Markdown
 
 ## 工作流程
 
-1. 从 PRD 提取目标、范围、流程、状态、规则、验收目标和待确认假设。
-2. 判断表达形态：
+- 从 PRD 提取目标、范围、流程、状态、规则、验收目标和待确认假设。
+- 判断表达形态：
    - 有前端/交互入口：生成可点击的低保真交互 Preview，聚焦 PRD 定义的目标体验和关键状态。
    - 纯后端或无 UI：生成流程图、状态图、调用方场景、能力边界矩阵或验收矩阵。
-3. 使用 `skills/t-prd-preview/preview-template.html` 的结构创建或更新 Preview。
-4. 保持单文件 HTML，CSS 和少量原生 JS 内联。
-5. 用 `data-prd-source`、`data-prd-section` 标记来源。
-6. 如使用示例数据，明确写出“示例数据，不是接口契约”。
-7. 如为表达流程做了推断，列入 `Assumptions`，不得伪装成已确认需求。
-8. 若反馈涉及产品语义变化，返回 `required_prd_updates`；否则直接更新 HTML。
-9. 运行机械检查：
+- 使用 `skills/t-prd-preview/preview-template.html` 的结构创建或更新 Preview。
+- 保持单文件 HTML，CSS 和少量原生 JS 内联。
+- 用 `data-prd-source`、`data-prd-section` 标记来源。
+- 如使用示例数据，明确写出“示例数据，不是接口契约”。
+- 如为表达流程做了推断，列入 `Assumptions`，不得伪装成已确认需求。
+- 若反馈涉及产品语义变化，返回 `required_prd_updates`；否则直接更新 HTML。
+- 运行机械检查：
 
 ```bash
 python ${CLAUDE_PLUGIN_ROOT}/scripts/check-prd-preview.py <feature> --root . --json
 ```
 
-10. 如检查失败，修复 Preview 后重跑。
+- 如检查失败，修复 Preview 后重跑。
 
 ## 后端可视化选择
 

@@ -42,12 +42,12 @@ HTML Preview 必须保持目标项目技术栈无关：
 
 推荐流程：
 
-1. 先生成或更新 Markdown PRD 和 HTML Preview。
-2. 立即打开 HTML Preview。
-3. 人类围绕 HTML Preview 提出修改意见。
-4. 同步修改 HTML Preview 与 Markdown PRD。
-5. 重复审阅，直到人类确认 Preview 表达了真实意图。
-6. 运行 `/t-prd-check`，验证 Preview 与 Markdown PRD 描述一致。
+- 先生成或更新 Markdown PRD 和 HTML Preview。
+- 立即打开 HTML Preview。
+- 人类围绕 HTML Preview 提出修改意见。
+- 同步修改 HTML Preview 与 Markdown PRD。
+- 重复审阅，直到人类确认 Preview 表达了真实意图。
+- 运行 `/t-prd-check`，验证 Preview 与 Markdown PRD 描述一致。
 
 如果 Preview 与 Markdown PRD 描述不一致，必须调整到一致后才能通过 PRD Check。
 

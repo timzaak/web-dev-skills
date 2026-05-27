@@ -60,14 +60,13 @@ allowed-tools:
 任一项缺失或非法即返回 `TASK_SCHEMA_INVALID`
 
 ## 执行流程
-1. 校验设计文档是否存在。
-2. 读取 `.state.json` 并验证 schema。
-3. 若指定 `--phase`，仅检查该阶段；否则检查当前阶段。指定阶段必须存在于 `.state.json.phases` 的 active phases 中。
-4. 读取同一 feature/phase 最近一份 `.ai/quality/task-check-[feature]-*.md`（如存在），建立上一轮 P0/P1/P2 问题索引。
-5. 校验阶段依赖正确性。
-6. 读取阶段目录下的 `index.md`、slot manifest 和 item 文件。
-7. 按 `protocols/task-check-rubric.md` 校验 item DAG 与 manifest 覆盖关系。
-8. 检查旧结构残留：
+- 校验设计文档是否存在。
+- 读取 `.state.json` 并验证 schema。
+- 若指定 `--phase`，仅检查该阶段；否则检查当前阶段。指定阶段必须存在于 `.state.json.phases` 的 active phases 中。
+- 校验阶段依赖正确性。
+- 读取阶段目录下的 `index.md`、slot manifest 和 item 文件。
+- 按 `protocols/task-check-rubric.md` 校验 item DAG 与 manifest 覆盖关系。
+- 检查旧结构残留：
    - 根级 `backend-dev.md`
    - 根级 `backend-test.md`
    - 根级 `frontend-dev.md`
@@ -76,24 +75,27 @@ allowed-tools:
    - 根级 `README.md`
    - 根级 `agents.json`
    - 其他混用旧结构的任务文件
-9. 验证 item 文件结构与内容：
+- 验证 item 文件结构与内容：
    - 必须包含 `id/title/agent/scope/inputs/steps/expected_files/validation/depends_on/handoff_summary/completion_criteria`
+   - backend/test item 必须声明 `test_item_type: authoring|runner`
+   - backend/test runner item 必须声明 `uses_skill: skills/t-backend-test-run/SKILL.md`
+   - 每个 backend/test authoring item 必须有对应 runner item，且 runner 依赖 authoring
+   - backend/accept item 必须依赖 runner item，不得只依赖 authoring item
    - 不得把完整 slot 内容塞进一个 item
    - 超过拆分阈值必须有合理说明，否则记 P1
    - scope 中包含两个可独立交付、独立验证的主交付物时，必须拆分，否则记 P1
    - 单个 HTTP/API item 同时包含 5 个以上 endpoint、DTO、路由注册和 OpenAPI/schema 更新时，必须拆分，否则记 P1
    - 单个 demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流时，必须拆分，否则记 P1
-10. 先复核上一轮 P0/P1：仍存在标记为 `carried`，已修复标记为 `resolved`，证据不足标记为 `disputed`。
-11. 核对设计文档与任务文档的一致性。
-12. 通过 `Agent` tool 调度当前阶段对应 subagent 做专业校验。每个 subagent 独立启动，传入 prompt 包含：item 文件内容、设计文档相关节、验证范围、`protocols/task-check-rubric.md` 中的 agent 评审边界、输出格式要求（score/findings/fixes/summary）。可并行调度同阶段多个 subagent。
+- 核对设计文档与任务文档的一致性。
+- 通过 `Agent` tool 调度当前阶段对应 subagent 做专业校验。每个 subagent 独立启动，传入 prompt 包含：item 文件内容、设计文档相关节、验证范围、`protocols/task-check-rubric.md` 中的 agent 评审边界、输出格式要求（score/findings/fixes/summary）。可并行调度同阶段多个 subagent。
    - backend: subagent_type="backend-dev", "backend-test", "backend-accept"
    - frontend: subagent_type="frontend-dev", "frontend-test", "frontend-accept"
    - miniapp: subagent_type="miniapp-dev", "miniapp-test", "miniapp-accept"
    - demo: subagent_type="demo-dev", "demo-accept"
-13. 聚合 agent 结果并进行主流程复核：同类问题合并，P0/P1 必须补齐任务文档证据和真源证据。
-14. 按评分体系生成评分与问题清单，并为每条 finding 标记 `new/carried/resolved/disputed`。
-15. 执行报告一致性自检。
-16. 写入报告：`.ai/quality/task-check-[feature]-[YYYYMMDD-HHMMSS].md`。
+- 聚合 agent 结果并进行主流程复核：同类问题合并，P0/P1 必须补齐任务文档证据和真源证据。
+- 按评分体系生成评分与问题清单。
+- 执行报告一致性自检。
+- 写入报告：`.ai/quality/task-check-[feature]-[YYYYMMDD-HHMMSS].md`。
 
 ## Agent Review Contract
 调度方式：通过 `Agent(subagent_type="<agent-name>")` 启动。主流程收集所有 subagent 返回后进行交叉验证（证据优先级：仓库证据 > subagent 发现 > 假设）。
@@ -102,7 +104,7 @@ allowed-tools:
 
 - `protocols/task-check-rubric.md`
 
-agent finding 不直接作为最终裁决；主流程必须按 rubric 完成证据复核、同类合并和生命周期标记。
+agent finding 不直接作为最终裁决；主流程必须按 rubric 完成证据复核和同类合并。
 
 ## 评分与问题分级
 评分体系、P0/P1/P2 定义和报告结构统一参考：`protocols/task-check-rubric.md`
@@ -148,10 +150,9 @@ Item 可执行性: 18/20
 
 Agent 集合: backend-dev, backend-test, backend-accept
 问题分类摘要: confirmed=2, disputed=0, assumption=0
-生命周期摘要: new=1, carried=1, resolved=0, disputed=0
 
 P1 问题:
-1. BE-D03 超过拆分阈值，建议拆为 repository trait 与 repository implementation 两个 item
+- BE-D03 超过拆分阈值，建议拆为 repository trait 与 repository implementation 两个 item
 
 下一步: /t-run sample-feature --phase backend
 ```

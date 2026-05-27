@@ -4,8 +4,8 @@
 
 ## 使用方式
 
-1. 先运行目标测试，拿到第一条失败信息。
-2. 根据问题类型进入对应 recipe。
+- 先运行目标测试，拿到第一条失败信息。
+- 根据问题类型进入对应 recipe。
 
 ```powershell
 uv run scripts/demo-test-runner.py demo/e2e/[测试文件].ts --log-level verbose

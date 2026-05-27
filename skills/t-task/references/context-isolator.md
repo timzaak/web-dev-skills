@@ -45,17 +45,17 @@ tools:
 ```
 
 ## Rules
-1. `phase` 非法时立即报错并终止。
-2. 设计文档不存在时报错并终止。
-3. 未命中某章节时记录警告，但继续输出可用内容。
-4. `agents` 仅返回该阶段标准集合，不跨阶段扩展。
-5. `context_summary` 保持 1-2 句，禁止复制长段原文。
-6. sub agent 最终上下文由两部分组成：
+- `phase` 非法时立即报错并终止。
+- 设计文档不存在时报错并终止。
+- 未命中某章节时记录警告，但继续输出可用内容。
+- `agents` 仅返回该阶段标准集合，不跨阶段扩展。
+- `context_summary` 保持 1-2 句，禁止复制长段原文。
+- sub agent 最终上下文由两部分组成：
    - 固定部分：当前 phase 的设计摘要
    - 动态部分：上一个 slot 已写入任务文件的路径与 handoff 摘要
-7. 不允许把 `context-isolator` 输出当作下游 slot 的唯一上下文来源。
-8. `frontend` phase 不把 API 契约作为单独上下文块；若设计文档包含整体 API 设计，只提取前端实现必需的最小事实。
-9. `miniapp` phase 聚焦 `miniapp/` 交付线，不复用 Web 前端或 Demo 的测试约束作为默认事实。
+- 不允许把 `context-isolator` 输出当作下游 slot 的唯一上下文来源。
+- `frontend` phase 不把 API 契约作为单独上下文块；若设计文档包含整体 API 设计，只提取前端实现必需的最小事实。
+- `miniapp` phase 聚焦 `miniapp/` 交付线，不复用 Web 前端或 Demo 的测试约束作为默认事实。
 
 ## Errors
 | 错误 | 处理 |

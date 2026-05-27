@@ -48,17 +48,17 @@ tools:
 
 执行前按这个顺序读取：
 
-1. `docs/user-stories/00-index.md`
-2. `docs/prd/00-index.md`
-3. `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/index.md`
-4. 按需进入：
+- `docs/user-stories/00-index.md`
+- `docs/prd/00-index.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/index.md`
+- 按需进入：
    - `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/development.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/testing.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/validation.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/quality.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/ai-rules.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/constitution.md`
-5. 若任务有设计文档，再读 `.ai/design/[任务名].md`
+- 若任务有设计文档，再读 `.ai/design/[任务名].md`
 
 规则：
 - `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/development.md` 是 miniapp 事实型主规范
@@ -69,11 +69,11 @@ tools:
 
 先查项目，再查外部资料：
 
-1. `Grep` / `Glob` / `Read` 查现有实现
-2. 查 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/*.md`
-3. 查 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/ai-rules.md` 与 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/constitution.md`
-4. 查官方文档补库级事实
-5. 仅在前 4 步不足时用 WebSearch
+- `Grep` / `Glob` / `Read` 查现有实现
+- 查 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/*.md`
+- 查 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/ai-rules.md` 与 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/constitution.md`
+- 查官方文档补库级事实
+- 仅在前 4 步不足时用 WebSearch
 
 适合外查的内容：
 - Taro 官方 API

@@ -70,17 +70,17 @@ Runtime Dependencies：
 
 ## 工作流程
 
-1. 从测试路径或任务上下文推断用户故事文件，并验证存在。
-2. 先读取 `${CLAUDE_PLUGIN_ROOT}/guides/demo/index.md`，再进入对应细页。
-3. 读取 `demo/e2e/selectors.ts`，再对照前端 `data-testid` 实现校准关键选择器。
-4. 确定输出文件路径：
+- 从测试路径或任务上下文推断用户故事文件，并验证存在。
+- 先读取 `${CLAUDE_PLUGIN_ROOT}/guides/demo/index.md`，再进入对应细页。
+- 读取 `demo/e2e/selectors.ts`，再对照前端 `data-testid` 实现校准关键选择器。
+- 确定输出文件路径：
    - `super-admin` -> `demo/e2e/super-admin/...`
    - `realm-admin` -> `demo/e2e/realm-admin/...`
    - 其他角色按 `demo/e2e/` 真实目录结构落位
-5. 按用户故事和设计文档生成或修复测试：
+- 按用户故事和设计文档生成或修复测试：
    - 优先语义化选择器，其次共享 `SELECTORS`
    - 明确环境验证、数据清理和关键断言
-6. 若用于修复 `t-demo-run` 失败，必须返回最小相关补测集合。
+- 若用于修复 `t-demo-run` 失败，必须返回最小相关补测集合。
 
 ## 最小门禁
 

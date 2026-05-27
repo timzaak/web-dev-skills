@@ -8,19 +8,19 @@
 
 ## 修复步骤
 
-1. 先打开 `demo/e2e/selectors.ts` 确认共享选择器定义。
-2. 再对照 `frontend/src/**` 中对应页面或组件的 `data-testid`、文本或 role。
-3. 仅修改一层抽象：
+- 先打开 `demo/e2e/selectors.ts` 确认共享选择器定义。
+- 再对照 `frontend/src/**` 中对应页面或组件的 `data-testid`、文本或 role。
+- 仅修改一层抽象：
    - 共享选择器失效，优先改 `selectors.ts`
    - 只有当前页面特殊，才在 Page Object 层补局部适配
-4. 用最小相关测试回归。
+- 用最小相关测试回归。
 
 ## 优先级
 
-1. `data-testid`
-2. 语义化 role / label
-3. 稳定文本
-4. 表单属性
+- `data-testid`
+- 语义化 role / label
+- 稳定文本
+- 表单属性
 
 ## 当前典型位置
 

@@ -8,7 +8,7 @@
 
 - 状态字段、状态取值和聚合规则只以 `protocols/task-state-contract.md` 为准。
 - phase/slot/item 执行顺序、active phases、backend test item 类型只以 `protocols/task-phase-execution.md` 为准。
-- 评分、严重度、报告字段和 task-check 收敛规则只以本文件为准。
+- 评分、严重度和报告字段只以本文件为准。
 - skill、agent、README 可以引用上述协议，但不得复制出第二套冲突规则。
 
 ## Evidence Priority
@@ -47,21 +47,23 @@
 
 主流程检查：
 
-1. 设计文档存在
-2. `.state.json` schema 有效
-3. 阶段依赖正确
-4. `index.md`、slot manifest、item 文件齐备
-5. item DAG 合法：
+- 设计文档存在
+- `.state.json` schema 有效
+- 阶段依赖正确
+- `index.md`、slot manifest、item 文件齐备
+- item DAG 合法：
    - item ID 唯一
    - `depends_on` 指向存在 item
    - 无依赖环
    - item 文件路径与 state 一致
    - manifest 覆盖全部 items
-6. 无旧结构残留
-7. item 文件包含必填字段
-8. 设计文档与任务文档一致
-9. 调用当前阶段对应 agents 做专业校验
-10. 主流程复核后生成最终结论
+- 无旧结构残留
+- item 文件包含必填字段
+- 若当前阶段为 backend，backend/test slot 符合 `protocols/task-phase-execution.md` 的 authoring/runner 配对与 `uses_skill` 要求
+- 若当前阶段为 backend，backend/accept item 依赖 runner item，不只依赖 authoring item
+- 设计文档与任务文档一致
+- 调用当前阶段对应 agents 做专业校验
+- 主流程复核后生成最终结论
 
 ## Agent Review Contract
 
@@ -87,19 +89,6 @@ agent 评审边界：
 - `repo_evidence`
 - `why_blocking`
 - `fix`
-- `lifecycle`: `new | carried | resolved | disputed`
-
-## Convergence Protocol
-
-`t-task-check` 每次运行必须读取同一 feature/phase 最近一份 task-check 报告（如存在），并按以下顺序收敛：
-
-1. 先复核上一轮 P0/P1 是否已修复。
-2. 对仍存在的问题标记为 `carried`，保留原问题编号或摘要。
-3. 对已修复的问题标记为 `resolved`，写入简短证据。
-4. 只在完成旧问题复核后报告新增问题，新增问题标记为 `new`。
-5. 对证据不足、规范冲突或 agent 之间意见冲突的问题标记为 `disputed`，不得计入 P0。
-
-报告摘要必须展示 `new / carried / resolved / disputed` 数量。连续两轮没有新增 P0/P1 且只剩 P2 时，应明确提示可进入下一阶段或由人工决定是否处理 P2。
 
 ## Scoring
 
@@ -127,6 +116,8 @@ agent 评审边界：
 - manifest 未覆盖全部 items
 - 新旧结构混用
 - 阶段依赖关系错误
+- backend/test 缺少 runner item、runner 缺少 `uses_skill: skills/t-backend-test-run/SKILL.md`，或 authoring item 没有对应 runner item
+- backend/accept item 只依赖 backend/test authoring item，未依赖 runner item
 - 命令、路径、阶段链路经仓库和规范双重验证后确认会直接导致 `/t-run` 无法执行
 
 出现 `confirmed P0` 时，必须拒绝进入 `/t-run`。
@@ -164,7 +155,6 @@ agent 评审边界：
 - 每个维度得分与扣分证据
 - 实际调用的 agent 集合
 - `confirmed / disputed / assumption` 分类摘要
-- `new / carried / resolved / disputed` 生命周期摘要
 - P0/P1/P2 问题列表
 - 明确修复步骤
 - 已排除的误报/争议项（如有）

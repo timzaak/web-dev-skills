@@ -99,23 +99,23 @@ allowed-tools:
 
 ### 必查依赖（按顺序）
 
-1. **Axum** — 路由、状态共享、中间件写法
+- **Axum** — 路由、状态共享、中间件写法
    - `mcp__context7__resolve-library-id` → query: "axum web framework"
    - `mcp__context7__query-docs` → query: "router, state sharing, middleware, serve static files"
 
-2. **Sea-ORM** — 数据库连接和实体定义
+- **Sea-ORM** — 数据库连接和实体定义
    - `mcp__context7__resolve-library-id` → query: "sea-orm rust database"
    - `mcp__context7__query-docs` → query: "database connection, entity generation, migration"
 
-3. **utoipa** — OpenAPI 文档生成
+- **utoipa** — OpenAPI 文档生成
    - `mcp__context7__resolve-library-id` → query: "utoipa rust openapi"
    - `mcp__context7__query-docs` → query: "OpenApi derive, swagger ui, axum integration"
 
-4. **TanStack Router** — 前端文件路由
+- **TanStack Router** — 前端文件路由
    - `mcp__context7__resolve-library-id` → query: "tanstack router react"
    - `mcp__context7__query-docs` → query: "file-based routing setup, vite plugin, createRouter"
 
-5. **TanStack Query** — 数据请求
+- **TanStack Query** — 数据请求
    - `mcp__context7__resolve-library-id` → query: "tanstack query react"
    - `mcp__context7__query-docs` → query: "QueryClient setup, useQuery, QueryClientProvider"
 
@@ -135,16 +135,16 @@ allowed-tools:
 工作目录：<project-name>/backend/
 
 任务：
-1. 读取后端模板文件 C:\code\ai\skills\skills\t-init\references\backend-template.md
-2. 按模板生成所有文件，替换以下占位符：
+- 读取后端模板文件 C:\code\ai\skills\skills\t-init\references\backend-template.md
+- 按模板生成所有文件，替换以下占位符：
    - {{PROJECT_NAME}} → <实际项目名>
    - {{PROJECT_NAME_PASCAL}} → <PascalCase>
    - {{PROJECT_NAME_SNAKE}} → <snake_case>
-3. 注意目录名为 core/，Cargo crate 名为 {{PROJECT_NAME}}-core
-4. Rust 代码中使用 {{PROJECT_NAME_SNAKE}}_core:: 引用核心 crate
-5. 根据 Context7 查询结果调整依赖版本（版本信息：[附上 Step 2 收集的版本]）
+- 注意目录名为 core/，Cargo crate 名为 {{PROJECT_NAME}}-core
+- Rust 代码中使用 {{PROJECT_NAME_SNAKE}}_core:: 引用核心 crate
+- 根据 Context7 查询结果调整依赖版本（版本信息：[附上 Step 2 收集的版本]）
 
-6. 生成构建和测试配置文件：
+- 生成构建和测试配置文件：
    a. backend/.cargo/config.toml（sccache 加速 + dev/release/test profile 优化）
    b. backend/.config/nextest.toml（nextest 测试运行器配置）
 
@@ -202,13 +202,13 @@ allowed-tools:
 
 这些文件不要 AI 手写，必须通过 CLI 命令生成：
 
-1. npm install（安装所有依赖）
-2. npx shadcn@latest init -d --defaults
+- npm install（安装所有依赖）
+- npx shadcn@latest init -d --defaults
    - 自动生成 components.json、button.tsx、utils.ts，更新 styles.css
    - 自动安装额外依赖（@base-ui/react、next-themes 等）
-3. npx shadcn@latest add sonner --overwrite（生成 sonner.tsx）
+- npx shadcn@latest add sonner --overwrite（生成 sonner.tsx）
    - 生成的 sonner.tsx 使用 next-themes，main.tsx 已包含 ThemeProvider
-4. npm run type-check 验证
+- npm run type-check 验证
 
 注意：routeTree.gen.ts 在首次 npm run dev 时才会生成，type-check 可能因此报错，这是正常的。
 
@@ -219,11 +219,11 @@ allowed-tools:
 ```
 
 前端文件要求：
-1. **代码注释**：每个关键文件都要有注释，解释用途、技术选择、修改指南
-2. 路由文件 (`__root.tsx`) 要有注释说明文件路由的工作方式
-3. `main.tsx` 要有注释说明 React 应用启动流程
-4. `vite.config.ts` 要有注释说明每个插件的作用
-5. **UI 组件（sonner 等）不要 AI 手写**，必须通过 `npx shadcn@latest add` 生成
+- **代码注释**：每个关键文件都要有注释，解释用途、技术选择、修改指南
+- 路由文件 (`__root.tsx`) 要有注释说明文件路由的工作方式
+- `main.tsx` 要有注释说明 React 应用启动流程
+- `vite.config.ts` 要有注释说明每个插件的作用
+- **UI 组件（sonner 等）不要 AI 手写**，必须通过 `npx shadcn@latest add` 生成
 
 ### Step 5: 生成 Demo E2E 测试（demo-dev subagent）
 
@@ -237,10 +237,10 @@ allowed-tools:
 工作目录：<project-name>/demo/
 
 任务：
-1. 读取 demo 模板文件 C:\code\ai\skills\skills\t-init\references\demo-template.md
-2. 按模板生成所有文件，替换占位符
-3. 生成后执行 npm install 安装依赖
-4. 运行 smoke test 验证 demo 环境正常
+- 读取 demo 模板文件 C:\code\ai\skills\skills\t-init\references\demo-template.md
+- 按模板生成所有文件，替换占位符
+- 生成后执行 npm install 安装依赖
+- 运行 smoke test 验证 demo 环境正常
 
 替换占位符：
 - {{PROJECT_NAME}} → <实际项目名>
@@ -289,19 +289,19 @@ allowed-tools:
 读取 [references/agents-template.md](references/agents-template.md) 获取模板内容。
 
 生成三个根目录文件：
-1. `AGENTS.md` — 项目描述占位符 + 项目行为准则
-2. `CLAUDE.md` — 仅包含 `@AGENTS.md`
-3. `README.md` — 快速启动指南（从 [references/scripts-template.md](references/scripts-template.md) 获取项目本地脚本命令）
+- `AGENTS.md` — 项目描述占位符 + 项目行为准则
+- `CLAUDE.md` — 仅包含 `@AGENTS.md`
+- `README.md` — 快速启动指南（从 [references/scripts-template.md](references/scripts-template.md) 获取项目本地脚本命令）
 
 生成后提示用户填写 `AGENTS.md` 顶部的项目描述占位符。
 
 ### Step 8: 验证（主 Agent）
 
 收集各 subagent 的验证结果，汇总报告：
-1. 后端：`cargo check` 是否通过
-2. 前端：`npm install` + `type-check` 是否通过（routeTree.gen.ts 错误除外）
-3. Demo：`npm install` + smoke test 是否通过
-4. 检查所有文件都已创建（Glob 验证）
+- 后端：`cargo check` 是否通过
+- 前端：`npm install` + `type-check` 是否通过（routeTree.gen.ts 错误除外）
+- Demo：`npm install` + smoke test 是否通过
+- 检查所有文件都已创建（Glob 验证）
 
 如果验证工具不可用，跳过并提示用户手动验证。
 

@@ -30,21 +30,21 @@ tools:
 ```
 
 ## Rules
-1. supported phases 固定为：
+- supported phases 固定为：
    - `backend`
    - `frontend`
    - `miniapp`
    - `demo`
-2. active phases 来自 `.state.json.phases` 的键集合；未启用 miniapp 的项目不要求存在 `miniapp`。
-3. 默认阶段依赖为：
+- active phases 来自 `.state.json.phases` 的键集合；未启用 miniapp 的项目不要求存在 `miniapp`。
+- 默认阶段依赖为：
    - `backend` 无前置
    - `frontend` 依赖 `backend`
    - `miniapp` 依赖 `frontend`
    - `demo` 依赖 active phases 中排在它之前的最后一个交付阶段
-4. `target_phase` 不在 supported phases 中时非法。
-5. `target_phase` 不在 active phases 中时返回 `valid=false`，提示当前项目未启用该阶段。
-6. 只读取当前 `.state.json` 的 `phase/phases/tasks` 结构，不兼容旧 `state.agents`。
-7. 校验失败时必须返回阻塞阶段与阻塞 items/slots，而不是虚构 agent 状态。
+- `target_phase` 不在 supported phases 中时非法。
+- `target_phase` 不在 active phases 中时返回 `valid=false`，提示当前项目未启用该阶段。
+- 只读取当前 `.state.json` 的 `phase/phases/tasks` 结构，不兼容旧 `state.agents`。
+- 校验失败时必须返回阻塞阶段与阻塞 items/slots，而不是虚构 agent 状态。
 
 ## Blocking Rule
 - 阻塞项定义：目标前置阶段中尚未 `completed` 的 slot 或 item。

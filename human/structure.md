@@ -167,13 +167,13 @@ Demo 阶段不是后端测试或前端测试的重复，而是一条独立的质
 
 `/t-tools:t-run` 任意时刻最多只允许一个 item 处于 `running`。它会：
 
-1. 读取 `.state.json`。
-2. 校验 phase、slot、item 和 DAG。
-3. 找到第一个依赖已满足的 `pending` 或 `failed` item。
-4. 标记为 `running`。
-5. 调度对应 subagent。
-6. 根据结果写回 `completed` 或 `failed`。
-7. 聚合 slot 和 phase 状态。
+- 读取 `.state.json`。
+- 校验 phase、slot、item 和 DAG。
+- 找到第一个依赖已满足的 `pending` 或 `failed` item。
+- 标记为 `running`。
+- 调度对应 subagent。
+- 根据结果写回 `completed` 或 `failed`。
+- 聚合 slot 和 phase 状态。
 
 这套机制牺牲了一些并发速度，但换来更强的可控性：
 

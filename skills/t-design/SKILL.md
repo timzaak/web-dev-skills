@@ -95,12 +95,12 @@ allowed-tools:
 ## 先读这些文件
 
 按以下顺序建立上下文：
-1. `docs/user-stories/00-index.md`
-2. `docs/prd/00-index.md`
-3. `${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md`
-4. `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md` 和/或 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md`
-5. `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md`
-6. `AGENTS.md`
+- `docs/user-stories/00-index.md`
+- `docs/prd/00-index.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md` 和/或 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md`
+- `AGENTS.md`
 
 ## 工作流程
 
@@ -117,9 +117,9 @@ allowed-tools:
 ### 2. 收集最小必要输入
 
 如果当前上下文里还没有足够信息，使用 `AskUserQuestion` 只补齐以下内容：
-1. 功能目标或问题陈述
-2. 人类已准备好的相关资料路径或名称
-3. 需要覆盖的范围边界
+- 功能目标或问题陈述
+- 人类已准备好的相关资料路径或名称
+- 需要覆盖的范围边界
 
 如果用户已经在当前对话或命令参数里给出足够信息，不要重复提问。
 
@@ -132,9 +132,9 @@ allowed-tools:
 - `.ai/design/**/*.md`（如果存在相关先例）
 
 优先做法：
-1. 先从索引定位候选文档
-2. 再对候选文档做 `Grep`
-3. 最后 `Read` 真正相关的少量文件
+- 先从索引定位候选文档
+- 再对候选文档做 `Grep`
+- 最后 `Read` 真正相关的少量文件
 
 至少提取这些内容：
 - 用户故事 ID、标题、优先级、来源文件

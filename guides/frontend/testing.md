@@ -156,12 +156,12 @@ await userEvent.click(screen.getByRole('button', { name: /submit/i }))
 
 ### 查询优先级
 
-1. `getByRole`
-2. `getByLabelText`
-3. `getByText`
-4. `getByTestId`
-5. `queryBy*`
-6. `container.querySelector` 仅在访问 DOM 属性或复杂选择器时使用
+- `getByRole`
+- `getByLabelText`
+- `getByText`
+- `getByTestId`
+- `queryBy*`
+- `container.querySelector` 仅在访问 DOM 属性或复杂选择器时使用
 
 实现层要求：
 - P0/P1/P2 元素必须添加 `data-testid`
@@ -303,20 +303,20 @@ console.log(container.innerHTML)
 
 ### DO
 
-1. 测试用户可观察行为，而不是第三方库实现细节。
-2. 用最小 mock 覆盖当前场景，避免过度伪造整条业务链路。
-3. 对业务状态、权限、错误提示、禁用态做断言。
-4. 使用 `it.each` 合并同类 enum/边界测试，避免重复用例。
-5. 用 MSW 验证 request body，而不是 mock 内部函数调用参数。
+- 测试用户可观察行为，而不是第三方库实现细节。
+- 用最小 mock 覆盖当前场景，避免过度伪造整条业务链路。
+- 对业务状态、权限、错误提示、禁用态做断言。
+- 使用 `it.each` 合并同类 enum/边界测试，避免重复用例。
+- 用 MSW 验证 request body，而不是 mock 内部函数调用参数。
 
 ### DON'T
 
-1. 不要请求真实后端 API。
-2. 不要把页面完整 happy-path 再复制成 Vitest。
-3. 不要依赖脆弱选择器、纯样式类名或 DOM 层级。
-4. 不要使用硬编码等待代替异步查询。
-5. 不要把历史仓库或旧模板的测试工具包装器当成当前标准。
-6. 不要为纯 UI 包装组件、常量定义、纯类型导出、第三方 type wrapper 写测试，除非存在自定义 transform 或业务逻辑。
+- 不要请求真实后端 API。
+- 不要把页面完整 happy-path 再复制成 Vitest。
+- 不要依赖脆弱选择器、纯样式类名或 DOM 层级。
+- 不要使用硬编码等待代替异步查询。
+- 不要把历史仓库或旧模板的测试工具包装器当成当前标准。
+- 不要为纯 UI 包装组件、常量定义、纯类型导出、第三方 type wrapper 写测试，除非存在自定义 transform 或业务逻辑。
 
 ## 测试类型说明
 

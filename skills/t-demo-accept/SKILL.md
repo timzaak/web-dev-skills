@@ -31,28 +31,28 @@ allowed-tools:
 - `all` 或留空：验收全部 Demo 测试
 
 ## 执行流程
-1. 识别目标测试文件。
+- 识别目标测试文件。
 - 若是文件路径：仅处理该文件。
 - 若是角色名：匹配 `demo/e2e/**` 下对应文件。
 - 若是 `all` 或空：扫描 `demo/e2e/**/*.e2e.ts`，排除 `fixtures/`、`templates/`、`verification/`。
 
-2. 用户故事一致性检查（必须）。
+- 用户故事一致性检查（必须）。
 - 读取测试文件顶部注释中的用户故事路径。
 - 校验用户故事文件存在。
 - 核对场景覆盖、角色匹配、关键断言与验收标准。
 
-3. 编译检查（必须）。
+- 编译检查（必须）。
 ```bash
 cd demo && npm run build
 ```
 
-4. 测试执行检查（必须）。
+- 测试执行检查（必须）。
 ```bash
 uv run scripts/demo-test-runner.py "[测试文件]" --mode fast --log-level mini
 ```
 - 若任一测试失败、超时或编译失败，直接判定该文件 `REJECTED`。
 
-5. 代码质量检查。
+- 代码质量检查。
 ```bash
 grep -n "verifyTestEnvironment\|cleanupDemoTestData" [测试文件路径]
 grep -n "UnifiedLogger\|logger\." [测试文件路径]
@@ -62,7 +62,7 @@ npx jscpd --pattern "**/*.ts" --reporters console demo/e2e
 wc -l [测试文件路径]
 ```
 
-6. 生成报告。
+- 生成报告。
 - 单文件：`.ai/quality/demo-accept-[name]-[YYYYMMDD-HHMMSS].md`
 - 批量：同时生成汇总 `.ai/quality/demo-accept-summary-[YYYYMMDD-HHMMSS].md`
 - 报告必须包含重复代码检查结果：执行命令、重复率/重复块数量、关键文件位置；未执行时必须说明原因。

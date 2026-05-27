@@ -4,6 +4,7 @@ description: >
   后端场景测试编写专家。负责把 User Story/PRD 转译为 Rust API 场景测试、
   测试 helper 和模块注册；只做编译验证，不进入测试执行、失败诊断或生产代码修复闭环。
   单元测试由 backend-dev 负责；测试执行与修复编排由 t-backend-test-run skill 负责。
+  在 t-task 任务规划中，负责把 backend/test slot 拆为 authoring item 和对应 runner item。
 tools:
   - Read
   - Edit
@@ -40,9 +41,18 @@ tools:
 
 - backend/test authoring item 必须声明 `test_item_type: authoring`。
 - 只修改 `*_scenarios.rs`、测试 helper、模块注册等测试拥有的文件。
-- validation 只要求 `cd backend && cargo check --tests`、`cargo test --no-run` 或建议 runner 命令。
+- validation 只要求 `cd backend && cargo check --tests` 或建议 runner 命令。
 - completion criteria 不得要求目标测试全部通过。
 - 需要真正执行目标测试时，交给 runner item 使用 `skills/t-backend-test-run/SKILL.md`。
+
+## Planning Contract
+
+通过 `t-task` 生成 backend/test slot 时：
+
+- 每个新增或修改场景测试的 authoring item 必须配套一个 runner item。
+- runner item 必须声明 `agent: backend-test`、`test_item_type: runner`、`uses_skill: skills/t-backend-test-run/SKILL.md`。
+- runner item 必须依赖对应 authoring item，并负责定向测试、失败分类、生产代码修复委派和重测。
+- 不得生成 `agent: backend-test-run`。
 
 ## 输出
 

@@ -76,17 +76,17 @@ hooks:
 
 执行前按这个顺序读取：
 
-1. `docs/user-stories/00-index.md`
-2. `docs/prd/00-index.md`
-3. `${CLAUDE_PLUGIN_ROOT}/guides/frontend/index.md`
-4. 按需进入：
+- `docs/user-stories/00-index.md`
+- `docs/prd/00-index.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/frontend/index.md`
+- 按需进入：
    - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/patterns.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/testing.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/testid-standards.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/validation.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/quality.md`
-5. 若任务有设计文档，再读 `.ai/design/[任务名].md`
+- 若任务有设计文档，再读 `.ai/design/[任务名].md`
 
 规则：
 - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md` 是 frontend 事实型主规范
@@ -97,10 +97,10 @@ hooks:
 
 先查项目，再查外部资料：
 
-1. `Grep` / `Glob` / `Read` 查现有实现
-2. 查 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/*.md`
-3. 查 Context7 或官方文档补库级事实
-4. 仅在前 3 步不足时用 WebSearch
+- `Grep` / `Glob` / `Read` 查现有实现
+- 查 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/*.md`
+- 查 Context7 或官方文档补库级事实
+- 仅在前 3 步不足时用 WebSearch
 
 适合外查的内容：
 - TanStack Router / Query / Form 官方 API

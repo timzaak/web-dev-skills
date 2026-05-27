@@ -15,11 +15,11 @@ cd backend && cargo check --package <api-package>
 - ⚠️ 警告可以接受，但必须记录
 
 **如果编译失败**：
-1. 分析错误原因（import 错误、类型错误、trait 冲突等）
-2. **立即修复编译错误**
-3. 重新验证：`cargo check --package <api-package>`
-4. 最多重试 3 次
-5. **仍然失败**：❌ 不能标记任务为"完成"
+- 分析错误原因（import 错误、类型错误、trait 冲突等）
+- **立即修复编译错误**
+- 重新验证：`cargo check --package <api-package>`
+- 最多重试 3 次
+- **仍然失败**：❌ 不能标记任务为"完成"
 
 **重要**：
 - 编译错误必须在完成前修复
@@ -72,11 +72,11 @@ uv run scripts/backend-test.py -- --package <core-package> --lib
 ## 常见编译错误模式
 
 
-1. **Import 错误**：正确导入 `axum::extract::{Path, State, Extension}`
-2. **Handler 签名**：参考现有 handler（如 `login.rs`）的正确写法
-3. **UUID 生成**：使用 `Uuid::now_v7()` 而非 `Uuid::new_v4()`
-4. **闭包类型**：`.map_err()` 需要闭包，不是直接传值
-5. **Trait 导入**：确保 repository trait 已导入
+- **Import 错误**：正确导入 `axum::extract::{Path, State, Extension}`
+- **Handler 签名**：参考现有 handler（如 `login.rs`）的正确写法
+- **UUID 生成**：使用 `Uuid::now_v7()` 而非 `Uuid::new_v4()`
+- **闭包类型**：`.map_err()` 需要闭包，不是直接传值
+- **Trait 导入**：确保 repository trait 已导入
 
 ## 典型错误处理
 

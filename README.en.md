@@ -91,7 +91,7 @@ Additional notes:
 Notes:
 
 - `/t-tools:t-prd-check` is the quality gate for PRDs, HTML Previews, and user stories. It is not an optional helper command.
-- `/t-tools:t-task-check` is the gate for task breakdown, DAG validity, and item executability. Across multiple runs, it rechecks prior findings and marks new, carried, resolved, and disputed items.
+- `/t-tools:t-task-check` is the gate for task breakdown, DAG validity, and item executability. It verifies that task documents are ready for implementation.
 - `/t-tools:t-demo-accept` is the demo-stage acceptance gate. It verifies test coverage, runnability, and delivery quality.
 
 Common helper commands:
