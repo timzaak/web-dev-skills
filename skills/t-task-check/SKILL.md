@@ -64,7 +64,12 @@ allowed-tools:
 - 读取 `.state.json` 并验证 schema。
 - 若指定 `--phase`，仅检查该阶段；否则检查当前阶段。指定阶段必须存在于 `.state.json.phases` 的 active phases 中。
 - 校验阶段依赖正确性。
-- 读取阶段目录下的 `index.md`、slot manifest 和 item 文件。
+- 读取阶段目录下的 `index.md`、slot manifest，并建立 item 文件清单。
+- 校验 item 时按以下顺序读取：
+   - 从 `.state.json`、slot manifest 和 item 文件头/关键字段抽取 `id/title/agent/scope/expected_files/validation/depends_on/test_item_type/uses_skill/handoff_summary/completion_criteria`。
+   - 用抽取结果完成 item 存在性、路径一致性、manifest 覆盖、DAG、agent/slot 匹配和 backend test authoring/runner 配对校验。
+   - 发现字段缺失、DAG/manifest 不一致、拆分阈值可疑、设计一致性可疑或需要为 P0/P1 补证时，读取对应 item 全文。
+   - 大型 phase 先用 `Grep`、路径清单或 manifest 定位目标 item，再读取命中的 item 文件。
 - 按 `protocols/task-check-rubric.md` 校验 item DAG 与 manifest 覆盖关系。
 - 验证 item 文件结构与内容：
    - 必须包含 `id/title/agent/scope/inputs/steps/expected_files/validation/depends_on/handoff_summary/completion_criteria`
@@ -78,7 +83,12 @@ allowed-tools:
    - 单个 HTTP/API item 同时包含 5 个以上 endpoint、DTO、路由注册和 OpenAPI/schema 更新时，必须拆分，否则记 P1
    - 单个 demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流时，必须拆分，否则记 P1
 - 核对设计文档与任务文档的一致性。
-- 通过 `Agent` tool 调度当前阶段对应 subagent 做专业校验。每个 subagent 独立启动，传入 prompt 包含：item 文件内容、设计文档相关节、验证范围、`protocols/task-check-rubric.md` 中的 agent 评审边界、输出格式要求（score/findings/fixes/summary）。可并行调度同阶段多个 subagent。
+- 通过 `Agent` tool 调度当前阶段对应 subagent 做专业校验。每个 subagent 独立启动，传入 prompt 包含：该 agent/slot 相关 item 的文件路径、关键字段摘要、必要 item 全文或片段、设计文档相关节、验证范围、`protocols/task-check-rubric.md` 中的 agent 评审边界、输出格式要求（score/findings/fixes/summary）。可并行调度同阶段多个 subagent。
+   - 不得默认把当前 phase 的全部 item 全文传给每个 subagent。
+   - dev agent 默认只接收 dev item 与直接影响实现的跨 slot 摘要。
+   - test agent 默认只接收 test item、相关 dev handoff/expected_files 摘要和测试执行闭环约束。
+   - accept agent 默认只接收 accept item、直接依赖 runner/dev handoff 摘要和验收闭环约束。
+   - demo 阶段按 dev/accept slot 同样做最小分发。
    - backend: subagent_type="backend-dev", "backend-test", "backend-accept"
    - frontend: subagent_type="frontend-dev", "frontend-test", "frontend-accept"
    - miniapp: subagent_type="miniapp-dev", "miniapp-test", "miniapp-accept"

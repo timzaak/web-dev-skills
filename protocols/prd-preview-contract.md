@@ -84,7 +84,7 @@ Preview 应结合“可视化 PRD 阅读器”和“低保真交互原型”两�
 
 ## Determinism Rules
 
-为了降低自由发挥，Preview 应使用稳定结构：
+Preview 使用固定结构：
 
 - 页面标题使用 `<feature> PRD Preview`。
 - 顶部 summary 区展示元数据和一句话目标。

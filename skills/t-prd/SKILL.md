@@ -21,8 +21,6 @@ allowed-tools:
 
 ## 适用范围
 
-这是一个有副作用的任务型 skill，负责先补齐 user story，再创建或更新 PRD 文档，并同步生成可视化 HTML Preview。
-
 不要用它做：
 - PRD 完整性检查 → 使用 `/t-prd-check`
 - 用户故事质量检查 → 使用 `/t-prd-check`
@@ -90,7 +88,7 @@ allowed-tools:
 
 ## PRD 前置澄清门禁
 
-`/t-prd` 在写入 PRD 前必须完成轻量澄清门禁。该门禁吸收 grill-me 的核心思想：先研究事实，再对真正阻塞 PRD 的判断点逐一追问，直到足以形成可审阅的产品语义。
+`/t-prd` 在写入 PRD 前必须完成轻量澄清门禁：先研究事实，再对真正阻塞 PRD 的判断点逐一追问，直到足以形成可审阅的产品语义。
 
 运行时维护一个临时 `PRD Grill Snapshot`，不写入 PRD 正文：
 
@@ -178,7 +176,7 @@ HTML Preview 由 `/t-prd-preview` 自动生成到 `.ai/preview/<domain>/[feature
 
 ### 4. 收集信息
 
-如已存在 `.ai/tech-research/$ARGUMENTS.md`，先从中提取技术需求（§1.2）、代码库评估（§2）、影响分析（§5）和 PRD 建议（§7），减少提问量。
+如已存在 `.ai/tech-research/$ARGUMENTS.md`，先从中提取技术需求（§1.2）、代码库评估（§2）、影响分析（§5）和 PRD 建议（§7）。
 
 仅当上下文无法可靠推断时，用 `AskUserQuestion` 补齐：
 - 功能目标与范围边界
@@ -222,7 +220,7 @@ HTML Preview 由 `/t-prd-preview` 自动生成到 `.ai/preview/<domain>/[feature
 - 已存在足够覆盖的 user story → 直接引用，不重复创建
 - 缺少少量场景 → 优先在对应角色现有文件中追加
 - 现有角色文件都不适合 → 创建新文件
-- 从已有 PRD 提取交叉引用和已有能力边界，避免重复定义
+- 从已有 PRD 提取交叉引用和已有能力边界
 
 新增 user story 必须遵循 `${CLAUDE_PLUGIN_ROOT}/guides/product/user-story.md` 的结构和 GWT 风格验收标准，使用 [user-story-template.md](user-story-template.md)。
 

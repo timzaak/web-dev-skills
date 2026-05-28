@@ -4,7 +4,7 @@
 
 ## Source Of Truth Boundaries
 
-避免多处定义同一规则：
+单一真相源：
 
 - 状态字段、状态取值和聚合规则只以 `protocols/task-state-contract.md` 为准。
 - phase/slot/item 执行顺序、active phases、backend test item 类型只以 `protocols/task-phase-execution.md` 为准。
@@ -62,6 +62,21 @@
 - 设计文档与任务文档一致
 - 调用当前阶段对应 agents 做专业校验
 - 主流程复核后生成最终结论
+
+### Context Budget Rules
+
+默认读取顺序：
+
+- 先读取 `.state.json`、当前 phase `index.md` 和 slot manifest。
+- 再抽取 item 关键字段，建立轻量 item 表。
+- DAG、manifest 覆盖、agent/slot 匹配、backend test authoring/runner 配对等结构检查优先基于轻量 item 表完成。
+- 只有以下情况才读取 item 全文：
+  - 关键字段缺失或冲突，需要定位具体证据。
+  - 拆分阈值、职责混杂、设计一致性存在疑点。
+  - subagent finding 需要主流程复核。
+  - P0/P1 需要补齐任务文档证据。
+
+subagent 上下文必须按 agent/slot 裁剪。不得默认向每个 subagent 传入当前 phase 的全部 item 全文；应传入相关 item 路径、关键字段摘要、必要片段和直接依赖 handoff 摘要。
 
 ## Agent Review Contract
 

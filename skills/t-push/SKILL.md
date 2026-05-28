@@ -8,8 +8,6 @@ allowed-tools:
 
 # Push with Local CI
 
-根据目标项目 git 变更自动检测 backend、frontend、demo 影响范围，运行受影响区域的本地 CI，全部通过后执行 `git commit && git push`。无需参数，commit message 默认由脚本根据变更范围生成。
-
 运行时边界统一参考：`protocols/runtime-boundaries.md`
 
 ## Fixed Flow

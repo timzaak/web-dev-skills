@@ -102,11 +102,11 @@ hooks:
 
 - 编写或维护场景测试。
 - 修改 `backend/**/tests/scenarios/**` 或任何 `*_scenarios.rs`，除非用户明确授权修测试。
-- 为了让场景测试通过而修改断言、状态码预期、权限预期或业务规则预期。
+- 修改场景测试断言、状态码预期、权限预期或业务规则预期。
 
 详细测试边界与写法统一参考 `${CLAUDE_PLUGIN_ROOT}/guides/backend/tdd-workflow.md`。
 
-测试价值门槛统一参考 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`；不要为了满足“补测试”而新增构造函数赋值、DTO/derive、getter/setter、常量或机械字段映射测试。
+测试价值门槛统一参考 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`；不得新增构造函数赋值、DTO/derive、getter/setter、常量或机械字段映射测试。
 
 ## 编译验证步骤
 

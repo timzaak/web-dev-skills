@@ -18,8 +18,6 @@ allowed-tools:
 
 ## 适用范围
 
-这是一个有副作用的任务型 skill，负责将 Markdown PRD 转化为可视化 HTML Preview，供人类快速审阅和协作。
-
 不要用它做：
 - PRD 创建或更新 → 使用 `/t-prd`
 - PRD 完整性检查 → 使用 `/t-prd-check`
