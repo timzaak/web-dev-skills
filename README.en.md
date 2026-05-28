@@ -102,7 +102,7 @@ Common helper commands:
 - `/t-tools:t-prd-preview <feature>`: generates or updates the PRD HTML Preview for quick human review of product semantics and key paths. Usually triggered automatically by `/t-prd`, but can also be run independently to regenerate the Preview
 - `/t-tools:t-consistency-check`: checks whether the backend PRD and implementation are consistent; it is not a global DDD inspection command
 - `/t-tools:t-demo-run-all`: runs demo tests in batch
-- `/t-tools:t-push`: calls `${CLAUDE_PLUGIN_ROOT}/scripts/push.py` to detect backend, frontend, and demo changes from git diff, run affected local CI checks in parallel, then directly run `git commit` plus `git push` after CI passes
+- `/t-tools:t-push`: has the AI summarize the commit message from `git diff`, then calls `${CLAUDE_PLUGIN_ROOT}/scripts/push.py --message "<message>"` to detect backend, frontend, and demo changes, run affected local CI checks in parallel, and run `git commit` plus `git push` after CI passes
 - `/t-tools:t-release [version]`: releases a version by updating project versions, creating a git commit and tag, and pushing to the remote. Version files use semantic versioning, such as `0.2.0`, while the final git tag always uses a `v` prefix, such as `v0.2.0`. If omitted, the command recommends one based on the latest semver tag. It only runs on a clean `main` branch, updates `backend/Cargo.toml`, `frontend/package.json`, and `demo/package.json`, then commits and pushes after compilation checks pass.
 
 ## Installation

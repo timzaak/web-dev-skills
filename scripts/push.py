@@ -172,38 +172,11 @@ def run_ci(areas: set[str]) -> None:
         raise RuntimeError("Local CI failed:\n" + "\n".join(f"- {failure}" for failure in failures))
 
 
-def classify_commit_type(files: list[str]) -> str:
-    if files and all(path.endswith(".md") or path.startswith("docs/") for path in files):
-        return "docs"
-    if files and all("/test" in path or path.startswith("tests/") or ".test." in path or ".spec." in path for path in files):
-        return "test"
-    if files and all(
-        path.startswith(("scripts/", ".github/", ".claude-plugin/"))
-        or Path(path).name in {"package.json", "package-lock.json", "Cargo.toml", "Cargo.lock"}
-        for path in files
-    ):
-        return "chore"
-    return "chore"
-
-
-def summarize_scope(files: list[str], areas: set[str]) -> str:
-    if areas:
-        return " and ".join(sorted(areas))
-    if files and all(path.endswith(".md") or path.startswith("docs/") for path in files):
-        return "docs"
-    if files and all(path.startswith("scripts/") for path in files):
-        return "scripts"
-    if len(files) == 1:
-        return Path(files[0]).stem.replace("-", " ").replace("_", " ")
-    return "project files"
-
-
-def build_commit_message(files: list[str], areas: set[str], explicit_message: str | None) -> str:
-    if explicit_message:
-        return explicit_message.strip()
-    commit_type = classify_commit_type(files)
-    scope = summarize_scope(files, areas)
-    return f"{commit_type}: update {scope}"
+def normalize_commit_message(explicit_message: str | None) -> str | None:
+    if explicit_message is None:
+        return None
+    message = explicit_message.strip()
+    return message or None
 
 
 def stage_commit_push(message: str, push: bool) -> str:
@@ -236,7 +209,7 @@ def stage_commit_push(message: str, push: bool) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run scoped local CI, then commit and push git changes.")
-    parser.add_argument("-m", "--message", help="Use an explicit commit message instead of the generated one.")
+    parser.add_argument("-m", "--message", help="Commit message summarized by the AI from the actual git changes.")
     parser.add_argument("--no-push", action="store_true", help="Create the commit locally without pushing.")
     parser.add_argument("--checks-only", action="store_true", help="Run selected local CI checks without committing or pushing.")
     parser.add_argument("--dry-run", action="store_true", help="Inspect changes and selected checks without running CI or committing.")
@@ -256,11 +229,14 @@ def main() -> int:
             raise RuntimeError("Git status has changes, but no changed files were detected.")
 
         areas = detect_areas(files)
-        message = build_commit_message(files, areas, args.message)
+        message = normalize_commit_message(args.message)
         checks = ", ".join(sorted(areas)) if areas else "none"
         print(f"Changed files: {len(files)}")
         print(f"Selected CI areas: {checks}")
-        print(f"Prepared commit message: {message}")
+        if message:
+            print(f"Commit message: {message}")
+        elif not args.dry_run and not args.checks_only:
+            raise RuntimeError("Commit message is required. Generate it from the git diff and pass --message.")
 
         if args.dry_run:
             return 0
