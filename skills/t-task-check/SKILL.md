@@ -66,15 +66,6 @@ allowed-tools:
 - 校验阶段依赖正确性。
 - 读取阶段目录下的 `index.md`、slot manifest 和 item 文件。
 - 按 `protocols/task-check-rubric.md` 校验 item DAG 与 manifest 覆盖关系。
-- 检查旧结构残留：
-   - 根级 `backend-dev.md`
-   - 根级 `backend-test.md`
-   - 根级 `frontend-dev.md`
-   - 根级 `miniapp-dev.md`
-   - 根级 `demo-dev.md`
-   - 根级 `README.md`
-   - 根级 `agents.json`
-   - 其他混用旧结构的任务文件
 - 验证 item 文件结构与内容：
    - 必须包含 `id/title/agent/scope/inputs/steps/expected_files/validation/depends_on/handoff_summary/completion_criteria`
    - backend/test item 必须声明 `test_item_type: authoring|runner`
@@ -116,7 +107,6 @@ agent finding 不直接作为最终裁决；主流程必须按 rubric 完成证�
 | `STATE_FILE_MISSING` | 任务目录或 `.state.json` 缺失 | 状态文件不存在 | 运行 `/t-task [feature] --phase backend` 重建 |
 | `STATE_JSON_INVALID` | `.state.json` 格式错误 | 状态文件解析失败 | 修复 JSON 后重试；或重建任务目录 |
 | `TASK_SCHEMA_INVALID` | 缺少 `phase/phases/tasks/status/manifest/items` 字段 | 任务状态结构不完整 | 运行 `/t-task [feature] --phase [phase]` 重建 |
-| `LEGACY_STRUCTURE_FOUND` | 发现旧结构字段或旧任务文件 | 旧结构残留 | 删除旧任务目录后重新运行 `/t-task` |
 | `PHASE_INVALID` | `--phase` 不是 `backend|frontend|miniapp|demo` | 非法阶段，仅支持 backend/frontend/miniapp/demo | 使用合法参数后重试 |
 | `PHASE_NOT_ACTIVE` | `--phase` 不在当前任务 active phases 中 | 当前项目未启用该阶段 | 使用 `.state.json.phases` 中存在的阶段，或重新运行 `/t-task` 生成该阶段 |
 | `PHASE_DIR_MISSING` | 阶段目录不存在 | 找不到阶段目录 | 运行 `/t-task [feature] --phase [phase]` 生成 |
@@ -138,7 +128,6 @@ agent finding 不直接作为最终裁决；主流程必须按 rubric 完成证�
 
 状态文件验证: 通过
 Item DAG 验证: 通过
-旧结构残留检查: 通过
 
 状态文件结构: 15/15
 文档完整性: 14/15

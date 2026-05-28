@@ -28,7 +28,6 @@ allowed-tools:
 
 上游输入（来自 `/t-task` 产出）：
 - `.ai/task/[feature]/.state.json` — 任务状态文件（必须存在且可解析）
-  - 不得包含旧状态字段或 `agents` 根字段
   - 目标阶段必须已生成（`phases[phase].generated_at` 非空）
 - `.ai/task/[feature]/<phase>/index.md` — 阶段总览
 - `.ai/task/[feature]/<phase>/<slot>.md` — Slot manifest
@@ -63,7 +62,6 @@ allowed-tools:
 
 ## Preconditions
 - `.ai/task/[feature]/.state.json` 必须存在且可解析。
-- `.state.json` 不得包含旧状态字段或 `agents` 根字段。
 - 目标阶段必须是 supported phase，且存在于当前任务 active phases 中；未启用 miniapp 的项目不得执行 `--phase miniapp`。
 - 目标阶段必须已生成，且 `phases[phase].generated_at` 非空。
 - 前置阶段依赖统一参考 `protocols/task-phase-execution.md`。
@@ -136,8 +134,6 @@ backend/test 特例：
 - backend 阶段在 `accept` slot 全部 completed 后停止，并提示执行 `/t-backend-finalize [feature]`。
 
 ## Forbidden
-- 生成或依赖旧状态字段。
-- 生成或依赖 `agents` 根字段。
 - 直接执行 `dev.md`、`test.md`、`accept.md`。
 - 只传 `index.md` 或 slot manifest 就开始执行。
 - 忽略 item DAG，按文件名随意执行。
@@ -150,7 +146,6 @@ backend/test 特例：
 
 ## Failure
 - 状态文件缺失/损坏：终止并提示先运行 `/t-task [feature] --phase [phase]`。
-- 状态文件包含旧结构字段：终止并提示删除旧任务目录后重新运行 `/t-task`。
 - 依赖不满足：阻塞后续依赖 item。
 - 状态写入失败：重试一次，失败则终止。
 - 阶段校验失败：提示先完成前置阶段。

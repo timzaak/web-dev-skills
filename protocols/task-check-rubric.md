@@ -27,7 +27,6 @@
 
 `.state.json` 必须满足：
 
-- 不包含旧状态字段或 `agents` 根字段
 - `feature` 存在
 - `phase` 为 supported phases：`backend|frontend|miniapp|demo`
 - `phases` 包含当前任务的 active phases；未启用 miniapp 的项目不要求包含 `miniapp`
@@ -57,7 +56,6 @@
    - 无依赖环
    - item 文件路径与 state 一致
    - manifest 覆盖全部 items
-- 无旧结构残留
 - item 文件包含必填字段
 - 若当前阶段为 backend，backend/test slot 符合 `protocols/task-phase-execution.md` 的 authoring/runner 配对与 `uses_skill` 要求
 - 若当前阶段为 backend，backend/accept item 依赖 runner item，不只依赖 authoring item
@@ -109,12 +107,10 @@ agent 评审边界：
 ### P0
 
 - `.state.json` 缺失或格式错误
-- `.state.json` 含旧状态字段或 `agents` 根字段
 - 缺少核心 phase/slot/item/finalize 结构
 - 阶段目录、manifest、item 文件缺失
 - item 依赖不存在或成环
 - manifest 未覆盖全部 items
-- 新旧结构混用
 - 阶段依赖关系错误
 - backend/test 缺少 runner item、runner 缺少 `uses_skill: skills/t-backend-test-run/SKILL.md`，或 authoring item 没有对应 runner item
 - backend/accept item 只依赖 backend/test authoring item，未依赖 runner item
@@ -151,7 +147,6 @@ agent 评审边界：
 - 状态文件验证结果
 - 阶段依赖验证结果
 - item DAG 验证结果
-- 旧结构残留检查结果
 - 每个维度得分与扣分证据
 - 实际调用的 agent 集合
 - `confirmed / disputed / assumption` 分类摘要

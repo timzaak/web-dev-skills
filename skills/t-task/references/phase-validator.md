@@ -43,7 +43,7 @@ tools:
    - `demo` 依赖 active phases 中排在它之前的最后一个交付阶段
 - `target_phase` 不在 supported phases 中时非法。
 - `target_phase` 不在 active phases 中时返回 `valid=false`，提示当前项目未启用该阶段。
-- 只读取当前 `.state.json` 的 `phase/phases/tasks` 结构，不兼容旧 `state.agents`。
+- 只读取当前 `.state.json` 的 `phase/phases/tasks` 结构。
 - 校验失败时必须返回阻塞阶段与阻塞 items/slots，而不是虚构 agent 状态。
 
 ## Blocking Rule
@@ -70,7 +70,6 @@ tools:
 | `target_phase` 未启用 | 返回 `valid=false` + 当前 active phases 列表 |
 | 状态文件不存在 | 返回 `valid=false` + 提示先运行 `/t-task` |
 | 状态文件格式损坏 | 返回 `valid=false` + 提示重建任务目录 |
-| 发现旧结构字段 | 返回 `valid=false` + 提示删除旧任务目录后重建 |
 
 ## Minimal Example
 ```json

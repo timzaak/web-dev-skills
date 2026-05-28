@@ -131,7 +131,7 @@ demo 阶段：
 - 按当前阶段 slot 串行调度相应 agent。每个 slot agent 必须通过 `Agent` tool 启动，`subagent_type` 按 Agent Dispatch Mapping 映射。传入 prompt 必须包含：设计文档相关节、上游 slot handoff（如有）、guide 路径、Agent Output Contract 要求的字段列表。
    - prompt 必须引用 `protocols/task-check-rubric.md`，要求 agent 在返回前自检 P0/P1 规则。
    - prompt 必须引用 `protocols/task-phase-execution.md`，避免生成无法被 `/t-run` 执行的 item。
-   - backend/test slot prompt 必须明确要求：为每个场景测试 authoring item 生成对应 runner item，runner item 使用 `agent: backend-test` 和 `uses_skill: skills/t-backend-test-run/SKILL.md`。
+   - backend/test slot prompt 必须明确要求：为每个场景测试 authoring item 生成对应 runner item，runner item 使用 `agent: general-purpose` 和 `uses_skill: skills/t-backend-test-run/SKILL.md`。
 - 每个 slot agent 必须返回：
    - slot manifest 正文
    - item 文件集合
@@ -259,7 +259,7 @@ backend/test slot 必须按当前契约生成，不做旧格式兼容：
 | 类型 | agent | test_item_type | uses_skill | depends_on |
 |---|---|---|---|---|
 | authoring | backend-test | authoring | none | 对应 backend-dev item |
-| runner | backend-test | runner | `skills/t-backend-test-run/SKILL.md` | 对应 authoring item |
+| runner | general-purpose | runner | `skills/t-backend-test-run/SKILL.md` | 对应 authoring item |
 
 authoring item 只创建或修改场景测试、测试 helper 和模块注册；完成标准只要求编译验证或建议 runner 命令，不要求目标测试全部通过。
 
