@@ -57,11 +57,9 @@ allowed-tools:
 ## Preconditions
 - `.ai/design/[feature].md` 必须存在。
 - 阶段依赖、slot 顺序、执行单元统一参考：`protocols/task-phase-execution.md`
-- `frontend` 阶段生成前必须先执行 `cd frontend && npm run generate-api && cd ../`
 - `miniapp` 是可选阶段：仅当项目根目录存在 `miniapp/`，或设计文档明确包含小程序交付内容时启用。
 - 未启用 miniapp 的项目不得自动生成 `.ai/task/[feature]/miniapp/`；显式请求 `--phase miniapp` 时应返回“当前项目未启用 miniapp 阶段”。
 - 启用 miniapp 时，默认阶段顺序为 `backend -> frontend -> miniapp -> demo`。
-- `generate-api` 失败时立即终止，不生成当前阶段任务文件。
 
 ## Output Layout
 backend 阶段：
@@ -126,7 +124,6 @@ demo 阶段：
 - 校验 `.ai/design/[feature].md` 存在。
 - 解析 `[feature]` 和 `--phase`；根据 `protocols/task-phase-execution.md` 检测 active phases；未传 `--phase` 时自动选择第一未完成 active phase。
 - 按 `protocols/task-phase-execution.md` 校验阶段前置和 slot 顺序；未启用的 phase 不参与校验或生成。
-- 如目标阶段为 `frontend`，先运行 `generate-api`。
 - 按当前阶段 slot 串行调度相应 agent。每个 slot agent 必须通过 `Agent` tool 启动，`subagent_type` 按 Agent Dispatch Mapping 映射。传入 prompt 必须包含：设计文档相关节、上游 slot handoff（如有）、guide 路径、Agent Output Contract 要求的字段列表。
    - prompt 必须引用 `protocols/task-check-rubric.md`，要求 agent 在返回前自检 P0/P1 规则。
    - prompt 必须引用 `protocols/task-phase-execution.md`，避免生成无法被 `/t-run` 执行的 item。
@@ -285,7 +282,6 @@ accept item 必须依赖 runner item，不能只依赖 authoring item。`t-backe
 ## Failure
 - 设计文档不存在：提示先运行 `/t-design [feature]`。
 - 前置阶段未完成：返回阻塞阶段与阻塞 items。
-- `frontend` 阶段 `npm run generate-api` 失败：立即终止，并返回失败命令与错误摘要。
 - 任一 slot agent 生成失败：终止本次任务生成，不写入该 slot 的成功状态，并返回失败 agent 与失败原因。
 - slot agent 返回 item 缺少必填字段、依赖不存在或形成环：拒绝写入成功状态，要求重新生成该 slot。
 - slot agent 返回缺失 `self_check`、manifest 覆盖不完整、backend/test 类型非法或触发必须拆分规则：拒绝写入成功状态，要求重新生成该 slot。
