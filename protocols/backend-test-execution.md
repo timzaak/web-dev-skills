@@ -6,7 +6,7 @@
 
 - 适用于 backend/test `test_item_type: runner`。
 - 不适用于场景测试 authoring；authoring 由 `backend-test` item 完成。
-- `t-backend-test-run` 是 skill，不是 agent；runner item 的 `agent` 仍为 `backend-test`。
+- `t-backend-test-run` 是 skill，不是 agent；runner item 的 `agent` 必须为 `general-purpose`。
 
 ## Default Principle
 

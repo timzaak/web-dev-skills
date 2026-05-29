@@ -1,7 +1,6 @@
 ---
 name: t-tech-research
 description: Research technical feasibility for a feature by scanning the codebase, checking dependencies, researching new libraries when needed, and writing a report under .ai/tech-research/. Use when the user runs /t-tech-research with a feature name, asks for a technical feasibility study, or requests evaluation before PRD work for a feature involving new dependencies, new technology, or significant architecture changes. Do not use for casual "how would this work" questions, ordinary bug fixes, or small refactors.
-disable-model-invocation: true
 ---
 
 # 需求技术预研
@@ -66,6 +65,8 @@ disable-model-invocation: true
 - 期望的技术能力或效果
 - 特定库或技术方向偏好
 - 已知约束或排除项
+
+补问后，无论用户是否全部回答，都必须在写报告前将未回答项转为显式假设并写入报告 6.2 节。不得在报告中留下"待确认"/"需确认"/"待定"/"TBD"等未决项。
 
 ### 2. 建立本地上下文
 
@@ -150,6 +151,7 @@ disable-model-invocation: true
 - 外部库调研是否覆盖核心 API、集成方式和已知限制
 - 是否已收敛为单一明确技术路线
 - 是否移除了方案对比、候选排序和开放式选择
+- 报告是否不含任何"待确认"/"需确认"/"待定"/"TBD"等未决项；未确认信息是否已全部转为显式假设
 - PRD 编写建议是否明确可执行
 - 影响分析中的路径是否真实存在
 - 可行性判定是否明确

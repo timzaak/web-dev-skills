@@ -97,12 +97,12 @@ backend 的 `finalize.md` 只作为 `/t-backend-finalize` 输入，不得由 `/t
 backend/test item 必须声明 `test_item_type`：
 
 - `authoring`：由 `backend-test` 编写或维护场景测试、helper、模块注册，只做编译验证。
-- `runner`：由 `backend-test` 加载 `skills/t-backend-test-run/SKILL.md`，执行定向测试、失败分类、生产代码修复委派和重测。
+- `runner`：由 `general-purpose` 加载 `skills/t-backend-test-run/SKILL.md`，执行定向测试、失败分类、生产代码修复委派和重测。
 
 backend/test slot 必须显式规划测试执行闭环：
 
 - 每个新增或修改场景测试的 `authoring` item 必须有对应的 `runner` item。
-- `runner` item 的 `agent` 仍为 `backend-test`，必须声明 `uses_skill: skills/t-backend-test-run/SKILL.md`。
+- `runner` item 的 `agent` 必须为 `general-purpose`，并声明 `uses_skill: skills/t-backend-test-run/SKILL.md`。
 - backend/accept item 必须依赖至少一个 `runner` item，不得只依赖 `authoring` item。
 - `t-backend-test-run` 不得作为 agent 出现在 item 中。
 

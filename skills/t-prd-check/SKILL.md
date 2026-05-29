@@ -1,7 +1,6 @@
 ---
 name: t-prd-check
 description: Validate PRD, HTML Preview, and user stories for quality and consistency.
-disable-model-invocation: true
 argument-hint: "[feature-name|--all]"
 allowed-tools:
   - Read

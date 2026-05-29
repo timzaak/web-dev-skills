@@ -9,7 +9,6 @@ description: |
   documentation", "generate docs", "create a tutorial", "onboarding guide", "write a guide",
   or want help producing readable documentation for a project or module — even if they don't
   explicitly say "tutorial."
-disable-model-invocation: true
 argument-hint: "[项目或模块名]"
 allowed-tools:
   - AskUserQuestion

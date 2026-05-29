@@ -21,6 +21,21 @@ tools:
 
 运行时边界统一参考：`protocols/runtime-boundaries.md`
 
+## Read Order
+
+执行前按顺序读取：
+
+- 任务输入或 item 文件
+- `.ai/design/[任务名].md`（如适用）
+- `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`
+- `protocols/task-phase-execution.md`
+- `protocols/tests-to-run-contract.md`
+
+规则：
+
+- 后端测试入口、场景测试写法、单元测试价值门槛和验证命令以 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md` 为准。
+- backend/test authoring/runner 拆分、`test_item_type` 和 `uses_skill` 以 `protocols/task-phase-execution.md` 为准。
+
 ## 职责
 
 负责：
@@ -50,7 +65,7 @@ tools:
 通过 `t-task` 生成 backend/test slot 时：
 
 - 每个新增或修改场景测试的 authoring item 必须配套一个 runner item。
-- runner item 必须声明 `agent: backend-test`、`test_item_type: runner`、`uses_skill: skills/t-backend-test-run/SKILL.md`。
+- runner item 必须声明 `agent: general-purpose`、`test_item_type: runner`、`uses_skill: skills/t-backend-test-run/SKILL.md`。
 - runner item 必须依赖对应 authoring item，并负责定向测试、失败分类、生产代码修复委派和重测。
 - 不得生成 `agent: backend-test-run`。
 

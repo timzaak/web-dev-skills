@@ -1,7 +1,6 @@
 ---
 name: t-backend-test-run
 description: Run targeted Rust backend tests, diagnose failures, delegate production-code fixes, and retest without weakening scenario-test semantics.
-disable-model-invocation: true
 allowed-tools:
   - Bash
   - Read
@@ -16,6 +15,20 @@ allowed-tools:
 Runtime boundaries: `protocols/runtime-boundaries.md`
 
 本 skill 只负责 backend/test runner item 的测试执行、失败诊断、生产代码修复编排和重测。它不编写新场景测试，不改变业务验收语义。场景测试 authoring 属于 `backend-test` authoring item。
+
+## Read Order
+
+Before execution, read in order:
+
+- The current runner item file
+- `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`
+- `protocols/backend-test-execution.md`
+- `protocols/tests-to-run-contract.md`
+
+Rules:
+
+- Backend test entrypoints and command shape follow `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`.
+- Runner narrowing, failure classification, delegation, and escalation follow `protocols/backend-test-execution.md`.
 
 ## Core Workflow
 
@@ -67,5 +80,6 @@ Report the commands executed, pass/fail result, fixes applied, files changed, se
 ## Shared References
 
 - `protocols/runtime-boundaries.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`
 - `protocols/backend-test-execution.md`
 - `protocols/tests-to-run-contract.md`

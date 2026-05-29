@@ -1,7 +1,6 @@
 ---
 name: t-task
 description: Convert technical design documents into executable phased task plans with work breakdown and dependencies.
-disable-model-invocation: true
 argument-hint: "[任务名称] [--phase <backend|frontend|miniapp|demo>]"
 allowed-tools:
   - AskUserQuestion
@@ -131,6 +130,7 @@ demo 阶段：
 - 按当前阶段 slot 串行调度相应 agent。每个 slot agent 必须通过 `Agent` tool 启动，`subagent_type` 按 Agent Dispatch Mapping 映射。传入 prompt 必须包含：设计文档相关节、上游 slot handoff（如有）、guide 路径、Agent Output Contract 要求的字段列表。
    - prompt 必须引用 `protocols/task-check-rubric.md`，要求 agent 在返回前自检 P0/P1 规则。
    - prompt 必须引用 `protocols/task-phase-execution.md`，避免生成无法被 `/t-run` 执行的 item。
+   - backend/test slot prompt 必须要求读取 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`，并以该 guide 的测试入口、编写规则和验证命令作为硬性约束。
    - backend/test slot prompt 必须明确要求：为每个场景测试 authoring item 生成对应 runner item，runner item 使用 `agent: general-purpose` 和 `uses_skill: skills/t-backend-test-run/SKILL.md`。
 - 每个 slot agent 必须返回：
    - slot manifest 正文

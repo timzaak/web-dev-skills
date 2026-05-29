@@ -1,7 +1,6 @@
 ---
 name: t-prd-preview
 description: Generate HTML Preview for PRD visual review.
-disable-model-invocation: true
 argument-hint: "[feature-name]"
 allowed-tools:
   - Read

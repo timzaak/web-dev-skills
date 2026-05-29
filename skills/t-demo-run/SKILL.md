@@ -1,7 +1,6 @@
 ---
 name: t-demo-run
 description: Run a single demo E2E test file, diagnose failures, dispatch fixes to agents, and re-run until pass.
-disable-model-invocation: true
 argument-hint: "[测试文件路径]"
 allowed-tools:
   - Read

@@ -1,7 +1,6 @@
 ---
 name: t-release
 description: Bump project version, create git tag, and push release commit to remote.
-disable-model-invocation: true
 argument-hint: "[版本号]"
 allowed-tools:
   - Read

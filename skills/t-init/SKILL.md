@@ -1,7 +1,6 @@
 ---
 name: t-init
 description: Initialize a full-stack project skeleton with Rust backend (Axum + SeaORM + Redis) and React frontend (TypeScript + TanStack + Tailwind).
-disable-model-invocation: true
 argument-hint: "<project-name>"
 allowed-tools:
   - AskUserQuestion

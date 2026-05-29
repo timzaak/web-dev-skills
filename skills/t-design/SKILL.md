@@ -1,7 +1,6 @@
 ---
 name: t-design
 description: Generate technical design documents including API design, database schema, and implementation details for a feature.
-disable-model-invocation: true
 argument-hint: "[方案名称]"
 allowed-tools:
   - AskUserQuestion

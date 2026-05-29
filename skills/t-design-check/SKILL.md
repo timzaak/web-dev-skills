@@ -1,7 +1,6 @@
 ---
 name: t-design-check
 description: Evaluate technical design documents for implementability, completeness, and consistency with a quantitative 100-point score.
-disable-model-invocation: true
 argument-hint: "[方案名称]"
 allowed-tools:
   - Read
