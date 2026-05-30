@@ -112,4 +112,4 @@ allowed-tools:
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/user-story.md` - 用户故事规范和 INVEST 原则
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/prd.md` - PRD 分层与禁止内容规范
 - `docs/user-stories/_roles.md` - 角色定义
-- `skills/t-consistency-check/SKILL.md` - PRD 与后端实现一致性检查入口
+- `skills/t-dream/SKILL.md` - PRD 等描述与实现事实准确性排查入口

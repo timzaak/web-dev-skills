@@ -66,7 +66,7 @@ Additional notes:
 - This README consistently uses `/t-tools:t-*` as the standard invocation format.
 - All `t-*` skills in this plugin are manual command entries and must not be invoked automatically by the model.
 - `t-doc` is for project documentation, onboarding tutorials, API references, configuration, and deployment notes. It is not for PRDs, technical designs, or small document edits.
-- `t-consistency-check` is a backend-specific consistency check and is not equivalent to the old repository's global DDD inspection.
+- `t-dream` uses multiple `general_agent` checks in parallel to verify whether PRD, user stories, demo test comments, and related descriptions accurately match implementation facts; it includes the former backend consistency-check capability.
 - `t-backend-test-run` is an internal execution skill reused by flows such as `backend-test`; it is not recommended as a manual entry point.
 
 ## Full Workflow
@@ -84,6 +84,7 @@ Additional notes:
   -> /t-tools:t-backend-finalize
   -> /t-tools:t-demo-run
   -> /t-tools:t-demo-accept
+  -> /t-tools:t-dream [feature|--all] [--deep] (optional, description accuracy check)
   -> /t-tools:t-push (optional, run scoped local CI, then commit and push)
   -> /t-tools:t-release [version]
 ```
@@ -100,7 +101,7 @@ Common helper commands:
 - `/t-tools:t-tech-research`: evaluates technical feasibility before writing the PRD, including dependency gap analysis, library research, impact analysis, and feasibility judgment
 - `/t-tools:t-doc <project-or-module-name>`: scans the target project codebase and generates newcomer-oriented tutorial documentation under `docs/tutorials/<name>/` by default
 - `/t-tools:t-prd-preview <feature>`: generates or updates the PRD HTML Preview for quick human review of product semantics and key paths. Usually triggered automatically by `/t-prd`, but can also be run independently to regenerate the Preview
-- `/t-tools:t-consistency-check`: checks whether the backend PRD and implementation are consistent; it is not a global DDD inspection command
+- `/t-tools:t-dream [feature|--all] [--deep|--backend-only]`: uses multiple `general_agent` checks in parallel to verify whether PRD, user stories, demo test comments, and related descriptions accurately match implementation facts, then writes `.ai/quality/dream-check-[YYYYMMDD-HHMMSS].md`
 - `/t-tools:t-demo-run-all`: runs demo tests in batch
 - `/t-tools:t-push`: has the AI summarize the commit message from `git diff`, then calls `${CLAUDE_PLUGIN_ROOT}/scripts/push.py --message "<message>"` to detect backend, frontend, and demo changes, run affected local CI checks in parallel, and run `git commit` plus `git push` after CI passes
 - `/t-tools:t-release [version]`: releases a version by updating project versions, creating a git commit and tag, and pushing to the remote. Version files use semantic versioning, such as `0.2.0`, while the final git tag always uses a `v` prefix, such as `v0.2.0`. If omitted, the command recommends one based on the latest semver tag. It only runs on a clean `main` branch, updates `backend/Cargo.toml`, `frontend/package.json`, and `demo/package.json`, then commits and pushes after compilation checks pass.

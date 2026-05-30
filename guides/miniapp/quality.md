@@ -67,7 +67,12 @@ cd miniapp && npm run starter:ci-gate -- --target taro-react-taroify-tailwind
 ### 状态
 - `ACCEPTED`：P0/P1 全部通过
 - `REJECTED`：任一 P0 失败
-- `ACCEPTED WITH IMPROVEMENTS`：P0 全通过，存在 P2 改进项
+- `ACCEPTED WITH IMPROVEMENTS`：P0 全通过，存在 P1 或 P2 改进项
+
+判定规则：
+- 判定优先级为 `REJECTED` > `ACCEPTED WITH IMPROVEMENTS` > `ACCEPTED`。
+- P1 失败不触发 `REJECTED`，但必须写入风险与修复建议。
+- 只有 P0 失败才能触发 `REJECTED`。
 
 ### 报告最小字段
 - 类型检查、构建、模板门禁结果
