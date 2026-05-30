@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Open a generated PRD HTML Preview in the default browser."""
+"""Open a generated HTML Preview in the default browser."""
 
 from __future__ import annotations
 
@@ -25,8 +25,8 @@ def open_path(path: Path) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Open a PRD HTML Preview.")
-    parser.add_argument("preview", help="Path to .ai/preview/<domain>/<feature>.html")
+    parser = argparse.ArgumentParser(description="Open an HTML Preview.")
+    parser.add_argument("preview", help="Path to the HTML preview file")
     parser.add_argument("--root", default=".", help="Target project root, defaults to current directory")
     args = parser.parse_args()
 
@@ -46,7 +46,7 @@ def main() -> int:
         return 1
 
     open_path(preview)
-    print(f"Opened PRD HTML Preview: {preview}")
+    print(f"Opened HTML Preview: {preview}")
     return 0
 
 

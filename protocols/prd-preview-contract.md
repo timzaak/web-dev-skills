@@ -1,6 +1,8 @@
 # PRD HTML Preview Contract
 
-定义 `/t-prd-preview` 生成的 HTML Preview 契约，以及 `/t-prd-check` 对该预览的检查边界。
+PRD 专用的 HTML Preview 契约。通用规则（技术约束、审阅流程、内容模型）定义在 `protocols/html-show-contract.md`，此处不重复。
+
+定义 `/t-html-show` 在 PRD 模式下的专用规则，以及 `/t-prd-check` 对该预览的检查边界。
 
 ## Purpose
 
@@ -15,7 +17,7 @@ HTML Preview 是 PRD 的可视化审阅和协作产物，用于帮助人类快�
 - PRD: `docs/prd/<domain>/<feature>.md`
 - Preview: `.ai/preview/<domain>/<feature>.html`
 
-Preview 是临时验证产物，不纳入版本控制。每次 `/t-prd-preview` 或 `/t-prd` 运行时会重新生成。
+Preview 是临时验证产物，不纳入版本控制。每次 `/t-html-show` 或 `/t-prd` 运行时会重新生成。
 
 ## Source of Truth
 
@@ -38,18 +40,9 @@ HTML Preview 必须保持目标项目技术栈无关：
 
 ## Review Workflow
 
-`/t-prd-preview` 生成或更新 Preview 后，必须立即打开 `.ai/preview/<domain>/<feature>.html` 供人类审阅。
+`/t-html-show` 在 PRD 模式下生成或更新 Preview 后，必须立即打开 `.ai/preview/<domain>/<feature>.html` 供人类审阅。
 
-推荐流程：
-
-- 先生成或更新 Markdown PRD 和 HTML Preview。
-- 立即打开 HTML Preview。
-- 人类围绕 HTML Preview 提出修改意见。
-- 同步修改 HTML Preview 与 Markdown PRD。
-- 重复审阅，直到人类确认 Preview 表达了真实意图。
-- 运行 `/t-prd-check`，验证 Preview 与 Markdown PRD 描述一致。
-
-如果 Preview 与 Markdown PRD 描述不一致，必须调整到一致后才能通过 PRD Check。
+审阅流程遵循 `html-show-contract.md` 中定义的通用 Review Workflow，并增加：运行 `/t-prd-check` 验证 Preview 与 Markdown PRD 描述一致。
 
 ## Content Model
 
@@ -98,7 +91,7 @@ Preview 使用固定结构：
 
 检查项：
 
-- 可使用 `${CLAUDE_PLUGIN_ROOT}/scripts/check-prd-preview.py` 执行机械检查。
+- 可使用 `${CLAUDE_PLUGIN_ROOT}/scripts/check-html-show.py --type prd` 执行机械检查。
 - Preview 文件是否存在且路径为 `.ai/preview/<domain>/<feature>.html`。
 - 是否为单文件 HTML，且不依赖外部脚本、样式、CDN 或目标项目构建产物。
 - 是否包含来源 PRD 路径。

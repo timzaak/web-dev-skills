@@ -100,7 +100,7 @@
 - `/t-tools:t-init <project-name>`：初始化全栈项目骨架（Rust Axum + React TanStack），生成后端、前端、E2E 测试、开发脚本等完整目录结构
 - `/t-tools:t-tech-research`：在写 PRD 之前评估需求的技术可行性，包括依赖缺口分析、库调研、影响分析和可行性判定
 - `/t-tools:t-doc <project-or-module-name>`：扫描目标项目代码库，生成面向新人的教程文档，默认写入 `docs/tutorials/<name>/`
-- `/t-tools:t-prd-preview <feature>`：独立生成或更新 PRD 的 HTML Preview，供人类快速审阅产品语义和关键路径。通常由 `/t-prd` 自动触发，也可单独执行以重新生成 Preview
+- `/t-tools:t-html-show <feature | path>`：独立生成或更新文档的 HTML Preview，供人类快速审阅。支持 PRD（传 feature 名称）和任意 Markdown 文档（传文件路径）。通常由 `/t-prd` 自动触发，也可单独执行
 - `/t-tools:t-dream [feature|--all] [--deep|--backend-only]`：通过多个 `general_agent` 并行排查 PRD、用户故事、Demo 测试注释等描述是否准确匹配实现事实，并输出 `.ai/quality/dream-check-[YYYYMMDD-HHMMSS].md`
 - `/t-tools:t-demo-run-all`：批量执行 Demo 测试
 - `/t-tools:t-push`：由 AI 基于 git diff 总结 commit message，再调用 `${CLAUDE_PLUGIN_ROOT}/scripts/push.py --message "<message>"` 自动判断 backend、frontend、demo 变更范围，并发运行受影响区域的本地 CI；CI 全部通过后执行 `git commit` 和 `git push`

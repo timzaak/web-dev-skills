@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="zh-CN" data-prd-source="docs/prd/<domain>/<feature>.md">
+<html lang="zh-CN" data-doc-source="<source-path>">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>[功能名称] PRD Preview</title>
+  <title>[文档名称] Preview</title>
   <style>
     :root {
       color-scheme: light;
@@ -256,17 +256,16 @@
 <body>
   <header>
     <div class="header-inner">
-      <h1 data-prd-section="title">[功能名称] PRD Preview</h1>
+      <h1 data-doc-section="title">[文档名称] Preview</h1>
       <div class="meta">
-        <span class="pill">优先级：[P0/P1/P2]</span>
-        <span class="pill">来源：docs/prd/&lt;domain&gt;/&lt;feature&gt;.md</span>
+        <span class="pill">来源：<source-path></span>
       </div>
-      <p class="summary" data-prd-section="goal">[一句话说明功能目标和用户价值]</p>
+      <p class="summary" data-doc-section="goal">[一句话说明文档目标]</p>
     </div>
   </header>
 
   <main>
-    <nav aria-label="PRD Preview sections">
+    <nav aria-label="Preview sections">
       <a href="#overview">Overview</a>
       <a href="#scope">Scope</a>
       <a href="#flow">Flow</a>
@@ -277,39 +276,39 @@
     </nav>
 
     <div class="content">
-      <section id="overview" data-prd-section="Overview">
+      <section id="overview" data-doc-section="Overview">
         <h2>Overview</h2>
         <div class="grid">
           <article class="box">
             <h3>目标能力</h3>
-            <p>[说明这份 PRD 定义的能力目标]</p>
+            <p>[说明文档定义的能力目标]</p>
           </article>
           <article class="box">
             <h3>边界约束</h3>
-            <p>[说明关键边界、入口或约束，不复刻已有 UI]</p>
+            <p>[说明关键边界、入口或约束]</p>
           </article>
         </div>
       </section>
 
-      <section id="scope" data-prd-section="Scope">
+      <section id="scope" data-doc-section="Scope">
         <h2>Scope</h2>
         <div class="grid">
           <div class="box">
             <h3>In Scope</h3>
             <ul>
-              <li>[包含功能]</li>
+              <li>[包含内容]</li>
             </ul>
           </div>
           <div class="box">
             <h3>Out of Scope</h3>
             <ul>
-              <li>[不包含功能]</li>
+              <li>[不包含内容]</li>
             </ul>
           </div>
         </div>
       </section>
 
-      <section id="flow" data-prd-section="Flow">
+      <section id="flow" data-doc-section="Flow">
         <h2>Flow</h2>
         <div class="flow">
           <div class="step">1. [入口或触发条件]</div>
@@ -317,19 +316,19 @@
           <div class="step">3. [结果或状态变化]</div>
         </div>
 
-        <div class="prototype" aria-label="Low fidelity preview for planned UI">
+        <div class="prototype" aria-label="Low fidelity preview">
           <div class="toolbar">
             <button class="active" type="button" data-panel-target="happy">成功路径</button>
             <button type="button" data-panel-target="empty">空态</button>
             <button type="button" data-panel-target="error">异常态</button>
           </div>
-          <div class="panel active" data-panel="happy">[目标体验的成功路径低保真示意，或后端流程图]</div>
-          <div class="panel" data-panel="empty">[目标体验在空态、无数据、无权限或前置条件缺失时的表现]</div>
-          <div class="panel" data-panel="error">[目标体验在失败、冲突、校验不通过或外部依赖异常时的表现]</div>
+          <div class="panel active" data-panel="happy">[成功路径低保真示意，或后端流程图]</div>
+          <div class="panel" data-panel="empty">[空态、无数据、无权限时的表现]</div>
+          <div class="panel" data-panel="error">[失败、冲突、校验不通过时的表现]</div>
         </div>
       </section>
 
-      <section id="states" data-prd-section="States">
+      <section id="states" data-doc-section="States">
         <h2>States</h2>
         <div class="state-list">
           <div class="state ok">
@@ -347,14 +346,14 @@
         </div>
       </section>
 
-      <section id="rules" data-prd-section="Rules">
+      <section id="rules" data-doc-section="Rules">
         <h2>Rules</h2>
         <ul>
-          <li>[关键业务规则]</li>
+          <li>[关键规则]</li>
         </ul>
       </section>
 
-      <section id="acceptance" data-prd-section="Acceptance">
+      <section id="acceptance" data-doc-section="Acceptance">
         <h2>Acceptance</h2>
         <table>
           <thead>
@@ -372,11 +371,11 @@
         </table>
       </section>
 
-      <section id="assumptions" data-prd-section="Assumptions">
+      <section id="assumptions" data-doc-section="Assumptions">
         <h2>Assumptions</h2>
         <p class="note">如使用示例数据：示例数据，不是接口契约。</p>
         <ul>
-          <li>[待确认假设；如无则写“无”]</li>
+          <li>[待确认假设；如无则写"无"]</li>
         </ul>
       </section>
     </div>

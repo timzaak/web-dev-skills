@@ -100,7 +100,7 @@ Common helper commands:
 - `/t-tools:t-init <project-name>`: initializes a full-stack project scaffold for Rust Axum + React TanStack, including backend, frontend, E2E tests, development scripts, and the complete directory structure
 - `/t-tools:t-tech-research`: evaluates technical feasibility before writing the PRD, including dependency gap analysis, library research, impact analysis, and feasibility judgment
 - `/t-tools:t-doc <project-or-module-name>`: scans the target project codebase and generates newcomer-oriented tutorial documentation under `docs/tutorials/<name>/` by default
-- `/t-tools:t-prd-preview <feature>`: generates or updates the PRD HTML Preview for quick human review of product semantics and key paths. Usually triggered automatically by `/t-prd`, but can also be run independently to regenerate the Preview
+- `/t-tools:t-html-show <feature | path>`: generates or updates HTML Preview for quick human review. Supports PRDs (pass feature name) and any Markdown document (pass file path). Usually triggered automatically by `/t-prd`, but can also be run independently
 - `/t-tools:t-dream [feature|--all] [--deep|--backend-only]`: uses multiple `general_agent` checks in parallel to verify whether PRD, user stories, demo test comments, and related descriptions accurately match implementation facts, then writes `.ai/quality/dream-check-[YYYYMMDD-HHMMSS].md`
 - `/t-tools:t-demo-run-all`: runs demo tests in batch
 - `/t-tools:t-push`: has the AI summarize the commit message from `git diff`, then calls `${CLAUDE_PLUGIN_ROOT}/scripts/push.py --message "<message>"` to detect backend, frontend, and demo changes, run affected local CI checks in parallel, and run `git commit` plus `git push` after CI passes

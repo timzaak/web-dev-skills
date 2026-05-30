@@ -54,9 +54,9 @@ allowed-tools:
 - PRD 分层与禁止内容检查
 
 ### 4. HTML Preview 检查
-按 `protocols/prd-preview-contract.md` 执行：
+按 `protocols/html-show-contract.md` 和 `protocols/prd-preview-contract.md` 执行：
 
-- 先运行 `${CLAUDE_PLUGIN_ROOT}/scripts/check-prd-preview.py [feature-name|--all] --root . --json` 获取机械检查结果
+- 先运行 `${CLAUDE_PLUGIN_ROOT}/scripts/check-html-show.py [feature-name|--all] --type prd --root . --json` 获取机械检查结果
 - 检查 `.ai/preview/<domain>/<feature>.html` 是否存在
 - 检查 Preview 是否为目标技术栈无关的单文件 HTML
 - 检查 Preview 是否包含来源 PRD 路径和固定审阅区域
@@ -106,8 +106,9 @@ allowed-tools:
 ### 11. 相关引用
 - `protocols/runtime-boundaries.md`
 - `protocols/prd-check-rubric.md`
+- `protocols/html-show-contract.md`
 - `protocols/prd-preview-contract.md`
-- `${CLAUDE_PLUGIN_ROOT}/scripts/check-prd-preview.py`
+- `${CLAUDE_PLUGIN_ROOT}/scripts/check-html-show.py`
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/index.md` - product guide 入口
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/user-story.md` - 用户故事规范和 INVEST 原则
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/prd.md` - PRD 分层与禁止内容规范

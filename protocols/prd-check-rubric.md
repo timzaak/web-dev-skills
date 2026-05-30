@@ -58,12 +58,12 @@
 
 ### HTML Preview Checks
 
-权重 20%。具体契约参考 `protocols/prd-preview-contract.md`。
+权重 20%。具体契约参考 `protocols/html-show-contract.md` 和 `protocols/prd-preview-contract.md`。
 
 | 检查项 | 验证内容 | 权重 / 扣分 |
 |---|---|---:|
 | Preview 存在性 | `.ai/preview/<domain>/<feature>.html` 存在 | 5 |
-| 来源可追溯 | 包含来源 PRD 路径和 `data-prd-source` | 3 |
+| 来源可追溯 | 包含来源 PRD 路径和 `data-doc-source`（或兼容的 `data-prd-source`） | 3 |
 | 固定审阅区域 | 包含 `Overview`、`Scope`、`Flow`、`States`、`Rules`、`Acceptance`、`Assumptions` | 5 |
 | 技术栈无关 | 不依赖 npm、构建工具、CDN、目标项目组件或外部脚本样式 | 3 |
 | 示例数据声明 | 使用示例数据时标注“示例数据，不是接口契约” | 2 |

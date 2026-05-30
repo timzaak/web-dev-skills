@@ -17,7 +17,7 @@ T-Tools 不是一组零散 prompt，而是一套面向工程交付的 AI 编程�
 Skill 是命令式工作流入口，例如：
 
 - `/t-tools:t-prd`
-- `/t-tools:t-prd-preview`
+- `/t-tools:t-html-show`
 - `/t-tools:t-prd-check`
 - `/t-tools:t-design`
 - `/t-tools:t-design-check`
@@ -26,6 +26,7 @@ Skill 是命令式工作流入口，例如：
 - `/t-tools:t-run`
 - `/t-tools:t-demo-run`
 - `/t-tools:t-demo-accept`
+- `/t-tools:t-dream`
 - `/t-tools:t-push`
 
 Skill 的职责不是“写一段提示词让模型自由发挥”，而是控制阶段推进：
@@ -49,9 +50,10 @@ Subagent 按工程角色拆分，例如：
 - `frontend-dev`：React 前端实现。
 - `frontend-test`：Vitest、Testing Library、MSW 测试。
 - `frontend-accept`：前端只读验收。
-- `prd-preview`：把 Markdown PRD 和用户故事转成同目录 HTML Preview，用于人类审阅产品语义和关键路径。
+- `html-show`：把 Markdown 文档转成 HTML Preview，用于人类审阅。PRD 和任意文档均适用。
 - `demo-dev`：基于用户故事维护独立的 Playwright Demo/E2E 测试。
 - `demo-accept`：验收 Demo 测试与用户故事、执行结果和测试质量是否一致。
+- `backend-consistency`：后端模块级深度一致性检查，按 API 能力边界、数据模型、校验规则、权限和业务逻辑五个维度对比 PRD 与实现。
 
 这种拆分的重点是职责边界。开发 agent 可以修改代码；测试 agent 专注测试；accept agent 默认只读并输出证据报告。失败时通过 handoff 回到合适角色，而不是让一个 agent 同时承担所有职责。
 
@@ -94,6 +96,7 @@ PRD
 -> Backend Finalize
 -> Demo Run
 -> Demo Accept
+-> Dream Check（描述准确性排查，可随时单独执行）
 ```
 
 这条链路把 AI 编程拆成产品、设计、任务规划、实现、测试、验收、Demo 交付多个阶段。每个阶段都有输入契约、输出契约和质量门禁。
@@ -118,7 +121,7 @@ HTML Preview 的设计目的，是把 AI 对需求的理解转换成更容易被
 
 这个思路也改变了 `/t-tools:t-prd-check` 的意义。PRD Check 不只是检查文档格式，而是确认”AI 写下的产品理解”和”人类通过 Preview 看到的产品理解”是否一致。只有这两者对齐，后续 `/t-tools:t-design` 才有稳定输入。
 
-`/t-prd-preview` 已从 `/t-prd` 中提取为独立 skill。`/t-prd` 在流程中会自动触发它，但也可以单独调用来重新生成 Preview。Preview 输出到 `.ai/preview/<domain>/[feature].html`，不进入版本控制。PRD 不再跟踪实现进度，而是聚焦于业务规则和目标体验。
+`/t-html-show` 已从 `/t-prd` 中提取为独立 skill，并泛化为支持任意 Markdown 文档的可视化。`/t-prd` 在流程中会自动触发它，但也可以单独调用。Preview 输出到 `.ai/preview/` 下，不进入版本控制。
 
 ## Demo 的独立质量验证
 
@@ -196,6 +199,37 @@ T-Tools 把质量控制做成显式流程：
 - `/t-tools:t-demo-run` 失败时先诊断，再分发给 `demo-dev`、`frontend-dev` 或 `backend-dev` 修复。
 
 修复 agent 必须返回 `tests_to_run`，说明修复后应该补测哪些后端、前端或 Demo 命令。这样 Demo 通过但底层回归失败的风险会被显式暴露。
+
+## 描述准确性排查：t-dream
+
+`/t-tools:t-dream` 不是阶段门禁，而是一个跨阶段的描述准确性验证工具。它的核心问题是：PRD、用户故事、Demo 测试注释和相关产品描述是否准确反映实现事实。
+
+与 `/t-tools:t-prd-check` 等阶段检查不同，t-dream 不检查文档格式或结构完整性，而是直接对比文档声明和代码实现：
+
+- PRD 声明的能力边界是否被代码支撑。
+- 用户故事的验收描述是否与实际行为一致。
+- Demo 测试注释和断言是否准确反映覆盖事实。
+- 后端 API、数据模型、校验规则、权限和业务逻辑是否与 PRD 描述对齐。
+
+### 并行验证模型
+
+t-dream 采用类似 code review 的两阶段机制：
+
+1. **并行发现**：多个 `general_agent` 从不同维度独立发现候选差异——PRD 描述准确性、用户故事与验收描述、Demo 描述与覆盖事实、后端/前端实现一致性。
+2. **统一验证**：主线程或专门验证 subagent 根据真实文件证据过滤误报、去重、定级。
+
+这种设计确保各维度独立判断，避免某个维度的结论污染其他维度。所有候选问题必须经过验证，置信度不低于 80 的 P0/P1 才进入最终报告。
+
+### 使用场景
+
+t-dream 适合在以下时机使用：
+
+- 实现阶段完成后，验证文档与实现对齐。
+- Demo 交付前，确认描述准确性。
+- 长期迭代中，定期排查文档与实现的漂移。
+- 不替代任何阶段门禁，而是作为补充验证。
+
+`--deep` 模式额外调用 `backend-consistency` agent 做后端模块级深度检查，覆盖 API 能力边界、数据模型、验证规则、权限和业务逻辑五个维度。`--backend-only` 模式只聚焦 PRD 与后端实现一致性，适合后端迭代频繁的场景。
 
 ## 提交前的本地 CI 收口
 

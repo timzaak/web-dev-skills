@@ -17,7 +17,7 @@ The core idea can be summarized as:
 A skill is an imperative workflow entry point, for example:
 
 - `/t-tools:t-prd`
-- `/t-tools:t-prd-preview`
+- `/t-tools:t-html-show`
 - `/t-tools:t-prd-check`
 - `/t-tools:t-design`
 - `/t-tools:t-design-check`
@@ -26,6 +26,7 @@ A skill is an imperative workflow entry point, for example:
 - `/t-tools:t-run`
 - `/t-tools:t-demo-run`
 - `/t-tools:t-demo-accept`
+- `/t-tools:t-dream`
 - `/t-tools:t-push`
 
 The responsibility of a skill is not to "write a prompt and let the model improvise." Its responsibility is to control stage progression:
@@ -49,9 +50,10 @@ Subagents are split by engineering role, for example:
 - `frontend-dev`: implements the React frontend.
 - `frontend-test`: handles Vitest, Testing Library, and MSW tests.
 - `frontend-accept`: performs read-only frontend acceptance.
-- `prd-preview`: converts Markdown PRDs and user stories into same-directory HTML Previews for human review of product semantics and key paths.
+- `html-show`: converts Markdown documents into HTML Previews for human review. Applicable to PRDs and any document.
 - `demo-dev`: maintains independent Playwright demo/E2E tests based on user stories.
 - `demo-accept`: verifies whether demo tests align with user stories, execution results, and test quality expectations.
+- `backend-consistency`: performs backend module-level deep consistency checks, comparing PRD against implementation across five dimensions: API capability boundaries, data models, validation rules, permissions, and business logic.
 
 The key point of this split is responsibility boundaries. Development agents may modify code; test agents focus on tests; acceptance agents are read-only by default and produce evidence-based reports. When something fails, the workflow hands off to the appropriate role instead of making one agent own every responsibility at once.
 
@@ -94,6 +96,7 @@ PRD
 -> Backend Finalize
 -> Demo Run
 -> Demo Accept
+-> Dream Check (description accuracy audit, can also be run independently at any time)
 ```
 
 This path breaks AI programming into product definition, design, task planning, implementation, testing, acceptance, and demo delivery. Every stage has an input contract, an output contract, and quality gates.
@@ -118,7 +121,7 @@ So `/t-tools:t-prd` is closer to a "product-understanding visualization" stage. 
 
 This also changes what `/t-tools:t-prd-check` means. PRD Check is not just a document-format check. It verifies that "the product understanding written by the AI" and "the product understanding humans see through the Preview" are aligned. Only after those two views agree does `/t-tools:t-design` have stable input.
 
-`/t-prd-preview` has been extracted from `/t-prd` into a standalone skill. `/t-prd` triggers it automatically during its workflow, but it can also be invoked independently to regenerate the Preview. Preview output goes to `.ai/preview/<domain>/[feature].html`, outside version control. The PRD no longer tracks implementation progress; it focuses on business rules and target experience.
+`/t-html-show` has been extracted from `/t-prd` into a standalone skill and generalized to support visualization of any Markdown document. `/t-prd` triggers it automatically during its workflow, but it can also be invoked independently. Preview output goes to `.ai/preview/`, outside version control.
 
 ## Independent Demo Quality Verification
 
@@ -196,6 +199,37 @@ T-Tools makes quality control explicit:
 - When `/t-tools:t-demo-run` fails, it diagnoses first, then dispatches fixes to `demo-dev`, `frontend-dev`, or `backend-dev`.
 
 A fixing agent must return `tests_to_run`, explaining which backend, frontend, or demo commands should be rerun after the fix. This makes the risk of "demo passes but lower-level regression fails" explicit.
+
+## Description Accuracy Audit: t-dream
+
+`/t-tools:t-dream` is not a stage gate. It is a cross-stage description accuracy verification tool. Its core question is: do the PRD, user stories, demo test comments, and related product descriptions accurately reflect implementation facts?
+
+Unlike stage-specific checks such as `/t-tools:t-prd-check`, t-dream does not check document format or structural completeness. Instead, it directly compares documented claims against code implementation:
+
+- Whether capability boundaries stated in the PRD are supported by code.
+- Whether acceptance descriptions in user stories match actual behavior.
+- Whether demo test comments and assertions accurately reflect coverage facts.
+- Whether backend APIs, data models, validation rules, permissions, and business logic align with PRD descriptions.
+
+### Parallel Verification Model
+
+t-dream uses a two-phase mechanism similar to code review:
+
+1. **Parallel Discovery**: multiple `general_agent` instances independently discover candidate discrepancies across different dimensions — PRD description accuracy, user story and acceptance descriptions, demo description and coverage facts, backend/frontend implementation consistency.
+2. **Unified Verification**: the main thread or a dedicated verification subagent filters false positives, deduplicates, and assigns severity levels based on real file evidence.
+
+This design ensures independent judgment per dimension, preventing one dimension's conclusions from polluting another. All candidate issues must be verified; only P0/P1 issues with confidence scores of 80 or above enter the final report.
+
+### When to Use
+
+t-dream is suitable for the following scenarios:
+
+- After implementation, to verify documentation-implementation alignment.
+- Before demo delivery, to confirm description accuracy.
+- During long-term iterations, to periodically audit documentation drift from implementation.
+- It does not replace any stage gate; it serves as supplementary verification.
+
+The `--deep` mode additionally invokes the `backend-consistency` agent for backend module-level deep checks across five dimensions: API capability boundaries, data models, validation rules, permissions, and business logic. The `--backend-only` mode focuses exclusively on PRD-to-backend-implementation consistency, suitable for projects with frequent backend iterations.
 
 ## Local CI Closure Before Push
 

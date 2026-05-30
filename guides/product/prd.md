@@ -69,7 +69,7 @@ HTML Preview 路径：
 - PRD: `docs/prd/<domain>/<feature>.md`
 - Preview: `.ai/preview/<domain>/<feature>.html`
 
-Preview 不进入代码仓库，由 `/t-prd-preview` 自动生成。
+Preview 不进入代码仓库，由 `/t-html-show` 自动生成。
 
 Preview 应结合“可视化 PRD 阅读器”和“低保真交互原型”，帮助人类快速理解：
 
@@ -90,7 +90,7 @@ Preview 必须目标技术栈无关，使用单文件 HTML、内联 CSS 和少�
 
 `/t-prd-check` 必须验证 Markdown PRD 与 HTML Preview 描述一致。不一致时，必须修正到一致后才能通过。
 
-详细契约参考 `protocols/prd-preview-contract.md`。
+详细契约参考 `protocols/html-show-contract.md` 和 `protocols/prd-preview-contract.md`。
 
 ## 与一致性检查的关系
 

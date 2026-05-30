@@ -51,7 +51,7 @@ allowed-tools:
 以下约束在本 skill 中为唯一权威来源，工作流步骤不再重复声明。
 
 **路径与域**：
-- PRD 写入 `docs/prd/<domain>/[feature].md`，HTML Preview 由 `/t-prd-preview` 写入 `.ai/preview/<domain>/[feature].html`
+- PRD 写入 `docs/prd/<domain>/[feature].md`，HTML Preview 由 `/t-html-show` 写入 `.ai/preview/<domain>/[feature].html`
 - `<domain>` 只能是 `auth`、`billing`、`core`、`integration`
 - 不写入 `docs/prd/` 根目录；若父目录缺失，仅在目标域已明确时创建所需目录
 
@@ -116,8 +116,8 @@ PRD Grill Snapshot
 
 ## 职责边界
 
-- `/t-prd`：补齐 user story → 创建/更新 PRD → 触发 `/t-prd-preview` 生成 HTML Preview
-- `/t-prd-preview`：基于 PRD 生成 HTML Preview（通过本 skill 自动触发）
+- `/t-prd`：补齐 user story → 创建/更新 PRD → 触发 `/t-html-show` 生成 HTML Preview
+- `/t-html-show`：基于 PRD 生成 HTML Preview（通过本 skill 自动触发）
 - `/t-prd-check`：检查 PRD、HTML Preview 与用户故事质量（不在本 skill 范围内）
 - `/t-design`：基于 PRD 生成技术设计（不在本 skill 范围内）
 - 本 skill 产出产品语义文档，不负责接口明细、数据库设计或技术实现方案
@@ -129,7 +129,8 @@ PRD Grill Snapshot
 - `docs/prd/00-index.md` — PRD 索引
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/index.md` — 产品规范入口
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/user-story.md` — 用户故事规范
-- `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md` — HTML Preview 产物契约
+- `${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md` — HTML Preview 通用契约
+- `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md` — HTML Preview PRD 专用契约
 - `.ai/tech-research/[feature].md` — 技术可行性研究报告（可选，来自 `/t-tech-research`）
 
 如果上游输入缺失，skill 仍可运行，但会在文档中标记缺失项。
@@ -148,7 +149,7 @@ PRD Grill Snapshot
 
 可能更新用户故事文件（追加或新建）。
 
-HTML Preview 由 `/t-prd-preview` 自动生成到 `.ai/preview/<domain>/[feature].html`，不进入代码仓库。
+HTML Preview 由 `/t-html-show` 自动生成到 `.ai/preview/<domain>/[feature].html`，不进入代码仓库。
 
 ## 工作流程
 
@@ -239,25 +240,21 @@ create 路径使用 [template.md](template.md)；update 路径以现有 PRD 为�
 
 ### 8. 生成 HTML Preview
 
-通过 Agent tool 委派 `prd-preview` subagent 自动生成或更新 HTML Preview。
+通过 Agent tool 委派 `html-show` subagent 自动生成或更新 HTML Preview。
 
 委派 prompt 包含：
-- PRD 路径和 Preview 输出路径
-- 本次是 create 还是 update
+- 源文档路径（agent 自动推断输出路径、类型和模式）
 
 示例委派 prompt：
 
 ```text
-使用 prd-preview 生成 PRD HTML Preview。
-PRD: docs/prd/<domain>/[feature].md
-Preview: .ai/preview/<domain>/[feature].html
-Mode: create|update
-要求：遵循 protocols/prd-preview-contract.md；生成完成后运行 scripts/check-prd-preview.py 验证。
+使用 html-show 生成 HTML Preview。
+源文档: docs/prd/<domain>/[feature].md
 ```
 
-`prd-preview` subagent 会基于指定 PRD 生成 `.ai/preview/<domain>/[feature].html`。生成完成后运行 `scripts/open-html-preview.py` 打开浏览器。
+`html-show` subagent 会基于指定文档生成 `.ai/preview/<domain>/[feature].html`。生成完成后运行 `scripts/open-html-show.py` 打开浏览器。
 
-如果 t-prd-preview 失败，终止并报告，不能只交付 Markdown PRD。
+如果 html-show 失败，终止并报告，不能只交付 Markdown PRD。
 
 ### 9. 人机迭代
 
@@ -292,7 +289,7 @@ Mode: create|update
 
 - 新增 PRD 前应尽量具备可引用的 user story
 - PRD 和 HTML Preview 内容边界以"核心约束"一节为准
-- HTML Preview 必须存在并符合 `protocols/prd-preview-contract.md`
+- HTML Preview 必须存在并符合 `protocols/html-show-contract.md` 和 `protocols/prd-preview-contract.md`
 - 新文档创建后建议立即运行 `/t-prd-check [feature]`
 
 ## 附加资源
@@ -302,6 +299,6 @@ Mode: create|update
 
 ## 相关引用
 
-- `skills/t-prd-preview/SKILL.md`
+- `skills/t-html-show/SKILL.md`
 - `skills/t-prd-check/SKILL.md`
 - `skills/t-design/SKILL.md`
