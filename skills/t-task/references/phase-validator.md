@@ -6,7 +6,7 @@ tools:
   - Read
 ---
 
-# 阶段验证器（低冗余版）
+# 阶段验证器
 
 ## Purpose
 - 在 `/t-task --phase` 或 `/t-run --phase` 前验证是否可进入目标阶段。

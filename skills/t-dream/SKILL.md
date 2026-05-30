@@ -1,6 +1,6 @@
 ---
 name: t-dream
-description: Use parallel general_agent checks to verify whether PRD, user stories, Demo tests, and related product descriptions accurately match implementation facts; includes the former backend consistency-check flow.
+description: Use parallel general_agent checks to verify whether PRD, user stories, Demo tests, and related product descriptions accurately match implementation facts.
 argument-hint: "[feature|--all] [--deep] [--backend-only]"
 allowed-tools:
   - Read
@@ -19,7 +19,7 @@ allowed-tools:
 ## 目标
 - 排查 PRD、用户故事、Demo 测试注释和相关描述是否准确反映实现事实。
 - 识别文档过度承诺、遗漏已实现能力、业务规则写错、权限/租户边界描述失真等问题。
-- 合并原 `t-consistency-check` 能力：对比 PRD 与后端实现，检查能力边界、模型约束、校验、权限和业务逻辑差异。
+- 对比 PRD 与后端实现，检查能力边界、模型约束、校验、权限和业务逻辑差异。
 - 通过多个 `general_agent` 按维度并行检查，主流程只负责编排、合并和最终裁决。
 - 输出可追溯证据、差异分级和应修正文档还是实现的建议。
 
@@ -68,7 +68,7 @@ allowed-tools:
 | PRD 描述准确性 | 提取 PRD 声明，并核对是否被实现事实支撑 |
 | 用户故事与验收描述 | 核对用户故事、GWT、验收标准是否与 PRD 和实现一致 |
 | Demo 描述与覆盖事实 | 核对 Demo 测试注释、故事映射、断言和实际覆盖是否准确 |
-| 后端实现一致性 | 合并原 `t-consistency-check`：检查 API 能力边界、模型、校验、权限、业务逻辑 |
+| 后端实现一致性 | 检查 API 能力边界、模型、校验、权限、业务逻辑 |
 | 前端实现一致性 | 核对页面、组件、交互、权限可见性与 PRD/故事描述是否一致 |
 | 候选问题验证 | 复核各维度候选问题是否有文件定位、真实证据、合理分级和修复方向 |
 
@@ -154,7 +154,7 @@ allowed-tools:
 - Frontend：页面、组件、路由、查询/变更、权限可见性。
 - Demo：`demo/e2e/**/*.e2e.ts` 中的场景、注释、断言和日志。
 
-后端模块检查沿用原 `t-consistency-check` 的输入规则：
+后端模块检查的输入规则：
 - `docs/prd/[module].md` 必须存在。
 - 目标仓库中与 `[module]` 对应的后端领域实现目录必须能被定位；若未采用固定布局，基于仓库真实结构搜索模块代码。
 - HTTP/接口实现目录若不存在，记录为信息项，不直接判失败。
@@ -175,7 +175,7 @@ allowed-tools:
 - 需确认：缺少证据或存在产品决策空白。
 
 ### 6. 后端深度一致性
-默认后端维度由 `general_agent` 完成原 `t-consistency-check` 的证据提取和对比；在 `--deep` 或 `--backend-only` 时，对每个后端模块额外调用 `backend-consistency`。
+默认后端维度由 `general_agent` 完成证据提取和对比；在 `--deep` 或 `--backend-only` 时，对每个后端模块额外调用 `backend-consistency`。
 
 通过 `Agent(subagent_type="backend-consistency")` 启动，prompt 必须包含：
 - 模块名。

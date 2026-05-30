@@ -42,7 +42,7 @@ packages/playwright-unified-logger/
 ```typescript
 import { UnifiedLogger } from 'playwright-unified-logger'
 
-// 基础用法（与旧版兼容）
+// 基础用法
 const logger = new UnifiedLogger(page, testTitle)
 logger.printSummary('Test Summary')
 await logger.finalize()
@@ -109,20 +109,3 @@ interface UnifiedLoggerConfig {
 | `UNIFIED_LOG_AGGREGATE` | true / false | true |
 | `UNIFIED_LOG_COMPACT` | true / false | false |
 | `UNIFIED_LOG_OUTPUT_DIR` | 目录路径 | test-results/unified-logs |
-| `DEMO_LOG_*` | 旧版兼容（同上） | — |
-
----
-
-## 与旧版的主要变更
-
-| 旧版 | 新版 | 说明 |
-|---|---|---|
-| `logger.console` | `logger.browserConsole` | 避免与全局 console 冲突，旧名保留为 deprecated |
-| URL 匹配请求 | `WeakMap<Request, ...>` | 修复并发请求错配 bug |
-| 逐次 fs.appendFile | `WriteBuffer` 缓冲写入 | 性能优化 |
-| 硬编码过滤模式 | 可配置 `filterPatterns` | |
-| 硬编码 API 路径 | 可配置 `urlFilter` | |
-| 硬编码重定向检测 | 可配置 `redirectDetector` | |
-| 仅环境变量配置 | 编程配置 + 环境变量 | 优先级：构造函数 > config 对象 > 环境变量 |
-| 无事件机制 | `LoggerEventBus` | 可订阅日志事件 |
-| 无 Fixture 导出 | `fixtures.ts` | 零配置即可使用 |

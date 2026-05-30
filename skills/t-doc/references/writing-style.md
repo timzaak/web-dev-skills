@@ -1,8 +1,6 @@
 # 语言风格参考
 
-技术文档写作时的反 AI 风格指南。基于 [Wikipedia:Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) 和 humanizer skill 整理。
-
-写每一章之前读一遍这个文件。写完之后再对照检查一遍。
+反 AI 风格写作指南。
 
 ---
 

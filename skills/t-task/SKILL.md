@@ -251,7 +251,7 @@ slot agent 输出必须至少包含：
 
 ## Backend Test Planning Rules
 
-backend/test slot 必须按当前契约生成，不做旧格式兼容：
+backend/test slot 必须按当前契约生成：
 
 | 类型 | agent | test_item_type | uses_skill | depends_on |
 |---|---|---|---|---|
@@ -267,10 +267,7 @@ backend/test slot 不规划源文件内单元测试；确有必要的高价值�
 accept item 必须依赖 runner item，不能只依赖 authoring item。`t-backend-test-run` 是 skill，不是 agent；不得生成 `agent: backend-test-run`。
 
 ## Forbidden
-- 生成或依赖旧状态字段。
 - 生成或依赖 `agents` 根字段。
-- 支持旧参数。
-- 生成根级 `backend-dev.md`、`backend-test.md`、`frontend-dev.md`、`miniapp-dev.md`、`agents.json` 等旧结构文件。
 - 把 `dev.md`、`test.md`、`accept.md` 当作 `/t-run` 的直接执行输入。
 - 在单个 item 中塞入跨多模块、多天或不可恢复的大任务。
 - 当前阶段 slot 并行生成；slot 必须按依赖串行。
