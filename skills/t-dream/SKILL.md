@@ -1,7 +1,6 @@
 ---
 name: t-dream
-description: Use parallel general_agent checks to verify whether PRD, user stories, Demo tests, and related product descriptions accurately match implementation facts.
-argument-hint: "[feature|--all] [--deep] [--backend-only]"
+description: Use parallel general_agent checks to verify whether PRD, user stories, Demo tests, and related product descriptions accurately match implementation facts. Also use when asked to organize, merge, consolidate, prune, or rewrite PRD documents so they become concise current authority sources instead of duplicated process/history records.
 allowed-tools:
   - Read
   - Glob
@@ -22,8 +21,11 @@ allowed-tools:
 - 对比 PRD 与后端实现，检查能力边界、模型约束、校验、权限和业务逻辑差异。
 - 通过多个 `general_agent` 按维度并行检查，主流程只负责编排、合并和最终裁决。
 - 输出可追溯证据、差异分级和应修正文档还是实现的建议。
+- 在用户明确要求“整理 PRD / 合并 PRD / 删除过期过程文档 / 精简为权威需求源”时，执行 PRD 治理模式：合并重复文档、删除过期迭代记录、更新索引和引用，并用链接检查验证。
 
 `t-dream` 不是“文档写得好不好”的泛质量检查，核心问题是：这些描述是否真实、准确、可被代码和 Demo 证据支撑。
+
+PRD 治理模式不是泛重写。它只保留当前产品规则、用户可见契约、范围边界和验收目标，删除已经被实现过程替代的临时方案、迁移过程和重复技术细节。
 
 ## 使用方式
 ```bash
@@ -31,6 +33,8 @@ allowed-tools:
 /t-dream --all
 /t-dream realm --deep
 /t-dream realm --backend-only
+/t-dream 整理 document PRD
+/t-dream 合并 infrastructure PRD
 ```
 
 ## 参数
@@ -42,6 +46,8 @@ allowed-tools:
 | `--backend-only` | 只执行 PRD 与后端实现一致性检查 |
 
 `--backend-only` 隐含 `--deep`。未传入 `[feature]` 或 `--all` 时，先提示可用模块来源是 `docs/prd/**/*.md`，再建议用户指定范围。
+
+当用户请求整理、合并、精简、删除过期过程文档或更新 PRD 结构时，默认进入 PRD 治理模式。PRD 治理模式是写入模式，可以修改 `docs/prd/**`、相关索引和必要引用，但不得修改实现代码。用户只要求“检查/评估/排查准确性”时，保持只读检查模式。
 
 ## 输入范围
 - PRD：`docs/prd/**/*.md`（排除模板、索引和说明文件）
@@ -59,6 +65,82 @@ allowed-tools:
 - 统一验证：主线程或专门的验证 subagent 根据真实文件证据过滤误报、去重、定级和评分。
 
 默认聚焦 correctness：描述是否准确匹配实现事实。不要把措辞、格式、风格偏好作为主要问题，除非它们导致业务含义失真。
+
+## PRD 治理模式
+
+当用户要求整理 PRD 时，目标是让 `docs/prd/**` 成为当前权威需求源，而不是迭代过程记录。执行时遵守以下原则：
+
+- 先读后写：先读取目标目录的所有 PRD、`docs/prd/00-index.md`、总览/领域模型、相关用户故事和明显相关实现事实。
+- 合并按稳定能力命名，不按迭代名命名。例如 document 可收敛为 lifecycle / ingestion / retrieval-and-citations；infrastructure 可收敛为 storage / model-providers / observability / auth。
+- 权威 PRD 只写当前规则：用户价值、范围、业务规则、状态、API 用户可见约束、验收目标、参考资料。
+- 删除或压缩过程性内容：技术迁移步骤、依赖升级过程、旧实现替换流水账、已落地的临时方案、代码文件清单、数据库建表细节。
+- 不保留重复旧文档，除非用户明确要求 archive。用户允许删除时，直接删除被合并的旧迭代 PRD。
+- 不把实现细节变成产品规则。代码现状只能用于校验当前事实；产品规则仍以当前需求判断表达。
+- 不能把冲突平均。若两个 PRD 冲突，选择更具体、更新、已实现或已被索引标为权威的规则，并在新 PRD 中只保留该规则。
+- 保持链接可达：更新 `docs/prd/00-index.md`、总览、领域模型、聊天 PRD、用户故事引用和相关 PRD 参考。
+
+### PRD 治理流程
+
+1. **盘点范围**
+   - 列出目标目录下 PRD 文件、大小、标题和状态。
+   - 用 grep 查找重复或过期信号：`row_index`、`indexed`、`仅支持 xlsx`、旧 provider 名、旧存储名、`当前`、`迁移`、`实现`、`替换`。
+   - 区分当前权威规则、历史背景和纯过程记录。
+
+2. **设计合并目标**
+   - 为每个能力域定义 2-5 个稳定权威 PRD。
+   - 每个旧 PRD 必须映射到一个新 PRD 或确认删除。
+   - 保留边界清晰的独立安全/集成 PRD，例如 API Token、Widget。
+
+3. **编写新权威 PRD**
+   - 每份新 PRD 使用紧凑结构：
+     - 标题、状态、创建时间、优先级、权威范围。
+     - 相关用户故事表，只列 ID、标题、影响说明。
+     - 范围界定：包含/不包含。
+     - 当前业务规则和状态。
+     - API/前端用户可见约束。
+     - 验收目标。
+     - 参考资料。
+   - 避免“实现了 X 替换 Y”作为正文主线；如需说明历史，仅保留一句“旧术语不是当前权威规则”。
+
+4. **删除或迁移旧 PRD**
+   - 若用户允许删除，删除被合并旧文档。
+   - 若用户要求归档，移动到 `docs/prd/archive/...`，并在文件顶部标注“不再作为权威需求源”。
+   - 无论删除还是归档，都必须清理正式索引中旧文件入口。
+
+5. **更新引用**
+   - 更新 `docs/prd/00-index.md`，只列正式权威 PRD；如保留 archive，单独列归档且标明非权威。
+   - 更新 `01-product-overview.md`、`02-domain-model.md`、相关 chat/integration/core PRD 的引用。
+   - 更新 `api-token-auth.md` 等仍指向旧文件的参考资料。
+   - 使用 grep 确认旧文件名、旧路径和旧术语没有作为当前权威规则残留。
+
+6. **验证**
+   - 运行项目已有 Markdown 链接检查脚本，例如 `python scripts/check-markdown-links.py`。
+   - 检查所有 `docs/prd/**/*.md` 都出现在 `docs/prd/00-index.md`，除非明确是 archive 且索引策略排除。
+   - 运行 grep 确认旧 PRD 路径、删除文件和过期当前规则没有死引用。
+   - 汇报删除了哪些旧文档、新增了哪些权威文档、验证结果和任何保留风险。
+
+### PRD 合并判定
+
+建议合并：
+- 多个 PRD 描述同一对象的不同迭代，例如 xlsx 导入、Markdown 上传和 page_id 统一都属于文档摄入。
+- 文档大部分在讲“从旧实现迁移到新实现”，而当前代码已实现。
+- 不同文档重复状态机、ID 语义、metadata 字段、provider 配置或存储边界。
+- 旧文档标题是一次性方案名，而不是稳定产品能力名。
+
+建议保留独立：
+- 安全边界独立且影响多类 API，例如 API Token 鉴权。
+- 对外集成契约独立，例如嵌入式 Widget。
+- 用户可见体验明显独立，例如聊天 UI、多轮记忆。
+- 尚未稳定的候选方案；它应放在 `.ai/future/**`，不作为正式 PRD。
+
+### PRD 治理输出
+
+最终答复必须包含：
+- 新权威 PRD 列表。
+- 删除或归档的旧 PRD 列表。
+- 主要规则收敛点，例如状态、ID、格式、provider、存储。
+- 验证命令和结果。
+- 未处理的风险或用户需要决策的问题。
 
 ### 并行 subagent 维度
 默认按以下维度并行调用 `general_agent`：
