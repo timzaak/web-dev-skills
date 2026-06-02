@@ -963,10 +963,9 @@ export const SELECTORS = {
     formNicknameInput: '[data-testid="nickname-input"]',
     formNameInput: '[data-testid="name-input"]',
 
-    toast: '[data-testid="toast"], [data-sonner-toast]',
-    toastMessage: '[data-testid="toast-message"], [data-sonner-toast] [data-description]',
-    successMessage: '[data-testid="success-message"], [data-sonner-toast].success',
-    errorMessage: '[data-testid="error-message"], [data-sonner-toast].error',
+    statusMessage: '[data-testid="status-message"]',
+    successMessage: '[data-testid="success-message"]',
+    errorMessage: '[data-testid="error-message"]',
 
     loading: '[data-testid="loading"]',
     spinner: '[data-testid="spinner"]',

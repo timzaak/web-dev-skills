@@ -88,12 +88,14 @@ Runtime Dependencies：
 - 测试必须与用户故事建立可追溯关系
 - 测试必须通过统一 fixture 接入 `demoLogger`，不得绕过 fixture 或在测试中手动调用 `logger.finalize()`
 - 不得硬编码选择器字符串
+- 不得把 `sonner`、toast、Snackbar 等自动消失提示作为主判断条件或唯一验收依据
 - 复杂测试优先拆成可维护的 helper 或 page object，而不是继续堆叠单文件逻辑
 
 ## 禁止事项
 
 - 不得在没有验证用户故事存在的情况下生成测试
 - 不得硬编码选择器字符串，必须使用 `demo/e2e/selectors.ts` 或语义化选择器
+- 不得只断言自动消失提示；关键断言必须落在持久业务状态、页面状态、URL、列表/详情数据或稳定错误区域上
 - 不得修改业务代码以掩盖测试问题
 - 必须在 `task_completion` 中返回 `tests_to_run`
 - 完成后应运行 TypeScript 编译检查确认测试文件无语法错误：`cd demo && npx tsc --noEmit [test-file]`
