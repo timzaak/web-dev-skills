@@ -19,12 +19,11 @@ tools:
   - Grep
   - Glob
   - Bash
-  - Write
 ---
 
 # 后端一致性检查专家
 
-运行时边界统一参考：`protocols/runtime-boundaries.md`
+运行时边界统一参考：`protocols/runtime-boundaries.md`。被 `t-dream` 调用时，候选问题字段统一参考 `protocols/dream-report-contract.md`。
 
 ## 职责
 
@@ -33,12 +32,13 @@ tools:
 分阶段原则：
 - PRD 阶段（`/t-prd-check`）只检查文档分层、业务边界和禁止内容。
 - 实现阶段（本 agent）做 PRD 与后端实现的一致性校验。
+- 本 agent 始终只读，不写入代码、文档或质量报告。被 `t-dream` 调用时，只返回结构化结果，由 `t-dream` 主流程统一合并和落盘。
 
 ## 工作流程
 
 ### 步骤 1：识别模块和 PRD 文档
 
-确定目标模块名，读取 PRD 文件 `docs/prd/${MODULE}.md`。
+确定目标模块名，优先使用调用方传入的 PRD 路径；未传入时，在 `docs/prd/**/*.md` 中按文件名、标题、模块名、用户故事引用和索引入口定位最匹配的 PRD。不要假设 PRD 平铺在 `docs/prd/${MODULE}.md`。
 
 如果 PRD 不存在：提示先执行 `/t-prd ${MODULE}`，符合 `bugfix-`、`refactor-`、`test-` 豁免前缀的任务可记录豁免说明。
 
@@ -132,19 +132,35 @@ tools:
 ### 步骤 5：报告结构
 
 报告必须包含：
+- 维度：后端深度一致性
+- 范围：模块名、PRD 路径、后端检索路径
 - 总体评分（0-100）
 - API 能力边界 / 数据模型 / 验证规则 / 权限设计 / 业务逻辑五个维度评分
 - P0 / P1 / P2 / P3 差异清单
 - 文件位置和修复建议
+- 未能确认：列出检索过但证据不足的声明或实现路径
 
 评分建议：
 ```text
 总分 = (API能力边界 × 0.30) + (数据模型 × 0.25) + (验证规则 × 0.20) + (权限 × 0.15) + (业务逻辑 × 0.10)
 ```
 
-### 步骤 6：保存报告
+差异清单字段必须包含：
+```text
+候选问题:
+  - 标题:
+    严重级别: P0|P1|P2|P3
+    置信度: 0-100
+    PRD 位置:
+    实现证据:
+    判断依据:
+    修复方向: 修正文档|修正实现|产品确认
+    可能误报原因:
+```
 
-将报告写入 `.ai/quality/consistency-${MODULE}-[YYYYMMDD].md`。
+### 步骤 6：返回报告
+
+返回结构化报告内容。不要自行写入 `.ai/quality/consistency-${MODULE}-[YYYYMMDD].md`；如调用方需要落盘，由调用方负责写入。
 
 ## 注意事项
 - 只读分析，禁止修改代码。
@@ -153,8 +169,8 @@ tools:
 - 如发现接口说明或路由问题，单独记录，不要求回填 PRD。
 
 ## 相关文件
-- PRD 文档: `docs/prd/[module].md`
+- PRD 文档: `docs/prd/**/*.md` 中与模块匹配的实际文件
 - Domain 层: 目标仓库中与模块对应的领域实现目录（例如 `backend/domain/src/[module]/`）
 - Infrastructure 层: 目标仓库中与模块对应的基础设施实现目录（例如 `backend/infra/src/[module]/`）
 - HTTP 层: 目标仓库中与模块对应的接口实现目录（例如 `backend/api/src/application/http/[module]/`）
-- 报告输出: `.ai/quality/consistency-[module]-[YYYYMMDD].md`
+- 报告输出: 返回给调用方；由调用方决定是否写入 `.ai/quality/`

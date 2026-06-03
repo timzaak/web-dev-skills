@@ -66,7 +66,7 @@
 - 本 README 统一使用 `/t-tools:t-*` 作为标准调用形式
 - 本插件所有 `t-*` skill 均为手工触发入口，不允许模型根据语义自动触发
 - `t-doc` 用于项目文档、上手教程、API 参考、配置和部署说明，不用于 PRD、技术设计或只改某个文档片段
-- `t-dream` 用多个 `general_agent` 并行排查 PRD、用户故事、Demo 测试注释等描述是否准确匹配实现事实，并已合并原后端一致性检查能力
+- `t-dream` 默认以只读 audit 方式整理 PRD、用户故事、设计/任务、实现事实与项目结构，减少过期、重复、冲突和误导性上下文累积；需要写入 PRD 治理时显式使用 `--govern-prd`
 - `t-backend-test-run` 是内部执行型 skill，供 `backend-test` 等流程复用，不作为推荐的手动入口
 
 ## 完整工作流
@@ -84,7 +84,7 @@
   -> /t-tools:t-backend-finalize
   -> /t-tools:t-demo-run
   -> /t-tools:t-demo-accept
-  -> /t-tools:t-dream [feature|--all] [--deep] (可选，描述准确性排查)
+  -> /t-tools:t-dream [feature|--all] [--deep|--backend-only|--govern-prd] (可选，上下文整理与结构漂移治理)
   -> /t-tools:t-push (可选，按变更范围运行本地 CI 后提交并推送)
   -> /t-tools:t-release [版本号]
 ```
@@ -101,7 +101,7 @@
 - `/t-tools:t-tech-research`：在写 PRD 之前评估需求的技术可行性，包括依赖缺口分析、库调研、影响分析和可行性判定
 - `/t-tools:t-doc <project-or-module-name>`：扫描目标项目代码库，生成面向新人的教程文档，默认写入 `docs/tutorials/<name>/`
 - `/t-tools:t-html-show <feature | path>`：独立生成或更新文档的 HTML Preview，供人类快速审阅。支持 PRD（传 feature 名称）和任意 Markdown 文档（传文件路径）。通常由 `/t-prd` 自动触发，也可单独执行
-- `/t-tools:t-dream [feature|--all] [--deep|--backend-only]`：通过多个 `general_agent` 并行排查 PRD、用户故事、Demo 测试注释等描述是否准确匹配实现事实，并输出 `.ai/quality/dream-check-[YYYYMMDD-HHMMSS].md`
+- `/t-tools:t-dream [feature|--all] [--deep|--backend-only|--govern-prd]`：默认只读审计 PRD、用户故事、设计/任务、代码结构、测试/Demo 与实现事实，发现过期上下文、结构漂移、traceability 断链和描述/实现冲突，并输出 `.ai/quality/dream-check-[YYYYMMDD-HHMMSS].md`；`--govern-prd` 才允许改写 PRD、索引和引用
 - `/t-tools:t-demo-run-all`：批量执行 Demo 测试
 - `/t-tools:t-push`：由 AI 基于 git diff 总结 commit message，再调用 `${CLAUDE_PLUGIN_ROOT}/scripts/push.py --message "<message>"` 自动判断 backend、frontend、demo 变更范围，并发运行受影响区域的本地 CI；CI 全部通过后执行 `git commit` 和 `git push`
 - `/t-tools:t-release [版本号]`：版本发布，更新项目版本号、创建 git commit 和 tag、推送到远程。版本文件使用语义化版本（如 `0.2.0`），最终 git tag 一律使用 `v` 前缀（如 `v0.2.0`）；留空则基于最新 semver tag 推荐。仅在 `main` 分支且工作区干净时执行，自动更新 `backend/Cargo.toml`、`frontend/package.json`、`demo/package.json`，编译验证通过后提交并推送

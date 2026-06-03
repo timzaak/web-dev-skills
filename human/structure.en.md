@@ -53,6 +53,8 @@ Subagents are split by engineering role, for example:
 - `html-show`: converts Markdown documents into HTML Previews for human review. Applicable to PRDs and any document.
 - `demo-dev`: maintains independent Playwright demo/E2E tests based on user stories.
 - `demo-accept`: verifies whether demo tests align with user stories, execution results, and test quality expectations.
+- `context-curator`: read-only audit for duplicated, stale, conflicting, process-heavy, or non-authoritative information across PRDs, user stories, design docs, tasks, and demo comments.
+- `structure-review`: read-only assessment of PRD directories, code directories, module boundaries, test layout, demo layout, and `.ai/` runtime artifact organization.
 - `backend-consistency`: performs backend module-level deep consistency checks, comparing PRD against implementation across five dimensions: API capability boundaries, data models, validation rules, permissions, and business logic.
 
 The key point of this split is responsibility boundaries. Development agents may modify code; test agents focus on tests; acceptance agents are read-only by default and produce evidence-based reports. When something fails, the workflow hands off to the appropriate role instead of making one agent own every responsibility at once.
@@ -96,7 +98,7 @@ PRD
 -> Backend Finalize
 -> Demo Run
 -> Demo Accept
--> Dream Check (description accuracy audit, can also be run independently at any time)
+-> Dream Check (context cleanup and structure drift governance, can also be run independently at any time)
 ```
 
 This path breaks AI programming into product definition, design, task planning, implementation, testing, acceptance, and demo delivery. Every stage has an input contract, an output contract, and quality gates.
@@ -200,36 +202,38 @@ T-Tools makes quality control explicit:
 
 A fixing agent must return `tests_to_run`, explaining which backend, frontend, or demo commands should be rerun after the fix. This makes the risk of "demo passes but lower-level regression fails" explicit.
 
-## Description Accuracy Audit: t-dream
+## Context Cleanup and Structure Drift Governance: t-dream
 
-`/t-tools:t-dream` is not a stage gate. It is a cross-stage description accuracy verification tool. Its core question is: do the PRD, user stories, demo test comments, and related product descriptions accurately reflect implementation facts?
+`/t-tools:t-dream` is not a stage gate. It is a cross-stage context cleanup and engineering-fact realignment tool. Its core question is not whether the prose is nice; it is whether the current context given to AI agents is clean, trustworthy, structurally navigable, and free from accumulating stale PRDs, stale designs, stale implementation notes, and incorrect references.
 
-Unlike stage-specific checks such as `/t-tools:t-prd-check`, t-dream does not check document format or structural completeness. Instead, it directly compares documented claims against code implementation:
+Unlike stage-specific checks such as `/t-tools:t-prd-check`, t-dream does not only check one document's format or completeness. It reorganizes PRDs, user stories, designs, tasks, code, tests, and demos together:
 
-- Whether capability boundaries stated in the PRD are supported by code.
-- Whether acceptance descriptions in user stories match actual behavior.
-- Whether demo test comments and assertions accurately reflect coverage facts.
-- Whether backend APIs, data models, validation rules, permissions, and business logic align with PRD descriptions.
+- Which PRDs are current authority sources, and which documents are historical process notes, migration records, or duplicated plans.
+- Whether PRDs, user stories, designs, tasks, code, tests, and demos have broken, wrong, or duplicated traceability links.
+- Whether code directories, PRD directories, module boundaries, test layout, and demo layout support fast agent navigation, narrow changes, and reliable validation.
+- Whether documented capability boundaries, permissions, data models, validation rules, and business flows are still supported by implementation facts.
+- Whether demo test comments, story mapping, and assertions accurately reflect coverage facts.
 
 ### Parallel Verification Model
 
-t-dream uses a two-phase mechanism similar to code review:
+t-dream uses a two-phase mechanism similar to code review, but its dimensions expand from description accuracy to context health:
 
-1. **Parallel Discovery**: multiple `general_agent` instances independently discover candidate discrepancies across different dimensions — PRD description accuracy, user story and acceptance descriptions, demo description and coverage facts, backend/frontend implementation consistency.
+1. **Parallel Discovery**: `context-curator`, `structure-review`, and multiple `general_agent` instances independently discover candidate issues across different dimensions — PRD context governance, structure organization, traceability, description/implementation consistency, demo coverage facts, and backend/frontend implementation consistency.
 2. **Unified Verification**: the main thread or a dedicated verification subagent filters false positives, deduplicates, and assigns severity levels based on real file evidence.
 
-This design ensures independent judgment per dimension, preventing one dimension's conclusions from polluting another. All candidate issues must be verified; only P0/P1 issues with confidence scores of 80 or above enter the final report.
+This design ensures independent judgment per dimension, preventing one dimension's conclusions from polluting another. All candidate issues must be verified; only P0/P1 issues with confidence scores of 80 or above enter the final report. When the user explicitly asks to organize PRDs, t-dream may enter write mode; otherwise it remains a read-only audit that writes a `.ai/quality/` report.
 
 ### When to Use
 
 t-dream is suitable for the following scenarios:
 
-- After implementation, to verify documentation-implementation alignment.
-- Before demo delivery, to confirm description accuracy.
-- During long-term iterations, to periodically audit documentation drift from implementation.
+- After implementation, to realign PRDs, designs, tasks, and implementation facts before stale context flows into the next development loop.
+- Before demo delivery, to confirm that user stories, demo comments, test coverage, and actual behavior still align.
+- During long-term iterations, to periodically audit documentation drift, structure drift, traceability gaps, and stale historical information.
+- When old PRDs need to be merged, deleted, or downgraded so `docs/prd/**` becomes the current authority source.
 - It does not replace any stage gate; it serves as supplementary verification.
 
-The `--deep` mode additionally invokes the `backend-consistency` agent for backend module-level deep checks across five dimensions: API capability boundaries, data models, validation rules, permissions, and business logic. The `--backend-only` mode focuses exclusively on PRD-to-backend-implementation consistency, suitable for projects with frequent backend iterations.
+The `--deep` mode additionally invokes the `backend-consistency` agent for backend module-level deep checks across five dimensions: API capability boundaries, data models, validation rules, permissions, and business logic. The `--backend-only` mode focuses exclusively on PRD-to-backend-implementation consistency, suitable for projects with frequent backend iterations; in that mode, context governance, structure organization, frontend, and demo dimensions are skipped.
 
 ## Local CI Closure Before Push
 
