@@ -96,7 +96,7 @@ backend/test 特例：
 - 必须读取 `test_item_type`，只允许 `authoring` 或 `runner`。
 - 缺少 `test_item_type` 时拒绝执行，提示先运行 `/t-task-check` 或重建/修正 item。
 - `authoring`：不加载 `t-backend-test-run`，只编写或调整场景测试并做编译验证。
-- `runner`：加载 `skills/t-backend-test-run/SKILL.md`，执行定向测试、失败分类、生产代码修复委派和重测。
+- `runner`：加载 `skills/t-backend-test-run/SKILL.md`，在全部相关 authoring item 完成后集中执行定向测试、失败分类、生产代码修复委派和重测。
 - 同一 item 同时包含“写新场景测试”和“修复生产代码直到通过”时拒绝执行。
 
 ## Recovery Protocol

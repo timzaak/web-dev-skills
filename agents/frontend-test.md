@@ -97,6 +97,13 @@ cd frontend && npm run type-check
 cd frontend && npm run lint
 ```
 
+### t-task 规划约束
+
+- 涉及新增或修改测试代码时，先规划测试 authoring item。
+- 集中定向执行 item 汇总本轮相关 Vitest/MSW/helper authoring item。
+- 执行 item 依赖全部相关 authoring item，优先运行 `npm run test:run -- [pattern]`，按需加 `type-check`。
+- 执行范围从覆盖来源推导；全量 `npm run test:run` 仅用于定向范围不可靠或门禁要求。
+
 ## 编写约束
 
 - 测试策略、MSW 规则、查询优先级以 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/testing.md` 为准

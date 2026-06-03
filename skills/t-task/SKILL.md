@@ -128,7 +128,8 @@ demo 阶段：
    - prompt 必须引用 `protocols/task-check-rubric.md`，要求 agent 在返回前自检 P0/P1 规则。
    - prompt 必须引用 `protocols/task-phase-execution.md`，避免生成无法被 `/t-run` 执行的 item。
    - backend/test slot prompt 必须要求读取 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`，并以该 guide 的测试入口、编写规则和验证命令作为硬性约束。
-   - backend/test slot prompt 必须明确要求：为每个场景测试 authoring item 生成对应 runner item，runner item 使用 `agent: general-purpose` 和 `uses_skill: skills/t-backend-test-run/SKILL.md`。
+   - backend/test slot prompt 必须要求 runner item 汇总当前 slot 的 authoring 结果，依赖本轮相关测试 authoring item，并选择覆盖这些结果的最小定向测试命令。
+   - frontend/test、miniapp/test 和 demo/dev 中涉及测试代码 authoring 时，也必须规划汇总型定向执行 item，用本轮测试代码产物推导验证范围。
 - 每个 slot agent 必须返回：
    - slot manifest 正文
    - item 文件集合
@@ -142,7 +143,8 @@ demo 阶段：
    - manifest 覆盖全部 items，路径与 item 文件一致
    - item 未触发必须拆分规则；触发时必须返回拆分后的 items
    - backend/test item 含合法 `test_item_type`，runner 含 `uses_skill: skills/t-backend-test-run/SKILL.md`
-   - backend/test slot 中每个 authoring item 都有对应 runner item，且 runner 依赖 authoring
+   - backend/test slot 中至少有一个 runner item 依赖并覆盖全部相关 authoring item
+   - frontend/test、miniapp/test 和 demo/dev 中涉及测试代码时，必须有集中定向执行 item 依赖全部相关测试 authoring item
    - accept item 不得只依赖 backend/test authoring item
 - 硬校验失败时终止当前 slot，不写入成功状态，要求重新生成该 slot。
 - 硬校验通过后写入当前 slot manifest 和 item 文件，再继续调用下游 slot。
@@ -230,7 +232,8 @@ slot agent 输出必须至少包含：
 推荐拆分方式：
 - backend dev：数据库/实体、domain、repository、service/use case、HTTP/OpenAPI、外部集成、SDK/API 影响点。
 - backend HTTP/API：DTO 与路由骨架、读模型/list/detail、写操作/create/update、状态操作、配置类接口分别拆分；每个 item 必须能用定向 `cargo check` 或场景测试验证。
-- backend test：按场景测试 authoring 与测试执行 runner 拆分；不要把创建场景测试和修复实现直到测试通过放在同一个 item。
+- backend test：按场景测试 authoring 与汇总型测试执行 runner 拆分；不要把创建场景测试和修复实现直到测试通过放在同一个 item。
+- frontend/miniapp/demo test：先拆测试代码 authoring item，最后用一个或少数集中执行 item 运行最小必要定向测试；不得默认全量测试。
 - backend unit test：不得规划“为新增 struct/DTO/builder/getter/常量补单测”这类低价值 item。
 - frontend dev：API/type 适配、schema/query/store、页面主流程、状态与错误处理、权限与空态。
 - frontend dev：一个 item 默认只交付一个页面域或一个可复用组件族；配置页、用户页、管理页、dialog 等可独立验证的 UI 不应合并。
@@ -249,6 +252,25 @@ slot agent 输出必须至少包含：
   - 失败后从失败步骤恢复
 - `finalize.md` 不拆 item，不由 `/t-run` 执行。
 
+## Test Execution Planning Rules
+
+适用于 backend、frontend、miniapp 和 demo 的任务规划：
+
+- 测试代码 authoring 与测试执行必须拆分。
+- 测试执行 item 汇总本轮相关测试代码、helper、fixture、Page Object 或模块注册的产物。
+- 测试执行 item 必须依赖本轮全部相关测试 authoring item，并在 `inputs` 或 `scope` 中列出覆盖来源。
+- 测试执行 item 只运行能覆盖上述来源的最小必要定向测试或构建/类型检查命令，不默认全量测试。
+- 如果定向测试因编译、类型生成或框架预编译产生额外耗时，item 需要在 `validation` 或 `completion_criteria` 中显式说明这是预期编译成本，并记录实际命令与耗时。
+- 只有当定向范围无法可靠覆盖风险，或用户/发布门禁明确要求时，才升级全量测试；升级原因必须写入 handoff。
+- accept item 必须依赖集中测试执行 item，不能只依赖测试 authoring item。
+
+各阶段建议：
+
+- backend：使用 `test_item_type: authoring|runner`；runner 使用 `skills/t-backend-test-run/SKILL.md`。
+- frontend：authoring item 写 Vitest/MSW/Testing Library 测试，集中执行 item 运行 `cd frontend && npm run test:run -- [pattern]`，按需加 `npm run type-check`。
+- miniapp：authoring item 写专项验证或测试资产，集中执行 item 运行相关 `typecheck`、`build:weapp` 或专项 gate；只选受影响范围。
+- demo：authoring item 写 Playwright Demo/E2E、fixture、helper 或 Page Object，集中执行 item 运行相关 `demo-test-runner.py [test-file] --grep [pattern]` 或少量相关文件，不跑全部 demo。
+
 ## Backend Test Planning Rules
 
 backend/test slot 必须按当前契约生成：
@@ -256,15 +278,15 @@ backend/test slot 必须按当前契约生成：
 | 类型 | agent | test_item_type | uses_skill | depends_on |
 |---|---|---|---|---|
 | authoring | backend-test | authoring | none | 对应 backend-dev item |
-| runner | general-purpose | runner | `skills/t-backend-test-run/SKILL.md` | 对应 authoring item |
+| runner | general-purpose | runner | `skills/t-backend-test-run/SKILL.md` | 本轮全部相关 authoring item |
 
 authoring item 只创建或修改场景测试、测试 helper 和模块注册；完成标准只要求编译验证或建议 runner 命令，不要求目标测试全部通过。
 
-runner item 只执行定向测试、分析失败、委派生产代码修复和重测；测试语义可能错误时停止并输出诊断报告。
+runner item 只执行汇总后的定向测试、分析失败、委派生产代码修复和重测；测试语义可能错误时停止并输出诊断报告。runner 数量由验证范围决定：同一业务场景或 package/module 优先合并，互不相干且会影响恢复性的范围可拆为少量 runner。
 
 backend/test slot 不规划源文件内单元测试；确有必要的高价值单元测试归入对应 backend/dev item。
 
-accept item 必须依赖 runner item，不能只依赖 authoring item。`t-backend-test-run` 是 skill，不是 agent；不得生成 `agent: backend-test-run`。
+accept item 必须依赖集中 runner item，不能只依赖 authoring item。`t-backend-test-run` 是 skill，不是 agent；不得生成 `agent: backend-test-run`。
 
 ## Forbidden
 - 生成或依赖 `agents` 根字段。

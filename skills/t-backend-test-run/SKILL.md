@@ -14,7 +14,7 @@ allowed-tools:
 
 Runtime boundaries: `protocols/runtime-boundaries.md`
 
-本 skill 只负责 backend/test runner item 的测试执行、失败诊断、生产代码修复编排和重测。它不编写新场景测试，不改变业务验收语义。场景测试 authoring 属于 `backend-test` authoring item。
+本 skill 只负责 backend/test 集中 runner item 的测试执行、失败诊断、生产代码修复编排和重测。它不编写新场景测试，不改变业务验收语义。场景测试 authoring 属于 `backend-test` authoring item。
 
 ## Read Order
 
@@ -33,8 +33,8 @@ Rules:
 ## Core Workflow
 
 - Analyze scope with `git status` and `git diff --name-only`.
-- Choose the narrowest reliable command from `protocols/backend-test-execution.md`.
-- Run targeted tests via `scripts/backend-test.py`.
+- Choose the narrowest reliable command from `protocols/backend-test-execution.md` that covers all authoring items depended on by the runner.
+- Run targeted tests via `scripts/backend-test.py`; do not split one command per authored test unless separate scopes materially improve recovery.
 - Classify failures as compilation, runtime, assertion, environment, or unclear semantics.
 - Delegate production-code fixes to `backend-dev` with scenario-test write restrictions.
 - Rerun the targeted command.

@@ -100,6 +100,14 @@ Runtime Dependencies：
 - 必须在 `task_completion` 中返回 `tests_to_run`
 - 完成后应运行 TypeScript 编译检查确认测试文件无语法错误：`cd demo && npx tsc --noEmit [test-file]`
 
+## t-task 规划约束
+
+- 涉及新增或修改 Demo/E2E 测试、fixture、helper 或 Page Object 时，先规划 authoring item。
+- 集中定向执行 item 汇总本轮相关测试代码 item。
+- 执行 item 依赖全部相关 authoring item，优先运行相关 `demo-test-runner.py [test-file] --grep [pattern]` 或少量相关文件。
+- 执行范围从覆盖来源推导；全部 Demo 测试仅用于定向范围不可靠或门禁要求。
+- 如果 Playwright 项目启动、前端构建或 TypeScript 编译导致耗时，执行 item 必须记录命令、耗时和结果，不能因此改成跳过测试。
+
 ## 示例输出
 
 按 `protocols/agent-task-output-contract.md` 返回成功结构。

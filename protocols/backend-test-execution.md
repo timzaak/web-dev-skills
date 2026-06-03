@@ -16,7 +16,7 @@
 
 - 分析改动：`git status`, `git diff --name-only`。
 - 选择最小可靠测试范围。
-- 运行定向测试。
+- 运行定向测试，覆盖当前 runner item 汇总的全部相关 authoring item。
 - 解析失败并记录命令、测试名、文件/行、失败类型和关键消息。
 - 判断所有权：机械性测试问题可修测试；生产代码问题委派 `backend-dev`。
 - 定向复测。
@@ -25,6 +25,7 @@
 ## Scope Mapping
 
 - 单个测试或 helper 影响 => 指向具体测试。
+- 多个相关测试 authoring item 影响同一业务场景 => 使用同一 package/module/test pattern 集中覆盖。
 - 单 crate / module 影响 => `-E 'package(<crate>)'`。
 - API 层影响 => `-E 'package(api)'`。
 - 多处局部影响但仍可收敛 => `package + test(pattern)`。
@@ -37,6 +38,8 @@
 - `uv run scripts/backend-test.py -- -E 'package(<crate>)'`
 - `uv run scripts/backend-test.py -- -E 'test(<pattern>)'`
 - `uv run scripts/backend-test.py -- -E 'package(<crate>) and test(<pattern>)'`
+
+runner 命令以覆盖来源和变更范围推导；同一业务场景或 package/module 使用同一个最小可靠命令。全量 `uv run scripts/backend-test.py` 仅在定向范围不可靠或门禁要求时使用。
 
 ## Ownership
 

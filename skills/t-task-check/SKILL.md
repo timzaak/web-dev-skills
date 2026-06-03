@@ -66,7 +66,7 @@ allowed-tools:
 - 读取阶段目录下的 `index.md`、slot manifest，并建立 item 文件清单。
 - 校验 item 时按以下顺序读取：
    - 从 `.state.json`、slot manifest 和 item 文件头/关键字段抽取 `id/title/agent/scope/expected_files/validation/depends_on/test_item_type/uses_skill/handoff_summary/completion_criteria`。
-   - 用抽取结果完成 item 存在性、路径一致性、manifest 覆盖、DAG、agent/slot 匹配和 backend test authoring/runner 配对校验。
+   - 用抽取结果完成 item 存在性、路径一致性、manifest 覆盖、DAG、agent/slot 匹配和 backend test authoring/集中 runner 覆盖校验。
    - 发现字段缺失、DAG/manifest 不一致、拆分阈值可疑、设计一致性可疑或需要为 P0/P1 补证时，读取对应 item 全文。
    - 大型 phase 先用 `Grep`、路径清单或 manifest 定位目标 item，再读取命中的 item 文件。
 - 按 `protocols/task-check-rubric.md` 校验 item DAG 与 manifest 覆盖关系。
@@ -74,8 +74,10 @@ allowed-tools:
    - 必须包含 `id/title/agent/scope/inputs/steps/expected_files/validation/depends_on/handoff_summary/completion_criteria`
    - backend/test item 必须声明 `test_item_type: authoring|runner`
    - backend/test runner item 必须声明 `uses_skill: skills/t-backend-test-run/SKILL.md`
-   - 每个 backend/test authoring item 必须有对应 runner item，且 runner 依赖 authoring
+   - backend/test 必须有 runner item 覆盖全部相关 authoring item，且 runner 依赖这些 authoring item
    - backend/accept item 必须依赖 runner item，不得只依赖 authoring item
+   - frontend/test、miniapp/test 和 demo/dev 涉及测试代码 authoring 时，必须有集中定向执行 item 依赖全部相关测试 authoring item
+   - 测试执行 item 必须从覆盖来源推导定向命令；如升级全量，必须说明定向范围不足或门禁要求
    - 不得把完整 slot 内容塞进一个 item
    - 超过拆分阈值必须有合理说明，否则记 P1
    - scope 中包含两个可独立交付、独立验证的主交付物时，必须拆分，否则记 P1
@@ -85,7 +87,7 @@ allowed-tools:
 - 通过 `Agent` tool 调度当前阶段对应 subagent 做专业校验。每个 subagent 独立启动，传入 prompt 包含：该 agent/slot 相关 item 的文件路径、关键字段摘要、必要 item 全文或片段、设计文档相关节、验证范围、`protocols/task-check-rubric.md` 中的 agent 评审边界、输出格式要求（score/findings/fixes/summary）。可并行调度同阶段多个 subagent。
    - 不得默认把当前 phase 的全部 item 全文传给每个 subagent。
    - dev agent 默认只接收 dev item 与直接影响实现的跨 slot 摘要。
-   - test agent 默认只接收 test item、相关 dev handoff/expected_files 摘要和测试执行闭环约束。
+   - test agent 默认只接收 test item、相关 dev handoff/expected_files 摘要和集中定向测试执行闭环约束。
    - accept agent 默认只接收 accept item、直接依赖 runner/dev handoff 摘要和验收闭环约束。
    - demo 阶段按 dev/accept slot 同样做最小分发。
    - backend: subagent_type="backend-dev", "backend-test", "backend-accept"

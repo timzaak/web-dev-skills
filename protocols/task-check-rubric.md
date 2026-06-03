@@ -57,8 +57,9 @@
    - item 文件路径与 state 一致
    - manifest 覆盖全部 items
 - item 文件包含必填字段
-- 若当前阶段为 backend，backend/test slot 符合 `protocols/task-phase-execution.md` 的 authoring/runner 配对与 `uses_skill` 要求
+- 若当前阶段为 backend，backend/test slot 符合 `protocols/task-phase-execution.md` 的 authoring/集中 runner 覆盖与 `uses_skill` 要求
 - 若当前阶段为 backend，backend/accept item 依赖 runner item，不只依赖 authoring item
+- 若当前阶段为 frontend/miniapp/demo，涉及测试代码 authoring 时必须有集中定向执行 item，且不得默认规划全量测试
 - 设计文档与任务文档一致
 - 调用当前阶段对应 agents 做专业校验
 - 主流程复核后生成最终结论
@@ -69,7 +70,7 @@
 
 - 先读取 `.state.json`、当前 phase `index.md` 和 slot manifest。
 - 再抽取 item 关键字段，建立轻量 item 表。
-- DAG、manifest 覆盖、agent/slot 匹配、backend test authoring/runner 配对等结构检查优先基于轻量 item 表完成。
+- DAG、manifest 覆盖、agent/slot 匹配、backend test authoring/集中 runner 覆盖等结构检查优先基于轻量 item 表完成。
 - 只有以下情况才读取 item 全文：
   - 关键字段缺失或冲突，需要定位具体证据。
   - 拆分阈值、职责混杂、设计一致性存在疑点。
@@ -127,8 +128,9 @@ agent 评审边界：
 - item 依赖不存在或成环
 - manifest 未覆盖全部 items
 - 阶段依赖关系错误
-- backend/test 缺少 runner item、runner 缺少 `uses_skill: skills/t-backend-test-run/SKILL.md`，或 authoring item 没有对应 runner item
+- backend/test 缺少 runner item、runner 缺少 `uses_skill: skills/t-backend-test-run/SKILL.md`，或存在 authoring item 未被集中 runner 覆盖
 - backend/accept item 只依赖 backend/test authoring item，未依赖 runner item
+- frontend/miniapp/demo 涉及测试代码 authoring，却缺少依赖全部相关 authoring item 的集中定向执行 item
 - 命令、路径、阶段链路经仓库和规范双重验证后确认会直接导致 `/t-run` 无法执行
 
 出现 `confirmed P0` 时，必须拒绝进入 `/t-run`。
