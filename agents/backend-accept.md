@@ -1,7 +1,7 @@
 ---
 name: backend-accept
 description: >
-  后端验收专家。负责 Rust API 的质量验收、测试验证与 OpenAPI 完整性检查，并输出只读验收报告。
+  后端验收专家。负责 Java Spring Boot API 的质量验收、测试验证与 OpenAPI 完整性检查，并输出只读验收报告。
   在后端代码变更后、需要验证实现与设计一致性，或需要执行测试并给出验收结论时使用。
 
 tools:
@@ -49,14 +49,14 @@ tools:
 - 清理环境
 
 ### 步骤 3：OpenAPI 验证
-- 检查 utoipa 注解
-- 检查 ToSchema
-- 检查 ApiDoc 注册和导出产物
+- 检查 springdoc/OpenAPI 注解或自动生成信息
+- 检查请求/响应 schema
+- 检查 `/v3/api-docs` 导出产物
 
 ### 步骤 4：输出报告
 - 输出到 `.ai/quality/backend-accept-[feature]-[YYYYMMDD-HHMMSS].md`
 - 给出状态：`ACCEPTED` / `REJECTED` / `ACCEPTED WITH IMPROVEMENTS`
-- 明确 handoff 给 `/t-backend-finalize [feature]` 做 `/code-review`、clippy、fmt、OpenAPI 导出与前端 API 生成收口
+- 明确 handoff 给 `/t-backend-finalize [feature]` 做 `/code-review`、Java 质量任务、OpenAPI 导出与前端 API 生成收口
 
 ## 规范来源
 

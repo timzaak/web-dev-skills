@@ -21,18 +21,18 @@
   "calibration_report": {
     "original_code_issues": [
       {
-        "type": "architectural_violation|async_pattern|type_safety|error_handling|code_simplicity",
+        "type": "architectural_violation|spring_component_boundary|type_safety|error_handling|code_simplicity",
         "description": "Human-readable description of the issue",
         "severity": "critical|high|medium|low",
         "location": "file:line if applicable"
       }
     ],
-    "corrected_code": "```rust\n// Complete corrected implementation\n```",
+    "corrected_code": "```java\n// Complete corrected implementation\n```",
     "rationale": {
       "summary": "Brief summary of changes",
       "detailed_explanation": "Detailed explanation of why changes are needed",
       "architectural_compliance": "How changes ensure hexagonal architecture compliance",
-      "best_practices_applied": ["List of Rust best practices applied"]
+      "best_practices_applied": ["List of Java Spring Boot best practices applied"]
     }
   }
 }
@@ -42,24 +42,24 @@
 
 ### 检查清单
 
-- **六边形架构合规性**
-   - Domain 层无外部依赖
-   - Application 层使用泛型依赖注入
-   - Infrastructure 层正确实现适配器接口
+- **架构边界合规性**
+   - Domain/业务核心不反向依赖 Web 层
+   - Controller 只做 HTTP 绑定、权限入口和错误转换
+   - Service/use case 承载业务编排与事务边界
 
-- **异步模式正确性**
-   - 正确使用 async/await
-   - 无阻塞调用（如 `std::thread::sleep`）
-   - Tokio 运行时正确配置
+- **Spring 组件使用正确性**
+   - 默认使用构造函数注入，不新增字段注入
+   - `@Transactional` 放在真实业务事务边界
+   - Bean 位于组件扫描范围内，依赖唯一且明确
 
 - **类型安全**
-   - UUID vs String 正确使用
-   - Option 处理避免 unwrap
-   - Result 错误类型匹配
+   - UUID/String/Long 等 ID 类型与项目策略一致
+   - Optional 或空值处理符合项目约定
+   - DTO、Entity、领域对象边界清晰
 
 - **错误处理**
-   - 使用 `?` 传播错误
-   - 避免 `.unwrap()` 和 `.expect()`
+   - 避免吞异常和不透明 RuntimeException
+   - 通过统一异常映射输出稳定错误响应
    - 提供有意义的错误上下文
 
 - **代码简洁性**

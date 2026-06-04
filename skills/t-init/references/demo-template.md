@@ -391,7 +391,7 @@ async function waitForLoginResponse(page: Page): Promise<Response | null> {
  * ```
  *
  * 依赖：
- * - 后端提供 GET /health 接口（返回 { status, database, redis }）
+ * - 后端提供 Actuator /actuator/health 或兼容 GET /health 接口
  */
 
 import { Page } from '@playwright/test'

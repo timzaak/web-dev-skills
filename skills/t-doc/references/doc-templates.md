@@ -99,7 +99,7 @@ flowchart TD
 
 ## api-reference.md
 
-从代码里的路由、handler、类型定义提取，不要手写。
+从代码里的路由、Controller/处理函数和类型定义提取，不要手写。
 
 ```
 # API 参考

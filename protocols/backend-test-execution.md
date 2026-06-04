@@ -25,18 +25,18 @@
 ## Scope Mapping
 
 - 单个测试或 helper 影响 => 指向具体测试。
-- 单 crate / module 影响 => `-E 'package(<crate>)'`。
+- 单 Maven/Gradle module 或单测试类影响 => 使用对应模块/测试过滤参数。
 - API 层影响 => `-E 'package(api)'`。
 - 多处局部影响但仍可收敛 => `package + test(pattern)`。
-- 跨 crate 或影响不清晰 => 记录原因后升级全量。
+- 跨模块或影响不清晰 => 记录原因后升级全量。
 
 ## Allowed Commands
 
 - `uv run scripts/backend-test.py`
 - `uv run scripts/backend-test.py -- <test_name>`
-- `uv run scripts/backend-test.py -- -E 'package(<crate>)'`
-- `uv run scripts/backend-test.py -- -E 'test(<pattern>)'`
-- `uv run scripts/backend-test.py -- -E 'package(<crate>) and test(<pattern>)'`
+- `uv run scripts/backend-test.py -- --tests '*UserServiceTest'`
+- `uv run scripts/backend-test.py -- --tests '*UserServiceTest.createSuccess'`
+- `uv run scripts/backend-test.py -- --module user-service --tests '*UserServiceTest'`
 
 ## Ownership
 
@@ -54,7 +54,7 @@ User Story > PRD > Existing Stable Tests > Current Implementation
 委派 `backend-dev` 时必须明确：
 
 - 不得修改 `backend/**/tests/scenarios/**`。
-- 不得修改任何 `*_scenarios.rs`。
+- 不得弱化或改写场景/集成测试以迎合错误实现。
 - 不得改变场景测试断言、状态码预期、权限预期或业务规则预期。
 - 如果必须改测试语义，返回 `requires_test_semantics_change` 和证据。
 

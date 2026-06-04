@@ -228,10 +228,10 @@ PRD 治理模式不是泛重写。它只保留当前产品规则、用户可见�
 只记录可被文件证据验证的声明；不要把模型推测当成事实。
 
 ### 4. 并行提取“实现事实”
-按目标项目真实结构定位实现，不假定固定目录；若采用常见 Rust + Axum 布局，可优先检查：
+按目标项目真实结构定位实现，不假定固定目录；若采用常见 Java Spring Boot 布局，可优先检查：
 
 - Domain：`backend/**/src/**/[module]*/`、实体、服务、策略和领域规则。
-- HTTP/API：路由注册、handler、DTO、validator、OpenAPI 注解。
+- HTTP/API：Controller 映射、DTO、validator、OpenAPI 注解。
 - Infrastructure：repository、外部集成、持久化约束和事务边界。
 - Frontend：页面、组件、路由、查询/变更、权限可见性。
 - Demo：`demo/e2e/**/*.e2e.ts` 中的场景、注释、断言和日志。

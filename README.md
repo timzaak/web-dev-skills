@@ -2,7 +2,7 @@
 
 [English](README.en.md)
 
-面向 Rust + React 项目的 Claude Code plugin。它把 `PRD -> 设计 -> 任务 -> 开发 -> 验收 -> Demo` 串成一套可复用工作流，让你不用反复设计 prompt、切换上下文或手工维护阶段边界。
+面向 Java Spring Boot + React 项目的 Claude Code plugin。它把 `PRD -> 设计 -> 任务 -> 开发 -> 验收 -> Demo` 串成一套可复用工作流，让你不用反复设计 prompt、切换上下文或手工维护阶段边界。
 
 适合这类团队和项目：
 
@@ -97,14 +97,14 @@
 
 常见辅助命令：
 
-- `/t-tools:t-init <project-name>`：初始化全栈项目骨架（Rust Axum + React TanStack），生成后端、前端、E2E 测试、开发脚本等完整目录结构
+- `/t-tools:t-init <project-name>`：初始化全栈项目骨架（Java Spring Boot + React TanStack），生成后端、前端、E2E 测试、开发脚本等完整目录结构
 - `/t-tools:t-tech-research`：在写 PRD 之前评估需求的技术可行性，包括依赖缺口分析、库调研、影响分析和可行性判定
 - `/t-tools:t-doc <project-or-module-name>`：扫描目标项目代码库，生成面向新人的教程文档，默认写入 `docs/tutorials/<name>/`
 - `/t-tools:t-html-show <feature | path>`：独立生成或更新文档的 HTML Preview，供人类快速审阅。支持 PRD（传 feature 名称）和任意 Markdown 文档（传文件路径）。通常由 `/t-prd` 自动触发，也可单独执行
 - `/t-tools:t-dream [feature|--all] [--deep|--backend-only]`：通过多个 `general_agent` 并行排查 PRD、用户故事、Demo 测试注释等描述是否准确匹配实现事实，并输出 `.ai/quality/dream-check-[YYYYMMDD-HHMMSS].md`
 - `/t-tools:t-demo-run-all`：批量执行 Demo 测试
 - `/t-tools:t-push`：由 AI 基于 git diff 总结 commit message，再调用 `${CLAUDE_PLUGIN_ROOT}/scripts/push.py --message "<message>"` 自动判断 backend、frontend、demo 变更范围，并发运行受影响区域的本地 CI；CI 全部通过后执行 `git commit` 和 `git push`
-- `/t-tools:t-release [版本号]`：版本发布，更新项目版本号、创建 git commit 和 tag、推送到远程。版本文件使用语义化版本（如 `0.2.0`），最终 git tag 一律使用 `v` 前缀（如 `v0.2.0`）；留空则基于最新 semver tag 推荐。仅在 `main` 分支且工作区干净时执行，自动更新 `backend/Cargo.toml`、`frontend/package.json`、`demo/package.json`，编译验证通过后提交并推送
+- `/t-tools:t-release [版本号]`：版本发布，更新项目版本号、创建 git commit 和 tag、推送到远程。版本文件使用语义化版本（如 `0.2.0`），最终 git tag 一律使用 `v` 前缀（如 `v0.2.0`）；留空则基于最新 semver tag 推荐。仅在 `main` 分支且工作区干净时执行，自动更新 `backend/pom.xml` 或 `backend/build.gradle(.kts)`、`frontend/package.json`、`demo/package.json`，编译验证通过后提交并推送
 
 ## 安装
 
@@ -124,8 +124,7 @@ claude --plugin-dir /path/to/skills
 
 ## 使用本插件的项目
 
-- [herald](https://github.com/timzaak/herald) — 多租户认证与授权系统（Rust Axum + SeaORM + PostgreSQL / React 19 + TanStack），支持单租户与多租户场景的认证服务
-- [rmqtt-things](https://github.com/timzaak/rmqtt-things) — 基于 RMQTT 的物联网物模型管理平台（Rust Axum + SQLx + PostgreSQL / React 19 + TanStack），支持设备管理、命令下发、OTA 升级与 TLS 证书签发
+- Java Spring Boot + React 目标项目可直接加载本插件，并按 `/t-tools:t-*` 主链路推进需求、设计、任务、实现、验收和 Demo 交付。
 
 ## 依赖
 

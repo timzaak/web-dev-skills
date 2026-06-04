@@ -45,7 +45,7 @@ uv run ${CLAUDE_PLUGIN_ROOT}/scripts/release.py <推荐版本号>
 脚本负责：
 - 检查 `main` 分支、干净工作区、远程可访问、tag 不冲突。
 - 识别历史 `X.Y.Z` 和 `vX.Y.Z` tag，但新 tag 一律使用 `vX.Y.Z`。
-- 更新 `backend/Cargo.toml`、`frontend/package.json`、`demo/package.json` 中存在的版本文件。
+- 更新 `backend/pom.xml` 或 `backend/build.gradle(.kts)`、`frontend/package.json`、`demo/package.json` 中存在的版本文件。
 - 运行验证，创建 commit `chore: bump version to <版本号>`，创建并推送 tag `v<版本号>`。
 
 ## 失败处理

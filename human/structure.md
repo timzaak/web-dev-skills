@@ -44,7 +44,7 @@ Skill 的职责不是“写一段提示词让模型自由发挥”，而是控�
 
 Subagent 按工程角色拆分，例如：
 
-- `backend-dev`：Rust 后端功能实现。
+- `backend-dev`：Java Spring Boot 后端功能实现。
 - `backend-test`：后端场景测试、集成测试、验收测试。
 - `backend-accept`：后端只读验收。
 - `frontend-dev`：React 前端实现。

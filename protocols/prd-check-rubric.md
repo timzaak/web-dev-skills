@@ -104,7 +104,7 @@
 | 技术视角 | `系统支持\|后端需要\|使用 Redis\|数据库表` | -5 |
 | 技术表格 | `Provider 表\|provider 表\|oauth_provider_config` | -5 |
 | 实现细节 | `验证码 60 秒\|调用.*接口\|前端使用\|API 路径\|新增字段\|数据库迁移` | -5 |
-| 代码示例 | ```(javascript\|typescript\|rust\|python\|go\|java)` | -5 |
+| 代码示例 | ```(javascript\|typescript\|python\|go\|java)` | -5 |
 | 无用户/价值 | `增加按钮\|实现导出\|优化流程` | -5 |
 | 模糊表述 | `良好体验\|合理处理\|适当提示` | -3 |
 | API 文档 | `GET /api\|POST /api\|HTTP 状态码` | -5 |

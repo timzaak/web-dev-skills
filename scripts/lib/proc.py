@@ -215,8 +215,8 @@ def _get_process_name_windows(pid: str) -> str | None:
 def kill_process_by_port(port: int) -> bool:
     """Kill the process occupying the specified TCP port.
 
-    Also kills the parent process on Windows to handle cargo-run spawning
-    a child binary (cargo.exe holds log file handles).
+    Also kills the parent build process on Windows when it spawned
+    a child application process and still holds log file handles.
 
     Returns True if at least one process was killed, False otherwise.
     """
@@ -236,10 +236,10 @@ def kill_process_by_port(port: int) -> bool:
                 continue
             if result.returncode == 0:
                 killed = True
-            # Kill cargo.exe parent only; other parents may be terminals or shells.
+            # Kill known backend build-tool parents only; other parents may be terminals or shells.
             if ppid:
                 parent_name = _get_process_name_windows(ppid)
-                if parent_name and parent_name.lower() == "cargo.exe":
+                if parent_name and parent_name.lower() in {"mvn.exe", "mvnw.cmd", "gradle.exe", "gradlew.bat", "java.exe"}:
                     try:
                         subprocess.run(
                             ["taskkill", "/PID", ppid, "/F", "/T"],
@@ -286,11 +286,11 @@ def kill_process_by_port(port: int) -> bool:
     return False
 
 
-def is_cargo_compiling() -> bool:
-    """Return True when cargo or rustc appears to be active."""
+def is_backend_build_active() -> bool:
+    """Return True when Maven, Gradle, or Java build activity appears to be active."""
     if os.name == "nt":
         command = (
-            "Get-Process cargo, rustc -ErrorAction SilentlyContinue | "
+            "Get-Process mvn, gradle, java -ErrorAction SilentlyContinue | "
             "Measure-Object | "
             "Select-Object -ExpandProperty Count"
         )
@@ -308,7 +308,7 @@ def is_cargo_compiling() -> bool:
             pass
         return False
 
-    for cmd in (["pgrep", "-f", "cargo"], ["pgrep", "-f", "rustc"]):
+    for cmd in (["pgrep", "-f", "mvn"], ["pgrep", "-f", "gradle"], ["pgrep", "-f", "java"]):
         try:
             result = subprocess.run(
                 cmd,

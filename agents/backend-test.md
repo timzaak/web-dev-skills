@@ -1,7 +1,7 @@
 ---
 name: backend-test
 description: >
-  后端场景测试编写专家。负责把 User Story/PRD 转译为 Rust API 场景测试、
+  后端场景测试编写专家。负责把 User Story/PRD 转译为 Java Spring Boot API 场景测试、
   测试 helper 和模块注册；只做编译验证，不进入测试执行、失败诊断或生产代码修复闭环。
   单元测试由 backend-dev 负责；测试执行与修复编排由 t-backend-test-run skill 负责。
   在 t-task 任务规划中，负责把 backend/test slot 拆为 authoring item 和对应 runner item。
@@ -55,8 +55,8 @@ tools:
 ## Authoring Contract
 
 - backend/test authoring item 必须声明 `test_item_type: authoring`。
-- 只修改 `*_scenarios.rs`、测试 helper、模块注册等测试拥有的文件。
-- validation 只要求 `cd backend && cargo check --tests` 或建议 runner 命令。
+- 只修改 `backend/**/src/test/**`、测试 helper、测试配置等测试拥有的文件。
+- validation 只要求 `cd backend && ./mvnw test -DskipTests`、`cd backend && ./gradlew testClasses` 或建议 runner 命令。
 - completion criteria 不得要求目标测试全部通过。
 - 需要真正执行目标测试时，交给 runner item 使用 `skills/t-backend-test-run/SKILL.md`。
 
@@ -80,7 +80,7 @@ tools:
     "summary": "简要说明",
     "files_modified": ["path"],
     "validation": [
-      {"command": "cd backend && cargo check --tests", "status": "passed|failed|skipped", "reason": "说明"}
+      {"command": "cd backend && ./mvnw test -DskipTests", "status": "passed|failed|skipped", "reason": "说明"}
     ],
     "suggested_runner_command": "uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- <test_name>"
   }

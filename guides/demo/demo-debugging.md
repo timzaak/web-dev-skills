@@ -66,13 +66,13 @@ tail -f log/frontend-demo.log
 WHERE id = $1::text
 ```
 
-```rust
+```java
 .use_query(&[&id.to_string()])
 ```
 
 ### Async 错误处理不当
 
-```rust
+```java
 // 错误
 let result = some_async_function().unwrap();
 
@@ -112,7 +112,7 @@ grep "FAILED" demo/test-results/console-logs/*.log
 
 ```bash
 # Backend
-cd backend && cargo check --package <api-package>
+cd backend && ./mvnw test
 uv run scripts/backend-test.py -- --package <core-package> --lib
 
 # Frontend
@@ -123,4 +123,4 @@ cd frontend && npm run build
 uv run scripts/demo-test-runner.py demo/e2e/ --mode fast
 ```
 
-其中 `<api-package>` 和 `<core-package>` 应替换为目标仓库实际的 backend crate/package 名称。
+若目标项目使用 Gradle，改用 `cd backend && ./gradlew test`；模块名和测试过滤参数应替换为目标仓库实际 backend 模块/测试名称。

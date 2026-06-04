@@ -10,111 +10,109 @@
 - 核心算法和数据转换
 
 **不适用场景**：
-- 只做字段赋值的 struct 构造函数、builder、getter/setter、DTO、常量和机械字段映射。
+- 只做字段赋值的 record/DTO/builder/getter/setter、常量和机械字段映射。
 
 **TDD 工作流程（Red-Green-Refactor）**：
 
-```rust
+```java
 // ========== Step 1: Red - 编写失败的测试 ==========
-#[cfg(test)]
-mod tests {
-    use super::*;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-    #[test]
-    fn test_password_validation_too_short() {
-        let policy = PasswordPolicy::new(8);
-        let result = policy.validate("abc123");  // 只有 6 个字符
-        assert!(result.is_err());
-        assert!(matches!(result, Err(ValidationError::TooShort)));
+import org.junit.jupiter.api.Test;
+
+class PasswordPolicyTest {
+
+    @Test
+    void rejectsPasswordWhenTooShort() {
+        var policy = new PasswordPolicy(8);
+
+        assertThatThrownBy(() -> policy.validate("abc123"))
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("too short");
     }
 
-    #[test]
-    fn test_password_validation_missing_uppercase() {
-        let policy = PasswordPolicy::new(8);
-        let result = policy.validate("abcdefgh123");
-        assert!(result.is_err());
-        assert!(matches!(result, Err(ValidationError::MissingUppercase)));
+    @Test
+    void rejectsPasswordWhenMissingUppercase() {
+        var policy = new PasswordPolicy(8);
+
+        assertThatThrownBy(() -> policy.validate("abcdefgh123"))
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("uppercase");
     }
 
-    #[test]
-    fn test_password_validation_success() {
-        let policy = PasswordPolicy::new(8);
-        let result = policy.validate("Abc12345");
-        assert!(result.is_ok());
+    @Test
+    void acceptsValidPassword() {
+        var policy = new PasswordPolicy(8);
+
+        assertThatCode(() -> policy.validate("Abc12345"))
+                .doesNotThrowAnyException();
     }
 }
 
 // ========== Step 2: Green - 实现最小可行代码 ==========
-impl PasswordPolicy {
-    pub fn new(min_length: usize) -> Self {
-        Self { min_length }
+final class PasswordPolicy {
+    private final int minLength;
+
+    PasswordPolicy(int minLength) {
+        this.minLength = minLength;
     }
 
-    pub fn validate(&self, password: &str) -> Result<(), ValidationError> {
-        if password.len() < self.min_length {
-            return Err(ValidationError::TooShort);
+    void validate(String password) {
+        if (password.length() < minLength) {
+            throw new ValidationException("password is too short");
         }
-        if !password.chars().any(|c| c.is_uppercase()) {
-            return Err(ValidationError::MissingUppercase);
+        if (password.chars().noneMatch(Character::isUpperCase)) {
+            throw new ValidationException("password must contain uppercase");
         }
-        Ok(())
     }
 }
 
 // ========== Step 3: Refactor - 重构优化代码结构 ==========
-// 提取辅助方法、优化逻辑、提升可读性
-impl PasswordPolicy {
-    fn has_uppercase(&self, password: &str) -> bool {
-        password.chars().any(|c| c.is_uppercase())
-    }
-
-    fn has_digit(&self, password: &str) -> bool {
-        password.chars().any(|c| c.is_ascii_digit())
-    }
+private boolean hasUppercase(String password) {
+    return password.chars().anyMatch(Character::isUpperCase);
 }
 ```
 
 **快速反馈**：
-```bash
-# 只运行单元测试（秒级）
-uv run scripts/backend-test.py -- --package <core-package> --profile quick
 
-# 只运行当前模块的测试
-uv run scripts/backend-test.py -- --package <core-package> -- domain::user::policy::tests
+```bash
+# Maven：只运行当前测试类
+cd backend && ./mvnw test -Dtest=PasswordPolicyTest
+
+# Gradle：只运行当前测试类
+cd backend && ./gradlew test --tests '*PasswordPolicyTest'
 ```
 
-说明：上例测试的是 `validate` 的业务行为，不测试 `PasswordPolicy::new()` 是否把字段赋值成功；只有构造函数包含校验、默认值合成或规范化时才测构造函数本身。
+说明：上例测试的是 `validate` 的业务行为，不测试构造函数是否把字段赋值成功；只有构造函数包含校验、默认值合成或规范化时才测构造函数本身。
 
 ## Application 层开发：部分采用 TDD
 
 **适用场景**：
 - Service 层的业务编排逻辑
-- 可以使用 mockall Mock Repository 依赖
+- 可以使用 Mockito 或项目既有 test double 隔离 Repository 依赖
 
 **示例**：
-```rust
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use mockall::predicate::*;
 
-    #[tokio::test]
-    async fn test_user_service_create_success() {
-        // Given: Mock Repository
-        let mut mock_repo = MockUserRepository::new();
-        mock_repo.expect_find_by_email()
-            .with(eq("test@example.com"))
-            .returning(|_| Ok(None));
+```java
+import static org.mockito.Mockito.when;
 
-        mock_repo.expect_create()
-            .returning(|_| Ok(User::fake()));
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
-        // When: 调用 Service
-        let service = UserServiceImpl::new(Arc::new(mock_repo));
-        let result = service.create_user("test@example.com", "Pass123").await;
+class UserServiceTest {
 
-        // Then: 验证结果
-        assert!(result.is_ok());
+    @Test
+    void createsUserWhenEmailIsUnused() {
+        var repository = Mockito.mock(UserRepository.class);
+        when(repository.findByEmail("test@example.com")).thenReturn(Optional.empty());
+
+        var service = new UserService(repository);
+
+        service.createUser("test@example.com", "Pass123");
+
+        Mockito.verify(repository).save(Mockito.any(User.class));
     }
 }
 ```
@@ -128,6 +126,6 @@ mod tests {
 
 ## 参考资源
 
-- [Rust Testing Guide](https://doc.rust-lang.org/book/ch11-00-testing.html)
-- [mockall Documentation](https://docs.rs/mockall/latest/mockall/)
-- [TDD Best Practices](https://martinfowler.com/bliki/TestDrivenDevelopment.html)
+- [Spring Boot Testing](https://docs.spring.io/spring-boot/reference/testing/)
+- [JUnit 5 User Guide](https://junit.org/junit5/docs/current/user-guide/)
+- [Mockito Documentation](https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html)

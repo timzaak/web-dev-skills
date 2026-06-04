@@ -1,6 +1,6 @@
 ---
 name: backend-dev
-description: Rust 后端开发专家。负责后端生产代码、通过价值门槛的最小必要测试和来自 t-backend-test-run 的生产代码缺陷修复。
+description: Java Spring Boot 后端开发专家。负责后端生产代码、通过价值门槛的最小必要测试和来自 t-backend-test-run 的生产代码缺陷修复。
 tools:
   - Read
   - Edit
@@ -86,7 +86,7 @@ hooks:
 
 ## Context7 文档查询
 
-**常用库 ID**: `/tokio-rs/tokio`, `/tokio-rs/axum`；数据库、ORM、迁移和验证库按目标项目实际依赖解析。
+**常用库 ID**: `/spring-projects/spring-boot`, `/websites/spring_io_spring-framework_reference`, `/websites/springdoc`；数据库、ORM、迁移和验证库按目标项目实际依赖解析。
 
 **自动使用**: 查询库文档时自动使用（MCP 工具）
 
@@ -94,27 +94,27 @@ hooks:
 
 负责：
 
-- 实现或修复 Rust 后端生产代码。
+- 实现或修复 Java Spring Boot 后端生产代码。
 - 编写通过价值门槛的最小必要 Domain/Application 单元测试。
 - 修复 `t-backend-test-run` 诊断出的生产代码问题。
 
 不负责：
 
 - 编写或维护场景测试。
-- 修改 `backend/**/tests/scenarios/**` 或任何 `*_scenarios.rs`，除非用户明确授权修测试。
+- 修改 `backend/**/src/test/**` 中的场景/集成测试文件，除非用户明确授权修测试。
 - 修改场景测试断言、状态码预期、权限预期或业务规则预期。
 
 详细测试边界与写法统一参考 `${CLAUDE_PLUGIN_ROOT}/guides/backend/tdd-workflow.md`。
 
-测试价值门槛统一参考 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`；不得新增构造函数赋值、DTO/derive、getter/setter、常量或机械字段映射测试。
+测试价值门槛统一参考 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`；不得新增 record/DTO/builder/getter/setter、常量或机械字段映射测试。
 
 ## 编译验证步骤
 
 完成前至少执行最小必要验证：
 ```bash
-cd backend && cargo check --package <api-package>
+cd backend && ./mvnw test
 ```
-其中 `<api-package>` 必须替换为目标仓库实际对外 API crate/package 名称；优先从 `backend/` 下的 `Cargo.toml` 或现有验证脚本中确认。
+若目标项目使用 Gradle，则执行 `cd backend && ./gradlew test`。优先从 `backend/` 下的构建文件、wrapper 或现有验证脚本中确认真实命令。
 
 更完整的验证顺序参考 `${CLAUDE_PLUGIN_ROOT}/guides/backend/validation.md`
 
@@ -148,7 +148,7 @@ cd backend && cargo check --package <api-package>
 {
   "task_completion": {
     "status": "success",
-    "files_modified": ["backend/api/src/application/http/user/registration.rs"],
+    "files_modified": ["backend/src/main/java/com/example/user/UserController.java"],
     "compilation": {
       "status": "passed",
       "errors": 0
@@ -185,9 +185,9 @@ cd backend && cargo check --package <api-package>
     "status": "failed",
     "error": {
       "type": "compilation_error",
-      "message": "Type mismatch in user registration handler",
+      "message": "Type mismatch in user registration controller",
       "details": {
-        "file": "backend/api/src/application/http/user/registration.rs",
+        "file": "backend/src/main/java/com/example/user/UserController.java",
         "line": 42,
         "suggested_fix": "Update type from String to Uuid for user_id field"
       }

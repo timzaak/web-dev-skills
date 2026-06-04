@@ -26,11 +26,11 @@
 
 ### 2.1 当前依赖
 
-**后端 (Cargo.toml)**:
+**后端 (Maven/Gradle)**:
 
-| 库名 | 版本 | 用途 | 所在 crate |
+| 库名 | 版本 | 用途 | 所在模块 |
 |---|---|---|---|
-| [库名] | [版本] | [用途] | [crate 名称] |
+| [库名] | [版本] | [用途] | [模块名称] |
 
 **前端 (package.json)**:
 
@@ -162,7 +162,7 @@
 ## 8. 参考资料
 
 ### 8.1 本地分析
-- 依赖清单: `backend/Cargo.toml`, `frontend/package.json`
+- 依赖清单: `backend/pom.xml` 或 `backend/build.gradle(.kts)`, `frontend/package.json`
 - 代码扫描: [扫描范围说明]
 
 ### 8.2 外部参考

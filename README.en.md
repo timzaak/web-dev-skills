@@ -2,7 +2,7 @@
 
 [中文](README.md)
 
-A Claude Code plugin for Rust + React projects. It turns `PRD -> Design -> Task -> Development -> Acceptance -> Demo` into a reusable workflow, so teams do not need to repeatedly design prompts, switch context manually, or maintain stage boundaries by hand.
+A Claude Code plugin for Java Spring Boot + React projects. It turns `PRD -> Design -> Task -> Development -> Acceptance -> Demo` into a reusable workflow, so teams do not need to repeatedly design prompts, switch context manually, or maintain stage boundaries by hand.
 
 It is designed for teams and projects that:
 
@@ -97,14 +97,14 @@ Notes:
 
 Common helper commands:
 
-- `/t-tools:t-init <project-name>`: initializes a full-stack project scaffold for Rust Axum + React TanStack, including backend, frontend, E2E tests, development scripts, and the complete directory structure
+- `/t-tools:t-init <project-name>`: initializes a full-stack project scaffold for Java Spring Boot + React TanStack, including backend, frontend, E2E tests, development scripts, and the complete directory structure
 - `/t-tools:t-tech-research`: evaluates technical feasibility before writing the PRD, including dependency gap analysis, library research, impact analysis, and feasibility judgment
 - `/t-tools:t-doc <project-or-module-name>`: scans the target project codebase and generates newcomer-oriented tutorial documentation under `docs/tutorials/<name>/` by default
 - `/t-tools:t-html-show <feature | path>`: generates or updates HTML Preview for quick human review. Supports PRDs (pass feature name) and any Markdown document (pass file path). Usually triggered automatically by `/t-prd`, but can also be run independently
 - `/t-tools:t-dream [feature|--all] [--deep|--backend-only]`: uses multiple `general_agent` checks in parallel to verify whether PRD, user stories, demo test comments, and related descriptions accurately match implementation facts, then writes `.ai/quality/dream-check-[YYYYMMDD-HHMMSS].md`
 - `/t-tools:t-demo-run-all`: runs demo tests in batch
 - `/t-tools:t-push`: has the AI summarize the commit message from `git diff`, then calls `${CLAUDE_PLUGIN_ROOT}/scripts/push.py --message "<message>"` to detect backend, frontend, and demo changes, run affected local CI checks in parallel, and run `git commit` plus `git push` after CI passes
-- `/t-tools:t-release [version]`: releases a version by updating project versions, creating a git commit and tag, and pushing to the remote. Version files use semantic versioning, such as `0.2.0`, while the final git tag always uses a `v` prefix, such as `v0.2.0`. If omitted, the command recommends one based on the latest semver tag. It only runs on a clean `main` branch, updates `backend/Cargo.toml`, `frontend/package.json`, and `demo/package.json`, then commits and pushes after compilation checks pass.
+- `/t-tools:t-release [version]`: releases a version by updating project versions, creating a git commit and tag, and pushing to the remote. Version files use semantic versioning, such as `0.2.0`, while the final git tag always uses a `v` prefix, such as `v0.2.0`. If omitted, the command recommends one based on the latest semver tag. It only runs on a clean `main` branch, updates `backend/pom.xml` or `backend/build.gradle(.kts)`, `frontend/package.json`, and `demo/package.json`, then commits and pushes after compilation checks pass.
 
 ## Installation
 
@@ -124,8 +124,7 @@ Prerequisites:
 
 ## Projects Using This Plugin
 
-- [herald](https://github.com/timzaak/herald) — A multi-tenant authentication and authorization system (Rust Axum + SeaORM + PostgreSQL / React 19 + TanStack), providing auth services for both single-tenant and multi-tenant scenarios
-- [rmqtt-things](https://github.com/timzaak/rmqtt-things) — An IoT thing-model management platform built on RMQTT (Rust Axum + SQLx + PostgreSQL / React 19 + TanStack), with device management, command delivery, OTA firmware updates, and TLS certificate issuance
+- Java Spring Boot + React target projects can load this plugin and use the `/t-tools:t-*` workflow for requirements, design, tasks, implementation, acceptance, and demo delivery.
 
 ## Dependencies
 

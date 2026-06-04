@@ -13,6 +13,7 @@ from pathlib import Path
 
 from . import docker
 from .cli import require_executable
+from .java_backend import build_run_command
 from .net import wait_for_http_ok, wait_for_tcp, wait_for_tcp_with_compile_awareness
 from .paths import LOG_DIR, REPO_ROOT, SCRIPTS_DIR, ensure_dir
 from typing import TYPE_CHECKING
@@ -264,12 +265,12 @@ def start_environment(
     frontend_out = frontend_log_base.with_suffix(".log.out")
     frontend_err = frontend_log_base.with_suffix(".log.err")
 
-    cargo = require_executable("cargo")
     npm = require_executable("npm", windows_fallback="npm.cmd")
 
     # Step 4: Start backend process
     with logger.step(4, total_steps, "Starting backend"):
         backend_env = dict(os.environ)
+        backend_env["SPRING_PROFILES_ACTIVE"] = backend_env.get("SPRING_PROFILES_ACTIVE", "demo")
         backend_env["APP_CONFIG"] = str((REPO_ROOT / "backend" / "config.demo.toml").resolve())
         backend_env["TOTP_SECRET_KEY"] = "demo-totp-encryption-key-32-bytes-long"
         backend_env["ADMIN_REALM_ID"] = "admin"
@@ -278,7 +279,7 @@ def start_environment(
 
         spawn_background(
             name=None,
-            command=[cargo, "run", "--bin", "backend-app"],
+            command=build_run_command(REPO_ROOT / "backend"),
             cwd=REPO_ROOT / "backend",
             stdout_path=backend_out,
             stderr_path=backend_err,

@@ -17,9 +17,7 @@
     "build": "vite build && tsc --noEmit",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
-    "generate-api": "cargo run --manifest-path ../backend/app/Cargo.toml -- --export-openapi ../frontend/api.json && openapi-ts",
-    "predev": "npm run generate-api",
-    "prebuild": "npm run generate-api"
+    "generate-api": "openapi-ts"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.1",
@@ -58,7 +56,7 @@
 ```
 
 > **Scripts 说明**：
-> - `dev` — 启动开发服务器（端口 3000），自动先执行 generate-api
+> - `dev` — 启动开发服务器（端口 3000）
 > - `build` — 构建生产版本，包含类型检查
 > - `generate-api` — 从后端 OpenAPI 规范生成 TypeScript API 客户端
 > - `predev` / `prebuild` — npm 生命周期钩子，在 dev/build 前自动生成 API

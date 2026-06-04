@@ -229,7 +229,7 @@ slot agent 输出必须至少包含：
 
 推荐拆分方式：
 - backend dev：数据库/实体、domain、repository、service/use case、HTTP/OpenAPI、外部集成、SDK/API 影响点。
-- backend HTTP/API：DTO 与路由骨架、读模型/list/detail、写操作/create/update、状态操作、配置类接口分别拆分；每个 item 必须能用定向 `cargo check` 或场景测试验证。
+- backend HTTP/API：DTO 与 Controller 路由骨架、读模型/list/detail、写操作/create/update、状态操作、配置类接口分别拆分；每个 item 必须能用定向 Maven/Gradle 编译测试或场景测试验证。
 - backend test：按场景测试 authoring 与测试执行 runner 拆分；不要把创建场景测试和修复实现直到测试通过放在同一个 item。
 - backend unit test：不得规划“为新增 struct/DTO/builder/getter/常量补单测”这类低价值 item。
 - frontend dev：API/type 适配、schema/query/store、页面主流程、状态与错误处理、权限与空态。
@@ -243,8 +243,7 @@ slot agent 输出必须至少包含：
 - backend 阶段必须额外生成 `<phase>/finalize.md`。
 - `finalize.md` 必须明确：
   - `/code-review` 目标范围
-  - `cargo clippy --fix --allow-dirty --allow-staged --all-targets --all-features`
-  - `cargo fmt --all`
+  - Java 编译、测试和项目已有质量任务（Maven/Gradle）
   - OpenAPI 导出与前端 API 生成
   - 失败后从失败步骤恢复
 - `finalize.md` 不拆 item，不由 `/t-run` 执行。

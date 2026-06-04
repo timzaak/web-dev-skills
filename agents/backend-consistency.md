@@ -78,17 +78,17 @@ tools:
 
 #### 3.1 HTTP 能力实现
 
-先在目标仓库定位与模块对应的 HTTP/接口实现目录与路由注册点；若项目采用类似 `backend/api/src/application/http/${MODULE}` 的布局，可直接在该目录中搜索 `#[utoipa::path`，并在对应的路由注册文件中搜索 `.route(`。
+先在目标仓库定位与模块对应的 HTTP/接口实现目录与路由注册点；若项目采用常见 Spring Boot 布局，可优先在 `backend/**/src/main/java/**/${MODULE}/` 中搜索 `@RestController`、`@RequestMapping`、`@GetMapping`、`@PostMapping` 等注解。
 
 用途：确认代码是否覆盖 PRD 要求的能力范围，不要求 PRD 列出端点清单。
 
 #### 3.2 数据模型实现
 
-读取目标仓库中与模块对应的领域实体文件；若项目采用类似 `backend/domain/src/${MODULE}/entities.rs` 的布局，可直接读取该文件并用 Grep 搜索 `pub struct` 和字段定义。
+读取目标仓库中与模块对应的领域实体文件；若项目采用常见 Spring Boot 布局，可直接搜索 Entity、record、DTO、domain model 和字段定义。
 
 #### 3.3 验证规则实现
 
-读取目标仓库中与模块对应的 HTTP/输入校验文件；可优先搜索 `*validator*.rs`、`validate`、`length`、`regex`、`must_` 等关键词。
+读取目标仓库中与模块对应的 HTTP/输入校验文件；可优先搜索 `@Valid`、Bean Validation 注解、`*Validator.java`、`validate`、`Pattern`、`Size` 等关键词。
 
 #### 3.4 权限实现
 

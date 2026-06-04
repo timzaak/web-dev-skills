@@ -44,7 +44,7 @@ In this sense, a skill is closer to a lightweight workflow engine.
 
 Subagents are split by engineering role, for example:
 
-- `backend-dev`: implements Rust backend features.
+- `backend-dev`: implements Java Spring Boot backend features.
 - `backend-test`: handles backend scenario tests, integration tests, and acceptance tests.
 - `backend-accept`: performs read-only backend acceptance.
 - `frontend-dev`: implements the React frontend.

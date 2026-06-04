@@ -104,51 +104,42 @@ def ensure_tag_available(version: str, tags: list[str]) -> None:
         raise RuntimeError(f"Remote tag conflict: {', '.join(unique)} already exists.")
 
 
-def read_current_cargo_version(path: Path) -> str | None:
-    text = path.read_text(encoding="utf-8")
-    in_workspace_package = False
-    for line in text.splitlines():
-        stripped = line.strip()
-        if stripped == "[workspace.package]":
-            in_workspace_package = True
-            continue
-        if in_workspace_package and stripped.startswith("["):
-            return None
-        if in_workspace_package:
-            match = re.match(r'\s*version\s*=\s*"([^"]+)"', line)
-            if match:
-                return match.group(1)
-    return None
-
-
-def update_cargo_version(path: Path, version: str) -> FileChange | None:
+def update_pom_version(path: Path, version: str) -> FileChange | None:
     if not path.is_file():
         return None
 
     text = path.read_text(encoding="utf-8")
-    lines = text.splitlines(keepends=True)
-    in_workspace_package = False
-    before: str | None = None
+    project_version = re.search(r"(?s)(</parent>\s*.*?)<version>([^<]+)</version>", text)
+    if project_version:
+        before = project_version.group(2)
+        updated = text[: project_version.start(2)] + version + text[project_version.end(2) :]
+        path.write_text(updated, encoding="utf-8")
+        return FileChange(path, before, version)
 
-    for index, line in enumerate(lines):
-        stripped = line.strip()
-        if stripped == "[workspace.package]":
-            in_workspace_package = True
+    return None
+
+
+def update_gradle_version(path: Path, version: str) -> FileChange | None:
+    if not path.is_file():
+        return None
+
+    text = path.read_text(encoding="utf-8")
+    patterns = [
+        r'(?m)^(\s*version\s*=\s*[\'"])([^\'"]+)([\'"])',
+        r'(?m)^(\s*version\s+)([\'"][^\'"]+[\'"])',
+    ]
+    for pattern_index, pattern in enumerate(patterns):
+        match = re.search(pattern, text)
+        if not match:
             continue
-        if in_workspace_package and stripped.startswith("["):
-            break
-        if in_workspace_package:
-            newline = "\n" if line.endswith("\n") else ""
-            body = line[:-1] if newline else line
-            if body.endswith("\r"):
-                body = body[:-1]
-                newline = "\r\n"
-            match = re.match(r'(\s*version\s*=\s*")([^"]+)(".*)', body)
-            if match:
-                before = match.group(2)
-                lines[index] = f"{match.group(1)}{version}{match.group(3)}{newline}"
-                path.write_text("".join(lines), encoding="utf-8")
-                return FileChange(path, before, version)
+        before = match.group(2).strip("'\"")
+        if pattern_index == 0:
+            updated = text[: match.start(2)] + version + text[match.end(2) :]
+        else:
+            quote = "'" if "'" in match.group(2) else '"'
+            updated = text[: match.start(2)] + f"{quote}{version}{quote}" + text[match.end(2) :]
+        path.write_text(updated, encoding="utf-8")
+        return FileChange(path, before, version)
 
     return None
 
@@ -167,9 +158,18 @@ def update_package_json(path: Path, version: str) -> FileChange | None:
 def update_version_files(version: str) -> list[FileChange]:
     changes: list[FileChange] = []
 
-    cargo_change = update_cargo_version(REPO_ROOT / "backend" / "Cargo.toml", version)
-    if cargo_change:
-        changes.append(cargo_change)
+    for backend_version_path in (
+        REPO_ROOT / "backend" / "pom.xml",
+        REPO_ROOT / "backend" / "build.gradle",
+        REPO_ROOT / "backend" / "build.gradle.kts",
+    ):
+        if backend_version_path.name == "pom.xml":
+            backend_change = update_pom_version(backend_version_path, version)
+        else:
+            backend_change = update_gradle_version(backend_version_path, version)
+        if backend_change:
+            changes.append(backend_change)
+            break
 
     for package_path in (
         REPO_ROOT / "frontend" / "package.json",
@@ -196,9 +196,20 @@ def run_validation() -> None:
     commands: list[tuple[list[str], Path]] = []
 
     backend_dir = REPO_ROOT / "backend"
-    if (backend_dir / "Cargo.toml").is_file():
-        cargo = require_executable("cargo")
-        commands.append(([cargo, "check"], backend_dir))
+    if (backend_dir / "pom.xml").is_file():
+        if (backend_dir / "mvnw.cmd").is_file():
+            commands.append(([str(backend_dir / "mvnw.cmd"), "test"], backend_dir))
+        elif (backend_dir / "mvnw").is_file():
+            commands.append(([str(backend_dir / "mvnw"), "test"], backend_dir))
+        else:
+            commands.append(([require_executable("mvn", "mvn.cmd"), "test"], backend_dir))
+    elif (backend_dir / "build.gradle").is_file() or (backend_dir / "build.gradle.kts").is_file():
+        if (backend_dir / "gradlew.bat").is_file():
+            commands.append(([str(backend_dir / "gradlew.bat"), "test"], backend_dir))
+        elif (backend_dir / "gradlew").is_file():
+            commands.append(([str(backend_dir / "gradlew"), "test"], backend_dir))
+        else:
+            commands.append(([require_executable("gradle", "gradle.bat"), "test"], backend_dir))
 
     npm = None
     if command_exists("npm"):
@@ -229,8 +240,10 @@ def run_validation() -> None:
 def commit_tag_and_push(version: str, push: bool) -> str:
     release_tag = f"v{version}"
     release_paths = [
-        "backend/Cargo.toml",
-        "backend/Cargo.lock",
+        "backend/pom.xml",
+        "backend/build.gradle",
+        "backend/build.gradle.kts",
+        "backend/gradle.properties",
         "frontend/package.json",
         "frontend/package-lock.json",
         "demo/package.json",

@@ -9,7 +9,7 @@
 
 | 任务 | 推荐入口 |
 | --- | --- |
-| 日常开发环境 | 手动启动 PostgreSQL + Redis + cargo run + npm run dev |
+| 日常开发环境 | 手动启动 PostgreSQL + Redis + Spring Boot 后端 + npm run dev |
 | 后端测试 | `uv run scripts/backend-test.py` |
 | 前端类型检查与构建 | `cd frontend && npm run type-check` / `npm run build` |
 | Demo / E2E | `uv run scripts/demo-test-runner.py demo/e2e/[test].ts` |

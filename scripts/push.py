@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from lib.cli import require_executable, run_cmd
+from lib.java_backend import build_quality_commands, detect_build_tool
 from lib.paths import REPO_ROOT
 
 
@@ -85,27 +86,10 @@ def npm_script_step(name: str, app_dir: Path, script: str, *, optional: bool = F
 
 def backend_steps() -> list[Step]:
     backend_dir = REPO_ROOT / "backend"
-    if not (backend_dir / "Cargo.toml").is_file():
-        raise RuntimeError("Backend changes detected, but backend/Cargo.toml was not found.")
-    cargo = require_executable("cargo")
+    detect_build_tool(backend_dir)
     return [
-        Step(
-            name="Backend clippy fix",
-            command=[
-                cargo,
-                "clippy",
-                "--fix",
-                "--allow-dirty",
-                "--allow-staged",
-                "--all-targets",
-                "--all-features",
-                "--",
-                "-D",
-                "warnings",
-            ],
-            cwd=backend_dir,
-        ),
-        Step(name="Backend format", command=[cargo, "fmt", "--all"], cwd=backend_dir),
+        Step(name=f"Backend Java quality {index}", command=command, cwd=backend_dir)
+        for index, command in enumerate(build_quality_commands(backend_dir), start=1)
     ]
 
 

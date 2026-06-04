@@ -246,7 +246,7 @@ allowed-tools:
 - 是否遵循 `docs/ -> ${CLAUDE_PLUGIN_ROOT}/guides/ -> code` 的信息优先级
 - 是否使用真实文件路径
 - 是否避免过度设计
-- 是否与现有 Rust + React 架构一致
+- 是否与现有 Java Spring Boot + React 架构一致
 - 是否说明权限、错误处理、迁移/兼容性影响
 - 是否补齐 API 接口设计、数据库设计与前端设计的适用内容
 - 前端设计是否避免单列 API 契约描述，而是聚焦页面、交互、状态与依赖

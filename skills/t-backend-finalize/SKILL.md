@@ -1,6 +1,6 @@
 ---
 name: t-backend-finalize
-description: Run backend finalization after backend acceptance by simplifying code, running clippy, formatting, exporting OpenAPI, and generating the frontend API client. Use when the user runs /t-backend-finalize with a feature name after backend acceptance is completed.
+description: Run backend finalization after backend acceptance by simplifying code, running Java quality tasks, exporting OpenAPI, and generating the frontend API client. Use when the user runs /t-backend-finalize with a feature name after backend acceptance is completed.
 ---
 
 # 后端收口执行
@@ -11,8 +11,7 @@ description: Run backend finalization after backend acceptance by simplifying co
 - 读取 `.ai/task/[feature]/.state.json` 和 `backend/finalize.md`。
 - 在 `backend-accept` 通过后执行统一收口：
   - `/code-review`
-  - `cargo clippy --fix --allow-dirty --allow-staged --all-targets --all-features`
-  - `cargo fmt --all`
+  - Java 编译、测试和项目已有质量任务（Maven/Gradle）
   - OpenAPI 文档导出与前端 API 生成
 - 若任一步失败，修复后默认从失败步骤恢复，不提供额外恢复参数。
 
@@ -36,12 +35,13 @@ description: Run backend finalization after backend acceptance by simplifying co
    - 优先使用 `finalize.md` 中声明的 feature 相关 backend 改动文件
    - 若未显式声明，则回退到当前工作区 `backend/**` 改动集
 - 执行 `/code-review`，简化目标范围内代码。
-- 执行 `cargo clippy --fix --allow-dirty --allow-staged --all-targets --all-features`。
-- 执行 `cargo fmt --all`。
+- 执行 Java 编译、测试和项目已有质量任务：
+   - Maven 项目优先使用 `./mvnw test`，如存在 verify/check/spotless/checkstyle 等任务则按项目约定升级。
+   - Gradle 项目优先使用 `./gradlew test`，如存在 `check`、`spotlessCheck` 等任务则按项目约定升级。
 - 导出 OpenAPI 文档并生成前端 API 客户端：
-   - 先根据目标仓库的 backend app crate、现有导出脚本或文档定位实际导出 binary
-   - 执行 `cd backend && cargo run --bin <app-binary> -- --export-openapi ../frontend/api.json && cd ../`
-   - 验证生成的 OpenAPI JSON（格式、路径占位符 camelCase）
+   - 先根据目标仓库的 Spring Boot 启动方式、现有导出脚本或文档定位实际导出命令
+   - 优先复用项目已有 OpenAPI 导出脚本；否则启动后端并请求 `/v3/api-docs` 写入 `frontend/api.json`
+   - 验证生成的 OpenAPI JSON（格式、路径占位符、schema/tag）
    - 执行 `cd frontend && npm run generate-api && cd ../`
    - 验证生成的 TypeScript 文件
 - 若任一步出现问题，则修复并从失败步骤恢复。
@@ -53,7 +53,7 @@ description: Run backend finalization after backend acceptance by simplifying co
    - `phases.backend.status = awaiting_finalize`
 - 维护步骤级状态：
    - `tasks.backend.finalize.current_step`
-   - `tasks.backend.finalize.steps.code_review|clippy|fmt|openapi_export|frontend_api_gen`
+   - `tasks.backend.finalize.steps.code_review|java_quality|openapi_export|frontend_api_gen`
 - 某一步成功后，写入对应 step 为 `completed`。
 - 某一步失败后：
    - `tasks.backend.finalize.status = failed`
@@ -62,7 +62,7 @@ description: Run backend finalization after backend acceptance by simplifying co
    - `phases.backend.status = failed`
 - 再次执行同一命令时：
    - 默认从 `current_step` 或最后失败步骤恢复
-   - 若失败发生在 `openapi_export` 或之后，修复后至少重新执行 `clippy -> fmt -> openapi_export -> frontend_api_gen`
+   - 若失败发生在 `openapi_export` 或之后，修复后至少重新执行 `java_quality -> openapi_export -> frontend_api_gen`
 - 全部成功后：
    - `tasks.backend.finalize.status = completed`
    - `tasks.backend.finalize.completed_at = <timestamp>`
@@ -70,15 +70,14 @@ description: Run backend finalization after backend acceptance by simplifying co
 
 ## Success Criteria
 - `/code-review` 已执行且没有遗留待处理冲突。
-- `cargo clippy --fix --allow-dirty --allow-staged --all-targets --all-features` 执行完成，收口结束时无 warning。
-- `cargo fmt --all` 已执行。
+- Java 编译、测试和项目已有质量任务已执行，收口结束时无阻塞问题。
 - OpenAPI 文档已成功导出到 `frontend/api.json`。
 - 前端 API 客户端已成功生成（`frontend/api/*.ts`）。
 
 ## Failure
 - `accept` 未完成：拒绝执行，并提示先完成 `/t-run [feature] --phase backend`。
 - `finalize.md` 缺失：提示先重新生成 backend 任务。
-- OpenAPI 导出失败：提示检查 `utoipa` 注解完整性，修复后从 `openapi_export` 步骤恢复。
+- OpenAPI 导出失败：提示检查 springdoc/OpenAPI 注解、Controller 声明和运行时启动问题，修复后从 `openapi_export` 步骤恢复。
 - 前端 API 生成失败：提示检查 OpenAPI JSON 格式，修复后从 `frontend_api_gen` 步骤恢复。
 - 状态写入失败：重试一次，失败则终止。
 - 超过 3 轮自动修复仍未通过：标记 `failed` 并返回阻塞步骤。

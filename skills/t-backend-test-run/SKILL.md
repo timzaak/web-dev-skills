@@ -1,6 +1,6 @@
 ---
 name: t-backend-test-run
-description: Run targeted Rust backend tests, diagnose failures, delegate production-code fixes, and retest without weakening scenario-test semantics.
+description: Run targeted Java Spring Boot backend tests, diagnose failures, delegate production-code fixes, and retest without weakening scenario-test semantics.
 allowed-tools:
   - Bash
   - Read
@@ -68,7 +68,7 @@ Reason implementation appears wrong: `<diagnosis>`
 
 Hard constraints:
 - Do not modify `backend/**/tests/scenarios/**`.
-- Do not modify any `*_scenarios.rs`.
+- Do not weaken or rewrite scenario/integration tests to match broken production behavior.
 - Do not change scenario-test assertions, status-code expectations, permission expectations, or business-rule expectations.
 - If a test semantics change seems required, return `requires_test_semantics_change` with evidence instead of editing tests.
 ```

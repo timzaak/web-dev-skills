@@ -106,8 +106,8 @@ def wait_for_tcp_with_compile_awareness(
     logger: "Logger | None" = None,
     check_compilation: bool = True,
 ) -> bool:
-    """Wait for a TCP port, extending the deadline while Rust compilation is active."""
-    from .proc import is_cargo_compiling
+    """Wait for a TCP port, extending the deadline while backend build activity is active."""
+    from .proc import is_backend_build_active
 
     deadline = time.time() + timeout_seconds
     start_time = time.time()
@@ -130,10 +130,10 @@ def wait_for_tcp_with_compile_awareness(
                 )
             return True
 
-        if check_compilation and extension_count < max_extensions and is_cargo_compiling():
+        if check_compilation and extension_count < max_extensions and is_backend_build_active():
             if logger and logger.level >= 2:
                 logger.verbose_info(
-                    f"Detected cargo compilation, extending timeout by {extension_time}s"
+                    f"Detected backend build activity, extending timeout by {extension_time}s"
                 )
             deadline += extension_time
             extension_count += 1

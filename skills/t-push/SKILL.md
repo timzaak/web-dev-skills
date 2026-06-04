@@ -29,7 +29,7 @@ uv run ${CLAUDE_PLUGIN_ROOT}/scripts/push.py --message "<AI 生成的 commit mes
 
 ## CI Rules
 
-- Backend 变更：执行 `cargo clippy --fix --allow-dirty --allow-staged --all-targets --all-features -- -D warnings`，然后执行 `cargo fmt --all`。若 clippy 报错（有无法自动修复的 lint），AI 应根据错误信息修复代码后重新运行脚本，直到通过。
+- Backend 变更：执行项目已有 Java 编译、测试和质量任务（优先 wrapper：`./mvnw test/verify` 或 `./gradlew test/check`）。若静态检查报错，AI 应根据错误信息修复代码后重新运行脚本，直到通过。
 - Frontend 变更：执行 `npm run lint`、`npm run format:check`、`npm run type-check`、`npm run test:run`；其中 `format:check` 和 `test:run` 不存在时跳过。
 - Demo 变更：执行 `npm run lint` 和 `npm run type-check`。
 - 无 backend/frontend/demo 变更时跳过本地 CI，直接进入 commit/push。

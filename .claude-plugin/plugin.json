@@ -1,14 +1,14 @@
 {
   "name": "t-tools",
-  "description": "DDD-driven development skills, sub-agents and workflow commands for Rust + React projects",
+  "description": "DDD-driven development skills, sub-agents and workflow commands for Java Spring Boot + React projects",
   "version": "1.0.0",
   "author": {
     "name": "T Team"
   },
   "targetStack": {
-    "backend": "Rust / Axum",
+    "backend": "Java / Spring Boot",
     "frontend": "React / TanStack Router & Query / Tailwind / Radix UI",
-    "testing": "cargo nextest / Vitest / Playwright"
+    "testing": "JUnit / Maven or Gradle / Vitest / Playwright"
   },
   "requiredMcpServers": ["context7"]
 }
