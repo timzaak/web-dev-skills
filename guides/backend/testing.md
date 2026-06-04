@@ -45,6 +45,8 @@ uv run scripts/backend-test.py -- test_scenario
 uv run scripts/backend-test.py -- -R latest
 ```
 
+后端测试统一使用 `uv run scripts/backend-test.py -- [filter]`。需要串行执行时，仍使用统一入口并传递 nextest 参数：`uv run scripts/backend-test.py -- --test-threads 1 [filter]`，同时说明串行原因（例如全局状态、端口、单例或非隔离外部资源）。`cargo run` 只适用于启动应用、导出 OpenAPI 等二进制入口，不作为测试入口。
+
 格式与静态检查收口：
 
 ```bash

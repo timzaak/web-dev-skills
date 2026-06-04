@@ -98,9 +98,11 @@ backend 的 `finalize.md` 只作为 `/t-backend-finalize` 输入，不得由 `/t
 
 - 测试运行 item 汇总本轮相关测试 authoring item 的产物。
 - 测试运行 item 依赖本轮全部相关 authoring item，并记录覆盖来源。
+- 测试运行 item 必须包含 `Expected Test Manifest`，逐项列出本轮 authoring item 产生或修改的测试文件、测试函数/用例标题、来源 authoring item 和预期 runner 命令。
 - 测试运行 item 只运行能覆盖这些来源的最小可靠定向测试、类型检查或构建命令，不默认全量测试。
 - 如果定向运行需要等待 Rust 编译、TypeScript 编译、Vite/Vitest 预构建、Taro 构建或 Playwright 项目启动，这属于允许的执行成本；item 必须记录实际命令和失败/耗时证据。
 - 只有定向范围无法可靠覆盖风险，或发布/验收门禁明确要求时，才升级全量测试，并说明原因。
+- 可用 `uv run scripts/check-test-runner-coverage.py <feature> --layer <backend|frontend|miniapp|demo>` 校验 runner item 的预期测试清单与定向命令覆盖关系；backend 会通过 `cargo nextest list` 做动态命中校验，frontend/miniapp/demo 默认做静态命令覆盖校验。
 
 适用阶段：
 

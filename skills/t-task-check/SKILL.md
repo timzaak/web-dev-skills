@@ -77,7 +77,10 @@ allowed-tools:
    - backend/test 必须有 runner item 覆盖全部相关 authoring item，且 runner 依赖这些 authoring item
    - backend/accept item 必须依赖 runner item，不得只依赖 authoring item
    - frontend/test、miniapp/test 和 demo/dev 涉及测试代码 authoring 时，必须有集中定向执行 item 依赖全部相关测试 authoring item
+   - 集中测试执行 item 必须包含 `Expected Test Manifest`，逐项列出测试文件、测试函数/用例标题、来源 authoring item 和 runner 命令
    - 测试执行 item 必须从覆盖来源推导定向命令；如升级全量，必须说明定向范围不足或门禁要求
+   - 对 backend/frontend/miniapp/demo 的集中测试执行 item，优先运行 `uv run scripts/check-test-runner-coverage.py [feature] --layer [layer]` 做覆盖校验；backend 动态校验失败应记 P1 或 P0（取决于是否导致新增测试无法执行），frontend/miniapp/demo 静态校验失败至少记 P1
+   - 后端测试命令必须使用 `uv run scripts/backend-test.py -- [filter]`；需要串行执行时使用 `uv run scripts/backend-test.py -- --test-threads 1 [filter]` 并说明串行原因。若测试 item 使用 `cargo run` 或裸 `cargo test -- --test-threads=1`，记 P1，并改为统一入口。
    - 不得把完整 slot 内容塞进一个 item
    - 超过拆分阈值必须有合理说明，否则记 P1
    - scope 中包含两个可独立交付、独立验证的主交付物时，必须拆分，否则记 P1

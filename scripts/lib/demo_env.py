@@ -270,7 +270,7 @@ def start_environment(
     # Step 4: Start backend process
     with logger.step(4, total_steps, "Starting backend"):
         backend_env = dict(os.environ)
-        backend_env["APP_CONFIG"] = str((REPO_ROOT / "backend" / "config.demo.toml").resolve())
+        backend_env["HERALD_CONFIG"] = str((REPO_ROOT / "backend" / "config.demo.toml").resolve())
         backend_env["TOTP_SECRET_KEY"] = "demo-totp-encryption-key-32-bytes-long"
         backend_env["ADMIN_REALM_ID"] = "admin"
 
@@ -278,7 +278,7 @@ def start_environment(
 
         spawn_background(
             name=None,
-            command=[cargo, "run", "--bin", "backend-app"],
+            command=[cargo, "run", "--bin", "herald-app"],
             cwd=REPO_ROOT / "backend",
             stdout_path=backend_out,
             stderr_path=backend_err,
