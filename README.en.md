@@ -37,7 +37,7 @@ Minimal end-to-end example:
 # Quality gate: prevent upstream issues from entering the design stage
 /t-tools:t-prd-check user-management
 
-# Produce technical design from the PRD
+# Produce technical design from the PRD; pure technical designs may also use t-tech-research as input
 /t-tools:t-design user-management
 
 # Convert design into executable tasks
@@ -73,7 +73,7 @@ Additional notes:
 
 ```text
 /t-tools:t-init <project-name> (optional, initialize a full-stack project scaffold)
-  /t-tools:t-tech-research (optional, evaluate technical feasibility before PRD)
+  /t-tools:t-tech-research (optional, evaluate technical feasibility before PRD; pure technical designs may go directly to t-design)
   /t-tools:t-prd
   -> /t-tools:t-prd-check
   -> /t-tools:t-design
@@ -98,7 +98,7 @@ Notes:
 Common helper commands:
 
 - `/t-tools:t-init <project-name>`: initializes a full-stack project scaffold for Rust Axum + React TanStack, including backend, frontend, E2E tests, development scripts, and the complete directory structure
-- `/t-tools:t-tech-research`: evaluates technical feasibility before writing the PRD, including dependency gap analysis, library research, impact analysis, and feasibility judgment
+- `/t-tools:t-tech-research`: evaluates technical feasibility before writing the PRD, including dependency gap analysis, library research, impact analysis, and feasibility judgment; for pure technical designs that do not change business logic, it may be the direct upstream input to `/t-tools:t-design`
 - `/t-tools:t-doc <project-or-module-name>`: scans the target project codebase and generates newcomer-oriented tutorial documentation under `docs/tutorials/<name>/` by default
 - `/t-tools:t-html-show <feature | path>`: generates or updates HTML Preview for quick human review. Supports PRDs (pass feature name) and any Markdown document (pass file path). Usually triggered automatically by `/t-prd`, but can also be run independently
 - `/t-tools:t-dream [feature|--all] [--deep|--backend-only|--govern-prd]`: by default, read-only audits PRDs, user stories, design/task docs, code structure, tests/Demo, and implementation facts to find stale context, structure drift, traceability gaps, and description/implementation conflicts, then writes `.ai/quality/dream-check-[YYYYMMDD-HHMMSS].md`; only `--govern-prd` may rewrite PRDs, indexes, and references

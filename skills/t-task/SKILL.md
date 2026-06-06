@@ -24,12 +24,14 @@ allowed-tools:
 上游输入（来自 `/t-design` 产出）：
 - `.ai/design/[feature].md` — 技术设计文档（必须存在）
   - 必须包含：目标、范围、API 接口设计、数据库设计、测试策略
-  - 应包含：现有实现分析、用户故事/PRD 引用、文件影响范围
+  - 应包含：现有实现分析、用户故事/PRD/技术预研引用、文件影响范围
+  - 纯技术方案设计可只包含技术预研引用，但必须声明不涉及业务逻辑、产品规则、用户可见流程或验收目标变动
 
 可选输入：
 - `.ai/task/[feature]/.state.json` — 已有任务状态（增量生成时）
 - `docs/prd/**/*.md` — PRD 文档
 - `docs/user-stories/**/*.md` — 用户故事
+- `.ai/tech-research/**/*.md` — 技术预研报告
 - `${CLAUDE_PLUGIN_ROOT}/guides/` — 开发规范
 
 ## Output Contract
@@ -242,6 +244,7 @@ slot agent 输出必须至少包含：
 - miniapp test：typecheck、weapp/h5 构建、模板门禁、页面注册与资源产物回归。
 - demo dev：先拆 fixtures/helpers，再拆主流程、异常/校验场景、权限场景；不要把 helper 和完整业务流放在同一个 item。
 - accept：design consistency、public API contract、business rules、permission/security、test evidence、demo readiness。
+  - 纯技术方案不涉及业务逻辑变动时，accept 应聚焦技术目标、兼容性、公共契约、迁移/配置影响、测试证据和回归风险，不强行补业务规则验收项。
 
 ## Backend Finalize
 - backend 阶段必须额外生成 `<phase>/finalize.md`。

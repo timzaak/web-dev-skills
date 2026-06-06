@@ -1,13 +1,13 @@
 ---
 name: t-tech-research
-description: Research technical feasibility for a feature by scanning the codebase, checking dependencies, researching new libraries when needed, and writing a report under .ai/tech-research/. Use when the user runs /t-tech-research with a feature name, asks for a technical feasibility study, or requests evaluation before PRD work for a feature involving new dependencies, new technology, or significant architecture changes. Do not use for casual "how would this work" questions, ordinary bug fixes, or small refactors.
+description: Research technical feasibility for a feature by scanning the codebase, checking dependencies, researching new libraries when needed, and writing a report under .ai/tech-research/. Use when the user runs /t-tech-research with a feature name, asks for a technical feasibility study, requests evaluation before PRD work, or needs upstream input for a pure technical design that does not change business logic. Do not use for casual "how would this work" questions, ordinary bug fixes, or small refactors.
 ---
 
 # 需求技术预研
 
 ## 目标
 
-基于用户需求和现有代码库，评估技术可行性、依赖缺口、代码影响范围和关键风险，生成报告供后续 `/t-prd` 参考。
+基于用户需求和现有代码库，评估技术可行性、依赖缺口、代码影响范围和关键风险，生成报告供后续 `/t-prd` 或纯技术方案 `/t-design` 参考。
 
 输出文件：
 - `.ai/tech-research/$ARGUMENTS.md`
@@ -30,6 +30,7 @@ description: Research technical feasibility for a feature by scanning the codeba
 - 影响分析
 - 可行性判定
 - PRD 编写建议
+- 纯技术方案设计建议（如不涉及业务逻辑变动）
 - 参考资料
 
 ## 参数规则
@@ -141,7 +142,7 @@ description: Research technical feasibility for a feature by scanning the codeba
 - 需要引入的新库数量和名称（如适用）
 - 主要影响范围
 - 关键风险点
-- 下一步命令：`/t-prd $ARGUMENTS`
+- 下一步命令：业务功能进入 `/t-prd $ARGUMENTS`；不涉及业务逻辑变动的纯技术方案可进入 `/t-design $ARGUMENTS`
 
 ## 质量门禁
 
@@ -152,7 +153,7 @@ description: Research technical feasibility for a feature by scanning the codeba
 - 是否已收敛为单一明确技术路线
 - 是否移除了方案对比、候选排序和开放式选择
 - 报告是否不含任何"待确认"/"需确认"/"待定"/"TBD"等未决项；未确认信息是否已全部转为显式假设
-- PRD 编写建议是否明确可执行
+- PRD 编写建议是否明确可执行；如不涉及业务逻辑变动，是否说明可直接进入 `/t-design`
 - 影响分析中的路径是否真实存在
 - 可行性判定是否明确
 - 风险评估是否区分 P0/P1/P2

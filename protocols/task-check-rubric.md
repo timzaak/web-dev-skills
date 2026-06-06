@@ -15,7 +15,7 @@
 
 最终结论的证据优先级必须为：
 
-`docs/` 与 `${CLAUDE_PLUGIN_ROOT}/guides/` 与仓库实际文件 > 当前 phase 任务文档 > sub agent 评审意见
+`docs/`、`.ai/tech-research/`、`${CLAUDE_PLUGIN_ROOT}/guides/` 与仓库实际文件 > 当前 phase 任务文档 > sub agent 评审意见
 
 规则：
 
@@ -113,7 +113,7 @@ agent 评审边界：
 | 状态文件结构 | 15 | `.state.json` 的 `phase/phases/tasks/slot/items` 结构完整性 |
 | 文档完整性 | 15 | `index.md`、slot manifest、item 文件和 backend `finalize.md` |
 | Item 可执行性 | 20 | item 足够小、步骤明确、验证命令明确、边界清晰 |
-| 内容一致性 | 20 | 与设计文档、PRD、用户故事、仓库路径和术语一致 |
+| 内容一致性 | 20 | 与设计文档、PRD、用户故事、技术预研、仓库路径和术语一致 |
 | 依赖与恢复 | 15 | item DAG 合法、handoff 可追溯、失败可恢复 |
 | 文档规范 | 10 | Markdown 结构和格式规范 |
 | 代码示例质量 | 5 | 示例可读、可执行、不误导 |

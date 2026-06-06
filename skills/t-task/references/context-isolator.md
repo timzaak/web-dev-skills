@@ -27,7 +27,7 @@ tools:
 | backend | backend-dev, backend-test, backend-accept | API、数据模型、后端实现、后端测试 |
 | frontend | frontend-dev, frontend-test, frontend-accept | 前端实现、前端交互与状态、前端测试 |
 | miniapp | miniapp-dev, miniapp-test, miniapp-accept | 小程序页面、主题、构建与模板门禁 |
-| demo | demo-dev, demo-accept | Demo/E2E、用户故事场景 |
+| demo | demo-dev, demo-accept | Demo/E2E、用户故事场景或技术验收场景 |
 
 ## Output Contract
 ```json
