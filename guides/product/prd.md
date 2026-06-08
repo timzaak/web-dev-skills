@@ -87,7 +87,7 @@ Preview 必须目标技术栈无关，使用单文件 HTML、内联 CSS 和少�
 
 纯后端或无用户界面的功能仍需生成 Preview，但不生成伪 UI；应使用流程图、状态图、调用方场景、能力边界矩阵或验收矩阵表达。
 
-`/t-prd` 生成或更新草稿 Preview 后，应立即打开 HTML 供人类审阅。后续沟通优先围绕 HTML Preview 进行；如果审阅中调整了功能意图、流程、状态或验收目标，必须同步修改 Markdown PRD 草稿和 HTML Preview。草稿通过 `/t-prd-check` 后，使用 `/t-prd-publish` 发布到 `docs/prd`；发布成功后对应 `.ai/prd` 草稿应删除。
+`/t-prd` 生成或更新草稿 Preview 后，应立即打开 HTML 供人类审阅。后续沟通优先围绕 HTML Preview 进行；如果审阅中调整了功能意图、流程、状态或验收目标，必须同步修改 Markdown PRD 草稿和 HTML Preview。草稿通过 `/t-prd-check` 后进入 `/t-design`；如果草稿继续被修正，必须再次运行 `/t-prd-check`。实现、测试和 Demo 验收完成后，使用 `/t-prd-publish` 基于已实现事实和草稿修正增补正式 PRD；完成后对应 `.ai/prd` 草稿应删除。
 
 `/t-prd-check` 必须验证 Markdown PRD 与 HTML Preview 描述一致。不一致时，必须修正到一致后才能通过。
 

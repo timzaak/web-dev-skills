@@ -22,13 +22,13 @@ allowed-tools:
 
 不要用它做：
 - PRD 完整性检查 → 使用 `/t-prd-check`
-- PRD 发布到正式文档 → 使用 `/t-prd-publish`
+- 正式 PRD 修正增补 → 使用 `/t-prd-publish`
 - 用户故事质量检查 → 使用 `/t-prd-check`
 - 实施进度或完成情况记录 → 使用对应实现阶段命令或任务状态文件，不写入 PRD
 
 ## 目标
 
-基于现有 user story、正式 PRD、已有 PRD 草稿和用户补充信息，先补齐必要的 user story，再创建或更新一份 PRD 草稿，并生成 HTML Preview，供人类快速审阅。`.ai/prd` 是临时工作区，正式写入 `docs/prd` 由 `/t-prd-publish` 负责，发布成功后草稿会被删除。
+基于现有 user story、正式 PRD、已有 PRD 草稿和用户补充信息，先补齐必要的 user story，再创建或更新一份 PRD 草稿，并生成 HTML Preview，供人类快速审阅。`.ai/prd` 是实现完成前的临时候选需求工作区；实现、测试和 Demo 验收完成后，由 `/t-prd-publish` 基于已实现事实修正增补正式 PRD，并删除草稿。
 
 输出文件：
 - `.ai/prd/<domain>/[feature].md`
@@ -55,7 +55,7 @@ allowed-tools:
 - HTML Preview 由 `/t-html-show` 写入 `.ai/preview/<domain>/[feature].html`
 - `<domain>` 只能是 `auth`、`billing`、`core`、`integration`
 - `/t-prd` 不写入 `docs/prd/`；若父目录缺失，仅在目标域已明确时创建 `.ai/prd/<domain>/`
-- `.ai/prd` 不作为长期权威源；草稿发布成功后由 `/t-prd-publish` 删除
+- `.ai/prd` 不作为长期权威源；它在设计、任务、实现和验收期间作为候选需求输入保留，最终由 `/t-prd-publish` 删除
 
 **PRD 内容边界**：
 - 聚焦产品边界与规则，不承载接口 schema、数据库建表或技术方案
@@ -117,8 +117,8 @@ PRD Grill Snapshot
 - `/t-prd`：补齐 user story → 创建/更新 `.ai/prd` 草稿 → 触发 `/t-html-show` 生成 HTML Preview
 - `/t-html-show`：基于 PRD 草稿生成 HTML Preview（通过本 skill 自动触发）
 - `/t-prd-check`：检查 PRD 草稿、HTML Preview、正式 PRD 基线和用户故事质量（不在本 skill 范围内）
-- `/t-prd-publish`：按 feature 审核草稿并发布到 `docs/prd`（不在本 skill 范围内）
-- `/t-design`：基于草稿 PRD 与正式 PRD 的混合验证生成技术设计（不在本 skill 范围内）
+- `/t-design`：基于通过检查的草稿 PRD 与正式 PRD 的混合验证生成技术设计（不在本 skill 范围内）
+- `/t-prd-publish`：实现、测试和 Demo 验收完成后，基于已实现事实和草稿修正增补正式 PRD（不在本 skill 范围内）
 - 本 skill 产出产品语义草稿，不负责接口明细、数据库设计或技术实现方案
 
 ## Input Contract
@@ -138,7 +138,7 @@ PRD Grill Snapshot
 
 ## Output Contract
 
-下游产出（供 `/t-prd-check`、`/t-prd-publish` 和 `/t-design` 使用）：
+下游产出（供 `/t-prd-check` 和 `/t-design` 使用；实现完成后供 `/t-prd-publish` 修正增补正式 PRD）：
 
 `.ai/prd/<domain>/[feature].md` — PRD 草稿，包含：
 - 相关用户故事引用
@@ -268,7 +268,7 @@ create 路径使用 [template.md](template.md)；draft-from-published 和 update
 - 本次走 create、draft-from-published 还是 update
 - 需要重点补充或确认的部分
 - 待确认项：明确说明"无"或以对话形式列出，不写入 Markdown PRD
-- 下一步：`/t-prd-check [feature]`；通过后执行 `/t-prd-publish [feature]`，发布成功并删除草稿后再执行 `/t-design [feature]`
+- 下一步：`/t-prd-check [feature]`；通过后执行 `/t-design [feature]`，若检查发现问题则修复后再次运行 `/t-prd-check [feature]`
 
 推断部分需在收尾对话中显式列出：哪些来自现有文档、哪些来自当前对话、哪些仍待确认；未确认内容不写入 Markdown PRD。
 

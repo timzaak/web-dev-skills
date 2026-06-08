@@ -5,7 +5,7 @@
 ## 工作定位
 
 - 面向目标项目使用时，标准入口是 `/t-tools:t-*` 命令，而不是让模型自由选择流程。
-- 插件主链路是 `PRD Draft -> PRD Check -> PRD Publish -> Design -> Design Check -> Task -> Task Check -> Run -> Backend Finalize -> Demo Run -> Demo Accept -> Release`。
+- 插件主链路是 `PRD Draft -> PRD Check -> Design -> Design Check -> Task -> Task Check -> Run -> Backend Finalize -> Demo Run -> Demo Accept -> PRD Publish -> Release`。
 - 这个 plugin 的核心价值是统筹 AI 编程：把需求、设计、任务、实现、测试、验收和 Demo 交付拆成有边界、有状态、有门禁的阶段。
 - 不要把本仓库当成目标项目来生成业务代码。目标项目运行时事实主要落在目标项目的 `docs/` 和 `.ai/` 中。
 

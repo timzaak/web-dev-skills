@@ -22,6 +22,7 @@ allowed-tools:
 - 检查 PRD 草稿与 `docs/prd` 已发布基线是否存在未说明冲突
 - 检查 PRD / 用户故事是否错误混入接口、建表、schema 等实现细节
 - 输出量化评分和修复清单
+- 明确通过后的下一步：进入 `/t-design [feature]`；若有修复，重新运行 `/t-prd-check [feature]`
 
 评分、扣分和问题分级统一参考：`protocols/prd-check-rubric.md`
 
@@ -87,7 +88,7 @@ allowed-tools:
 - 校验用户故事中的角色是否存在于 `_roles.md`
 - 比较 HTML Preview 与 PRD 的关键规则、流程、状态和验收目标是否一致
 - 比较 `.ai/prd/<domain>/<feature>.md` 与 `docs/prd/<domain>/<feature>.md`：
-  - 草稿是新增正式 PRD 不存在 → 记录为 create 发布候选
+  - 草稿对应正式 PRD 不存在 → 记录为 create-if-missing 候选
   - 草稿修改已发布 PRD → 必须能识别目标、范围、规则、状态或验收目标的差异
   - 草稿与正式 PRD 有未说明冲突 → P1；若冲突会改变核心业务边界或权限规则 → P0
 
@@ -106,6 +107,8 @@ allowed-tools:
 ### 9. 输出要求
 - 控制台摘要和报告结构统一参考：`protocols/prd-check-rubric.md`
 - 详细报告文件：`.ai/quality/prd-check-[YYYYMMDD-HHMMSS].md`
+- 通过时建议下一步为 `/t-design [feature]`
+- 未通过或修复后，建议再次运行 `/t-prd-check [feature]`
 
 ### 10. 失败处理
 - 未找到 PRD 文档：提示检查功能名称或先运行 `/t-prd [feature]`
@@ -123,5 +126,5 @@ allowed-tools:
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/user-story.md` - 用户故事规范和 INVEST 原则
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/prd.md` - PRD 分层与禁止内容规范
 - `docs/user-stories/_roles.md` - 角色定义
-- `skills/t-prd-publish/SKILL.md` - PRD 草稿发布入口
+- `skills/t-prd-publish/SKILL.md` - 实现与验收完成后的正式 PRD 修正增补入口
 - `skills/t-dream/SKILL.md` - PRD 上下文整理、结构漂移治理与实现事实对齐入口
