@@ -32,7 +32,7 @@ tools:
 ## 输出契约
 
 - 质量报告：`.ai/quality/check-[date].md`
-- 验收结论：`ACCEPTED` / `REJECTED` / `ACCEPTED WITH IMPROVEMENTS`
+- 验收结论：`ACCEPTED` / `REJECTED` / `ACCEPTED_WITH_IMPROVEMENTS`
 - 重复代码检查结果：必须写入报告，包含执行命令、重复率/重复块数量、关键文件位置；未执行时必须说明原因
 - 每条结论都必须包含证据文件或命令输出来源
 
@@ -54,7 +54,7 @@ tools:
 
 ### 步骤 3：输出报告
 - 输出到 `.ai/quality/check-[date].md`
-- 给出状态：`ACCEPTED` / `REJECTED` / `ACCEPTED WITH IMPROVEMENTS`
+- 给出状态：`ACCEPTED` / `REJECTED` / `ACCEPTED_WITH_IMPROVEMENTS`
 
 ## 规范来源
 

@@ -43,7 +43,7 @@ allowed-tools:
 ## 参数要求
 
 两种模式：
-1. **PRD 模式**：参数是 feature 名称，自动搜索 `docs/prd/**/*.md`
+1. **PRD 模式**：参数是 feature 名称，优先搜索 `.ai/prd/**/*.md`，再搜索 `docs/prd/**/*.md`
 2. **通用模式**：参数是文件路径，直接使用
 
 文件名仅允许英文、数字、空格、下划线、连字符。拒绝 `..`。长度限制 1 到 50 字符。
@@ -54,7 +54,7 @@ allowed-tools:
 
 **路径与域**：
 - Preview 写入 `.ai/preview/` 下，不进入代码仓库
-- PRD 来源路径为 `docs/prd/<domain>/[feature].md`，输出 `.ai/preview/<domain>/[feature].html`
+- PRD 来源路径为 `.ai/prd/<domain>/[feature].md` 或 `docs/prd/<domain>/[feature].md`，输出 `.ai/preview/<domain>/[feature].html`
 - 其他文档：输出 `.ai/preview/<stem>.html`
 
 **Preview 边界**：
@@ -75,7 +75,8 @@ allowed-tools:
 - `${CLAUDE_PLUGIN_ROOT}/templates/preview-template.html` — HTML 模板
 
 PRD 模式额外读取：
-- `docs/prd/<domain>/[feature].md` — PRD 文档
+- `.ai/prd/<domain>/[feature].md` — PRD 草稿（优先）
+- `docs/prd/<domain>/[feature].md` — 正式 PRD（草稿不存在时）
 - `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md` — PRD 专用契约
 
 如果源文档不存在，立即终止并提示先创建文档。
@@ -101,7 +102,7 @@ PRD 模式额外读取：
 
 判断模式：
 - 参数匹配已有文件路径 → 通用模式，直接使用
-- 参数不匹配文件路径 → PRD 模式，搜索 `docs/prd/**/*.md` 找到目标 PRD
+- 参数不匹配文件路径 → PRD 模式，优先搜索 `.ai/prd/**/*.md`，再搜索 `docs/prd/**/*.md` 找到目标 PRD
   - 未找到 → 终止并提示先执行 `/t-prd`
   - 确定目标域（`auth | billing | core | integration`）
 

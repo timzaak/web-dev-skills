@@ -78,7 +78,7 @@ npx jscpd --pattern "**/*.ts" --reporters console demo/e2e
 
 状态阈值：
 - 90-100：`ACCEPTED`
-- 80-89：`ACCEPTED WITH IMPROVEMENTS`（仅在所有测试通过时允许）
+- 80-89：`ACCEPTED_WITH_IMPROVEMENTS`（仅在所有测试通过时允许）
 - < 80：`REJECTED`
 
 ## 4. 拒绝条件
@@ -104,7 +104,7 @@ npx jscpd --pattern "**/*.ts" --reporters console demo/e2e
 
 批量验收需额外输出汇总报告：
 - 总测试数
-- ACCEPTED / ACCEPTED WITH IMPROVEMENTS / REJECTED 统计
+- ACCEPTED / ACCEPTED_WITH_IMPROVEMENTS / REJECTED 统计
 - 失败测试与修复建议
 
 ## 6. 禁止行为

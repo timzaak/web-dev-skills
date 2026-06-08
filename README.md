@@ -31,11 +31,14 @@
 最短闭环示例：
 
 ```bash
-# 若 PRD 不存在则创建，已存在则补齐更新，并打开 HTML 供审阅
+# 创建或更新 .ai/prd 草稿，并打开 HTML 供审阅
 /t-tools:t-prd user-management
 
 # 质量门禁：避免把问题带入设计阶段
 /t-tools:t-prd-check user-management
+
+# 发布草稿到 docs/prd；发布成功后删除 .ai/prd 草稿
+/t-tools:t-prd-publish user-management
 
 # 基于 PRD 产出技术设计；纯技术方案也可基于 t-tech-research 产出
 /t-tools:t-design user-management
@@ -76,6 +79,7 @@
   /t-tools:t-tech-research (可选，评估需求技术可行性；纯技术方案可直接衔接 t-design)
   /t-tools:t-prd
   -> /t-tools:t-prd-check
+  -> /t-tools:t-prd-publish
   -> /t-tools:t-design
   -> /t-tools:t-design-check
   -> /t-tools:t-task
@@ -91,7 +95,9 @@
 
 其中：
 
+- `/t-tools:t-prd` 生成 `.ai/prd` 临时草稿和 Preview，不直接写入正式 `docs/prd`
 - `/t-tools:t-prd-check` 是 PRD、HTML Preview 与 user story 质量门禁，不是可有可无的补充命令
+- `/t-tools:t-prd-publish` 按 feature 将已检查草稿发布到 `docs/prd`，发布成功后删除对应 `.ai/prd` 草稿
 - `/t-tools:t-task-check` 是任务拆分、DAG 和 item 可执行性门禁，用来确认任务文档可进入实施
 - `/t-tools:t-demo-accept` 是 Demo 阶段验收门禁，用来确认测试覆盖、可运行性和交付质量
 
@@ -99,6 +105,7 @@
 
 - `/t-tools:t-init <project-name>`：初始化全栈项目骨架（Rust Axum + React TanStack），生成后端、前端、E2E 测试、开发脚本等完整目录结构
 - `/t-tools:t-tech-research`：在写 PRD 之前评估需求的技术可行性，包括依赖缺口分析、库调研、影响分析和可行性判定；不涉及业务逻辑变动的纯技术方案可作为 `/t-tools:t-design` 的直接上游输入
+- `/t-tools:t-prd-publish <feature>`：审核 `.ai/prd/<domain>/<feature>.md` 与既有正式 PRD 的差异，确认后发布到 `docs/prd/<domain>/<feature>.md` 并删除草稿
 - `/t-tools:t-doc <project-or-module-name>`：扫描目标项目代码库，生成面向新人的教程文档，默认写入 `docs/tutorials/<name>/`
 - `/t-tools:t-html-show <feature | path>`：独立生成或更新文档的 HTML Preview，供人类快速审阅。支持 PRD（传 feature 名称）和任意 Markdown 文档（传文件路径）。通常由 `/t-prd` 自动触发，也可单独执行
 - `/t-tools:t-dream [feature|--all] [--deep|--backend-only|--govern-prd]`：默认只读审计 PRD、用户故事、设计/任务、代码结构、测试/Demo 与实现事实，发现过期上下文、结构漂移、traceability 断链和描述/实现冲突，并输出 `.ai/quality/dream-check-[YYYYMMDD-HHMMSS].md`；`--govern-prd` 才允许改写 PRD、索引和引用

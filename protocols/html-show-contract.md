@@ -14,14 +14,15 @@ HTML Preview 是 Markdown 文档的可视化审阅和协作产物，用于帮助
 
 HTML Preview 写入 `.ai/preview/` 下（不进入代码仓库）：
 
-- PRD: `docs/prd/<domain>/<feature>.md` → `.ai/preview/<domain>/<feature>.html`
+- PRD 草稿: `.ai/prd/<domain>/<feature>.md` → `.ai/preview/<domain>/<feature>.html`（临时草稿，发布后删除）
+- 正式 PRD: `docs/prd/<domain>/<feature>.md` → `.ai/preview/<domain>/<feature>.html`
 - 其他文档: `<path>/<name>.md` → `.ai/preview/<name>.html`
 
 Preview 是临时验证产物，不纳入版本控制。每次运行时重新生成。
 
 ## Source of Truth
 
-- Markdown 文档是正式结构化真相源。
+- Markdown 文档是当前 Preview 的结构化真相源。
 - HTML Preview 是从 Markdown 文档派生的可视化审阅视图。
 - HTML Preview 不允许引入源文档未声明的新需求、规则或约束。
 - 如果 Preview 为了演示流程使用示例数据，必须显式标注"示例数据，不是接口契约"。

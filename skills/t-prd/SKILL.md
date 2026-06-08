@@ -1,6 +1,6 @@
 ---
 name: t-prd
-description: Create or update PRD, HTML Preview, and user stories for a feature.
+description: Create or update draft PRD, HTML Preview, and user stories for a feature.
 argument-hint: "[feature-name]"
 allowed-tools:
   - AskUserQuestion
@@ -12,7 +12,7 @@ allowed-tools:
   - Bash
 ---
 
-# PRD 维护
+# PRD 草稿维护
 
 运行时边界统一参考：`protocols/runtime-boundaries.md`
 
@@ -22,17 +22,19 @@ allowed-tools:
 
 不要用它做：
 - PRD 完整性检查 → 使用 `/t-prd-check`
+- PRD 发布到正式文档 → 使用 `/t-prd-publish`
 - 用户故事质量检查 → 使用 `/t-prd-check`
 - 实施进度或完成情况记录 → 使用对应实现阶段命令或任务状态文件，不写入 PRD
 
 ## 目标
 
-基于现有 user story、PRD 索引、已有 PRD 和用户补充信息，先补齐必要的 user story，再创建或更新一份 PRD，并生成同目录 HTML Preview，供人类快速审阅和后续 `/t-design` 使用。
+基于现有 user story、正式 PRD、已有 PRD 草稿和用户补充信息，先补齐必要的 user story，再创建或更新一份 PRD 草稿，并生成 HTML Preview，供人类快速审阅。`.ai/prd` 是临时工作区，正式写入 `docs/prd` 由 `/t-prd-publish` 负责，发布成功后草稿会被删除。
 
 输出文件：
-- `docs/prd/<domain>/[feature].md`
+- `.ai/prd/<domain>/[feature].md`
 
 ## 使用方式
+
 ```bash
 /t-prd [feature]
 ```
@@ -48,12 +50,12 @@ allowed-tools:
 
 ## 核心约束
 
-以下约束在本 skill 中为唯一权威来源，工作流步骤不再重复声明。
-
 **路径与域**：
-- PRD 写入 `docs/prd/<domain>/[feature].md`，HTML Preview 由 `/t-html-show` 写入 `.ai/preview/<domain>/[feature].html`
+- PRD 草稿写入 `.ai/prd/<domain>/[feature].md`
+- HTML Preview 由 `/t-html-show` 写入 `.ai/preview/<domain>/[feature].html`
 - `<domain>` 只能是 `auth`、`billing`、`core`、`integration`
-- 不写入 `docs/prd/` 根目录；若父目录缺失，仅在目标域已明确时创建所需目录
+- `/t-prd` 不写入 `docs/prd/`；若父目录缺失，仅在目标域已明确时创建 `.ai/prd/<domain>/`
+- `.ai/prd` 不作为长期权威源；草稿发布成功后由 `/t-prd-publish` 删除
 
 **PRD 内容边界**：
 - 聚焦产品边界与规则，不承载接口 schema、数据库建表或技术方案
@@ -61,16 +63,12 @@ allowed-tools:
 - 禁止写：具体端点（`GET/POST /api/...`）、请求/响应参数表、HTTP 状态码列表、数据库表结构/迁移方案、Rust/TypeScript 类型定义
 - 禁止写：当前任务是否已实现、完成比例、已完成/未完成清单等会随实现推进快速过期的进度状态
 
-**HTML Preview 边界**：
-- 是 Markdown PRD 的可视化审阅视图，不能引入 PRD 未声明的新需求或规则
-- 有前端/交互入口时，UI 示意聚焦 PRD 定义的目标体验和关键状态，不复刻代码库已经具备的现有页面或组件；已有 UI 只作为入口或约束说明
-- 使用单文件 HTML、内联 CSS 和少量原生 JS，不依赖外部构建工具或 CDN
-- 技术栈无关，浏览器直接打开即可审阅
-
 **更新行为**：
-- 已有同名 PRD → update 路径，逐章比对本次确认信息：冲突章节替换冲突部分，一致章节保留，未涉及章节保留（代表之前决策），模板要求但缺失的章节补齐；本次对话中已确认的待确认项迁移至"已确认决策"
+- 已有同名草稿 → update 路径，以草稿为基底逐章更新
+- 无草稿但有同名正式 PRD → draft-from-published 路径，以正式 PRD 为基线创建草稿，不覆盖正式 PRD
+- 无草稿且无正式 PRD → create 路径，使用 [template.md](template.md)
 - 已有同名 user story 文件 → 追加到合适章节，不重建
-- 已有同名 HTML Preview → 以当前 PRD 语义为基准更新
+- 已有同名 HTML Preview → 以当前草稿 PRD 语义为基准更新
 
 **user story 引用**：
 - PRD 只引用相关用户故事（ID、标题、优先级、来源文件），不复制完整验收文本
@@ -83,11 +81,11 @@ allowed-tools:
 - 只在目标域、范围边界、成功标准或补充 user story 所需信息无法可靠推断时，才使用 `AskUserQuestion`
 - 一次只问一个；每个问题给出推荐答案，用户可接受、修改或拒绝
 - PRD 只记录已确认决策；仍待确认的信息在对话收尾中列出，不写入 Markdown PRD
-- 信息足够生成可审阅 PRD 时停止追问，不为了完美而继续打断
+- 信息足够生成可审阅 PRD 草稿时停止追问，不为了完美而继续打断
 
 ## PRD 前置澄清门禁
 
-`/t-prd` 在写入 PRD 前必须完成轻量澄清门禁：先研究事实，再对真正阻塞 PRD 的判断点逐一追问，直到足以形成可审阅的产品语义。
+`/t-prd` 在写入 PRD 草稿前必须完成轻量澄清门禁：先研究事实，再对真正阻塞 PRD 的判断点逐一追问，直到足以形成可审阅的产品语义。
 
 运行时维护一个临时 `PRD Grill Snapshot`，不写入 PRD 正文：
 
@@ -101,11 +99,11 @@ PRD Grill Snapshot
 ```
 
 门禁规则：
-- Discover first：先读取 `docs/user-stories/`、`docs/prd/`、`.ai/tech-research/`、产品 guide 和必要代码上下文；能查明的事实不得问用户。
+- Discover first：先读取 `docs/user-stories/`、`docs/prd/`、`.ai/prd/`、`.ai/tech-research/`、产品 guide 和必要代码上下文；能查明的事实不得问用户。
 - Define next：只追问判断题，包括目标、范围边界、非目标、成功标准、关键异常、优先级取舍、角色价值和验收信号。
 - Depth-first：同一问题分支未澄清前，不同时抛出多个无关问题；每轮只问一个，并给出推荐答案。
 - Concrete only：若用户回答仍是"更好"、"尽快"、"合理"等模糊表达，继续追问同一判断点，要求给出可判断的范围、指标、状态或验收信号。
-- Stop early：当 Snapshot 已能支撑一份可审阅 PRD 时停止追问；其余非阻塞疑问作为待确认项在收尾对话列出。
+- Stop early：当 Snapshot 已能支撑一份可审阅 PRD 草稿时停止追问；其余非阻塞疑问作为待确认项在收尾对话列出。
 - Hard boundary：Snapshot 是运行时澄清工具，不是交付物；PRD 只能写入已确认决策和已确认成功标准，不能写入未确认假设。
 
 通过门禁的最低条件：
@@ -116,30 +114,33 @@ PRD Grill Snapshot
 
 ## 职责边界
 
-- `/t-prd`：补齐 user story → 创建/更新 PRD → 触发 `/t-html-show` 生成 HTML Preview
-- `/t-html-show`：基于 PRD 生成 HTML Preview（通过本 skill 自动触发）
-- `/t-prd-check`：检查 PRD、HTML Preview 与用户故事质量（不在本 skill 范围内）
-- `/t-design`：基于 PRD 生成技术设计（不在本 skill 范围内）
-- 本 skill 产出产品语义文档，不负责接口明细、数据库设计或技术实现方案
+- `/t-prd`：补齐 user story → 创建/更新 `.ai/prd` 草稿 → 触发 `/t-html-show` 生成 HTML Preview
+- `/t-html-show`：基于 PRD 草稿生成 HTML Preview（通过本 skill 自动触发）
+- `/t-prd-check`：检查 PRD 草稿、HTML Preview、正式 PRD 基线和用户故事质量（不在本 skill 范围内）
+- `/t-prd-publish`：按 feature 审核草稿并发布到 `docs/prd`（不在本 skill 范围内）
+- `/t-design`：基于草稿 PRD 与正式 PRD 的混合验证生成技术设计（不在本 skill 范围内）
+- 本 skill 产出产品语义草稿，不负责接口明细、数据库设计或技术实现方案
 
 ## Input Contract
 
 上游输入（可选，如果存在会提升质量）：
 - `docs/user-stories/**/*.md` — 用户故事文档
-- `docs/prd/00-index.md` — PRD 索引
+- `docs/prd/00-index.md` — 正式 PRD 索引
+- `docs/prd/<domain>/[feature].md` — 已发布正式 PRD（可选，用作草稿基线）
+- `.ai/prd/<domain>/[feature].md` — 已有 PRD 草稿（可选，用作更新基线）
+- `.ai/tech-research/[feature].md` — 技术可行性研究报告（可选，来自 `/t-tech-research`）
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/index.md` — 产品规范入口
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/user-story.md` — 用户故事规范
 - `${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md` — HTML Preview 通用契约
 - `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md` — HTML Preview PRD 专用契约
-- `.ai/tech-research/[feature].md` — 技术可行性研究报告（可选，来自 `/t-tech-research`）
 
 如果上游输入缺失，skill 仍可运行，但会在文档中标记缺失项。
 
 ## Output Contract
 
-下游产出（供 `/t-prd-check` 和 `/t-design` 使用）：
+下游产出（供 `/t-prd-check`、`/t-prd-publish` 和 `/t-design` 使用）：
 
-`docs/prd/<domain>/[feature].md` — PRD 文档，包含：
+`.ai/prd/<domain>/[feature].md` — PRD 草稿，包含：
 - 相关用户故事引用
 - 范围界定、需求概述、业务规则与状态
 - 功能需求与验收目标
@@ -165,14 +166,16 @@ HTML Preview 由 `/t-html-show` 自动生成到 `.ai/preview/<domain>/[feature].
 - `docs/prd/00-index.md`
 - `docs/user-stories/00-index.md`
 - `.ai/tech-research/$ARGUMENTS.md`（如已存在，从中提取技术需求和影响分析）
+- `.ai/prd/**/*.md` 和 `docs/prd/**/*.md` 中与 `$ARGUMENTS` 相关的少量候选文件
 
-根据用户故事和需求语义推断目标域（`auth | billing | core | integration`）。无法推断时用 `AskUserQuestion` 询问一次。
+根据用户故事、草稿/正式 PRD 和需求语义推断目标域（`auth | billing | core | integration`）。无法推断时用 `AskUserQuestion` 询问一次。
 
 ### 3. 检查已有文件
 
-检查 `docs/prd/<domain>/[feature].md`：
-- 不存在 → create 路径
-- 已存在 → update 路径
+检查 `.ai/prd/<domain>/[feature].md` 和 `docs/prd/<domain>/[feature].md`：
+- 草稿不存在且正式 PRD 不存在 → create 路径
+- 草稿不存在但正式 PRD 存在 → draft-from-published 路径
+- 草稿已存在 → update 路径
 
 ### 4. 收集信息
 
@@ -196,13 +199,6 @@ HTML Preview 由 `/t-html-show` 自动生成到 `.ai/preview/<domain>/[feature].
 
 基于已收集信息建立临时 `PRD Grill Snapshot`，并按"PRD 前置澄清门禁"检查是否满足最低条件。
 
-执行：
-- 先把已知事实填入 Snapshot，区分来源：现有文档、tech research、代码上下文、当前对话
-- 判断是否已有一句话问题陈述、成功标准、包含范围、out of scope 和关键验收信号
-- 若缺少阻塞信息，使用 `AskUserQuestion` 一次只问一个判断题，并提供推荐答案
-- 将用户确认内容加入 `Confirmed decisions`，将仍未确认但不阻塞 PRD 的内容保留为收尾待确认项
-- 若回答引入新范围、新依赖或优先级冲突，继续围绕该分支追问，直到确认纳入、排除或延后
-
 不得：
 - 把 Snapshot 原文写入 PRD
 - 把未确认的 open question 写成 PRD 决策
@@ -214,23 +210,23 @@ HTML Preview 由 `/t-html-show` 自动生成到 `.ai/preview/<domain>/[feature].
 读取：
 - `docs/user-stories/00-index.md`、`_README.md`、`_roles.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/index.md` 和 `user-story.md`
-- 搜索 `docs/user-stories/**/*.md` 和 `docs/prd/**/*.md`
+- 搜索 `docs/user-stories/**/*.md`、`docs/prd/**/*.md` 和 `.ai/prd/**/*.md`
 
 执行：
 - 已存在足够覆盖的 user story → 直接引用，不重复创建
 - 缺少少量场景 → 优先在对应角色现有文件中追加
 - 现有角色文件都不适合 → 创建新文件
-- 从已有 PRD 提取交叉引用和已有能力边界
+- 从已有草稿/正式 PRD 提取交叉引用和已有能力边界
 
 新增 user story 必须遵循 `${CLAUDE_PLUGIN_ROOT}/guides/product/user-story.md` 的结构和 GWT 风格验收标准，使用 [user-story-template.md](user-story-template.md)。
 
-补齐后仍不够 → 继续生成 PRD，在文档中标记"待补充用户故事"。
+补齐后仍不够 → 继续生成 PRD 草稿，在文档中标记"待补充用户故事"。
 
-### 7. 生成 PRD
+### 7. 生成 PRD 草稿
 
-create 路径使用 [template.md](template.md)；update 路径以现有 PRD 为基底，按核心约束中的"更新行为"逐章处理。
+create 路径使用 [template.md](template.md)；draft-from-published 和 update 路径按核心约束中的"更新行为"逐章处理。
 
-写入 `docs/prd/<domain>/[feature].md`，至少包含：
+写入 `.ai/prd/<domain>/[feature].md`，至少包含：
 - 相关用户故事、范围界定、需求概述、业务规则与状态
 - 功能需求、验收目标
 - API 相关约束 / 前端交互约束（各标明适用或不适用）
@@ -249,30 +245,30 @@ create 路径使用 [template.md](template.md)；update 路径以现有 PRD 为�
 
 ```text
 使用 html-show 生成 HTML Preview。
-源文档: docs/prd/<domain>/[feature].md
+源文档: .ai/prd/<domain>/[feature].md
 ```
 
-`html-show` subagent 会基于指定文档生成 `.ai/preview/<domain>/[feature].html`。生成完成后运行 `scripts/open-html-show.py` 打开浏览器。
+`html-show` subagent 会基于指定草稿生成 `.ai/preview/<domain>/[feature].html`。生成完成后运行 `scripts/open-html-show.py` 打开浏览器。
 
-如果 html-show 失败，终止并报告，不能只交付 Markdown PRD。
+如果 html-show 失败，终止并报告，不能只交付 Markdown PRD 草稿。
 
 ### 9. 人机迭代
 
 如果用户基于 HTML Preview 提出修改意见：
 - 表达方式调整 → 只更新 HTML
-- 产品语义调整 → 先更新 Markdown PRD，再同步 HTML
+- 产品语义调整 → 先更新 Markdown PRD 草稿，再同步 HTML
 - 两者不一致时，以用户最新确认的意图为准
 
 ### 10. 收尾
 
 完成后明确说明：
 - user story 文件路径和变更方式（新增/追加）
-- PRD 路径、所属域
+- PRD 草稿路径、所属域
 - HTML Preview 路径（`.ai/preview/<domain>/[feature].html`）
-- 本次走 create 还是 update
+- 本次走 create、draft-from-published 还是 update
 - 需要重点补充或确认的部分
 - 待确认项：明确说明"无"或以对话形式列出，不写入 Markdown PRD
-- 下一步：`/t-prd-check [feature]` 或 `/t-design [feature]`
+- 下一步：`/t-prd-check [feature]`；通过后执行 `/t-prd-publish [feature]`，发布成功并删除草稿后再执行 `/t-design [feature]`
 
 推断部分需在收尾对话中显式列出：哪些来自现有文档、哪些来自当前对话、哪些仍待确认；未确认内容不写入 Markdown PRD。
 
@@ -287,10 +283,10 @@ create 路径使用 [template.md](template.md)；update 路径以现有 PRD 为�
 
 ## 质量门禁
 
-- 新增 PRD 前应尽量具备可引用的 user story
-- PRD 和 HTML Preview 内容边界以"核心约束"一节为准
+- 新增 PRD 草稿前应尽量具备可引用的 user story
+- PRD 草稿和 HTML Preview 内容边界以"核心约束"一节为准
 - HTML Preview 必须存在并符合 `protocols/html-show-contract.md` 和 `protocols/prd-preview-contract.md`
-- 新文档创建后建议立即运行 `/t-prd-check [feature]`
+- 新草稿创建后建议立即运行 `/t-prd-check [feature]`
 
 ## 附加资源
 
@@ -301,4 +297,5 @@ create 路径使用 [template.md](template.md)；update 路径以现有 PRD 为�
 
 - `skills/t-html-show/SKILL.md`
 - `skills/t-prd-check/SKILL.md`
+- `skills/t-prd-publish/SKILL.md`
 - `skills/t-design/SKILL.md`

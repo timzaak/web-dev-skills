@@ -55,7 +55,7 @@ tools:
 
 ### 步骤 4：输出报告
 - 输出到 `.ai/quality/backend-accept-[feature]-[YYYYMMDD-HHMMSS].md`
-- 给出状态：`ACCEPTED` / `REJECTED` / `ACCEPTED WITH IMPROVEMENTS`
+- 给出状态：`ACCEPTED` / `REJECTED` / `ACCEPTED_WITH_IMPROVEMENTS`
 - 明确 handoff 给 `/t-backend-finalize [feature]` 做 `/code-review`、clippy、fmt、OpenAPI 导出与前端 API 生成收口
 
 ## 规范来源

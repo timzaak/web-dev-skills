@@ -56,8 +56,8 @@ tools:
 - 文档路径：源 Markdown 文件路径
 
 agent 自动推断：
-- 输出路径：PRD（`docs/prd/<domain>/<feature>.md`）→ `.ai/preview/<domain>/<feature>.html`；其他 → `.ai/preview/<stem>.html`
-- 文档类型：从路径推断（`docs/prd/**` → PRD，其他 → 通用）
+- 输出路径：PRD（`.ai/prd/<domain>/<feature>.md` 或 `docs/prd/<domain>/<feature>.md`）→ `.ai/preview/<domain>/<feature>.html`；其他 → `.ai/preview/<stem>.html`
+- 文档类型：从路径推断（`.ai/prd/**` 或 `docs/prd/**` → PRD，其他 → 通用）
 - 模式：输出路径已存在 → update，否则 → create
 
 执行前读取：
@@ -72,7 +72,7 @@ PRD 文档额外读取：
 
 - 读取源文档，提取目标、范围、流程、状态、规则等关键内容。
 - 判断文档类型：
-  - `docs/prd/**/*.md` → PRD 模式：使用固定 section（Overview, Scope, Flow, States, Rules, Acceptance, Assumptions）。
+  - `.ai/prd/**/*.md` 或 `docs/prd/**/*.md` → PRD 模式：使用固定 section（Overview, Scope, Flow, States, Rules, Acceptance, Assumptions）。
   - 其他 → 通用模式：从文档标题和大纲推断 section，生成可读 HTML。
 - 判断表达形态：
   - 有前端/交互入口：生成可点击的低保真交互 Preview。
