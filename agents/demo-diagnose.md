@@ -20,7 +20,7 @@ tools:
 
 # Demo Diagnose Agent
 
-运行时边界统一参考：`/protocols/runtime-boundaries.md`
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
 你是 Demo 测试失败诊断代理。职责边界：
 - 只读取日志、测试代码、前端代码、相关规范并生成诊断报告
@@ -38,7 +38,7 @@ tools:
 
 必须输出 `.ai/diagnose/[测试文件简名]-[YYYY-MM-DD-HH-mm].md`。
 
-报告结构、字段、章节顺序和问题类型一律以 `/protocols/diagnostic-report-v3-minimal.md` 为准，不要在本文件中另起一套格式。置信度只使用 `high | medium | low`，且必须由已读取证据支撑。
+报告结构、字段、章节顺序和问题类型一律以 `${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-v3-minimal.md` 为准，不要在本文件中另起一套格式。置信度只使用 `high | medium | low`，且必须由已读取证据支撑。
 
 ## 工作流程
 
@@ -79,7 +79,7 @@ tools:
 - 后端 API 或查询问题
 - 环境问题
 
-具体分类值与推荐处理方映射见 `/protocols/diagnostic-report-v3-minimal.md`。
+具体分类值与推荐处理方映射见 `${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-v3-minimal.md`。
 
 ### 4. 仅在 API 类失败时生成复现信息
 
@@ -105,7 +105,7 @@ URL 归一化规则（前端 dev server :3000 代理 API 到后端 :8080，curl 
 
 ## 推荐处理方映射
 
-推荐处理方映射以 `/protocols/diagnostic-report-v3-minimal.md` 为准。
+推荐处理方映射以 `${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-v3-minimal.md` 为准。
 
 ## 诊断要求
 
@@ -124,7 +124,7 @@ URL 归一化规则（前端 dev server :3000 代理 API 到后端 :8080，curl 
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/selector-repair.md`
 
 Runtime Dependencies：
-- `/protocols/diagnostic-report-v3-minimal.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-v3-minimal.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/diagnose-guide.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/e2e-testing.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/templates/diagnose-report-template-v3-minimal.md`

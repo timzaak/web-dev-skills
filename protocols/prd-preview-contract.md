@@ -1,6 +1,6 @@
 # PRD HTML Preview Contract
 
-通用规则见 `/protocols/html-show-contract.md`。
+通用规则见 `${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md`。
 
 ## File Location
 

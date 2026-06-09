@@ -1,6 +1,6 @@
 # Demo-Diagnose Guide
 
-本文档只描述诊断流程。诊断报告的字段、章节和必填项一律以 `/protocols/diagnostic-report-v3-minimal.md` 为准。
+本文档只描述诊断流程。诊断报告的字段、章节和必填项一律以 `${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-v3-minimal.md` 为准。
 
 ## Workflow
 
@@ -34,7 +34,7 @@
 
 - **输出诊断报告**
    - 写入 `.ai/diagnose/`
-   - 严格遵循 `/protocols/diagnostic-report-v3-minimal.md`
+   - 严格遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-v3-minimal.md`
 
 ## Classification Rules
 

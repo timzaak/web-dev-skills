@@ -13,7 +13,7 @@ allowed-tools:
 
 # PRD 发布总结与正式文档修正
 
-运行时边界统一参考：`/protocols/runtime-boundaries.md`
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
 若草稿、正式 PRD、用户故事或规范之间冲突，停止、说明冲突并等待澄清；不要平均折中。
 
@@ -145,7 +145,7 @@ allowed-tools:
 
 ## 相关引用
 
-- `/skills/t-prd/SKILL.md`
-- `/skills/t-prd-check/SKILL.md`
-- `/skills/t-html-show/SKILL.md`
-- `/skills/t-design/SKILL.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/t-prd/SKILL.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/t-prd-check/SKILL.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/t-html-show/SKILL.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/t-design/SKILL.md`

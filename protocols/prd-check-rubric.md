@@ -57,7 +57,7 @@
 
 ### HTML Preview Checks
 
-权重 20%。具体契约参考 `/protocols/html-show-contract.md` 和 `/protocols/prd-preview-contract.md`。
+权重 20%。具体契约参考 `${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md` 和 `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md`。
 
 | 检查项 | 验证内容 | 权重 / 扣分 |
 |---|---|---:|

@@ -12,7 +12,7 @@ allowed-tools:
 
 # 后端测试执行
 
-运行时边界统一参考：`/protocols/runtime-boundaries.md`
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
 本 skill 只负责 backend/test 集中 runner item 的测试执行、失败诊断、生产代码修复编排和重测。它不编写新场景测试，不改变业务验收语义。场景测试 authoring 属于 `backend-test` authoring item。
 
@@ -22,20 +22,20 @@ allowed-tools:
 
 - 当前 runner item 文件
 - `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`
-- `/protocols/backend-test-execution.md`
-- `/protocols/tests-to-run-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`
 
 规则：
 
 - 后端测试入口和命令形态以 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md` 为准。
-- runner 的范围收敛、失败分类、委派和升级策略以 `/protocols/backend-test-execution.md` 为准。
+- runner 的范围收敛、失败分类、委派和升级策略以 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md` 为准。
 
 ## 核心流程
 
 - 用 `git status` 和 `git diff --name-only` 分析改动范围。
 - 读取 runner item 的 `Expected Test Manifest`；如果缺失，则从 authoring item 的 handoff 中重建预期测试清单，并报告 manifest 缺口。
 - 执行测试前，运行或等价模拟 `uv run scripts/check-test-runner-coverage.py <feature> --layer backend`，确认文档中的后端命令会选中全部预期测试。
-- 根据 `/protocols/backend-test-execution.md` 选择能覆盖 runner 所依赖全部 authoring item 的最窄可靠命令。
+- 根据 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md` 选择能覆盖 runner 所依赖全部 authoring item 的最窄可靠命令。
 - 通过 `scripts/backend-test.py` 运行定向测试；除非拆成多条命令能明显提升失败恢复性，否则不要为每个新增测试单独跑一条命令。
 - 将失败分类为编译失败、运行时失败、断言失败、环境问题或语义不清。
 - 生产代码问题委派给 `backend-dev`，并附带场景测试写入限制。
@@ -53,7 +53,7 @@ runner 不得修改：
 - 权限预期
 - 业务规则预期
 
-如果测试语义可能有误，必须停止，并使用 `/protocols/backend-test-execution.md` 中的 stop report。
+如果测试语义可能有误，必须停止，并使用 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md` 中的 stop report。
 
 ## 委派契约
 
@@ -81,7 +81,7 @@ runner 不得修改：
 
 ## 共享引用
 
-- `/protocols/runtime-boundaries.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`
-- `/protocols/backend-test-execution.md`
-- `/protocols/tests-to-run-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`

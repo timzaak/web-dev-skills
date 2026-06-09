@@ -14,7 +14,7 @@ allowed-tools:
 
 # PRD 草稿维护
 
-运行时边界统一参考：`/protocols/runtime-boundaries.md`
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
 若本 skill、spec 或既有文档之间冲突，停止、说明冲突并等待澄清；不要平均折中。
 
@@ -246,7 +246,7 @@ create 路径使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-prd/template.md
 源文档: .ai/prd/<domain>/[feature].md
 ```
 
-`html-show` subagent 会基于指定草稿生成 `.ai/preview/<domain>/[feature].html`。生成完成后运行 `/scripts/open-html-show.py` 打开浏览器。
+`html-show` subagent 会基于指定草稿生成 `.ai/preview/<domain>/[feature].html`。生成完成后运行 `${CLAUDE_PLUGIN_ROOT}/scripts/open-html-show.py` 打开浏览器。
 
 如果 html-show 失败，终止并报告，不能只交付 Markdown PRD 草稿。
 
@@ -283,7 +283,7 @@ create 路径使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-prd/template.md
 
 - 新增 PRD 草稿前应尽量具备可引用的 user story
 - PRD 草稿和 HTML Preview 内容边界以"核心约束"一节为准
-- HTML Preview 必须存在并符合 `/protocols/html-show-contract.md` 和 `/protocols/prd-preview-contract.md`
+- HTML Preview 必须存在并符合 `${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md` 和 `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md`
 - 新草稿创建后建议立即运行 `/t-prd-check [feature]`
 
 ## 附加资源
@@ -293,6 +293,6 @@ create 路径使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-prd/template.md
 
 ## 相关引用
 
-- `/skills/t-html-show/SKILL.md`
-- `/skills/t-prd-check/SKILL.md`
-- `/skills/t-design/SKILL.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/t-html-show/SKILL.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/t-prd-check/SKILL.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/t-design/SKILL.md`

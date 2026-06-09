@@ -18,7 +18,7 @@ allowed-tools:
 
 # 单文件 Demo 测试运行与修复
 
-运行时边界统一参考：`/protocols/runtime-boundaries.md`
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
 ## 目标
 - 先对一个测试文件整体执行。
@@ -110,12 +110,12 @@ uv run scripts/demo-test-runner.py "[测试文件]" --run-id [RUN_ID] --grep "[�
 - 必须输出最终汇总。
 
 ## 相关引用
-- `/agents/demo-diagnose.md`
-- `/agents/demo-dev.md`
-- `/agents/backend-dev.md`
-- `/agents/frontend-dev.md`
-- `/agents/miniapp-dev.md`
-- `/protocols/tests-to-run-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/agents/demo-diagnose.md`
+- `${CLAUDE_PLUGIN_ROOT}/agents/demo-dev.md`
+- `${CLAUDE_PLUGIN_ROOT}/agents/backend-dev.md`
+- `${CLAUDE_PLUGIN_ROOT}/agents/frontend-dev.md`
+- `${CLAUDE_PLUGIN_ROOT}/agents/miniapp-dev.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/index.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/common-failures.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/selector-repair.md`

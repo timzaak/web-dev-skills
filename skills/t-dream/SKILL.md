@@ -13,7 +13,7 @@ allowed-tools:
 
 # 上下文整理与工程事实重组
 
-运行时边界统一参考：`/protocols/runtime-boundaries.md`。候选问题、评分和报告结构统一参考：`/protocols/dream-report-contract.md`。
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`。候选问题、评分和报告结构统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md`。
 
 ## 目标
 - 把 PRD、用户故事、设计、任务、Demo 注释、实现事实和项目结构重新收敛成当前可信上下文。
@@ -195,10 +195,10 @@ PRD 治理模式只保留当前产品规则、用户可见契约、范围边界�
 - PRD 文件列表和目标模块列表。
 - 相关用户故事、Demo 测试和实现检索路径。
 - 设计、任务、README、AGENTS/CLAUDE、ADR 或架构说明路径（如存在）。
-- 上下文健康判定规则、结构组织判定规则、描述准确性判定规则、P0/P1/P2/P3 分级规则和 `/protocols/dream-report-contract.md` 报告格式要求。
+- 上下文健康判定规则、结构组织判定规则、描述准确性判定规则、P0/P1/P2/P3 分级规则和 `${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md` 报告格式要求。
 - 当前目标是整理和重组当前工程上下文。
 
-每个 `general_agent` 必须返回符合 `/protocols/dream-report-contract.md` 的候选问题结构：
+每个 `general_agent` 必须返回符合 `${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md` 的候选问题结构：
 ```text
 维度:
 范围:
@@ -342,7 +342,7 @@ agent 失败时记录失败模块为 P1，并继续其他模块（`--all` 模式
 - 检查是否存在 subagent 漏跑、范围不一致或输出结构不合格；存在时记录为 P1。
 
 ### 11. 评分计算
-评分权重以 `/protocols/dream-report-contract.md` 为准。当前约定如下：
+评分权重以 `${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md` 为准。当前约定如下：
 默认模式总分 100：
 - 上下文治理健康度：25
 - 结构组织合理性：20
@@ -371,7 +371,7 @@ agent 失败时记录失败模块为 P1，并继续其他模块（`--all` 模式
 ### 12. 写入报告
 写入 `.ai/quality/dream-check-[YYYYMMDD-HHMMSS].md`。
 
-报告结构以 `/protocols/dream-report-contract.md` 为准，必须包含：
+报告结构以 `${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md` 为准，必须包含：
 - 执行摘要、范围、模式和总分。
 - 审计模式说明：只读 audit / govern-prd / backend-only / deep，以及 `--all` 是否只做索引级扫描。
 - 当前权威上下文地图：PRD、用户故事、设计/任务、代码、测试/Demo 的主要入口。
@@ -413,10 +413,10 @@ agent 失败时记录失败模块为 P1，并继续其他模块（`--all` 模式
 - Check / accept 阶段仍由 `/t-prd-check`、`/t-design-check`、`/t-task-check` 或 `/t-demo-accept` 执行门禁。
 
 ## 相关引用
-- `/agents/backend-consistency.md`
-- `/agents/context-curator.md`
-- `/agents/structure-review.md`
-- `/skills/t-prd-check/SKILL.md`
-- `/skills/t-demo-accept/SKILL.md`
-- `/protocols/runtime-boundaries.md`
-- `/protocols/dream-report-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/agents/backend-consistency.md`
+- `${CLAUDE_PLUGIN_ROOT}/agents/context-curator.md`
+- `${CLAUDE_PLUGIN_ROOT}/agents/structure-review.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/t-prd-check/SKILL.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/t-demo-accept/SKILL.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md`

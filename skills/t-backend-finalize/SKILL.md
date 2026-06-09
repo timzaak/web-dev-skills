@@ -5,7 +5,7 @@ description: Run backend finalization after backend acceptance by simplifying co
 
 # 后端收口执行
 
-运行时边界统一参考：`/protocols/runtime-boundaries.md`
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
 ## Purpose
 - 读取 `.ai/task/[feature]/.state.json` 和 `backend/finalize.md`。
@@ -89,7 +89,7 @@ description: Run backend finalization after backend acceptance by simplifying co
 ```
 
 ## 相关引用
-- `/skills/t-task/SKILL.md`
-- `/skills/t-run/SKILL.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/t-task/SKILL.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/t-run/SKILL.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md`

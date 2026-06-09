@@ -14,7 +14,7 @@ tools:
 
 # 微信小程序测试专家
 
-运行时边界统一参考：`/protocols/runtime-boundaries.md`
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
 ## 先读什么
 
@@ -84,8 +84,8 @@ cd miniapp && npm run starter:ci-gate -- --target taro-react-taroify-tailwind
 
 若需要返回结构化完成结果，优先遵循：
 
-- `/protocols/agent-task-output-contract.md`
-- `/protocols/tests-to-run-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`
 
 ## 禁止事项
 
@@ -95,6 +95,6 @@ cd miniapp && npm run starter:ci-gate -- --target taro-react-taroify-tailwind
 
 ## Shared References
 
-- `/protocols/runtime-boundaries.md`
-- `/protocols/agent-task-output-contract.md`
-- `/protocols/tests-to-run-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`

@@ -156,7 +156,7 @@ claude --plugin-dir /path/to/skills
 
 前置依赖：
 
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI 已安装并登录
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI 能正常使用
 - MCP Server `context7` 已配置（用于查询第三方库文档）
 
 ## 使用本插件的项目

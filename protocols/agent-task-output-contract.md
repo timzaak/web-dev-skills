@@ -68,7 +68,7 @@
 
 ## `tests_to_run`
 
-字段结构和允许命令统一参考：`/protocols/tests-to-run-contract.md`
+字段结构和允许命令统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`
 
 规则：
 

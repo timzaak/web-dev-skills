@@ -13,7 +13,7 @@ tools:
 
 # 文档 HTML 可视化专家
 
-运行时边界统一参考：`/protocols/runtime-boundaries.md`
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
 ## 职责
 
@@ -68,7 +68,7 @@ PRD 文档额外读取：
   - 有前端/交互入口：生成可点击的低保真交互 Preview。
   - 纯后端或无 UI：生成流程图、状态图、调用方场景、能力边界矩阵或验收矩阵。
   - 通用文档：按文档结构生成可读的可视化页面。
-- 使用 `/templates/preview-template.html` 的 CSS/layout 框架创建或更新 Preview。
+- 使用 `${CLAUDE_PLUGIN_ROOT}/templates/preview-template.html` 的 CSS/layout 框架创建或更新 Preview。
 - 保持单文件 HTML，CSS 和少量原生 JS 内联。
 - 用 `data-doc-source`、`data-doc-section` 标记来源。
 - 如使用示例数据，明确写出"示例数据，不是接口契约"。
@@ -121,7 +121,7 @@ PRD 文档额外传入 `--type prd`。
 
 ## 参考
 
-- `/protocols/html-show-contract.md`
-- `/protocols/prd-preview-contract.md`（PRD 模式）
-- `/templates/preview-template.html`
-- `/scripts/check-html-show.py`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md`（PRD 模式）
+- `${CLAUDE_PLUGIN_ROOT}/templates/preview-template.html`
+- `${CLAUDE_PLUGIN_ROOT}/scripts/check-html-show.py`

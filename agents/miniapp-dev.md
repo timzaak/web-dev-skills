@@ -15,7 +15,7 @@ tools:
 
 # 微信小程序开发专家
 
-运行时边界统一参考：`/protocols/runtime-boundaries.md`
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
 ## 工作模式
 
@@ -125,12 +125,12 @@ cd miniapp && npm run starter:ci-gate -- --target taro-react-taroify-tailwind
 
 统一参考：
 
-- `/protocols/agent-task-output-contract.md`
-- `/protocols/tests-to-run-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`
 
 ## 任务完成输出
 
-按 `/protocols/agent-task-output-contract.md` 返回成功结构。
+按 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md` 返回成功结构。
 
 miniapp-dev 的推荐扩展字段：
 
@@ -178,6 +178,6 @@ miniapp-dev 的推荐扩展字段：
 
 ## Shared References
 
-- `/protocols/runtime-boundaries.md`
-- `/protocols/agent-task-output-contract.md`
-- `/protocols/tests-to-run-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`

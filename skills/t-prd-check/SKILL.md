@@ -12,7 +12,7 @@ allowed-tools:
 
 # PRD 草稿与 User Story Quality Check
 
-运行时边界统一参考：`/protocols/runtime-boundaries.md`
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
 ## 目标
 - 验证 `.ai/prd` PRD 草稿完整性和规范性
@@ -24,7 +24,7 @@ allowed-tools:
 - 输出量化评分和修复清单
 - 明确通过后的下一步：进入 `/t-design [feature]`；若有修复，重新运行 `/t-prd-check [feature]`
 
-评分、扣分和问题分级统一参考：`/protocols/prd-check-rubric.md`
+评分、扣分和问题分级统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md`
 
 ## 使用方式
 ```bash
@@ -53,7 +53,7 @@ allowed-tools:
 - 解析角色名称和技术标识，用于校验故事中的角色引用
 
 ### 3. PRD 草稿检查
-按 `/protocols/prd-check-rubric.md` 执行：
+按 `${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md` 执行：
 
 - 基础章节检查
 - 用户故事引用检查
@@ -61,7 +61,7 @@ allowed-tools:
 - 如果存在同名正式 PRD，记录草稿与正式 PRD 的关键差异
 
 ### 4. HTML Preview 检查
-按 `/protocols/html-show-contract.md` 和 `/protocols/prd-preview-contract.md` 执行：
+按 `${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md` 和 `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md` 执行：
 
 - 先运行 `${CLAUDE_PLUGIN_ROOT}/scripts/check-html-show.py [feature-name|--all] --type prd --root . --json` 获取机械检查结果
 - 检查 `.ai/preview/<domain>/<feature>.html` 是否存在
@@ -75,7 +75,7 @@ allowed-tools:
 - 将脚本发现的问题并入 P0/P1/P2 问题清单；脚本无法判断的 PRD 语义一致性继续人工/模型检查
 
 ### 5. 用户故事检查
-按 `/protocols/prd-check-rubric.md` 执行：
+按 `${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md` 执行：
 
 - 故事结构检查
 - INVEST 原则检查
@@ -93,7 +93,7 @@ allowed-tools:
   - 草稿与正式 PRD 有未说明冲突 → P1；若冲突会改变核心业务边界或权限规则 → P0
 
 ### 7. 评分计算
-按 `/protocols/prd-check-rubric.md` 计算：
+按 `${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md` 计算：
 
 - `PRD Score`
 - `User Story Score`
@@ -102,10 +102,10 @@ allowed-tools:
 - `Total Score`
 
 ### 8. 问题分级
-问题分级统一参考：`/protocols/prd-check-rubric.md`
+问题分级统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md`
 
 ### 9. 输出要求
-- 控制台摘要和报告结构统一参考：`/protocols/prd-check-rubric.md`
+- 控制台摘要和报告结构统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md`
 - 详细报告文件：`.ai/quality/prd-check-[YYYYMMDD-HHMMSS].md`
 - 通过时建议下一步为 `/t-design [feature]`
 - 未通过或修复后，建议再次运行 `/t-prd-check [feature]`
@@ -117,13 +117,13 @@ allowed-tools:
 - Preview 脚本不可执行或 Python 不可用：记录为检查阻塞项，不跳过 HTML Preview 语义检查
 
 ### 11. 相关引用
-- `/protocols/runtime-boundaries.md`
-- `/protocols/prd-check-rubric.md`
-- `/protocols/html-show-contract.md`
-- `/protocols/prd-preview-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md`
 - `${CLAUDE_PLUGIN_ROOT}/scripts/check-html-show.py`
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/index.md` - product guide 入口
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/user-story.md` - 用户故事规范和 INVEST 原则
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/prd.md` - PRD 分层与禁止内容规范
 - `docs/user-stories/_roles.md` - 角色定义
-- `/skills/t-dream/SKILL.md` - PRD 上下文整理、结构漂移治理与实现事实对齐入口
+- `${CLAUDE_PLUGIN_ROOT}/skills/t-dream/SKILL.md` - PRD 上下文整理、结构漂移治理与实现事实对齐入口

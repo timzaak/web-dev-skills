@@ -91,7 +91,7 @@ Preview 必须目标技术栈无关，使用单文件 HTML、内联 CSS 和少�
 
 `/t-prd-check` 必须验证 Markdown PRD 与 HTML Preview 描述一致。不一致时，必须修正到一致后才能通过。
 
-详细契约参考 `/protocols/html-show-contract.md` 和 `/protocols/prd-preview-contract.md`。
+详细契约参考 `${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md` 和 `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md`。
 
 ## 与一致性检查的关系
 

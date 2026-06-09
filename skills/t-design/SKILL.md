@@ -14,7 +14,7 @@ allowed-tools:
 
 # 技术设计文档生成
 
-运行时边界统一参考：`/protocols/runtime-boundaries.md`
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
 设计生成应保持简单、当前必需、可追溯；如果需求、spec、代码或本 skill 冲突，停止并说明冲突。
 
@@ -294,6 +294,6 @@ allowed-tools:
 - 设计文档结构模板：[template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-design/template.md)
 
 ## 相关引用
-- `/skills/t-prd/SKILL.md`
-- `/skills/t-task/SKILL.md`
-- `/skills/t-design-check/SKILL.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/t-prd/SKILL.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/t-task/SKILL.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/t-design-check/SKILL.md`

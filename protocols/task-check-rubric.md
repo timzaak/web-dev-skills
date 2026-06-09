@@ -4,8 +4,8 @@
 
 单一真相源：
 
-- 状态字段、状态取值和聚合规则只以 `/protocols/task-state-contract.md` 为准。
-- phase/slot/item 执行顺序、active phases、backend test item 类型只以 `/protocols/task-phase-execution.md` 为准。
+- 状态字段、状态取值和聚合规则只以 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 为准。
+- phase/slot/item 执行顺序、active phases、backend test item 类型只以 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 为准。
 - 评分、严重度和报告字段只以本文件为准。
 - skill、agent、README 可以引用上述协议，但不得复制出第二套冲突规则。
 
@@ -38,7 +38,7 @@
 
 缺失或非法 => `TASK_SCHEMA_INVALID`
 
-结构真相以 `/protocols/task-state-contract.md` 为准。
+结构真相以 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 为准。
 
 ## Execution Checks
 
@@ -55,7 +55,7 @@
    - item 文件路径与 state 一致
    - manifest 覆盖全部 items
 - item 文件包含必填字段
-- 若当前阶段为 backend，backend/test slot 符合 `/protocols/task-phase-execution.md` 的 authoring/集中 runner 覆盖与 `uses_skill` 要求
+- 若当前阶段为 backend，backend/test slot 符合 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 authoring/集中 runner 覆盖与 `uses_skill` 要求
 - 若当前阶段为 backend，backend/accept item 依赖 runner item，不只依赖 authoring item
 - 若当前阶段为 frontend/miniapp/demo，涉及测试代码 authoring 时必须有集中定向执行 item，且不得默认规划全量测试
 - 设计文档与任务文档一致

@@ -12,7 +12,7 @@ allowed-tools:
 
 # 技术设计质量检查
 
-运行时边界统一参考：`/protocols/runtime-boundaries.md`
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
 ## 目标
 - 评估技术设计文档的可实施性、完整性与一致性。
@@ -20,7 +20,7 @@ allowed-tools:
 - 输出 P0/P1/P2 修复清单。
 - 为后续任务拆解提供明确的设计质量门禁结论。
 
-评分维度、严重级别和报告要求统一参考：`/protocols/design-check-rubric.md`
+评分维度、严重级别和报告要求统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-check-rubric.md`
 
 ## 使用方式
 ```bash
@@ -47,7 +47,7 @@ allowed-tools:
 - 核对设计文档与需求来源的一致性。
 - 如果设计文档声明为纯技术方案且不涉及业务逻辑变动，可接受 `.ai/tech-research/[feature].md` 作为唯一需求来源；此时不得因缺少 PRD/用户故事扣 P0，但需要核对技术目标、约束、影响范围和风险是否一致。
 - 核对设计文档与项目规范的一致性。
-- 按 `/protocols/design-check-rubric.md` 检查 API、数据库、前端与测试策略。
+- 按 `${CLAUDE_PLUGIN_ROOT}/protocols/design-check-rubric.md` 检查 API、数据库、前端与测试策略。
 - 生成评分与问题清单。
 - 写入报告：`.ai/quality/design-check-[feature]-[YYYYMMDD-HHMMSS].md`。
 
@@ -92,5 +92,5 @@ P1 问题:
 
 ## 相关引用
 
-- `/protocols/runtime-boundaries.md`
-- `/protocols/design-check-rubric.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/design-check-rubric.md`

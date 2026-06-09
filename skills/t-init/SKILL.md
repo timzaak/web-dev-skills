@@ -500,6 +500,6 @@ allowed-tools:
 
 ## 相关引用
 
-- `/skills/t-prd/SKILL.md` — 初始化完成后可开始 PRD 编写
-- `/skills/t-design/SKILL.md` — 功能设计
-- `/skills/t-task/SKILL.md` — 任务规划
+- `${CLAUDE_PLUGIN_ROOT}/skills/t-prd/SKILL.md` — 初始化完成后可开始 PRD 编写
+- `${CLAUDE_PLUGIN_ROOT}/skills/t-design/SKILL.md` — 功能设计
+- `${CLAUDE_PLUGIN_ROOT}/skills/t-task/SKILL.md` — 任务规划

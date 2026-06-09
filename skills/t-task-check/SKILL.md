@@ -13,7 +13,7 @@ allowed-tools:
 
 # 任务规划质量检查
 
-运行时边界统一参考：`/protocols/runtime-boundaries.md`
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
 ## 目标
 - 评估任务文档可执行性与一致性。
@@ -22,10 +22,10 @@ allowed-tools:
 - 输出 P0/P1/P2 修复清单。
 - 必须按当前阶段调度对应 sub agent 做专业校验，再由主流程聚合结论。
 
-评分、阻塞条件、报告要求、跨轮收敛和 agent 评审边界统一参考：`/protocols/task-check-rubric.md`
+评分、阻塞条件、报告要求、跨轮收敛和 agent 评审边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md`
 
 ## 事实优先级（强制）
-证据优先级和争议处理统一参考：`/protocols/task-check-rubric.md`
+证据优先级和争议处理统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md`
 
 ## 使用方式
 ```bash
@@ -54,8 +54,8 @@ allowed-tools:
 ## Schema 校验
 `.state.json` 的 schema 要求统一参考：
 
-- `/protocols/task-state-contract.md`
-- `/protocols/task-check-rubric.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md`
 
 任一项缺失或非法即返回 `TASK_SCHEMA_INVALID`
 
@@ -70,7 +70,7 @@ allowed-tools:
    - 用抽取结果完成 item 存在性、路径一致性、manifest 覆盖、DAG、agent/slot 匹配和 backend test authoring/集中 runner 覆盖校验。
    - 发现字段缺失、DAG/manifest 不一致、拆分阈值可疑、设计一致性可疑或需要为 P0/P1 补证时，读取对应 item 全文。
    - 大型 phase 先用 `Grep`、路径清单或 manifest 定位目标 item，再读取命中的 item 文件。
-- 按 `/protocols/task-check-rubric.md` 校验 item DAG 与 manifest 覆盖关系。
+- 按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md` 校验 item DAG 与 manifest 覆盖关系。
 - 验证 item 文件结构与内容：
    - 必须包含 `id/title/agent/scope/inputs/steps/expected_files/validation/depends_on/handoff_summary/completion_criteria`
    - backend/test item 必须声明 `test_item_type: authoring|runner`
@@ -88,7 +88,7 @@ allowed-tools:
    - 单个 HTTP/API item 同时包含 5 个以上 endpoint、DTO、路由注册和 OpenAPI/schema 更新时，必须拆分，否则记 P1
    - 单个 demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流时，必须拆分，否则记 P1
 - 核对设计文档与任务文档的一致性；纯技术方案任务可只追溯设计文档中的技术预研来源，不得因缺少 PRD/用户故事扣 P0。
-- 通过 `Agent` tool 调度当前阶段对应 subagent 做专业校验。每个 subagent 独立启动，传入 prompt 包含：该 agent/slot 相关 item 的文件路径、关键字段摘要、必要 item 全文或片段、设计文档相关节、验证范围、`/protocols/task-check-rubric.md` 中的 agent 评审边界、输出格式要求（score/findings/fixes/summary）。可并行调度同阶段多个 subagent。
+- 通过 `Agent` tool 调度当前阶段对应 subagent 做专业校验。每个 subagent 独立启动，传入 prompt 包含：该 agent/slot 相关 item 的文件路径、关键字段摘要、必要 item 全文或片段、设计文档相关节、验证范围、`${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md` 中的 agent 评审边界、输出格式要求（score/findings/fixes/summary）。可并行调度同阶段多个 subagent。
    - 不得默认把当前 phase 的全部 item 全文传给每个 subagent。
    - dev agent 默认只接收 dev item 与直接影响实现的跨 slot 摘要。
    - test agent 默认只接收 test item、相关 dev handoff/expected_files 摘要和集中定向测试执行闭环约束。
@@ -108,12 +108,12 @@ allowed-tools:
 
 当前阶段 agent 输出字段和主流程补证要求统一参考：
 
-- `/protocols/task-check-rubric.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md`
 
 agent finding 不直接作为最终裁决；主流程必须按 rubric 完成证据复核和同类合并。
 
 ## 评分与问题分级
-评分体系、P0/P1/P2 定义和报告结构统一参考：`/protocols/task-check-rubric.md`
+评分体系、P0/P1/P2 定义和报告结构统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md`
 
 ## 错误处理
 | 错误码 | 触发条件 | 用户可见提示 | 恢复动作 |
@@ -162,18 +162,18 @@ P1 问题:
 ```
 
 ## 质量门禁
-硬性门禁统一参考：`/protocols/task-check-rubric.md`
+硬性门禁统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md`
 
 ## 相关引用
-- `/protocols/runtime-boundaries.md`
-- `/protocols/task-state-contract.md`
-- `/protocols/task-check-rubric.md`
-- `/skills/t-task/SKILL.md`
-- `/skills/t-backend-finalize/SKILL.md`
-- `/skills/t-run/SKILL.md`
-- `/skills/t-task/references/phase-validator.md`
-- `/skills/t-task/references/phase-index-generator.md`
-- `/agents/backend-dev.md`
-- `/agents/frontend-dev.md`
-- `/agents/miniapp-dev.md`
-- `/agents/demo-accept.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/t-task/SKILL.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/t-backend-finalize/SKILL.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/t-run/SKILL.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/t-task/references/phase-validator.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/t-task/references/phase-index-generator.md`
+- `${CLAUDE_PLUGIN_ROOT}/agents/backend-dev.md`
+- `${CLAUDE_PLUGIN_ROOT}/agents/frontend-dev.md`
+- `${CLAUDE_PLUGIN_ROOT}/agents/miniapp-dev.md`
+- `${CLAUDE_PLUGIN_ROOT}/agents/demo-accept.md`

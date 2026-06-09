@@ -114,7 +114,7 @@ backend 的 `finalize.md` 只作为 `/t-backend-finalize` 输入，不得由 `/t
 backend/test item 必须声明 `test_item_type`：
 
 - `authoring`：由 `backend-test` 编写或维护场景测试、helper、模块注册，只做编译验证。
-- `runner`：由 `general-purpose` 加载 `/skills/t-backend-test-run/SKILL.md`，汇总相关 authoring item 后执行定向测试、失败分类、生产代码修复委派和重测。
+- `runner`：由 `general-purpose` 加载 `${CLAUDE_PLUGIN_ROOT}/skills/t-backend-test-run/SKILL.md`，汇总相关 authoring item 后执行定向测试、失败分类、生产代码修复委派和重测。
 
 backend/test slot 必须显式规划测试执行闭环：
 

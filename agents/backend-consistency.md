@@ -23,7 +23,7 @@ tools:
 
 # 后端一致性检查专家
 
-运行时边界统一参考：`/protocols/runtime-boundaries.md`。被 `t-dream` 调用时，候选问题字段统一参考 `/protocols/dream-report-contract.md`。
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`。被 `t-dream` 调用时，候选问题字段统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md`。
 
 ## 职责
 

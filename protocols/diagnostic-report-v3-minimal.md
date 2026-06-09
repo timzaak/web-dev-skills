@@ -128,6 +128,6 @@
 
 ## 一致性要求
 
-- `/agents/demo-diagnose.md` 必须引用本协议
+- `${CLAUDE_PLUGIN_ROOT}/agents/demo-diagnose.md` 必须引用本协议
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/diagnose-guide.md` 只描述流程、证据优先级和产出时机
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/templates/diagnose-report-template-v3-minimal.md` 只是便捷骨架，不得与本协议冲突

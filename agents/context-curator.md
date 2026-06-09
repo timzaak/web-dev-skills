@@ -16,7 +16,7 @@ tools:
 
 # 上下文治理专家
 
-运行时边界统一参考：`/protocols/runtime-boundaries.md`
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
 ## 职责
 
