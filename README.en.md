@@ -58,7 +58,7 @@ Minimal end-to-end example:
 # Final acceptance: verify story mapping, compilation, execution, and quality requirements
 /t-tools:t-demo-accept super-admin
 
-# After implementation and acceptance, revise the formal PRD
+# After implementation and acceptance, summarize the draft and revise the formal PRD
 /t-tools:t-prd-publish user-management
 ```
 
@@ -97,7 +97,7 @@ Notes:
 
 - `/t-tools:t-prd` generates a temporary `.ai/prd` draft and Preview. It does not write directly into formal `docs/prd`.
 - `/t-tools:t-prd-check` is the quality gate for PRDs, HTML Previews, and user stories. After it passes, continue to `/t-tools:t-design`; after fixes, run `/t-tools:t-prd-check` again.
-- `/t-tools:t-prd-publish` runs after implementation, testing, and Demo acceptance. It reconciles implemented facts and the draft into the formal PRD, then deletes the matching `.ai/prd` draft.
+- `/t-tools:t-prd-publish` runs after implementation, testing, and Demo acceptance. It summarizes the draft against the existing formal PRD and post-implementation evidence, fixes missing, stale, or conflicting content in `docs/prd`, then deletes the matching `.ai/prd` draft.
 - `/t-tools:t-task-check` is the gate for task breakdown, DAG validity, and item executability. It verifies that task documents are ready for implementation.
 - `/t-tools:t-demo-accept` is the demo-stage acceptance gate. It verifies test coverage, runnability, and delivery quality.
 
@@ -105,7 +105,7 @@ Common helper commands:
 
 - `/t-tools:t-init <project-name>`: initializes a full-stack project scaffold for Rust Axum + React TanStack, including backend, frontend, E2E tests, development scripts, and the complete directory structure
 - `/t-tools:t-tech-research`: evaluates technical feasibility before writing the PRD, including dependency gap analysis, library research, impact analysis, and feasibility judgment; for pure technical designs that do not change business logic, it may be the direct upstream input to `/t-tools:t-design`
-- `/t-tools:t-prd-publish <feature>`: after implementation and acceptance, reviews `.ai/prd/<domain>/<feature>.md`, the existing formal PRD, and implementation facts, then revises `docs/prd/<domain>/<feature>.md` and deletes the draft
+- `/t-tools:t-prd-publish <feature>`: after implementation and acceptance, reviews `.ai/prd/<domain>/<feature>.md`, the existing formal PRD, and post-implementation evidence, presents a publish summary, then fixes missing, stale, or conflicting content in `docs/prd/<domain>/<feature>.md` and deletes the draft
 - `/t-tools:t-doc <project-or-module-name>`: scans the target project codebase and generates newcomer-oriented tutorial documentation under `docs/tutorials/<name>/` by default
 - `/t-tools:t-html-show <feature | path>`: generates or updates HTML Preview for quick human review. Supports PRDs (pass feature name) and any Markdown document (pass file path). Usually triggered automatically by `/t-prd`, but can also be run independently
 - `/t-tools:t-dream [feature|--all] [--deep|--backend-only|--govern-prd]`: by default, read-only audits PRDs, user stories, design/task docs, code structure, tests/Demo, and implementation facts to find stale context, structure drift, traceability gaps, and description/implementation conflicts, then writes `.ai/quality/dream-check-[YYYYMMDD-HHMMSS].md`; only `--govern-prd` may rewrite PRDs, indexes, and references

@@ -1,6 +1,6 @@
 ---
 name: t-prd-publish
-description: After implementation and acceptance, reconcile implemented facts and draft PRD into the formal PRD.
+description: After implementation and acceptance, summarize the draft PRD against delivered facts, then revise the existing formal PRD.
 argument-hint: "[feature-name]"
 allowed-tools:
   - AskUserQuestion
@@ -11,7 +11,7 @@ allowed-tools:
   - Bash
 ---
 
-# PRD 最终修正增补
+# PRD 发布总结与正式文档修正
 
 运行时边界统一参考：`protocols/runtime-boundaries.md`
 
@@ -19,7 +19,9 @@ allowed-tools:
 
 ## 目标
 
-在实现、测试和 Demo 验收完成后，基于已实现事实和 `.ai/prd/<domain>/<feature>.md` 草稿，修正增补现有 `docs/prd/<domain>/<feature>.md`。没有正式 PRD 时才创建。完成后删除对应 `.ai/prd` 草稿。
+在实现、测试和 Demo 验收完成后，基于 `.ai/prd/<domain>/<feature>.md` 草稿、现有正式 PRD 和实现后证据，先总结“草稿提出了什么、最终交付了什么、现有正式 PRD 缺什么或哪里过期”，再修正增补现有 `docs/prd/<domain>/<feature>.md`。没有正式 PRD 时才创建。完成后删除对应 `.ai/prd` 草稿。
+
+该 skill 解决的是“代码实现后，如何把通过草稿沉淀的新需求同步回长期 PRD”的问题。它不是实现报告生成器，也不是把 `.ai/prd` 直接复制到 `docs/prd`。
 
 输出文件：
 - `docs/prd/<domain>/<feature>.md`
@@ -34,8 +36,10 @@ allowed-tools:
 ## 核心约束
 
 - 固定在实现、测试和 Demo 验收完成之后运行；不得作为 `/t-design` 前置步骤。
-- 核心动作是修正增补现有正式 PRD，不是简单复制草稿；正式 PRD 不存在时才创建。
-- 写入前先摘要：草稿、正式 PRD、已实现事实的差异，索引影响和风险项；用户确认后才写入。
+- 核心动作是先做发布总结，再修正增补现有正式 PRD；正式 PRD 不存在时才创建。
+- 发布总结只用于确认写入范围，不作为长期进度记录写入 PRD。
+- 不得简单复制草稿；只把仍然成立、且属于长期产品语义的内容写入 `docs/prd`。
+- 写入前先摘要：草稿、正式 PRD、实现后证据之间的差异，现有正式 PRD 需要修正的问题，索引影响和风险项；用户确认后才写入。
 - 发布后删除对应 `.ai/prd/<domain>/<feature>.md`。
 - 拟写入 PRD 的内容不得包含端点明细、schema、建表、代码类型或实现进度状态。
 - 缺少实现、测试或 Demo 验收证据时停止。
@@ -77,8 +81,9 @@ allowed-tools:
 - 草稿核心章节是否完整
 - 草稿引用的用户故事是否存在
 - 草稿是否混入 PRD 禁止内容
-- 草稿、正式 PRD 和已实现事实是否存在未说明冲突
-- 草稿中哪些内容应写入、删去或降级
+- 草稿、正式 PRD 和实现后证据是否存在未说明冲突
+- 现有正式 PRD 是否存在缺失、过期或与已交付产品语义不一致的问题
+- 草稿中哪些内容应写入、删去、降级或仅作为发布摘要说明
 - `docs/prd/00-index.md` 是否需要新增或更新条目
 - 是否已有实现、测试和 Demo 验收完成证据
 
@@ -90,7 +95,10 @@ allowed-tools:
 - 草稿路径和目标正式 PRD 路径
 - 修正增补类型：revise / append / create-if-missing
 - 与现有正式 PRD 的关键差异
-- 草稿内容与已实现事实的对齐结论
+- 草稿内容与实现后证据的对齐结论
+- 现有正式 PRD 需要修正的问题清单
+- 将写入正式 PRD 的长期产品事实
+- 不会写入正式 PRD 的实现过程、临时状态或技术细节
 - 用户故事引用变化
 - 实现与验收完成证据摘要
 - 索引更新计划
@@ -101,7 +109,9 @@ allowed-tools:
 ### 5. 写入正式 PRD
 
 用户确认后：
-- 基于草稿、正式 PRD 和已实现事实，修正/增补 `docs/prd/<domain>/<feature>.md`
+- 基于草稿、正式 PRD 和实现后证据，修正/增补 `docs/prd/<domain>/<feature>.md`
+- 保留正式 PRD 中仍然有效的既有内容，只修正缺失、过期、冲突或需要增补的部分
+- 不写入“已完成/已实现/本次交付”等实施进度表述；如需表达交付后稳定事实，改写为当前产品能力、业务规则或验收目标
 - 目标正式 PRD 不存在时，才创建 `docs/prd/<domain>/<feature>.md`
 - 如索引存在，更新 `docs/prd/00-index.md` 的对应条目；索引不存在时不强行创建
 - 删除 `.ai/prd/<domain>/<feature>.md`

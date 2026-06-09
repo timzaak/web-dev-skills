@@ -18,11 +18,11 @@ HTML Preview 是 PRD 的可视化审阅和协作产物，用于帮助人类快�
 - 正式 PRD: `docs/prd/<domain>/<feature>.md`
 - Preview: `.ai/preview/<domain>/<feature>.html`
 
-Preview 是临时验证产物，不纳入版本控制。每次 `/t-html-show`、`/t-prd`、`/t-prd-check` 修复后或 `/t-prd-publish` 后可重新生成。
+Preview 是临时验证产物，不纳入版本控制。每次 `/t-html-show`、`/t-prd`、`/t-prd-check` 修复后或正式 PRD 更新后可重新生成。
 
 ## Source of Truth
 
-- `.ai/prd` 中的 Markdown PRD 是临时候选产品语义契约，用于草稿审阅、设计、任务、实现和验收阶段，最终修正增补正式 PRD 后应删除。
+- `.ai/prd` 中的 Markdown PRD 是临时候选产品语义契约，用于草稿审阅、设计、任务、实现和验收阶段，同步到正式 PRD 后应删除。
 - `docs/prd` 中的 Markdown PRD 是已发布的正式产品语义契约。
 - HTML Preview 是从 Markdown PRD 派生的可视化审阅视图，也是人机沟通时优先打开和讨论的协作界面。
 - HTML Preview 不允许引入 Markdown PRD 未声明的新需求、权限规则、业务规则或验收目标。

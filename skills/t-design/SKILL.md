@@ -83,7 +83,7 @@ allowed-tools:
 ## 核心约束
 
 - 业务功能设计必须混合验证 `.ai/prd` 草稿与 `docs/prd` 正式 PRD：草稿是通过 PRD Check 后进入设计、任务和实现的候选需求，正式 PRD 是已发布基线；两者存在未说明冲突时停止并要求修正草稿后再次运行 `/t-prd-check [feature]`
-- 若存在 `.ai/prd` 草稿且内容会影响设计，默认基于草稿继续设计，并在设计文档中标记"基于已检查 PRD 草稿"；不得要求先 `/t-prd-publish`
+- 若存在 `.ai/prd` 草稿且内容会影响设计，默认基于草稿继续设计，并在设计文档中标记"基于已检查 PRD 草稿"；不得要求先发布到 `docs/prd`
 - 若没有 `.ai/prd` 草稿但存在 `docs/prd` 正式 PRD，可基于正式 PRD 继续设计，并在设计文档中标记"未发现 PRD 草稿"
 - 纯技术方案没有 PRD/用户故事时，以 `.ai/tech-research/<feature>.md` 中的技术目标、约束和影响范围为准；执行流程与质量门禁以 `${CLAUDE_PLUGIN_ROOT}/guides/` 为准
 - 没有 PRD/用户故事时，必须在设计文档中声明"纯技术方案设计，不涉及业务逻辑变动"，并引用对应 `.ai/tech-research/<feature>.md`
@@ -295,6 +295,5 @@ allowed-tools:
 
 ## 相关引用
 - `skills/t-prd/SKILL.md`
-- `skills/t-prd-publish/SKILL.md`
 - `skills/t-task/SKILL.md`
 - `skills/t-design-check/SKILL.md`

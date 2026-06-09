@@ -126,5 +126,4 @@ allowed-tools:
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/user-story.md` - 用户故事规范和 INVEST 原则
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/prd.md` - PRD 分层与禁止内容规范
 - `docs/user-stories/_roles.md` - 角色定义
-- `skills/t-prd-publish/SKILL.md` - 实现与验收完成后的正式 PRD 修正增补入口
 - `skills/t-dream/SKILL.md` - PRD 上下文整理、结构漂移治理与实现事实对齐入口
