@@ -334,16 +334,3 @@ accept item 必须依赖集中 runner item，不能只依赖 authoring item。`t
 状态已更新：phase=backend, phases.backend.generated_at=<timestamp>
 下一步: /t-task-check <feature> --phase backend
 ```
-
-## 相关引用
-- `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
-- `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md`
-- `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`
-- [context-isolator.md](${CLAUDE_PLUGIN_ROOT}/skills/t-task/references/context-isolator.md)
-- [phase-validator.md](${CLAUDE_PLUGIN_ROOT}/skills/t-task/references/phase-validator.md)
-- [phase-index-generator.md](${CLAUDE_PLUGIN_ROOT}/skills/t-task/references/phase-index-generator.md)
-- [compat-all-mode.md](${CLAUDE_PLUGIN_ROOT}/skills/t-task/examples/compat-all-mode.md)
-- [frontend-blocked-by-backend.md](${CLAUDE_PLUGIN_ROOT}/skills/t-task/examples/frontend-blocked-by-backend.md)
-- [phased-backend-success.md](${CLAUDE_PLUGIN_ROOT}/skills/t-task/examples/phased-backend-success.md)
-- [error-response-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-task/templates/error-response-template.md)
-- [phase-index-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-task/templates/phase-index-template.md)

@@ -137,8 +137,3 @@ docs/tutorials/
 - 本章目标、输出文件和需要读取的源文件路径。
 - [references/doc-templates.md](${CLAUDE_PLUGIN_ROOT}/skills/t-doc/references/doc-templates.md) 中对应章节的骨架。
 - [references/writing-style.md](${CLAUDE_PLUGIN_ROOT}/skills/t-doc/references/writing-style.md) 的风格要求和自检清单。
-
-## references
-
-- [references/doc-templates.md](${CLAUDE_PLUGIN_ROOT}/skills/t-doc/references/doc-templates.md)：章节骨架。
-- [references/writing-style.md](${CLAUDE_PLUGIN_ROOT}/skills/t-doc/references/writing-style.md)：反 AI 写作规则、词汇黑名单、自检清单。

@@ -119,6 +119,7 @@ URL 归一化规则（前端 dev server :3000 代理 API 到后端 :8080，curl 
 
 插件内置参考：
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/index.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/demo-debugging.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/selector-strategy.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/common-failures.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/selector-repair.md`

@@ -290,9 +290,3 @@ create 路径使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-prd/template.md
 
 - PRD 模板：[template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-prd/template.md)
 - User Story 模板：[user-story-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-prd/user-story-template.md)
-
-## 相关引用
-
-- `${CLAUDE_PLUGIN_ROOT}/skills/t-html-show/SKILL.md`
-- `${CLAUDE_PLUGIN_ROOT}/skills/t-prd-check/SKILL.md`
-- `${CLAUDE_PLUGIN_ROOT}/skills/t-design/SKILL.md`

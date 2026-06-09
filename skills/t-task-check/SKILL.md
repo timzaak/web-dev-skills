@@ -163,17 +163,3 @@ P1 问题:
 
 ## 质量门禁
 硬性门禁统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md`
-
-## 相关引用
-- `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
-- `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md`
-- `${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md`
-- `${CLAUDE_PLUGIN_ROOT}/skills/t-task/SKILL.md`
-- `${CLAUDE_PLUGIN_ROOT}/skills/t-backend-finalize/SKILL.md`
-- `${CLAUDE_PLUGIN_ROOT}/skills/t-run/SKILL.md`
-- `${CLAUDE_PLUGIN_ROOT}/skills/t-task/references/phase-validator.md`
-- `${CLAUDE_PLUGIN_ROOT}/skills/t-task/references/phase-index-generator.md`
-- `${CLAUDE_PLUGIN_ROOT}/agents/backend-dev.md`
-- `${CLAUDE_PLUGIN_ROOT}/agents/frontend-dev.md`
-- `${CLAUDE_PLUGIN_ROOT}/agents/miniapp-dev.md`
-- `${CLAUDE_PLUGIN_ROOT}/agents/demo-accept.md`

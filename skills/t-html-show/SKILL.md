@@ -168,8 +168,3 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/open-html-show.py <preview-path> --root .
 - HTML Preview 打开脚本：`${CLAUDE_PLUGIN_ROOT}/scripts/open-html-show.py`
 - HTML Preview 检查脚本：`${CLAUDE_PLUGIN_ROOT}/scripts/check-html-show.py`
 - HTML Preview subagent：`${CLAUDE_PLUGIN_ROOT}/agents/html-show.md`
-
-## 相关引用
-
-- `${CLAUDE_PLUGIN_ROOT}/skills/t-prd/SKILL.md`
-- `${CLAUDE_PLUGIN_ROOT}/skills/t-prd-check/SKILL.md`

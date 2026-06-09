@@ -497,9 +497,3 @@ allowed-tools:
 - Unified Logger 包模板：[references/unified-logger-package-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/unified-logger-package-template.md)
 - 脚本模板：[references/scripts-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/scripts-template.md)
 - AGENTS.md 模板：[references/agents-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/agents-template.md)
-
-## 相关引用
-
-- `${CLAUDE_PLUGIN_ROOT}/skills/t-prd/SKILL.md` — 初始化完成后可开始 PRD 编写
-- `${CLAUDE_PLUGIN_ROOT}/skills/t-design/SKILL.md` — 功能设计
-- `${CLAUDE_PLUGIN_ROOT}/skills/t-task/SKILL.md` — 任务规划

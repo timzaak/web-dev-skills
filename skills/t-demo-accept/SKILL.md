@@ -96,13 +96,3 @@ P0 必须全部通过：
 允许 `ACCEPTED_WITH_IMPROVEMENTS` 的前提：
 - 所有测试通过
 - 无 P0 问题
-
-## 相关引用
-- `${CLAUDE_PLUGIN_ROOT}/agents/demo-accept.md`
-- `${CLAUDE_PLUGIN_ROOT}/agents/demo-dev.md`
-- `${CLAUDE_PLUGIN_ROOT}/agents/demo-diagnose.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/demo/index.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/demo/pom-guide.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/demo/selector-strategy.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/demo/test-maintenance.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/demo/e2e-testing.md`

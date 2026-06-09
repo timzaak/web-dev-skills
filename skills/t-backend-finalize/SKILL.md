@@ -87,9 +87,3 @@ description: Run backend finalization after backend acceptance by simplifying co
 ```bash
 /t-backend-finalize <feature>
 ```
-
-## 相关引用
-- `${CLAUDE_PLUGIN_ROOT}/skills/t-task/SKILL.md`
-- `${CLAUDE_PLUGIN_ROOT}/skills/t-run/SKILL.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md`

@@ -89,8 +89,3 @@ P1 问题:
 - 分项分值之和必须等于 100。
 - 每个扣分项必须有文件定位。
 - 结论必须可追溯到证据。
-
-## 相关引用
-
-- `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
-- `${CLAUDE_PLUGIN_ROOT}/protocols/design-check-rubric.md`

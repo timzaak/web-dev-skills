@@ -171,13 +171,3 @@ phase_index: .ai/task/sample-feature/backend/index.md
 dependencies:
   BE-D01: completed, handoff=<summary>
 ```
-
-## 相关引用
-- `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
-- `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md`
-- `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`
-- `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md`
-- `${CLAUDE_PLUGIN_ROOT}/skills/t-task/SKILL.md`
-- `${CLAUDE_PLUGIN_ROOT}/skills/t-backend-finalize/SKILL.md`
-- `${CLAUDE_PLUGIN_ROOT}/skills/t-task-check/SKILL.md`
-- `${CLAUDE_PLUGIN_ROOT}/skills/t-task/references/phase-validator.md`

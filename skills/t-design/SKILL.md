@@ -292,8 +292,3 @@ allowed-tools:
 ## 附加资源
 
 - 设计文档结构模板：[template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-design/template.md)
-
-## 相关引用
-- `${CLAUDE_PLUGIN_ROOT}/skills/t-prd/SKILL.md`
-- `${CLAUDE_PLUGIN_ROOT}/skills/t-task/SKILL.md`
-- `${CLAUDE_PLUGIN_ROOT}/skills/t-design-check/SKILL.md`

@@ -114,9 +114,3 @@ JSON 批次状态必须持续写盘，至少包含：
 - 不允许在批量运行前执行 cleanup。
 - 默认优先复用 `/t-demo-run`，保证单文件运行协议一致。
 - 先批量发现失败，再用 `demo-diagnose` 分类后统一安排修复。
-
-## 相关引用
-- `${CLAUDE_PLUGIN_ROOT}/skills/t-demo-run/SKILL.md`
-- `${CLAUDE_PLUGIN_ROOT}/agents/demo-diagnose.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/demo/common-failures.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/demo/test-maintenance.md`

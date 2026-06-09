@@ -78,10 +78,3 @@ runner 不得修改：
 ## 报告
 
 报告必须包含：预期测试数量、被命令选中的测试数量、缺失测试（如有）、已执行命令、通过/失败结果、已应用修复、变更文件、语义冲突，以及是否升级到全量测试。
-
-## 共享引用
-
-- `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`
-- `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md`
-- `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`
