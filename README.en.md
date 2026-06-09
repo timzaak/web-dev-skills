@@ -74,44 +74,74 @@ Additional notes:
 
 ## Full Workflow
 
-```text
-/t-tools:t-init <project-name> (optional, initialize a full-stack project scaffold)
-  /t-tools:t-tech-research (optional, evaluate technical feasibility before PRD; pure technical designs may go directly to t-design)
-  /t-tools:t-prd
-  -> /t-tools:t-prd-check
-  -> /t-tools:t-design
-  -> /t-tools:t-design-check
-  -> /t-tools:t-task
-  -> /t-tools:t-task-check
-  -> /t-tools:t-run
-  -> /t-tools:t-backend-finalize
-  -> /t-tools:t-demo-run
-  -> /t-tools:t-demo-accept
-  -> /t-tools:t-prd-publish
-  -> /t-tools:t-dream [feature|--all] [--deep|--backend-only|--govern-prd] (optional, context cleanup and structure drift governance)
-  -> /t-tools:t-push (optional, run scoped local CI, then commit and push)
-  -> /t-tools:t-release [version]
+```mermaid
+flowchart TD
+    subgraph Init["Init (optional)"]
+        direction LR
+        A1["t-init"] --> A2["t-tech-research"]
+    end
+
+    subgraph PRD["PRD"]
+        B1["t-prd"] --> B2{"t-prd-check"}
+        B2 -->|fail| B1
+    end
+
+    subgraph Design["Design"]
+        C1["t-design"] --> C2{"t-design-check"}
+        C2 -->|fail| C1
+    end
+
+    subgraph Task["Task"]
+        D1["t-task"] --> D2{"t-task-check"}
+        D2 -->|fail| D1
+    end
+
+    subgraph Dev["Development"]
+        E1["t-run"] --> E2["t-backend-finalize"]
+    end
+
+    subgraph Demo["Demo"]
+        F1["t-demo-run"] --> F2{"t-demo-accept"}
+        F2 -->|fail| F1
+    end
+
+    subgraph Publish["Publish"]
+        G1["t-prd-publish"]
+    end
+
+    subgraph Post["Post (optional)"]
+        direction LR
+        H1["t-dream"] --> H2["t-push"] --> H3["t-release"]
+    end
+
+    A2 -.-> B1
+    B2 -->|pass| C1
+    C2 -->|pass| D1
+    D2 -->|pass| E1
+    E2 --> F1
+    F2 -->|pass| G1
+    G1 -.-> H1
 ```
 
-Notes:
+Key behaviors:
 
-- `/t-tools:t-prd` generates a temporary `.ai/prd` draft and Preview. It does not write directly into formal `docs/prd`.
-- `/t-tools:t-prd-check` is the quality gate for PRDs, HTML Previews, and user stories. After it passes, continue to `/t-tools:t-design`; after fixes, run `/t-tools:t-prd-check` again.
-- `/t-tools:t-prd-publish` runs after implementation, testing, and Demo acceptance. It summarizes the draft against the existing formal PRD and post-implementation evidence, fixes missing, stale, or conflicting content in `docs/prd`, then deletes the matching `.ai/prd` draft.
-- `/t-tools:t-task-check` is the gate for task breakdown, DAG validity, and item executability. It verifies that task documents are ready for implementation.
-- `/t-tools:t-demo-accept` is the demo-stage acceptance gate. It verifies test coverage, runnability, and delivery quality.
+- `t-prd` generates a temporary `.ai/prd` draft and Preview. It does not write directly into formal `docs/prd`.
+- `t-prd-check` is the quality gate for PRDs, HTML Previews, and user stories. After it passes, continue to `t-design`; after fixes, run `t-prd-check` again.
+- `t-prd-publish` runs after implementation, testing, and Demo acceptance. It summarizes the draft against the existing formal PRD and post-implementation evidence, fixes missing, stale, or conflicting content in `docs/prd`, then deletes the matching `.ai/prd` draft.
+- `t-task-check` is the gate for task breakdown, DAG validity, and item executability. It verifies that task documents are ready for implementation.
+- `t-demo-accept` is the demo-stage acceptance gate. It verifies test coverage, runnability, and delivery quality.
 
-Common helper commands:
+Helper commands:
 
-- `/t-tools:t-init <project-name>`: initializes a full-stack project scaffold for Rust Axum + React TanStack, including backend, frontend, E2E tests, development scripts, and the complete directory structure
-- `/t-tools:t-tech-research`: evaluates technical feasibility before writing the PRD, including dependency gap analysis, library research, impact analysis, and feasibility judgment; for pure technical designs that do not change business logic, it may be the direct upstream input to `/t-tools:t-design`
-- `/t-tools:t-prd-publish <feature>`: after implementation and acceptance, reviews `.ai/prd/<domain>/<feature>.md`, the existing formal PRD, and post-implementation evidence, presents a publish summary, then fixes missing, stale, or conflicting content in `docs/prd/<domain>/<feature>.md` and deletes the draft
-- `/t-tools:t-doc <project-or-module-name>`: scans the target project codebase and generates newcomer-oriented tutorial documentation under `docs/tutorials/<name>/` by default
-- `/t-tools:t-html-show <feature | path>`: generates or updates HTML Preview for quick human review. Supports PRDs (pass feature name) and any Markdown document (pass file path). Usually triggered automatically by `/t-prd`, but can also be run independently
-- `/t-tools:t-dream [feature|--all] [--deep|--backend-only|--govern-prd]`: by default, read-only audits PRDs, user stories, design/task docs, code structure, tests/Demo, and implementation facts to find stale context, structure drift, traceability gaps, and description/implementation conflicts, then writes `.ai/quality/dream-check-[YYYYMMDD-HHMMSS].md`; only `--govern-prd` may rewrite PRDs, indexes, and references
-- `/t-tools:t-demo-run-all`: runs demo tests in batch
-- `/t-tools:t-push`: has the AI summarize the commit message from `git diff`, then calls `${CLAUDE_PLUGIN_ROOT}/scripts/push.py --message "<message>"` to detect backend, frontend, and demo changes, run affected local CI checks in parallel, and run `git commit` plus `git push` after CI passes
-- `/t-tools:t-release [version]`: releases a version by updating project versions, creating a git commit and tag, and pushing to the remote. Version files use semantic versioning, such as `0.2.0`, while the final git tag always uses a `v` prefix, such as `v0.2.0`. If omitted, the command recommends one based on the latest semver tag. It only runs on a clean `main` branch, updates `backend/Cargo.toml`, `frontend/package.json`, and `demo/package.json`, then commits and pushes after compilation checks pass.
+- `t-init <project-name>`: initializes a full-stack project scaffold for Rust Axum + React TanStack, including backend, frontend, E2E tests, development scripts, and the complete directory structure
+- `t-tech-research`: evaluates technical feasibility before writing the PRD, including dependency gap analysis, library research, impact analysis, and feasibility judgment; for pure technical designs that do not change business logic, it may be the direct upstream input to `t-design`
+- `t-prd-publish <feature>`: after implementation and acceptance, reviews `.ai/prd/<domain>/<feature>.md`, the existing formal PRD, and post-implementation evidence, presents a publish summary, then fixes missing, stale, or conflicting content in `docs/prd/<domain>/<feature>.md` and deletes the draft
+- `t-doc <project-or-module-name>`: scans the target project codebase and generates newcomer-oriented tutorial documentation under `docs/tutorials/<name>/` by default
+- `t-html-show <feature | path>`: generates or updates HTML Preview for quick human review. Supports PRDs (pass feature name) and any Markdown document (pass file path). Usually triggered automatically by `t-prd`, but can also be run independently
+- `t-dream [feature|--all] [--deep|--backend-only|--govern-prd]`: by default, read-only audits PRDs, user stories, design/task docs, code structure, tests/Demo, and implementation facts to find stale context, structure drift, traceability gaps, and description/implementation conflicts, then writes `.ai/quality/dream-check-[YYYYMMDD-HHMMSS].md`; only `--govern-prd` may rewrite PRDs, indexes, and references
+- `t-demo-run-all`: runs demo tests in batch
+- `t-push`: has the AI summarize the commit message from `git diff`, then calls `${CLAUDE_PLUGIN_ROOT}/scripts/push.py --message "<message>"` to detect backend, frontend, and demo changes, run affected local CI checks in parallel, and run `git commit` plus `git push` after CI passes
+- `t-release [version]`: releases a version by updating project versions, creating a git commit and tag, and pushing to the remote. Version files use semantic versioning, such as `0.2.0`, while the final git tag always uses a `v` prefix, such as `v0.2.0`. If omitted, the command recommends one based on the latest semver tag. It only runs on a clean `main` branch, updates `backend/Cargo.toml`, `frontend/package.json`, and `demo/package.json`, then commits and pushes after compilation checks pass.
 
 ## Installation
 
@@ -138,4 +168,3 @@ Prerequisites:
 ## Dependencies
 
 - `Context7`: used by `backend-dev`, `backend-test`, `frontend-dev`, and `frontend-test` to query third-party library documentation
-- `/code-review`: required, used by `t-backend-finalize` for final review

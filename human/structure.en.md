@@ -14,20 +14,51 @@ The core idea can be summarized as:
 
 ### Skills: Workflow Controllers
 
-A skill is an imperative workflow entry point, for example:
+A skill is an imperative workflow entry point, organized by workflow stage:
 
-- `/t-tools:t-prd`
-- `/t-tools:t-html-show`
-- `/t-tools:t-prd-check`
-- `/t-tools:t-design`
-- `/t-tools:t-design-check`
-- `/t-tools:t-task`
-- `/t-tools:t-task-check`
-- `/t-tools:t-run`
-- `/t-tools:t-demo-run`
-- `/t-tools:t-demo-accept`
-- `/t-tools:t-dream`
-- `/t-tools:t-push`
+**Init (optional):**
+
+- `t-init`: initializes a full-stack project scaffold.
+- `t-tech-research`: evaluates technical feasibility.
+
+**PRD:**
+
+- `t-prd`: generates or updates the PRD draft and Preview.
+- `t-prd-check`: PRD quality gate.
+- `t-html-show`: converts Markdown documents into HTML Previews for human review.
+
+**Design:**
+
+- `t-design`: produces technical design from the PRD.
+- `t-design-check`: design quality gate.
+
+**Task:**
+
+- `t-task`: converts design into executable tasks.
+- `t-task-check`: task breakdown quality gate.
+
+**Development:**
+
+- `t-run`: drives implementation and testing by phase.
+- `t-backend-finalize`: backend closure review.
+- `t-backend-test-run`: internal execution skill, reused by workflows.
+
+**Demo:**
+
+- `t-demo-run`: runs Demo/E2E tests.
+- `t-demo-run-all`: runs demo tests in batch.
+- `t-demo-accept`: demo acceptance gate.
+
+**Publish:**
+
+- `t-prd-publish`: summarizes the draft and revises the formal PRD.
+
+**Post (optional):**
+
+- `t-dream`: context cleanup and structure drift governance.
+- `t-doc`: generates project tutorial documentation.
+- `t-push`: local CI closure, then commit and push.
+- `t-release`: version release.
 
 The responsibility of a skill is not to "write a prompt and let the model improvise." Its responsibility is to control stage progression:
 
@@ -42,20 +73,41 @@ In this sense, a skill is closer to a lightweight workflow engine.
 
 ### Agents: Specialized Executors
 
-Subagents are split by engineering role, for example:
+Subagents are split by engineering role:
+
+**Backend:**
 
 - `backend-dev`: implements Rust backend features.
 - `backend-test`: handles backend scenario tests, integration tests, and acceptance tests.
 - `backend-accept`: performs read-only backend acceptance.
+
+**Frontend:**
+
 - `frontend-dev`: implements the React frontend.
 - `frontend-test`: handles Vitest, Testing Library, and MSW tests.
 - `frontend-accept`: performs read-only frontend acceptance.
-- `html-show`: converts Markdown documents into HTML Previews for human review. Applicable to PRDs and any document.
+
+**Miniapp:**
+
+- `miniapp-dev`: implements miniapp features.
+- `miniapp-test`: handles miniapp tests.
+- `miniapp-accept`: performs read-only miniapp acceptance.
+
+**Demo:**
+
 - `demo-dev`: maintains independent Playwright demo/E2E tests based on user stories.
 - `demo-accept`: verifies whether demo tests align with user stories, execution results, and test quality expectations.
+- `demo-diagnose`: diagnoses demo test failures and identifies the responsible party.
+
+**Quality audit:**
+
 - `context-curator`: read-only audit for duplicated, stale, conflicting, process-heavy, or non-authoritative information across PRDs, user stories, design docs, tasks, and demo comments.
 - `structure-review`: read-only assessment of PRD directories, code directories, module boundaries, test layout, demo layout, and `.ai/` runtime artifact organization.
 - `backend-consistency`: performs backend module-level deep consistency checks, comparing PRD against implementation across five dimensions: API capability boundaries, data models, validation rules, permissions, and business logic.
+
+**Utility:**
+
+- `html-show`: converts Markdown documents into HTML Previews. Applicable to PRDs and any document.
 
 The key point of this split is responsibility boundaries. Development agents may modify code; test agents focus on tests; acceptance agents are read-only by default and produce evidence-based reports. When something fails, the workflow hands off to the appropriate role instead of making one agent own every responsibility at once.
 
@@ -69,46 +121,84 @@ The key point of this split is responsibility boundaries. Development agents may
 - The `tests_to_run` set that must be returned after a fix.
 - The file location, content model, technology boundary, and check scope for PRD HTML Previews.
 - Scoring and blocking rules for PRD, design, and task checks.
+- The structure and severity rules for t-dream audit reports.
+- Backend test execution contracts and diagnostic report formats.
 
 This avoids having every skill or agent redefine its own fields, state machine, and quality criteria. When a shared rule needs to change, the protocol should be updated first instead of copying the same change across multiple agent documents.
 
 ### Guides: Engineering Standards
 
-`guides/` contains concrete engineering standards, such as:
+`guides/` contains concrete engineering standards, organized by domain:
 
-- Backend architecture, testing, validation, and quality gates.
-- Frontend development patterns, testing strategy, and `data-testid` standards.
-- Demo testing, selectors, Page Objects, and common failure handling.
-- Product documentation and user story standards.
+- `backend/`: backend architecture, development, testing, validation, TDD workflow, and quality gates.
+- `frontend/`: frontend development patterns, design patterns, testing strategy, `data-testid` standards, validation, and quality gates.
+- `miniapp/`: miniapp development, testing, validation, AI rules, and quality gates.
+- `demo/`: E2E testing, selector strategy, Page Objects, diagnostics, and common failure handling.
+- `product/`: product documentation and user story standards.
+- `core/`: environment configuration and general quality standards.
 
 Agent documents only describe when to read these guides, how to execute the work, and what to return. They do not duplicate the rules inside the guides. This reduces rule drift.
 
 ## Workflow from PRD to Delivery
 
-The recommended full T-Tools path is:
+The recommended full T-Tools path:
 
-```text
-PRD
--> PRD Check
--> Design
--> Design Check
--> Task
--> Task Check
--> Run
--> Backend Finalize
--> Demo Run
--> Demo Accept
--> PRD Publish
--> Dream Check (context cleanup and structure drift governance, can also be run independently at any time)
+```mermaid
+flowchart TD
+    subgraph Init["Init (optional)"]
+        direction LR
+        A1["t-init"] --> A2["t-tech-research"]
+    end
+
+    subgraph PRD["PRD"]
+        B1["t-prd"] --> B2{"t-prd-check"}
+        B2 -->|fail| B1
+    end
+
+    subgraph Design["Design"]
+        C1["t-design"] --> C2{"t-design-check"}
+        C2 -->|fail| C1
+    end
+
+    subgraph Task["Task"]
+        D1["t-task"] --> D2{"t-task-check"}
+        D2 -->|fail| D1
+    end
+
+    subgraph Dev["Development"]
+        E1["t-run"] --> E2["t-backend-finalize"]
+    end
+
+    subgraph Demo["Demo"]
+        F1["t-demo-run"] --> F2{"t-demo-accept"}
+        F2 -->|fail| F1
+    end
+
+    subgraph Publish["Publish"]
+        G1["t-prd-publish"]
+    end
+
+    subgraph Post["Post (optional)"]
+        direction LR
+        H1["t-dream"] --> H2["t-push"] --> H3["t-release"]
+    end
+
+    A2 -.-> B1
+    B2 -->|pass| C1
+    C2 -->|pass| D1
+    D2 -->|pass| E1
+    E2 --> F1
+    F2 -->|pass| G1
+    G1 -.-> H1
 ```
 
-This path breaks AI programming into product definition, design, task planning, implementation, testing, acceptance, and demo delivery. Every stage has an input contract, an output contract, and quality gates.
+This path breaks AI programming into product definition, design, task planning, implementation, testing, acceptance, demo delivery, and publishing. Every stage has an input contract, an output contract, and quality gates. Diamond nodes are quality gates that loop back on failure; dashed lines indicate optional paths.
 
 The important point is not to skip check or acceptance steps. The value of this project is not only content generation. It is also the ability to close each stage before upstream problems flow downstream.
 
 ## t-prd Design: Make AI Output Understandable First
 
-The core change in `/t-tools:t-prd` is not "generate one more HTML file." It changes how humans review AI output.
+The core change in `t-prd` is not "generate one more HTML file." It changes how humans review AI output.
 
 In a traditional PRD flow, AI can easily produce a thousand lines of Markdown. That structure may be clear to the model, but it is expensive for humans to read: they have to hunt through a long document for the goal, scope, flow, states, permissions, exceptions, and acceptance criteria, then judge whether those pieces contradict each other. If humans cannot understand or finish reviewing the PRD at this stage, design, task planning, and implementation will amplify the wrong understanding downstream.
 
@@ -120,11 +210,11 @@ The purpose of the HTML Preview is to turn the AI's understanding of the require
 - Which parts are still only assumptions.
 - Whether the requirement is clear enough to enter design.
 
-So `/t-tools:t-prd` is closer to a "product-understanding visualization" stage. Markdown remains the formal contract, but the Preview becomes the human entry point for reviewing that contract. It turns product semantics buried in a long document into a scannable, discussable, feedback-friendly interface, so humans can catch AI misunderstandings earlier instead of finding them after technical design or code implementation.
+So `t-prd` is closer to a "product-understanding visualization" stage. Markdown remains the formal contract, but the Preview becomes the human entry point for reviewing that contract. It turns product semantics buried in a long document into a scannable, discussable, feedback-friendly interface, so humans can catch AI misunderstandings earlier instead of finding them after technical design or code implementation.
 
-This also changes what `/t-tools:t-prd-check` means. PRD Check is not just a document-format check. It verifies that "the product understanding written by the AI" and "the product understanding humans see through the Preview" are aligned. `/t-tools:t-prd` first writes frequent changes into a temporary `.ai/prd` draft; after the draft passes checks, it can enter `/t-tools:t-design`. If the draft is fixed after checking, `/t-tools:t-prd-check` should be run again. `/t-tools:t-prd-publish` is no longer a design prerequisite; after implementation, testing, and Demo acceptance are complete, it summarizes the draft against the existing formal PRD and post-implementation evidence, then fixes missing, stale, or conflicting content in `docs/prd`.
+This also changes what `t-prd-check` means. PRD Check is not just a document-format check. It verifies that "the product understanding written by the AI" and "the product understanding humans see through the Preview" are aligned. `t-prd` first writes frequent changes into a temporary `.ai/prd` draft; after the draft passes checks, it can enter `t-design`. If the draft is fixed after checking, `t-prd-check` should be run again. `t-prd-publish` is no longer a design prerequisite; after implementation, testing, and Demo acceptance are complete, it summarizes the draft against the existing formal PRD and post-implementation evidence, then fixes missing, stale, or conflicting content in `docs/prd`.
 
-`/t-html-show` has been extracted from `/t-prd` into a standalone skill and generalized to support visualization of any Markdown document. `/t-prd` triggers it automatically during its workflow, but it can also be invoked independently. Preview output goes to `.ai/preview/`, outside version control.
+`t-html-show` has been extracted from `t-prd` into a standalone skill and generalized to support visualization of any Markdown document. `t-prd` triggers it automatically during its workflow, but it can also be invoked independently. Preview output goes to `.ai/preview/`, outside version control.
 
 ## Independent Demo Quality Verification
 
@@ -145,18 +235,20 @@ The focus of `demo-accept` is to verify demo quality:
 - Whether selectors, waits, Page Objects, and test data setup follow standards.
 - Whether every conclusion is backed by evidence such as test files, logs, or command output.
 
+`demo-diagnose` intervenes when demo tests fail. It diagnoses the failure cause, identifies the responsible party (demo test, frontend implementation, or backend implementation), and dispatches fixes to the corresponding agent.
+
 Therefore, the demo stage acts as the quality gate for "deliverable demonstrability" and "user story closure." It validates not only whether code compiles or APIs return responses, but also whether the complete user journey from entry point to result matches product intent.
 
 ## Core Execution Model: phase -> slot -> item
 
-`/t-tools:t-task` decomposes the design document into a standard task directory:
+`t-task` decomposes the design document into a standard task directory:
 
 ```text
 .ai/task/[feature]/
-|-- .state.json
-|-- backend/
-|-- frontend/
-`-- demo/
+├── .state.json
+├── backend/
+├── frontend/
+└── demo/
 ```
 
 The execution model has three layers:
@@ -165,13 +257,13 @@ The execution model has three layers:
 - `slot`: for example, `dev -> test -> accept`
 - `item`: the smallest executable task file
 
-`/t-tools:t-run` executes only items. It does not directly execute manifests such as `index.md`, `dev.md`, `test.md`, or `accept.md`. Manifests are responsible for navigation, dependencies, and summaries; items contain concrete steps, inputs, expected files, verification commands, and completion criteria.
+`t-run` executes only items. It does not directly execute manifests such as `index.md`, `dev.md`, `test.md`, or `accept.md`. Manifests are responsible for navigation, dependencies, and summaries; items contain concrete steps, inputs, expected files, verification commands, and completion criteria.
 
 This design allows tasks to be broken down, ordered, retried, and audited.
 
 ## Why Items Are Scheduled Serially
 
-`/t-tools:t-run` allows at most one item to be `running` at any time. It will:
+`t-run` allows at most one item to be `running` at any time. It will:
 
 - Read `.state.json`.
 - Validate the phase, slot, item, and DAG.
@@ -195,20 +287,20 @@ For long-running projects, this determinism is more important than one-shot para
 
 T-Tools makes quality control explicit:
 
-- `/t-tools:t-prd-check` checks the PRD draft/formal PRD, Preview, and user stories.
-- `/t-tools:t-prd-publish` revises the formal PRD from the draft, existing formal PRD, and post-implementation evidence after implementation, testing, and Demo acceptance are complete, then deletes the temporary draft.
-- `/t-tools:t-design-check` checks the technical design.
-- `/t-tools:t-task-check` checks task decomposition, the DAG, and item executability.
+- `t-prd-check` checks the PRD draft/formal PRD, Preview, and user stories.
+- `t-prd-publish` revises the formal PRD from the draft, existing formal PRD, and post-implementation evidence after implementation, testing, and Demo acceptance are complete, then deletes the temporary draft.
+- `t-design-check` checks the technical design.
+- `t-task-check` checks task decomposition, the DAG, and item executability.
 - `backend-accept`, `frontend-accept`, and `demo-accept` produce read-only acceptance reports.
-- When `/t-tools:t-demo-run` fails, it diagnoses first, then dispatches fixes to `demo-dev`, `frontend-dev`, or `backend-dev`.
+- When `t-demo-run` fails, it diagnoses first, then dispatches fixes to `demo-dev`, `frontend-dev`, or `backend-dev`.
 
 A fixing agent must return `tests_to_run`, explaining which backend, frontend, or demo commands should be rerun after the fix. This makes the risk of "demo passes but lower-level regression fails" explicit.
 
 ## Context Cleanup and Structure Drift Governance: t-dream
 
-`/t-tools:t-dream` is not a stage gate. It is a cross-stage context cleanup and engineering-fact realignment tool. Its core question is not whether the prose is nice; it is whether the current context given to AI agents is clean, trustworthy, structurally navigable, and free from accumulating stale PRDs, stale designs, stale implementation notes, and incorrect references.
+`t-dream` is not a stage gate. It is a cross-stage context cleanup and engineering-fact realignment tool. Its core question is not whether the prose is nice; it is whether the current context given to AI agents is clean, trustworthy, structurally navigable, and free from accumulating stale PRDs, stale designs, stale implementation notes, and incorrect references.
 
-Unlike stage-specific checks such as `/t-tools:t-prd-check`, t-dream does not only check one document's format or completeness. It reorganizes PRDs, user stories, designs, tasks, code, tests, and demos together:
+Unlike stage-specific checks such as `t-prd-check`, t-dream does not only check one document's format or completeness. It reorganizes PRDs, user stories, designs, tasks, code, tests, and demos together:
 
 - Which PRDs are current authority sources, and which documents are historical process notes, migration records, or duplicated plans.
 - Whether PRDs, user stories, designs, tasks, code, tests, and demos have broken, wrong, or duplicated traceability links.
@@ -239,7 +331,7 @@ The `--deep` mode additionally invokes the `backend-consistency` agent for backe
 
 ## Local CI Closure Before Push
 
-`/t-tools:t-push` is the daily commit entry point. It does not replace the release workflow. It detects the changed scope from git diff:
+`t-push` is the daily commit entry point. It does not replace the release workflow. It detects the changed scope from git diff:
 
 - `backend/**` triggers Backend CI.
 - `frontend/**` triggers Frontend CI.
@@ -248,7 +340,7 @@ The `--deep` mode additionally invokes the `backend-consistency` agent for backe
 
 After all affected checks pass, it runs `git add -A`, generates a commit message from the staged diff following project conventions, asks for confirmation, then runs `git commit` and `git push`. If any CI step fails, the flow stops and does not commit or push.
 
-Formal version publishing remains governed by `/t-tools:t-release [version]`; version files use semver without `v`, while git tags use the `v` prefix.
+Formal version publishing remains governed by `t-release [version]`; version files use semver without `v`, while git tags use the `v` prefix.
 
 ## Design Tradeoff
 
