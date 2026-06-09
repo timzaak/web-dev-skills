@@ -20,7 +20,7 @@ uv run scripts/test-stop.py
 
 ## 项目事实确认
 
-- 后端构建真相以 `backend/pom.xml`、`backend/build.gradle`、`backend/build.gradle.kts` 和 wrapper 脚本为准。
+- 后端构建真相以 `backend/pom.xml` 和 Maven wrapper 脚本为准。
 - 测试隔离以目标项目现有 test helper、fixture、profile、schema 或 database 隔离实现为准。
 - 真实数据库结构只来自目标项目迁移目录。
 - 路由断言、租户参数和鉴权前提以当前真实接口与设计文档为准。
@@ -51,17 +51,8 @@ uv run scripts/backend-test.py -- --tests '*UserRegistrationTest.createSuccess'
 ```bash
 cd backend
 /code-review
-./mvnw test
-./mvnw verify
-```
-
-Gradle 项目使用：
-
-```bash
-cd backend
-/code-review
-./gradlew test
-./gradlew check
+mvn test
+mvn verify
 ```
 
 ## 参考

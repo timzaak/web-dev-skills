@@ -239,7 +239,7 @@ def kill_process_by_port(port: int) -> bool:
             # Kill known backend build-tool parents only; other parents may be terminals or shells.
             if ppid:
                 parent_name = _get_process_name_windows(ppid)
-                if parent_name and parent_name.lower() in {"mvn.exe", "mvnw.cmd", "gradle.exe", "gradlew.bat", "java.exe"}:
+                if parent_name and parent_name.lower() in {"mvn.exe", "mvnw.cmd", "java.exe"}:
                     try:
                         subprocess.run(
                             ["taskkill", "/PID", ppid, "/F", "/T"],
@@ -287,10 +287,10 @@ def kill_process_by_port(port: int) -> bool:
 
 
 def is_backend_build_active() -> bool:
-    """Return True when Maven, Gradle, or Java build activity appears to be active."""
+    """Return True when Maven or Java build activity appears to be active."""
     if os.name == "nt":
         command = (
-            "Get-Process mvn, gradle, java -ErrorAction SilentlyContinue | "
+            "Get-Process mvn, java -ErrorAction SilentlyContinue | "
             "Measure-Object | "
             "Select-Object -ExpandProperty Count"
         )
@@ -308,7 +308,7 @@ def is_backend_build_active() -> bool:
             pass
         return False
 
-    for cmd in (["pgrep", "-f", "mvn"], ["pgrep", "-f", "gradle"], ["pgrep", "-f", "java"]):
+    for cmd in (["pgrep", "-f", "mvn"], ["pgrep", "-f", "java"]):
         try:
             result = subprocess.run(
                 cmd,

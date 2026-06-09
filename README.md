@@ -104,7 +104,7 @@
 - `/t-tools:t-dream [feature|--all] [--deep|--backend-only]`：通过多个 `general_agent` 并行排查 PRD、用户故事、Demo 测试注释等描述是否准确匹配实现事实，并输出 `.ai/quality/dream-check-[YYYYMMDD-HHMMSS].md`
 - `/t-tools:t-demo-run-all`：批量执行 Demo 测试
 - `/t-tools:t-push`：由 AI 基于 git diff 总结 commit message，再调用 `${CLAUDE_PLUGIN_ROOT}/scripts/push.py --message "<message>"` 自动判断 backend、frontend、demo 变更范围，并发运行受影响区域的本地 CI；CI 全部通过后执行 `git commit` 和 `git push`
-- `/t-tools:t-release [版本号]`：版本发布，更新项目版本号、创建 git commit 和 tag、推送到远程。版本文件使用语义化版本（如 `0.2.0`），最终 git tag 一律使用 `v` 前缀（如 `v0.2.0`）；留空则基于最新 semver tag 推荐。仅在 `main` 分支且工作区干净时执行，自动更新 `backend/pom.xml` 或 `backend/build.gradle(.kts)`、`frontend/package.json`、`demo/package.json`，编译验证通过后提交并推送
+- `/t-tools:t-release [版本号]`：版本发布，更新项目版本号、创建 git commit 和 tag、推送到远程。版本文件使用语义化版本（如 `0.2.0`），最终 git tag 一律使用 `v` 前缀（如 `v0.2.0`）；留空则基于最新 semver tag 推荐。仅在 `main` 分支且工作区干净时执行，自动更新 `backend/pom.xml`、`frontend/package.json`、`demo/package.json`，编译验证通过后提交并推送
 
 ## 安装
 

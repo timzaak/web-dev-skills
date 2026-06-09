@@ -56,7 +56,7 @@ tools:
 
 - backend/test authoring item 必须声明 `test_item_type: authoring`。
 - 只修改 `backend/**/src/test/**`、测试 helper、测试配置等测试拥有的文件。
-- validation 只要求 `cd backend && ./mvnw test -DskipTests`、`cd backend && ./gradlew testClasses` 或建议 runner 命令。
+- validation 只要求 `cd backend && mvn test -DskipTests` 或建议 runner 命令。
 - completion criteria 不得要求目标测试全部通过。
 - 需要真正执行目标测试时，交给 runner item 使用 `skills/t-backend-test-run/SKILL.md`。
 
@@ -80,7 +80,7 @@ tools:
     "summary": "简要说明",
     "files_modified": ["path"],
     "validation": [
-      {"command": "cd backend && ./mvnw test -DskipTests", "status": "passed|failed|skipped", "reason": "说明"}
+      {"command": "cd backend && mvn test -DskipTests", "status": "passed|failed|skipped", "reason": "说明"}
     ],
     "suggested_runner_command": "uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- <test_name>"
   }

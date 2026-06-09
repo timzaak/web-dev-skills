@@ -26,7 +26,7 @@
 
 ### 2.1 当前依赖
 
-**后端 (Maven/Gradle)**:
+**后端 (Maven)**:
 
 | 库名 | 版本 | 用途 | 所在模块 |
 |---|---|---|---|
@@ -162,7 +162,7 @@
 ## 8. 参考资料
 
 ### 8.1 本地分析
-- 依赖清单: `backend/pom.xml` 或 `backend/build.gradle(.kts)`, `frontend/package.json`
+- 依赖清单: `backend/pom.xml`, `frontend/package.json`
 - 代码扫描: [扫描范围说明]
 
 ### 8.2 外部参考

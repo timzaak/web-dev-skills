@@ -119,31 +119,6 @@ def update_pom_version(path: Path, version: str) -> FileChange | None:
     return None
 
 
-def update_gradle_version(path: Path, version: str) -> FileChange | None:
-    if not path.is_file():
-        return None
-
-    text = path.read_text(encoding="utf-8")
-    patterns = [
-        r'(?m)^(\s*version\s*=\s*[\'"])([^\'"]+)([\'"])',
-        r'(?m)^(\s*version\s+)([\'"][^\'"]+[\'"])',
-    ]
-    for pattern_index, pattern in enumerate(patterns):
-        match = re.search(pattern, text)
-        if not match:
-            continue
-        before = match.group(2).strip("'\"")
-        if pattern_index == 0:
-            updated = text[: match.start(2)] + version + text[match.end(2) :]
-        else:
-            quote = "'" if "'" in match.group(2) else '"'
-            updated = text[: match.start(2)] + f"{quote}{version}{quote}" + text[match.end(2) :]
-        path.write_text(updated, encoding="utf-8")
-        return FileChange(path, before, version)
-
-    return None
-
-
 def update_package_json(path: Path, version: str) -> FileChange | None:
     if not path.is_file():
         return None
@@ -158,18 +133,9 @@ def update_package_json(path: Path, version: str) -> FileChange | None:
 def update_version_files(version: str) -> list[FileChange]:
     changes: list[FileChange] = []
 
-    for backend_version_path in (
-        REPO_ROOT / "backend" / "pom.xml",
-        REPO_ROOT / "backend" / "build.gradle",
-        REPO_ROOT / "backend" / "build.gradle.kts",
-    ):
-        if backend_version_path.name == "pom.xml":
-            backend_change = update_pom_version(backend_version_path, version)
-        else:
-            backend_change = update_gradle_version(backend_version_path, version)
-        if backend_change:
-            changes.append(backend_change)
-            break
+    backend_change = update_pom_version(REPO_ROOT / "backend" / "pom.xml", version)
+    if backend_change:
+        changes.append(backend_change)
 
     for package_path in (
         REPO_ROOT / "frontend" / "package.json",
@@ -203,13 +169,6 @@ def run_validation() -> None:
             commands.append(([str(backend_dir / "mvnw"), "test"], backend_dir))
         else:
             commands.append(([require_executable("mvn", "mvn.cmd"), "test"], backend_dir))
-    elif (backend_dir / "build.gradle").is_file() or (backend_dir / "build.gradle.kts").is_file():
-        if (backend_dir / "gradlew.bat").is_file():
-            commands.append(([str(backend_dir / "gradlew.bat"), "test"], backend_dir))
-        elif (backend_dir / "gradlew").is_file():
-            commands.append(([str(backend_dir / "gradlew"), "test"], backend_dir))
-        else:
-            commands.append(([require_executable("gradle", "gradle.bat"), "test"], backend_dir))
 
     npm = None
     if command_exists("npm"):
@@ -241,9 +200,6 @@ def commit_tag_and_push(version: str, push: bool) -> str:
     release_tag = f"v{version}"
     release_paths = [
         "backend/pom.xml",
-        "backend/build.gradle",
-        "backend/build.gradle.kts",
-        "backend/gradle.properties",
         "frontend/package.json",
         "frontend/package-lock.json",
         "demo/package.json",

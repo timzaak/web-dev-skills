@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from lib.cli import require_executable, run_cmd
-from lib.java_backend import build_quality_commands, detect_build_tool
+from lib.java_backend import backend_dir, build_quality_commands, detect_build_tool
 from lib.paths import REPO_ROOT
 
 
@@ -34,13 +34,21 @@ def split_z_output(text: str) -> list[str]:
 
 
 def changed_files() -> list[str]:
-    tracked = git("diff", "--name-only", "-z", "HEAD", capture=True)
-    ensure_success(tracked, "Unable to inspect tracked git changes.")
+    # For initial commit (no HEAD), use --cached instead of diffing against HEAD
+    has_head = git("rev-parse", "--verify", "HEAD", capture=True)
+    if has_head.returncode == 0:
+        tracked = git("diff", "--name-only", "-z", "HEAD", capture=True)
+        ensure_success(tracked, "Unable to inspect tracked git changes.")
+        tracked_files = split_z_output(tracked.stdout)
+    else:
+        cached = git("diff", "--cached", "--name-only", "-z", capture=True)
+        ensure_success(cached, "Unable to inspect staged changes.")
+        tracked_files = split_z_output(cached.stdout)
 
     untracked = git("ls-files", "--others", "--exclude-standard", "-z", capture=True)
     ensure_success(untracked, "Unable to inspect untracked git files.")
 
-    files = split_z_output(tracked.stdout) + split_z_output(untracked.stdout)
+    files = tracked_files + split_z_output(untracked.stdout)
     return sorted(dict.fromkeys(path.replace("\\", "/") for path in files))
 
 
@@ -50,8 +58,14 @@ def git_status_short() -> str:
     return result.stdout.strip()
 
 
+def is_root_backend_project() -> bool:
+    root = backend_dir(REPO_ROOT)
+    return root == REPO_ROOT and (root / "pom.xml").is_file()
+
+
 def detect_areas(files: list[str]) -> set[str]:
     areas: set[str] = set()
+    root_backend = is_root_backend_project()
     for path in files:
         if path.startswith("backend/"):
             areas.add("backend")
@@ -59,6 +73,8 @@ def detect_areas(files: list[str]) -> set[str]:
             areas.add("frontend")
         elif path.startswith("demo/"):
             areas.add("demo")
+        elif root_backend:
+            areas.add("backend")
     return areas
 
 
@@ -85,11 +101,11 @@ def npm_script_step(name: str, app_dir: Path, script: str, *, optional: bool = F
 
 
 def backend_steps() -> list[Step]:
-    backend_dir = REPO_ROOT / "backend"
-    detect_build_tool(backend_dir)
+    root = backend_dir(REPO_ROOT)
+    detect_build_tool(root)
     return [
-        Step(name=f"Backend Java quality {index}", command=command, cwd=backend_dir)
-        for index, command in enumerate(build_quality_commands(backend_dir), start=1)
+        Step(name=f"Backend Java quality {index}", command=command, cwd=root)
+        for index, command in enumerate(build_quality_commands(root), start=1)
     ]
 
 

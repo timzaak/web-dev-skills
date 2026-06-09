@@ -11,7 +11,7 @@ description: Run backend finalization after backend acceptance by simplifying co
 - 读取 `.ai/task/[feature]/.state.json` 和 `backend/finalize.md`。
 - 在 `backend-accept` 通过后执行统一收口：
   - `/code-review`
-  - Java 编译、测试和项目已有质量任务（Maven/Gradle）
+  - Java 编译、测试和项目已有 Maven 质量任务
   - OpenAPI 文档导出与前端 API 生成
 - 若任一步失败，修复后默认从失败步骤恢复，不提供额外恢复参数。
 
@@ -36,8 +36,9 @@ description: Run backend finalization after backend acceptance by simplifying co
    - 若未显式声明，则回退到当前工作区 `backend/**` 改动集
 - 执行 `/code-review`，简化目标范围内代码。
 - 执行 Java 编译、测试和项目已有质量任务：
-   - Maven 项目优先使用 `./mvnw test`，如存在 verify/check/spotless/checkstyle 等任务则按项目约定升级。
-   - Gradle 项目优先使用 `./gradlew test`，如存在 `check`、`spotlessCheck` 等任务则按项目约定升级。
+   - Maven 项目优先使用 `mvn test` 和 `mvn verify`。
+   - 若 `pom.xml` 已配置格式化或静态检查插件，按项目已有 Maven goal 升级执行；本插件不要求新增这些依赖。
+   - 不使用非 Java 后端工具链命令作为后端质量检查。
 - 导出 OpenAPI 文档并生成前端 API 客户端：
    - 先根据目标仓库的 Spring Boot 启动方式、现有导出脚本或文档定位实际导出命令
    - 优先复用项目已有 OpenAPI 导出脚本；否则启动后端并请求 `/v3/api-docs` 写入 `frontend/api.json`

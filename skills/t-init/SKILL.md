@@ -96,7 +96,7 @@ allowed-tools:
 Subagent prompt 必须要求：
 - 读取后端模板文件 `${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/backend-template.md`
 - 按模板生成 Spring Boot 后端文件并替换所有占位符
-- 默认使用 Maven wrapper 或 Maven 项目结构；若目标环境明确要求 Gradle，按同等结构生成 Gradle 文件
+- 默认使用 Maven wrapper 和 Maven 项目结构
 - 关键特性：
   - Spring Boot Web
   - Bean Validation
@@ -104,7 +104,7 @@ Subagent prompt 必须要求：
   - springdoc-openapi `/v3/api-docs` 与 Swagger UI
   - 统一错误响应入口
   - `GET /health` 兼容路由，可委托 Actuator/服务健康状态
-- 完成后执行 `cd backend && ./mvnw test`；无 wrapper 时执行 `mvn test`
+- 完成后执行 `cd backend && mvn test`；无 wrapper 时执行 `mvn test`
 
 ### Step 4: 生成前端（frontend-dev subagent）
 
@@ -156,7 +156,7 @@ Subagent prompt 必须要求：
 ### Step 8: 验证（主 Agent）
 
 收集各 subagent 的验证结果，汇总报告：
-- 后端：`./mvnw test` 或 `mvn test` 是否通过
+- 后端：`mvn test` 或 `mvn test` 是否通过
 - 前端：`npm install` + `type-check` 是否通过（routeTree.gen.ts 错误除外）
 - Demo：`npm install` + smoke test 是否通过
 - 检查所有文件都已创建（Glob 验证）
@@ -182,7 +182,7 @@ Subagent prompt 必须要求：
 完成后在响应中明确说明：
 - 项目路径
 - 已生成的文件数量
-- 各 subagent 验证结果（Maven/Gradle test / npm install / smoke test）
+- 各 subagent 验证结果（Maven test / npm install / smoke test）
 - OpenAPI 位置（`/v3/api-docs`，Swagger UI 由 springdoc 配置）
 - 项目本地脚本已生成到 `scripts/`，后续优先执行 `uv run scripts/<name>.py`
 - Demo smoke test 运行命令（`cd demo && npx playwright test e2e/smoke.e2e.ts`）
@@ -198,7 +198,7 @@ Subagent prompt 必须要求：
 - 后端是否是 Java Spring Boot 项目结构
 - 是否包含 Actuator health 与 `/health` 兼容入口
 - 是否包含 `/v3/api-docs` OpenAPI 生成能力
-- 后端是否能编译/测试通过（`./mvnw test` 或 `mvn test`）
+- 后端是否能编译/测试通过（`mvn test` 或 `mvn test`）
 - 前端组件是否通过 CLI 命令生成（不是 AI 手写）
 - demo smoke test 是否不依赖后端且能独立运行通过
 - 配置文件是否有完整注释说明关键字段
@@ -209,7 +209,7 @@ Subagent prompt 必须要求：
 - 参数缺失或非法：终止并给出 `/t-init <project-name>` 示例
 - 目标目录已存在且非空：询问是否覆盖
 - Context7 查询失败：降级到 WebSearch，最终降级到已有知识
-- Maven/Gradle/npm 不可用：生成文件但跳过验证，提示用户手动检查
+- Maven/npm 不可用：生成文件但跳过验证，提示用户手动检查
 - Docker 不可用：提示用户需自行安装 PostgreSQL 和 Redis
 - Subagent 失败：报告错误，提示用户手动重试对应步骤
 - shadcn CLI 失败：降级为手动写入 sonner.tsx（从模板）

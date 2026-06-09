@@ -104,7 +104,7 @@ Common helper commands:
 - `/t-tools:t-dream [feature|--all] [--deep|--backend-only]`: uses multiple `general_agent` checks in parallel to verify whether PRD, user stories, demo test comments, and related descriptions accurately match implementation facts, then writes `.ai/quality/dream-check-[YYYYMMDD-HHMMSS].md`
 - `/t-tools:t-demo-run-all`: runs demo tests in batch
 - `/t-tools:t-push`: has the AI summarize the commit message from `git diff`, then calls `${CLAUDE_PLUGIN_ROOT}/scripts/push.py --message "<message>"` to detect backend, frontend, and demo changes, run affected local CI checks in parallel, and run `git commit` plus `git push` after CI passes
-- `/t-tools:t-release [version]`: releases a version by updating project versions, creating a git commit and tag, and pushing to the remote. Version files use semantic versioning, such as `0.2.0`, while the final git tag always uses a `v` prefix, such as `v0.2.0`. If omitted, the command recommends one based on the latest semver tag. It only runs on a clean `main` branch, updates `backend/pom.xml` or `backend/build.gradle(.kts)`, `frontend/package.json`, and `demo/package.json`, then commits and pushes after compilation checks pass.
+- `/t-tools:t-release [version]`: releases a version by updating project versions, creating a git commit and tag, and pushing to the remote. Version files use semantic versioning, such as `0.2.0`, while the final git tag always uses a `v` prefix, such as `v0.2.0`. If omitted, the command recommends one based on the latest semver tag. It only runs on a clean `main` branch, updates `backend/pom.xml`, `frontend/package.json`, and `demo/package.json`, then commits and pushes after compilation checks pass.
 
 ## Installation
 

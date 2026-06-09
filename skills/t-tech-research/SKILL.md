@@ -43,7 +43,7 @@ description: Research technical feasibility for a feature by scanning the codeba
 ## 核心约束
 
 - 先分析现有代码和依赖，再评估缺口；不凭空列举库
-- 依赖评估必须基于真实 `pom.xml`、`build.gradle(.kts)`、`package.json` 和 lock 文件（如存在）
+- 依赖评估必须基于真实 `pom.xml`、`package.json` 和 lock 文件（如存在）
 - 外部搜索只用于库级事实、最佳实践和兼容性信息，不能替代本地代码分析
 - Context7 优先，WebSearch 只作补充
 - 影响分析中的文件路径必须使用仓库真实路径
@@ -71,9 +71,9 @@ description: Research technical feasibility for a feature by scanning the codeba
 ### 2. 建立本地上下文
 
 按需读取以下文件，跳过不存在的文件：
-- `backend/pom.xml` 或 `backend/build.gradle(.kts)`
+- `backend/pom.xml`
 - `frontend/package.json`
-- Maven/Gradle lock 文件（如存在）
+- Maven lock 文件（如存在）
 - `package-lock.json`
 - `docs/prd/00-index.md`
 - `docs/user-stories/00-index.md`

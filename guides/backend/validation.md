@@ -6,18 +6,10 @@
 
 ### 1. 编译/测试验证（MANDATORY）
 
-优先使用目标项目 wrapper。
-
-Maven：
+优先使用目标项目 Maven wrapper。
 
 ```bash
-cd backend && ./mvnw test
-```
-
-Gradle：
-
-```bash
-cd backend && ./gradlew test
+cd backend && mvn test
 ```
 
 **验收标准**：
@@ -36,29 +28,20 @@ cd backend && ./gradlew test
 - 编译错误必须在完成前修复
 - 不能将"编译有错误"的任务标记为"完成"
 - 这是任务完成的**必要条件**，不是可选步骤
-- 若目标项目提供更窄的模块命令，应从 `backend/pom.xml`、`settings.gradle(.kts)`、现有脚本或 CI 配置确认真实模块名后执行
+- 若目标项目提供更窄的模块命令，应从 `backend/pom.xml`、现有脚本或 CI 配置确认真实模块名后执行
 
 ### 2. 最终收口（backend accept 后必须执行）
 
-Maven：
-
 ```bash
 /code-review
-cd backend && ./mvnw test
-cd backend && ./mvnw verify
-```
-
-Gradle：
-
-```bash
-/code-review
-cd backend && ./gradlew test
-cd backend && ./gradlew check
+cd backend && mvn test
+cd backend && mvn verify
 ```
 
 规则：
 - 这一步对应 `/t-backend-finalize [feature]`。
-- 若项目定义了 `spotlessApply`、`spotlessCheck`、`checkstyleMain`、`pmdMain` 或同类质量任务，按项目已有任务执行。
+- 后端静态质量检查使用 Java/Spring 项目的 Maven 命令；非 Java 后端工具链命令不适用于本插件后端。
+- 若项目在 `pom.xml` 中定义了格式化或静态检查插件，按项目已有 Maven goal 执行；本插件不要求新增这些依赖。
 - 后端测试执行与补测证据属于 backend/test、backend-accept 或显式测试命令。
 - 同一 feature 再次执行时，默认从失败步骤恢复，无需额外参数。
 
@@ -67,29 +50,19 @@ cd backend && ./gradlew check
 按项目现有工具执行，不新增第二套格式化方案：
 
 ```bash
-cd backend && ./mvnw spotless:check
-cd backend && ./gradlew spotlessCheck
+cd backend && mvn spotless:check
 ```
 
 如果项目提供自动修复任务，可在收口阶段运行：
 
 ```bash
-cd backend && ./mvnw spotless:apply
-cd backend && ./gradlew spotlessApply
+cd backend && mvn spotless:apply
 ```
 
 ### 4. 快速测试（可选但推荐）
 
-Maven：
-
 ```bash
-cd backend && ./mvnw test -Dtest=<TestClassName>
-```
-
-Gradle：
-
-```bash
-cd backend && ./gradlew test --tests '*<TestClassName>'
+cd backend && mvn test -Dtest=<TestClassName>
 ```
 
 ## 任务完成定义

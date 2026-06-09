@@ -25,7 +25,7 @@
 ## Scope Mapping
 
 - 单个测试或 helper 影响 => 指向具体测试。
-- 单 Maven/Gradle module 或单测试类影响 => 使用对应模块/测试过滤参数。
+- 单 Maven module 或单测试类影响 => 使用对应模块/测试过滤参数。
 - API 层影响 => `-E 'package(api)'`。
 - 多处局部影响但仍可收敛 => `package + test(pattern)`。
 - 跨模块或影响不清晰 => 记录原因后升级全量。

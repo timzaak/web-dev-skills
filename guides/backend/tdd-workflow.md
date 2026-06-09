@@ -78,10 +78,7 @@ private boolean hasUppercase(String password) {
 
 ```bash
 # Maven：只运行当前测试类
-cd backend && ./mvnw test -Dtest=PasswordPolicyTest
-
-# Gradle：只运行当前测试类
-cd backend && ./gradlew test --tests '*PasswordPolicyTest'
+cd backend && mvn test -Dtest=PasswordPolicyTest
 ```
 
 说明：上例测试的是 `validate` 的业务行为，不测试构造函数是否把字段赋值成功；只有构造函数包含校验、默认值合成或规范化时才测构造函数本身。

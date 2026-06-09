@@ -62,7 +62,7 @@ allowed-tools:
 | 来源 | 关注点 |
 |------|--------|
 | `README.md`, `CLAUDE.md` | 项目定位、技术栈、运行方式 |
-| `package.json`, `pom.xml`, `build.gradle(.kts)`, `pyproject.toml` | 依赖和版本 |
+| `package.json`, `pom.xml`, `pyproject.toml` | 依赖和版本 |
 | `src/`, `app/`, `lib/` 入口文件 | 模块结构、路由、核心抽象 |
 | `docs/`, `guides/`, `protocols/` | 现有文档和规范 |
 | `docker-compose.yml`, `Dockerfile` | 部署方式 |

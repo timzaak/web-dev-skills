@@ -22,14 +22,14 @@ uv run ${CLAUDE_PLUGIN_ROOT}/scripts/push.py --message "<AI 生成的 commit mes
 脚本负责：
 
 - 检查 `git status --short`，无变更时停止。
-- 读取 tracked、staged、unstaged 和 untracked 文件，检测 backend、frontend、demo 变更范围。
+- 读取 tracked、staged、unstaged 和 untracked 文件，检测 backend、frontend、demo 变更范围；若仓库根目录是 Maven backend 项目且不存在 `backend/` 分层，则将根目录项目改动视为 backend 变更。
 - 为受影响区域并发运行本地 CI；同一区域内部保持顺序执行。
 - 使用 AI 传入的 `--message` 作为 commit message；执行提交时没有 `--message` 则停止。
 - CI 全部通过后执行 `git add -A`、`git commit` 和 `git push`。
 
 ## CI Rules
 
-- Backend 变更：执行项目已有 Java 编译、测试和质量任务（优先 wrapper：`./mvnw test/verify` 或 `./gradlew test/check`）。若静态检查报错，AI 应根据错误信息修复代码后重新运行脚本，直到通过。
+- Backend 变更：执行项目已有 Java 编译、测试和 Maven 质量任务（优先 wrapper：`mvn test` 和 `mvn verify`；若 `pom.xml` 已配置格式化或静态检查插件，再按项目已有 goal 补充执行）。若静态检查报错，AI 应根据错误信息修复代码后重新运行脚本，直到通过。
 - Frontend 变更：执行 `npm run lint`、`npm run format:check`、`npm run type-check`、`npm run test:run`；其中 `format:check` 和 `test:run` 不存在时跳过。
 - Demo 变更：执行 `npm run lint` 和 `npm run type-check`。
 - 无 backend/frontend/demo 变更时跳过本地 CI，直接进入 commit/push。

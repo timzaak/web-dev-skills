@@ -112,9 +112,9 @@ hooks:
 
 完成前至少执行最小必要验证：
 ```bash
-cd backend && ./mvnw test
+cd backend && mvn test
 ```
-若目标项目使用 Gradle，则执行 `cd backend && ./gradlew test`。优先从 `backend/` 下的构建文件、wrapper 或现有验证脚本中确认真实命令。
+优先从 `backend/` 下的 `pom.xml`、Maven wrapper 或现有验证脚本中确认真实命令。
 
 更完整的验证顺序参考 `${CLAUDE_PLUGIN_ROOT}/guides/backend/validation.md`
 

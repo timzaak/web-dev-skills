@@ -25,7 +25,7 @@ Backend 主规范。它定义插件级稳定约束；目标项目的真实架构
 
 ### 2.1 构建与模块职责
 
-先读取目标项目的 `backend/pom.xml`、`backend/build.gradle`、`backend/build.gradle.kts`、`settings.gradle(.kts)`、`README.md`、`docs/` 与 `.ai/design/`，确认实际模块职责。不要把历史项目中的 `api/`、`domain/`、`application/`、`infrastructure/`、`test-support/` 等名称当作默认结构。
+先读取目标项目的 `backend/pom.xml`、`README.md`、`docs/` 与 `.ai/design/`，确认实际模块职责。不要把历史项目中的 `api/`、`domain/`、`application/`、`infrastructure/`、`test-support/` 等名称当作默认结构。
 
 ### 2.2 依赖方向
 
@@ -105,20 +105,12 @@ Backend 主规范。它定义插件级稳定约束；目标项目的真实架构
 ```bash
 cd backend
 /code-review
-./mvnw test
-```
-
-若目标项目使用 Gradle：
-
-```bash
-cd backend
-/code-review
-./gradlew test
+mvn test
 ```
 
 说明：
 - 上述顺序用于 backend `accept` 通过后的统一收口；优先使用目标项目已有 wrapper。
-- 若项目定义了 `spotlessApply`、`spotlessCheck`、`checkstyleMain`、`pmdMain`、`check` 等质量任务，按 `${CLAUDE_PLUGIN_ROOT}/guides/backend/validation.md` 升级执行。
+- 若项目在 `pom.xml` 中定义了格式化或静态检查插件，按 `${CLAUDE_PLUGIN_ROOT}/guides/backend/validation.md` 升级执行；本插件不要求新增这些依赖。
 - 后端测试执行与补测证据属于 backend/test、backend-accept 或显式测试命令。
 - 在任务流中，这一步由 `/t-backend-finalize [feature]` 负责，默认从失败步骤恢复。
 

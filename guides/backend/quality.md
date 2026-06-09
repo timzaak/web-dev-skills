@@ -38,15 +38,7 @@
 Maven：
 
 ```bash
-cd backend && ./mvnw test
-uv run scripts/backend-test.py -- <targeted filter>
-npx jscpd --pattern "**/*.java" --reporters console backend
-```
-
-Gradle：
-
-```bash
-cd backend && ./gradlew test
+cd backend && mvn test
 uv run scripts/backend-test.py -- <targeted filter>
 npx jscpd --pattern "**/*.java" --reporters console backend
 ```

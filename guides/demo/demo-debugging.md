@@ -112,7 +112,7 @@ grep "FAILED" demo/test-results/console-logs/*.log
 
 ```bash
 # Backend
-cd backend && ./mvnw test
+cd backend && mvn test
 uv run scripts/backend-test.py -- --package <core-package> --lib
 
 # Frontend
@@ -123,4 +123,4 @@ cd frontend && npm run build
 uv run scripts/demo-test-runner.py demo/e2e/ --mode fast
 ```
 
-若目标项目使用 Gradle，改用 `cd backend && ./gradlew test`；模块名和测试过滤参数应替换为目标仓库实际 backend 模块/测试名称。
+模块名和测试过滤参数应替换为目标仓库实际 backend 模块/测试名称。

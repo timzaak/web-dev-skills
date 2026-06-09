@@ -8,7 +8,7 @@
   "targetStack": {
     "backend": "Java / Spring Boot",
     "frontend": "React / TanStack Router & Query / Tailwind / Radix UI",
-    "testing": "JUnit / Maven or Gradle / Vitest / Playwright"
+    "testing": "JUnit / Maven / Vitest / Playwright"
   },
   "requiredMcpServers": ["context7"]
 }

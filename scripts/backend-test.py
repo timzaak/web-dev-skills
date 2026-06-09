@@ -6,11 +6,11 @@ import subprocess
 import sys
 from pathlib import Path
 
-from lib.java_backend import backend_dir, detect_build_tool, gradle_command, maven_command
+from lib.java_backend import backend_dir, detect_build_tool, maven_command
 from lib.paths import BACKEND_TEST_LOG, REPO_ROOT, SCRIPTS_DIR, ensure_dir
 
-
 TABLE_DDL_PATTERN = re.compile(r"\b(CREATE\s+TABLE|ALTER\s+TABLE|DROP\s+TABLE)\b", re.IGNORECASE)
+SUREFIRE_REPORTS = REPO_ROOT / "target" / "surefire-reports"
 
 
 def normalize_args(args: list[str]) -> list[str]:
@@ -41,10 +41,7 @@ def translate_test_args(tool: str, test_args: list[str]) -> list[str]:
         arg = test_args[index]
         if arg == "--tests" and index + 1 < len(test_args):
             pattern = test_args[index + 1]
-            if tool == "maven":
-                translated.append(f"-Dtest={pattern}")
-            else:
-                translated.extend(["--tests", pattern])
+            translated.append(f"-Dtest={pattern}")
             index += 2
             continue
         translated.append(arg)
@@ -56,17 +53,12 @@ def build_command(root: Path, module: str | None, test_args: list[str]) -> list[
     tool = detect_build_tool(root)
     translated_args = translate_test_args(tool, test_args)
     if tool == "maven":
-        goals = ["test"]
+        goals = ["test", "-q", "-Dsurefire.printSummary=true"]
         if module:
             goals.extend(["-pl", module])
         goals.extend(translated_args)
         return maven_command(root, goals)
-
-    tasks = ["test"]
-    if module:
-        tasks = [f":{module}:test"]
-    tasks.extend(translated_args)
-    return gradle_command(root, tasks)
+    raise RuntimeError("Unsupported backend build tool. This plugin expects Maven for Java Spring Boot backends.")
 
 
 def is_backend_test_file(path: Path) -> bool:
@@ -100,6 +92,15 @@ def run_backend_test_ddl_guard(root: Path) -> int:
     return 1
 
 
+def print_log_tail(log_path: Path, lines: int = 120) -> None:
+    if not log_path.exists():
+        return
+    content = log_path.read_text(encoding="utf-8", errors="replace").splitlines()
+    print(f"\nLast {min(lines, len(content))} log lines:")
+    for line in content[-lines:]:
+        print(line)
+
+
 def extract_failure_lines(log_content: str, limit: int = 30) -> list[str]:
     patterns = [
         r"\bFAILED\b",
@@ -122,8 +123,9 @@ def print_failure_summary(test_result: subprocess.CompletedProcess[str], test_lo
     log_content = test_log.read_text(encoding="utf-8", errors="replace")
     failure_lines = extract_failure_lines(log_content)
 
-    print(f"Backend tests failed with exit code {test_result.returncode}")
-    print(f"Log: {test_log}")
+    print(f"\nBackend tests failed with exit code {test_result.returncode}")
+    print(f"  Log:     {test_log}")
+    print(f"  Reports: {SUREFIRE_REPORTS}")
     if failure_lines:
         print("Failure summary:")
         for line in failure_lines:
@@ -137,13 +139,14 @@ def print_failure_summary(test_result: subprocess.CompletedProcess[str], test_lo
     print("Next steps:")
     print("  Please fix the failing tests first, then rerun:")
     print(f"  {' '.join(retry_command)}")
+    print_log_tail(test_log)
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "Run Java Spring Boot backend tests with managed test environment. "
-            "Use '--' to pass extra args to Maven or Gradle. "
+            "Use '--' to pass extra args to Maven. "
             "Use '--module <name>' before test args for a multi-module backend."
         )
     )
@@ -170,9 +173,20 @@ def main() -> int:
     test_env.setdefault("TEST_POSTGRES_PORT", "16432")
     test_env.setdefault("TEST_REDIS_URL", "redis://127.0.0.1:6380/0")
 
-    start = subprocess.run([sys.executable, str(SCRIPTS_DIR / "test-start.py")], cwd=REPO_ROOT)
+    start = subprocess.run(
+        [sys.executable, str(SCRIPTS_DIR / "test-start.py")],
+        cwd=REPO_ROOT,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+    )
     if start.returncode != 0:
+        if start.stdout.strip():
+            print(start.stdout.strip())
         return start.returncode
+    output = start.stdout.strip()
+    if output:
+        print(output.splitlines()[-1])
 
     try:
         with test_log.open("w", encoding="utf-8") as fp:
@@ -191,7 +205,9 @@ def main() -> int:
         print_failure_summary(test_result, test_log, test_cmd)
         return test_result.returncode
 
-    print(f"Backend tests passed. Log: {test_log}")
+    print(f"\nBackend tests passed.")
+    print(f"  Log:     {test_log}")
+    print(f"  Reports: {SUREFIRE_REPORTS}")
     return 0
 
 
