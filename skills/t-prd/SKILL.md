@@ -14,7 +14,7 @@ allowed-tools:
 
 # PRD 草稿维护
 
-运行时边界统一参考：`protocols/runtime-boundaries.md`
+运行时边界统一参考：`/protocols/runtime-boundaries.md`
 
 若本 skill、spec 或既有文档之间冲突，停止、说明冲突并等待澄清；不要平均折中。
 
@@ -65,7 +65,7 @@ allowed-tools:
 **更新行为**：
 - 已有同名草稿 → update 路径，以草稿为基底逐章更新
 - 无草稿但有同名正式 PRD → draft-from-published 路径，以正式 PRD 为基线创建草稿，不覆盖正式 PRD
-- 无草稿且无正式 PRD → create 路径，使用 [template.md](template.md)
+- 无草稿且无正式 PRD → create 路径，使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-prd/template.md)
 - 已有同名 user story 文件 → 追加到合适章节，不重建
 - 已有同名 HTML Preview → 以当前草稿 PRD 语义为基准更新
 
@@ -216,13 +216,13 @@ HTML Preview 由 `/t-html-show` 自动生成到 `.ai/preview/<domain>/[feature].
 - 现有角色文件都不适合 → 创建新文件
 - 从已有草稿/正式 PRD 提取交叉引用和已有能力边界
 
-新增 user story 必须遵循 `${CLAUDE_PLUGIN_ROOT}/guides/product/user-story.md` 的结构和 GWT 风格验收标准，使用 [user-story-template.md](user-story-template.md)。
+新增 user story 必须遵循 `${CLAUDE_PLUGIN_ROOT}/guides/product/user-story.md` 的结构和 GWT 风格验收标准，使用 [user-story-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-prd/user-story-template.md)。
 
 补齐后仍不够 → 继续生成 PRD 草稿，在文档中标记"待补充用户故事"。
 
 ### 7. 生成 PRD 草稿
 
-create 路径使用 [template.md](template.md)；draft-from-published 和 update 路径按核心约束中的"更新行为"逐章处理。
+create 路径使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-prd/template.md)；draft-from-published 和 update 路径按核心约束中的"更新行为"逐章处理。
 
 写入 `.ai/prd/<domain>/[feature].md`，至少包含：
 - 相关用户故事、范围界定、需求概述、业务规则与状态
@@ -246,7 +246,7 @@ create 路径使用 [template.md](template.md)；draft-from-published 和 update
 源文档: .ai/prd/<domain>/[feature].md
 ```
 
-`html-show` subagent 会基于指定草稿生成 `.ai/preview/<domain>/[feature].html`。生成完成后运行 `scripts/open-html-show.py` 打开浏览器。
+`html-show` subagent 会基于指定草稿生成 `.ai/preview/<domain>/[feature].html`。生成完成后运行 `/scripts/open-html-show.py` 打开浏览器。
 
 如果 html-show 失败，终止并报告，不能只交付 Markdown PRD 草稿。
 
@@ -283,16 +283,16 @@ create 路径使用 [template.md](template.md)；draft-from-published 和 update
 
 - 新增 PRD 草稿前应尽量具备可引用的 user story
 - PRD 草稿和 HTML Preview 内容边界以"核心约束"一节为准
-- HTML Preview 必须存在并符合 `protocols/html-show-contract.md` 和 `protocols/prd-preview-contract.md`
+- HTML Preview 必须存在并符合 `/protocols/html-show-contract.md` 和 `/protocols/prd-preview-contract.md`
 - 新草稿创建后建议立即运行 `/t-prd-check [feature]`
 
 ## 附加资源
 
-- PRD 模板：[template.md](template.md)
-- User Story 模板：[user-story-template.md](user-story-template.md)
+- PRD 模板：[template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-prd/template.md)
+- User Story 模板：[user-story-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-prd/user-story-template.md)
 
 ## 相关引用
 
-- `skills/t-html-show/SKILL.md`
-- `skills/t-prd-check/SKILL.md`
-- `skills/t-design/SKILL.md`
+- `/skills/t-html-show/SKILL.md`
+- `/skills/t-prd-check/SKILL.md`
+- `/skills/t-design/SKILL.md`

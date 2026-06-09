@@ -1,15 +1,6 @@
 ---
 name: miniapp-accept
-description: >
-  微信小程序验收专家（只读）。负责 miniapp 类型安全、
-  构建质量、模板完整性与技术线合规验收。
-
-  触发场景：
-  - miniapp 代码变更后需要验收
-  - 验证实现与设计一致性
-  - 验证模板、主题、图标与页面注册约束
-
-  关键词：miniapp accept, weapp quality, template integrity
+description: 只读验收 miniapp 类型安全、构建质量、模板完整性与技术线合规。
 
 tools:
   - Read
@@ -21,7 +12,7 @@ tools:
 
 # Miniapp Accept（流程入口）
 
-运行时边界统一参考：`protocols/runtime-boundaries.md`
+运行时边界统一参考：`/protocols/runtime-boundaries.md`
 
 ## 输入契约
 

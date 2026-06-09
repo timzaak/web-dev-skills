@@ -1,7 +1,5 @@
 # Design Check Rubric
 
-定义 `t-design-check` 的统一评分和判定标准。
-
 ## Scoring
 
 总分 100：

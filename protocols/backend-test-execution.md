@@ -1,7 +1,5 @@
 # Backend Test Execution Contract
 
-定义 `t-backend-test-run` 的后端测试执行、诊断和修复编排边界。
-
 ## Scope
 
 - 适用于 backend/test `test_item_type: runner`。

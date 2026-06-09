@@ -26,7 +26,7 @@ tools:
 
 # 前端测试专家
 
-运行时边界统一参考：`protocols/runtime-boundaries.md`
+运行时边界统一参考：`/protocols/runtime-boundaries.md`
 
 ## 先读什么
 
@@ -118,8 +118,8 @@ cd frontend && npm run lint
 
 若需要返回结构化完成结果，优先遵循：
 
-- `protocols/agent-task-output-contract.md`
-- `protocols/tests-to-run-contract.md`
+- `/protocols/agent-task-output-contract.md`
+- `/protocols/tests-to-run-contract.md`
 
 Context7 常用库 ID：
 - `/vitest-dev/vitest`

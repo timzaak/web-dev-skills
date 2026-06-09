@@ -1,7 +1,5 @@
 # Task State Contract
 
-定义 `.ai/task/[feature]/.state.json` 的唯一结构真相。
-
 ## Required Top-Level Shape
 
 下面示例展示启用 miniapp 的状态片段；未启用 miniapp 的项目不包含 `phases.miniapp` 或 `tasks.miniapp`。
@@ -65,7 +63,7 @@
 
 - `phase` 只允许 supported phases：`backend | frontend | miniapp | demo`。
 - `phases` / `tasks` 只要求包含当前任务的 `active_phases`；未启用 miniapp 的项目不得强制要求存在 `phases.miniapp` 或 `tasks.miniapp`。
-- `miniapp` 启用规则统一参考 `protocols/task-phase-execution.md`。
+- `miniapp` 启用规则统一参考 `/protocols/task-phase-execution.md`。
 - `status` 只允许 `pending | running | failed | completed | awaiting_finalize | skipped | generated`。
   - `skipped`：阶段不适用于当前任务（如 backend 已实现，无需变更）
   - `generated`：任务规划已生成，尚未开始执行

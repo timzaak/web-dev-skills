@@ -4,8 +4,8 @@ core 规范入口，存放跨 backend/frontend/miniapp/demo 的总规范与测�
 
 | 你要确认的问题 | 对应规范 |
 | --- | --- |
-| 跨领域质量总原则、问题分级与证据要求 | [quality.md](/guides/core/quality.md) |
-| 环境准备、测试分层与各领域测试入口 | [environment-and-testing-guide.md](/guides/core/environment-and-testing-guide.md) |
+| 跨领域质量总原则、问题分级与证据要求 | [quality.md](${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md) |
+| 环境准备、测试分层与各领域测试入口 | [environment-and-testing-guide.md](${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md) |
 
 ## 使用规则
 

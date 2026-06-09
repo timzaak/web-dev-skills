@@ -7,7 +7,7 @@ allowed-tools:
 
 # Push with Local CI
 
-运行时边界统一参考：`protocols/runtime-boundaries.md`
+运行时边界统一参考：`/protocols/runtime-boundaries.md`
 
 ## Fixed Flow
 

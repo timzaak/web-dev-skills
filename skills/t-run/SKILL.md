@@ -19,7 +19,7 @@ allowed-tools:
 
 # 任务执行
 
-运行时边界统一参考：`protocols/runtime-boundaries.md`
+运行时边界统一参考：`/protocols/runtime-boundaries.md`
 
 执行时以当前 item 的成功标准和最小必要验证为目标；遇到冲突、缺失上下文或无法判断的语义问题时停止并说明。
 
@@ -48,7 +48,7 @@ allowed-tools:
 ## Purpose
 - 读取 `.ai/task/[feature]/.state.json`。
 - 按当前 phase 的 item DAG 选择可执行 item，但始终串行调度单个 sub agent。
-- `/t-run` 的执行单元、slot 顺序、失败处理、所需上下文统一参考 `protocols/task-phase-execution.md`。
+- `/t-run` 的执行单元、slot 顺序、失败处理、所需上下文统一参考 `/protocols/task-phase-execution.md`。
 - `index.md` 和 slot manifest 只作为上下文和导航，不作为直接执行输入。
 - backend 的 `finalize.md` 不由 `/t-run` 执行。
 - backend `accept` slot 完成后，`/t-run` 必须停止并提示执行 `/t-backend-finalize [feature]`；不得自动执行 `finalize.md`。
@@ -63,7 +63,7 @@ allowed-tools:
 - `.ai/task/[feature]/.state.json` 必须存在且可解析。
 - 目标阶段必须是 supported phase，且存在于当前任务 active phases 中；未启用 miniapp 的项目不得执行 `--phase miniapp`。
 - 目标阶段必须已生成，且 `phases[phase].generated_at` 非空。
-- 前置阶段依赖统一参考 `protocols/task-phase-execution.md`。
+- 前置阶段依赖统一参考 `/protocols/task-phase-execution.md`。
 - 当前阶段目录必须存在。
 - 当前阶段必须包含：
   - `index.md`
@@ -73,11 +73,11 @@ allowed-tools:
 
 ## Shared Contracts
 
-- 状态结构与聚合规则：`protocols/task-state-contract.md`
-- phase/slot/item 执行规则：`protocols/task-phase-execution.md`
+- 状态结构与聚合规则：`/protocols/task-state-contract.md`
+- phase/slot/item 执行规则：`/protocols/task-phase-execution.md`
 
 ## Item Selection
-按 `protocols/task-phase-execution.md` 选择可执行 item：
+按 `/protocols/task-phase-execution.md` 选择可执行 item：
 
 - 只执行 `pending` 或 `failed` item
 - 依赖未满足不得跳过
@@ -89,14 +89,14 @@ allowed-tools:
 
 最小上下文、可选增强上下文以及 backend-test 额外要求统一参考：
 
-- `protocols/task-phase-execution.md`
-- `protocols/backend-test-execution.md`
+- `/protocols/task-phase-execution.md`
+- `/protocols/backend-test-execution.md`
 
 backend/test 特例：
 - 必须读取 `test_item_type`，只允许 `authoring` 或 `runner`。
 - 缺少 `test_item_type` 时拒绝执行，提示先运行 `/t-task-check` 或重建/修正 item。
 - `authoring`：不加载 `t-backend-test-run`，只编写或调整场景测试并做编译验证。
-- `runner`：加载 `skills/t-backend-test-run/SKILL.md`，在全部相关 authoring item 完成后集中执行定向测试、失败分类、生产代码修复委派和重测。
+- `runner`：加载 `/skills/t-backend-test-run/SKILL.md`，在全部相关 authoring item 完成后集中执行定向测试、失败分类、生产代码修复委派和重测。
 - 同一 item 同时包含“写新场景测试”和“修复生产代码直到通过”时拒绝执行。
 
 ## Recovery Protocol
@@ -109,7 +109,7 @@ backend/test 特例：
 
 ## State Transition
 - 读取状态并确定执行范围。
-- 依据 `protocols/task-state-contract.md` 与 `protocols/task-phase-execution.md` 校验状态与 DAG。
+- 依据 `/protocols/task-state-contract.md` 与 `/protocols/task-phase-execution.md` 校验状态与 DAG。
 - 执行 item 前检查当前 phase 是否已有任何 item 为 `running`：
    - 若存在，立即终止，不启动新 agent。
    - 提示先确认该 item 的真实执行结果，并恢复或修正 `.state.json` 后再重试。
@@ -173,11 +173,11 @@ dependencies:
 ```
 
 ## 相关引用
-- `protocols/runtime-boundaries.md`
-- `protocols/task-state-contract.md`
-- `protocols/task-phase-execution.md`
-- `protocols/backend-test-execution.md`
-- `skills/t-task/SKILL.md`
-- `skills/t-backend-finalize/SKILL.md`
-- `skills/t-task-check/SKILL.md`
-- `skills/t-task/references/phase-validator.md`
+- `/protocols/runtime-boundaries.md`
+- `/protocols/task-state-contract.md`
+- `/protocols/task-phase-execution.md`
+- `/protocols/backend-test-execution.md`
+- `/skills/t-task/SKILL.md`
+- `/skills/t-backend-finalize/SKILL.md`
+- `/skills/t-task-check/SKILL.md`
+- `/skills/t-task/references/phase-validator.md`

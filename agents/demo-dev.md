@@ -17,7 +17,7 @@ tools:
 
 # Demo Dev
 
-运行时边界统一参考：`protocols/runtime-boundaries.md`
+运行时边界统一参考：`/protocols/runtime-boundaries.md`
 
 ## 输入契约
 
@@ -32,8 +32,8 @@ tools:
 
 统一参考：
 
-- `protocols/agent-task-output-contract.md`
-- `protocols/tests-to-run-contract.md`
+- `/protocols/agent-task-output-contract.md`
+- `/protocols/tests-to-run-contract.md`
 
 demo-dev 至少返回：
 
@@ -110,7 +110,7 @@ Runtime Dependencies：
 
 ## 示例输出
 
-按 `protocols/agent-task-output-contract.md` 返回成功结构。
+按 `/protocols/agent-task-output-contract.md` 返回成功结构。
 
 demo-dev 通常只需要最小成功字段：
 
@@ -129,8 +129,8 @@ uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py "[测试文件]" --run-
 
 ## 参考
 
-- `protocols/agent-task-output-contract.md`
-- `protocols/tests-to-run-contract.md`
+- `/protocols/agent-task-output-contract.md`
+- `/protocols/tests-to-run-contract.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/index.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/selector-strategy.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/pom-guide.md`

@@ -11,7 +11,7 @@ allowed-tools:
 
 # 批量运行 Demo 测试
 
-运行时边界统一参考：`protocols/runtime-boundaries.md`
+运行时边界统一参考：`/protocols/runtime-boundaries.md`
 
 ## 目标
 - 自动发现全部 Demo 测试并逐个执行。
@@ -116,7 +116,7 @@ JSON 批次状态必须持续写盘，至少包含：
 - 先批量发现失败，再用 `demo-diagnose` 分类后统一安排修复。
 
 ## 相关引用
-- `skills/t-demo-run/SKILL.md`
-- `agents/demo-diagnose.md`
+- `/skills/t-demo-run/SKILL.md`
+- `/agents/demo-diagnose.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/common-failures.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/test-maintenance.md`

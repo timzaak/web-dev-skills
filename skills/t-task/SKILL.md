@@ -15,7 +15,7 @@ allowed-tools:
 
 # 任务规划生成
 
-运行时边界统一参考：`protocols/runtime-boundaries.md`
+运行时边界统一参考：`/protocols/runtime-boundaries.md`
 
 任务拆分必须服务于简单、外科式、可验证的执行；如果设计文档、guide 或 protocol 冲突，停止并说明冲突。
 
@@ -58,7 +58,7 @@ allowed-tools:
 
 ## Preconditions
 - `.ai/design/[feature].md` 必须存在。
-- 阶段依赖、slot 顺序、执行单元统一参考：`protocols/task-phase-execution.md`
+- 阶段依赖、slot 顺序、执行单元统一参考：`/protocols/task-phase-execution.md`
 - `miniapp` 是可选阶段：仅当项目根目录存在 `miniapp/`，或设计文档明确包含小程序交付内容时启用。
 - 未启用 miniapp 的项目不得自动生成 `.ai/task/[feature]/miniapp/`；显式请求 `--phase miniapp` 时应返回“当前项目未启用 miniapp 阶段”。
 - 启用 miniapp 时，默认阶段顺序为 `backend -> frontend -> miniapp -> demo`。
@@ -120,15 +120,15 @@ demo 阶段：
 ## State Shape
 `.state.json` 的完整结构、兼容性规则和状态聚合规则统一参考：
 
-- `protocols/task-state-contract.md`
+- `/protocols/task-state-contract.md`
 
 ## Generation Flow
 - 校验 `.ai/design/[feature].md` 存在。
-- 解析 `[feature]` 和 `--phase`；根据 `protocols/task-phase-execution.md` 检测 active phases；未传 `--phase` 时自动选择第一未完成 active phase。
-- 按 `protocols/task-phase-execution.md` 校验阶段前置和 slot 顺序；未启用的 phase 不参与校验或生成。
+- 解析 `[feature]` 和 `--phase`；根据 `/protocols/task-phase-execution.md` 检测 active phases；未传 `--phase` 时自动选择第一未完成 active phase。
+- 按 `/protocols/task-phase-execution.md` 校验阶段前置和 slot 顺序；未启用的 phase 不参与校验或生成。
 - 按当前阶段 slot 串行调度相应 agent。每个 slot agent 必须通过 `Agent` tool 启动，`subagent_type` 按 Agent Dispatch Mapping 映射。传入 prompt 必须包含：设计文档相关节、上游 slot handoff（如有）、guide 路径、Agent Output Contract 要求的字段列表。
-   - prompt 必须引用 `protocols/task-check-rubric.md`，要求 agent 在返回前自检 P0/P1 规则。
-   - prompt 必须引用 `protocols/task-phase-execution.md`，避免生成无法被 `/t-run` 执行的 item。
+   - prompt 必须引用 `/protocols/task-check-rubric.md`，要求 agent 在返回前自检 P0/P1 规则。
+   - prompt 必须引用 `/protocols/task-phase-execution.md`，避免生成无法被 `/t-run` 执行的 item。
    - backend/test slot prompt 必须要求读取 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`，并以该 guide 的测试入口、编写规则和验证命令作为硬性约束。
    - backend/test slot prompt 必须要求 runner item 汇总当前 slot 的 authoring 结果，依赖本轮相关测试 authoring item，并选择覆盖这些结果的最小定向测试命令。
    - backend/test runner item 必须包含 `Expected Test Manifest`，列出每个 authoring item 产生或修改的测试文件、测试函数名和预期 runner 命令。
@@ -218,8 +218,8 @@ slot agent 输出必须至少包含：
 - `handoff_summary`: 完成后传给下游 item/slot 的摘要要求
 - `completion_criteria`: 完成标准
 
-状态字段、执行顺序、依赖选择统一以 `protocols/task-state-contract.md` 和
-`protocols/task-phase-execution.md` 为准，不在本文件重复定义第二套状态机。
+状态字段、执行顺序、依赖选择统一以 `/protocols/task-state-contract.md` 和
+`/protocols/task-phase-execution.md` 为准，不在本文件重复定义第二套状态机。
 
 ## Splitting Rules
 必须拆分 item，如果任一条件成立：
@@ -272,7 +272,7 @@ slot agent 输出必须至少包含：
 
 各阶段建议：
 
-- backend：使用 `test_item_type: authoring|runner`；runner 使用 `skills/t-backend-test-run/SKILL.md`。
+- backend：使用 `test_item_type: authoring|runner`；runner 使用 `/skills/t-backend-test-run/SKILL.md`。
 - frontend：authoring item 写 Vitest/MSW/Testing Library 测试，集中执行 item 运行 `cd frontend && npm run test:run -- [pattern]`，按需加 `npm run type-check`。
 - miniapp：authoring item 写专项验证或测试资产，集中执行 item 运行相关 `typecheck`、`build:weapp` 或专项 gate；只选受影响范围。
 - demo：authoring item 写 Playwright Demo/E2E、fixture、helper 或 Page Object，集中执行 item 运行相关 `demo-test-runner.py [test-file] --grep [pattern]` 或少量相关文件，不跑全部 demo。
@@ -284,7 +284,7 @@ backend/test slot 必须按当前契约生成：
 | 类型 | agent | test_item_type | uses_skill | depends_on |
 |---|---|---|---|---|
 | authoring | backend-test | authoring | none | 对应 backend-dev item |
-| runner | general-purpose | runner | `skills/t-backend-test-run/SKILL.md` | 本轮全部相关 authoring item |
+| runner | general-purpose | runner | `/skills/t-backend-test-run/SKILL.md` | 本轮全部相关 authoring item |
 
 authoring item 只创建或修改场景测试、测试 helper 和模块注册；完成标准只要求编译验证或建议 runner 命令，不要求目标测试全部通过。
 
@@ -336,14 +336,14 @@ accept item 必须依赖集中 runner item，不能只依赖 authoring item。`t
 ```
 
 ## 相关引用
-- `protocols/runtime-boundaries.md`
-- `protocols/task-state-contract.md`
-- `protocols/task-phase-execution.md`
-- [context-isolator.md](/skills/t-task/references/context-isolator.md)
-- [phase-validator.md](/skills/t-task/references/phase-validator.md)
-- [phase-index-generator.md](/skills/t-task/references/phase-index-generator.md)
-- [compat-all-mode.md](/skills/t-task/examples/compat-all-mode.md)
-- [frontend-blocked-by-backend.md](/skills/t-task/examples/frontend-blocked-by-backend.md)
-- [phased-backend-success.md](/skills/t-task/examples/phased-backend-success.md)
-- [error-response-template.md](/skills/t-task/templates/error-response-template.md)
-- [phase-index-template.md](/skills/t-task/templates/phase-index-template.md)
+- `/protocols/runtime-boundaries.md`
+- `/protocols/task-state-contract.md`
+- `/protocols/task-phase-execution.md`
+- [context-isolator.md](${CLAUDE_PLUGIN_ROOT}/skills/t-task/references/context-isolator.md)
+- [phase-validator.md](${CLAUDE_PLUGIN_ROOT}/skills/t-task/references/phase-validator.md)
+- [phase-index-generator.md](${CLAUDE_PLUGIN_ROOT}/skills/t-task/references/phase-index-generator.md)
+- [compat-all-mode.md](${CLAUDE_PLUGIN_ROOT}/skills/t-task/examples/compat-all-mode.md)
+- [frontend-blocked-by-backend.md](${CLAUDE_PLUGIN_ROOT}/skills/t-task/examples/frontend-blocked-by-backend.md)
+- [phased-backend-success.md](${CLAUDE_PLUGIN_ROOT}/skills/t-task/examples/phased-backend-success.md)
+- [error-response-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-task/templates/error-response-template.md)
+- [phase-index-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-task/templates/phase-index-template.md)

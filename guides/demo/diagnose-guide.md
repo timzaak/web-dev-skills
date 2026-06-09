@@ -1,6 +1,6 @@
 # Demo-Diagnose Guide
 
-本文档只描述诊断流程。诊断报告的字段、章节和必填项一律以 `protocols/diagnostic-report-v3-minimal.md` 为准。
+本文档只描述诊断流程。诊断报告的字段、章节和必填项一律以 `/protocols/diagnostic-report-v3-minimal.md` 为准。
 
 ## Workflow
 
@@ -34,7 +34,7 @@
 
 - **输出诊断报告**
    - 写入 `.ai/diagnose/`
-   - 严格遵循 `protocols/diagnostic-report-v3-minimal.md`
+   - 严格遵循 `/protocols/diagnostic-report-v3-minimal.md`
 
 ## Classification Rules
 
@@ -111,7 +111,7 @@
 
 ## Related Documentation
 
-- 诊断协议：[diagnostic-report-v3-minimal.md](/protocols/diagnostic-report-v3-minimal.md)
+- 诊断协议：[diagnostic-report-v3-minimal.md](${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-v3-minimal.md)
 - Demo E2E Testing Guide：`e2e-testing.md`
 - Environment and Testing Guide：`${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md`
-- Diagnostic Report Template：[diagnose-report-template-v3-minimal.md](/guides/demo/templates/diagnose-report-template-v3-minimal.md)
+- Diagnostic Report Template：[diagnose-report-template-v3-minimal.md](${CLAUDE_PLUGIN_ROOT}/guides/demo/templates/diagnose-report-template-v3-minimal.md)

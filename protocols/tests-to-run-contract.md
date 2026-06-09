@@ -1,7 +1,5 @@
 # `tests_to_run` Contract
 
-用于 `t-demo-run` 修复门禁的统一契约。所有会返回补测建议的修复 agent 都应遵循这一结构。
-
 ## Required Fields
 
 每个 `tests_to_run` 条目必须包含：

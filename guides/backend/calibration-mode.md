@@ -79,5 +79,5 @@
 
 ## 参考资源
 
-- [Backend Development Guide](/guides/backend/development.md)
-- [Backend Agent Guide](/agents/backend-dev.md)
+- [Backend Development Guide](${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md)
+- [Backend Agent Guide](${CLAUDE_PLUGIN_ROOT}/agents/backend-dev.md)

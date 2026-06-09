@@ -1,14 +1,6 @@
 # PRD HTML Preview Contract
 
-PRD 专用的 HTML Preview 契约。通用规则（技术约束、审阅流程、内容模型）定义在 `protocols/html-show-contract.md`，此处不重复。
-
-定义 `/t-html-show` 在 PRD 模式下的专用规则，以及 `/t-prd-check` 对该预览的检查边界。
-
-## Purpose
-
-HTML Preview 是 PRD 的可视化审阅和协作产物，用于帮助人类快速理解、反馈和修改功能目标、用户路径、状态变化和待确认假设。
-
-它不是实现方案、不是接口契约、不是最终 UI 设计稿。它是 PRD 的主要阅读界面，Markdown PRD 是结构化产品语义契约；两者必须同步。
+通用规则见 `/protocols/html-show-contract.md`。
 
 ## File Location
 

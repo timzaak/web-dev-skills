@@ -11,7 +11,7 @@ allowed-tools:
 
 # 文档 HTML Preview 生成
 
-运行时边界统一参考：`protocols/runtime-boundaries.md`
+运行时边界统一参考：`/protocols/runtime-boundaries.md`
 
 若本 skill、spec 或既有文档之间冲突，停止、说明冲突并等待澄清；不要平均折中。
 
@@ -127,7 +127,7 @@ PRD 模式额外读取：
 源文档: <doc-path>
 ```
 
-subagent 的详细规则见 `agents/html-show.md` 和 `protocols/html-show-contract.md`。
+subagent 的详细规则见 `/agents/html-show.md` 和 `/protocols/html-show-contract.md`。
 
 ### 5. 打开 Preview
 
@@ -156,20 +156,20 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/open-html-show.py <preview-path> --root .
 
 ## 质量门禁
 
-- Preview 内容边界以 `protocols/html-show-contract.md` 为准
-- PRD 模式额外遵循 `protocols/prd-preview-contract.md`
+- Preview 内容边界以 `/protocols/html-show-contract.md` 为准
+- PRD 模式额外遵循 `/protocols/prd-preview-contract.md`
 - PRD 模式 Preview 生成后建议运行 `/t-prd-check [feature]` 验证一致性
 
 ## 附加资源
 
 - HTML Preview 模板：`${CLAUDE_PLUGIN_ROOT}/templates/preview-template.html`
-- HTML Preview 通用契约：`protocols/html-show-contract.md`
-- HTML Preview PRD 契约：`protocols/prd-preview-contract.md`
+- HTML Preview 通用契约：`/protocols/html-show-contract.md`
+- HTML Preview PRD 契约：`/protocols/prd-preview-contract.md`
 - HTML Preview 打开脚本：`${CLAUDE_PLUGIN_ROOT}/scripts/open-html-show.py`
 - HTML Preview 检查脚本：`${CLAUDE_PLUGIN_ROOT}/scripts/check-html-show.py`
-- HTML Preview subagent：`agents/html-show.md`
+- HTML Preview subagent：`/agents/html-show.md`
 
 ## 相关引用
 
-- `skills/t-prd/SKILL.md`
-- `skills/t-prd-check/SKILL.md`
+- `/skills/t-prd/SKILL.md`
+- `/skills/t-prd-check/SKILL.md`

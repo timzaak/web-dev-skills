@@ -1,7 +1,5 @@
 # Dream Report Contract
 
-用于 `/t-dream`、`context-curator`、`structure-review`、`backend-consistency` 和参与 dream 检查的 `general_agent` 共享候选问题、评分和报告结构。
-
 ## Modes
 
 | 模式 | 写入边界 | 覆盖范围 |

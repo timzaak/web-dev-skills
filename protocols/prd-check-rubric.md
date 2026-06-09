@@ -1,7 +1,5 @@
 # PRD Check Rubric
 
-定义 `t-prd-check` 的统一评分、扣分和问题分级标准。
-
 ## Evaluation Goals
 
 - 验证 PRD 文档完整性和规范性
@@ -59,7 +57,7 @@
 
 ### HTML Preview Checks
 
-权重 20%。具体契约参考 `protocols/html-show-contract.md` 和 `protocols/prd-preview-contract.md`。
+权重 20%。具体契约参考 `/protocols/html-show-contract.md` 和 `/protocols/prd-preview-contract.md`。
 
 | 检查项 | 验证内容 | 权重 / 扣分 |
 |---|---|---:|

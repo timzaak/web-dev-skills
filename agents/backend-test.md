@@ -19,7 +19,7 @@ tools:
 
 # Backend Test
 
-运行时边界统一参考：`protocols/runtime-boundaries.md`
+运行时边界统一参考：`/protocols/runtime-boundaries.md`
 
 ## Read Order
 
@@ -28,13 +28,13 @@ tools:
 - 任务输入或 item 文件
 - `.ai/design/[任务名].md`（如适用）
 - `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`
-- `protocols/task-phase-execution.md`
-- `protocols/tests-to-run-contract.md`
+- `/protocols/task-phase-execution.md`
+- `/protocols/tests-to-run-contract.md`
 
 规则：
 
 - 后端测试入口、场景测试写法、单元测试价值门槛和验证命令以 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md` 为准。
-- backend/test authoring/集中 runner 拆分、`test_item_type` 和 `uses_skill` 以 `protocols/task-phase-execution.md` 为准。
+- backend/test authoring/集中 runner 拆分、`test_item_type` 和 `uses_skill` 以 `/protocols/task-phase-execution.md` 为准。
 
 ## 职责
 
@@ -58,7 +58,7 @@ tools:
 - 只修改 `*_scenarios.rs`、测试 helper、模块注册等测试拥有的文件。
 - validation 只要求 `cd backend && cargo check --tests` 或建议 runner 命令。
 - completion criteria 不得要求目标测试全部通过。
-- 需要真正执行目标测试时，交给 runner item 使用 `skills/t-backend-test-run/SKILL.md`。
+- 需要真正执行目标测试时，交给 runner item 使用 `/skills/t-backend-test-run/SKILL.md`。
 
 ## Planning Contract
 

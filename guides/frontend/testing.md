@@ -65,7 +65,7 @@ npm run test:ui
 
 ### 与 Demo-first 的关系
 
-- 测试层级选择以 [环境与测试总览](/guides/core/environment-and-testing-guide.md) 为准。
+- 测试层级选择以 [环境与测试总览](${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md) 为准。
 - 已由 Demo 覆盖的完整流程，不再重复补同路径 Vitest。
 - 如改动只影响页面主链路且 Demo 已覆盖，可在任务中明确写“不新增 Vitest，由 Demo 覆盖”。
 
@@ -165,7 +165,7 @@ await userEvent.click(screen.getByRole('button', { name: /submit/i }))
 
 实现层要求：
 - P0/P1/P2 元素必须添加 `data-testid`
-- 规则见 [data-testid 编写规范](/guides/frontend/testid-standards.md)
+- 规则见 [data-testid 编写规范](${CLAUDE_PLUGIN_ROOT}/guides/frontend/testid-standards.md)
 - 不用 CSS class、Tailwind class 或 DOM 结构定位元素。
 
 ### 异步断言
@@ -334,9 +334,9 @@ console.log(container.innerHTML)
 
 ## 参考
 
-- [data-testid 编写规范](/guides/frontend/testid-standards.md)
-- [环境与测试总览](/guides/core/environment-and-testing-guide.md)
-- [质量门禁](/guides/core/quality.md)
+- [data-testid 编写规范](${CLAUDE_PLUGIN_ROOT}/guides/frontend/testid-standards.md)
+- [环境与测试总览](${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md)
+- [质量门禁](${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md)
 - [Vitest Documentation](https://vitest.dev/)
 - [React Testing Library](https://testing-library.com/react)
 - [MSW (Mock Service Worker)](https://mswjs.io/)

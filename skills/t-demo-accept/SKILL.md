@@ -12,7 +12,7 @@ allowed-tools:
 
 # Demo 测试验收
 
-运行时边界统一参考：`protocols/runtime-boundaries.md`
+运行时边界统一参考：`/protocols/runtime-boundaries.md`
 
 ## 目标
 - 验证测试是否覆盖用户故事。
@@ -98,9 +98,9 @@ P0 必须全部通过：
 - 无 P0 问题
 
 ## 相关引用
-- `agents/demo-accept.md`
-- `agents/demo-dev.md`
-- `agents/demo-diagnose.md`
+- `/agents/demo-accept.md`
+- `/agents/demo-dev.md`
+- `/agents/demo-diagnose.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/index.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/pom-guide.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/selector-strategy.md`

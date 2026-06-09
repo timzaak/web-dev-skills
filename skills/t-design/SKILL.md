@@ -14,7 +14,7 @@ allowed-tools:
 
 # 技术设计文档生成
 
-运行时边界统一参考：`protocols/runtime-boundaries.md`
+运行时边界统一参考：`/protocols/runtime-boundaries.md`
 
 设计生成应保持简单、当前必需、可追溯；如果需求、spec、代码或本 skill 冲突，停止并说明冲突。
 
@@ -193,7 +193,7 @@ allowed-tools:
 
 ### 5. 生成设计文档
 
-使用 [template.md](template.md) 作为结构模板生成 `.ai/design/$ARGUMENTS.md`。
+使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-design/template.md) 作为结构模板生成 `.ai/design/$ARGUMENTS.md`。
 
 输出内容必须满足：
 - 有明确目标和范围
@@ -291,9 +291,9 @@ allowed-tools:
 
 ## 附加资源
 
-- 设计文档结构模板：[template.md](template.md)
+- 设计文档结构模板：[template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-design/template.md)
 
 ## 相关引用
-- `skills/t-prd/SKILL.md`
-- `skills/t-task/SKILL.md`
-- `skills/t-design-check/SKILL.md`
+- `/skills/t-prd/SKILL.md`
+- `/skills/t-task/SKILL.md`
+- `/skills/t-design-check/SKILL.md`

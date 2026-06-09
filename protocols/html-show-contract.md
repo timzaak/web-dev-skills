@@ -1,14 +1,6 @@
 # HTML Preview 通用契约
 
-定义 `html-show` agent 和 `/t-html-show` 生成的 HTML Preview 通用契约。
-
-PRD 专用规则见 `protocols/prd-preview-contract.md`。
-
-## Purpose
-
-HTML Preview 是 Markdown 文档的可视化审阅和协作产物，用于帮助人类快速理解文档的目标、流程、状态变化和待确认假设。
-
-它不是实现方案、不是接口契约、不是最终 UI 设计稿。它是文档的主要阅读界面，Markdown 是结构化真相源；两者必须同步。
+PRD 专用规则见 `/protocols/prd-preview-contract.md`。
 
 ## File Location
 
@@ -84,7 +76,7 @@ Preview 使用固定结构：
 - 是否包含来源文档路径。
 - 是否没有出现接口端点清单、请求响应 schema、数据库设计或代码类型定义。
 
-PRD 专用检查项见 `protocols/prd-preview-contract.md`。
+PRD 专用检查项见 `/protocols/prd-preview-contract.md`。
 
 违反 Preview 契约时：
 

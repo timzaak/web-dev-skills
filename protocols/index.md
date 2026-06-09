@@ -1,22 +1,20 @@
 # Protocols 入口
 
-共享协议入口，存放跨 skill 和 agent 复用的结构契约、状态模型和评分标准。
-
 | 你要确认的问题 | 对应协议 |
 | --- | --- |
-| 插件资源与目标项目运行时边界 | [runtime-boundaries.md](/protocols/runtime-boundaries.md) |
-| 实现类 agent 的通用结构化输出 | [agent-task-output-contract.md](/protocols/agent-task-output-contract.md) |
-| 修复后补测集合的字段与允许命令 | [tests-to-run-contract.md](/protocols/tests-to-run-contract.md) |
-| `.ai/task/.../.state.json` 的唯一结构真相 | [task-state-contract.md](/protocols/task-state-contract.md) |
-| phase/slot/item 的执行顺序与前置规则 | [task-phase-execution.md](/protocols/task-phase-execution.md) |
-| backend-test 的默认收敛与升级策略 | [backend-test-execution.md](/protocols/backend-test-execution.md) |
-| 设计检查评分标准 | [design-check-rubric.md](/protocols/design-check-rubric.md) |
-| PRD / user story 检查评分标准 | [prd-check-rubric.md](/protocols/prd-check-rubric.md) |
-| HTML Preview 通用契约 | [html-show-contract.md](/protocols/html-show-contract.md) |
-| PRD HTML Preview PRD 专用契约 | [prd-preview-contract.md](/protocols/prd-preview-contract.md) |
-| t-dream 候选问题、评分和报告契约 | [dream-report-contract.md](/protocols/dream-report-contract.md) |
-| 任务检查评分与阻塞规则 | [task-check-rubric.md](/protocols/task-check-rubric.md) |
-| Demo 诊断报告结构与分类映射 | [diagnostic-report-v3-minimal.md](/protocols/diagnostic-report-v3-minimal.md) |
+| 插件资源与目标项目运行时边界 | [runtime-boundaries.md](${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md) |
+| 实现类 agent 的通用结构化输出 | [agent-task-output-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md) |
+| 修复后补测集合的字段与允许命令 | [tests-to-run-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md) |
+| `.ai/task/.../.state.json` 的唯一结构真相 | [task-state-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md) |
+| phase/slot/item 的执行顺序与前置规则 | [task-phase-execution.md](${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md) |
+| backend-test 的默认收敛与升级策略 | [backend-test-execution.md](${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md) |
+| 设计检查评分标准 | [design-check-rubric.md](${CLAUDE_PLUGIN_ROOT}/protocols/design-check-rubric.md) |
+| PRD / user story 检查评分标准 | [prd-check-rubric.md](${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md) |
+| HTML Preview 通用契约 | [html-show-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md) |
+| PRD HTML Preview PRD 专用契约 | [prd-preview-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md) |
+| t-dream 候选问题、评分和报告契约 | [dream-report-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md) |
+| 任务检查评分与阻塞规则 | [task-check-rubric.md](${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md) |
+| Demo 诊断报告结构与分类映射 | [diagnostic-report-v3-minimal.md](${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-v3-minimal.md) |
 
 ## 使用规则
 
