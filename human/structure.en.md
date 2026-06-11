@@ -40,7 +40,8 @@ A skill is an imperative workflow entry point, organized by workflow stage:
 **Development:**
 
 - `t-run`: drives implementation and testing by phase.
-- `t-backend-finalize`: backend closure review.
+- `code-review`: code review (shared across frontend, backend, and demo).
+- `t-backend-finalize`: backend closure review (backend only).
 - `t-backend-test-run`: internal execution skill, reused by workflows.
 
 **Demo:**
@@ -144,6 +145,7 @@ Agent documents only describe when to read these guides, how to execute the work
 The recommended full T-Tools path:
 
 ```mermaid
+%%{init: {'flowchart': {'defaultRenderer': 'elk'}}}%%
 flowchart TD
     subgraph Init["Init (optional)"]
         direction LR
@@ -166,7 +168,8 @@ flowchart TD
     end
 
     subgraph Dev["Development"]
-        E1["t-run"] --> E2["t-backend-finalize"]
+        E1["t-run"] --> E2["code-review"]
+        E2 --> E3["t-backend-finalize (backend only)"]
     end
 
     subgraph Demo["Demo"]
@@ -174,22 +177,16 @@ flowchart TD
         F2 -->|fail| F1
     end
 
-    subgraph Publish["Publish"]
-        G1["t-prd-publish"]
-    end
-
-    subgraph Post["Post (optional)"]
-        direction LR
-        H1["t-dream"] --> H2["t-push"] --> H3["t-release"]
+    subgraph Post["Post"]
+        G1["t-prd-publish"] --> G2["t-push"] --> G3["t-release"]
     end
 
     A2 -.-> B1
     B2 -->|pass| C1
     C2 -->|pass| D1
     D2 -->|pass| E1
-    E2 --> F1
+    E3 --> F1
     F2 -->|pass| G1
-    G1 -.-> H1
 ```
 
 This path breaks AI programming into product definition, design, task planning, implementation, testing, acceptance, demo delivery, and publishing. Every stage has an input contract, an output contract, and quality gates. Diamond nodes are quality gates that loop back on failure; dashed lines indicate optional paths.

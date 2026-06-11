@@ -49,6 +49,9 @@
 # 按阶段驱动实现与测试
 /t-tools:t-run user-management --phase backend
 
+# 代码审查
+/code-review
+
 # 后端验收后执行收口
 /t-tools:t-backend-finalize user-management
 
@@ -75,6 +78,7 @@
 ## 完整工作流
 
 ```mermaid
+%%{init: {'flowchart': {'defaultRenderer': 'elk'}}}%%
 flowchart TD
     subgraph Init["初始化（可选）"]
         direction LR
@@ -97,7 +101,8 @@ flowchart TD
     end
 
     subgraph Dev["开发"]
-        E1["t-run"] --> E2["t-backend-finalize"]
+        E1["t-run"] --> E2["code-review"]
+        E2 --> E3["t-backend-finalize（仅后端）"]
     end
 
     subgraph Demo["Demo"]
@@ -105,22 +110,16 @@ flowchart TD
         F2 -->|未通过| F1
     end
 
-    subgraph Publish["发布"]
-        G1["t-prd-publish"]
-    end
-
-    subgraph Post["后续（可选）"]
-        direction LR
-        H1["t-dream"] --> H2["t-push"] --> H3["t-release"]
+    subgraph Post["后续"]
+        G1["t-prd-publish"] --> G2["t-push"] --> G3["t-release"]
     end
 
     A2 -.-> B1
     B2 -->|通过| C1
     C2 -->|通过| D1
     D2 -->|通过| E1
-    E2 --> F1
+    E3 --> F1
     F2 -->|通过| G1
-    G1 -.-> H1
 ```
 
 关键行为：

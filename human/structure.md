@@ -40,7 +40,8 @@ Skill 是命令式工作流入口，按工作流阶段组织如下：
 **开发：**
 
 - `t-run`：按阶段驱动实现与测试。
-- `t-backend-finalize`：后端收口审查。
+- `code-review`：代码审查（前端、后端、Demo 通用）。
+- `t-backend-finalize`：后端收口审查（仅后端）。
 - `t-backend-test-run`：内部执行型 skill，供流程复用。
 
 **Demo：**
@@ -144,6 +145,7 @@ Agent 文档只说明"什么时候读这些 guide、如何执行、返回什么"
 T-Tools 推荐的完整链路：
 
 ```mermaid
+%%{init: {'flowchart': {'defaultRenderer': 'elk'}}}%%
 flowchart TD
     subgraph Init["初始化（可选）"]
         direction LR
@@ -166,7 +168,8 @@ flowchart TD
     end
 
     subgraph Dev["开发"]
-        E1["t-run"] --> E2["t-backend-finalize"]
+        E1["t-run"] --> E2["code-review"]
+        E2 --> E3["t-backend-finalize（仅后端）"]
     end
 
     subgraph Demo["Demo"]
@@ -174,22 +177,16 @@ flowchart TD
         F2 -->|未通过| F1
     end
 
-    subgraph Publish["发布"]
-        G1["t-prd-publish"]
-    end
-
-    subgraph Post["后续（可选）"]
-        direction LR
-        H1["t-dream"] --> H2["t-push"] --> H3["t-release"]
+    subgraph Post["后续"]
+        G1["t-prd-publish"] --> G2["t-push"] --> G3["t-release"]
     end
 
     A2 -.-> B1
     B2 -->|通过| C1
     C2 -->|通过| D1
     D2 -->|通过| E1
-    E2 --> F1
+    E3 --> F1
     F2 -->|通过| G1
-    G1 -.-> H1
 ```
 
 这条链路把 AI 编程拆成产品定义、设计、任务规划、实现、测试、验收、Demo 交付和发布多个阶段。每个阶段都有输入契约、输出契约和质量门禁。菱形节点是质量门禁，未通过时回到当前阶段修正；虚线表示可选路径。

@@ -49,6 +49,9 @@ Minimal end-to-end example:
 # Drive implementation and testing by phase
 /t-tools:t-run user-management --phase backend
 
+# Code review
+/code-review
+
 # Finalize backend after backend acceptance
 /t-tools:t-backend-finalize user-management
 
@@ -75,6 +78,7 @@ Additional notes:
 ## Full Workflow
 
 ```mermaid
+%%{init: {'flowchart': {'defaultRenderer': 'elk'}}}%%
 flowchart TD
     subgraph Init["Init (optional)"]
         direction LR
@@ -97,7 +101,8 @@ flowchart TD
     end
 
     subgraph Dev["Development"]
-        E1["t-run"] --> E2["t-backend-finalize"]
+        E1["t-run"] --> E2["code-review"]
+        E2 --> E3["t-backend-finalize (backend only)"]
     end
 
     subgraph Demo["Demo"]
@@ -105,22 +110,16 @@ flowchart TD
         F2 -->|fail| F1
     end
 
-    subgraph Publish["Publish"]
-        G1["t-prd-publish"]
-    end
-
-    subgraph Post["Post (optional)"]
-        direction LR
-        H1["t-dream"] --> H2["t-push"] --> H3["t-release"]
+    subgraph Post["Post"]
+        G1["t-prd-publish"] --> G2["t-push"] --> G3["t-release"]
     end
 
     A2 -.-> B1
     B2 -->|pass| C1
     C2 -->|pass| D1
     D2 -->|pass| E1
-    E2 --> F1
+    E3 --> F1
     F2 -->|pass| G1
-    G1 -.-> H1
 ```
 
 Key behaviors:
