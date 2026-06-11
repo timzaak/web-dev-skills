@@ -1,6 +1,6 @@
 ---
 name: t-tech-research
-description: Research technical feasibility for a feature by scanning the codebase, checking dependencies, researching new libraries when needed, and writing a report under .ai/tech-research/. Use when the user runs /t-tech-research with a feature name, asks for a technical feasibility study, requests evaluation before PRD work, or needs upstream input for a pure technical design that does not change business logic. Do not use for casual "how would this work" questions, ordinary bug fixes, or small refactors.
+description: Assess technical feasibility for a feature. Scans codebase, checks dependencies, researches libraries, and writes a structured report under .ai/tech-research/.
 ---
 
 # 需求技术预研
@@ -10,7 +10,7 @@ description: Research technical feasibility for a feature by scanning the codeba
 基于用户需求和现有代码库，评估技术可行性、依赖缺口、代码影响范围和关键风险，生成报告供后续 `/t-prd` 或纯技术方案 `/t-design` 参考。
 
 输出文件：
-- `.ai/tech-research/$ARGUMENTS.md`
+- `.ai/tech-research/<file-name>.md`（file-name 取自 `$ARGUMENTS` 第一个空格前的部分）
 
 如果未传 feature 名称，立即终止并提示：
 `请提供 feature 名称。例如：/t-tech-research user-management`
@@ -35,11 +35,15 @@ description: Research technical feasibility for a feature by scanning the codeba
 
 ## 参数规则
 
-- `$ARGUMENTS` 只用于确定输出文件名，不等于完整需求描述
-- 文件名仅允许中文、英文、数字、空格、下划线、连字符
+- `$ARGUMENTS` 可包含两部分：`<file-name> [补充描述]`
+  - 第一个空格前的部分作为输出文件名（如 `rag-otel-metrics`）
+  - 空格后的部分作为额外的需求上下文，纳入需求理解
+  - 如果用户只传了一个词，则同时作为文件名和需求主题
+- 文件名仅允许中文、英文、数字、下划线、连字符；推荐 kebab-case
 - 拒绝 `..`, `/`, `\`
-- 长度限制 1 到 50 字符
-- 如果 `.ai/tech-research/$ARGUMENTS.md` 已存在，先询问是否覆盖
+- 文件名长度限制 1 到 60 字符
+- 如果用户传入的完整参数不含空格且为长中文描述（>20字符），主动提议一个简短的英文 kebab-case 文件名，经用户确认后使用
+- 如果 `.ai/tech-research/<file-name>.md` 已存在，先询问是否覆盖
 
 ## 核心约束
 
@@ -130,7 +134,7 @@ description: Research technical feasibility for a feature by scanning the codeba
 
 ### 7. 写入报告
 
-使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-tech-research/template.md) 的结构生成 `.ai/tech-research/$ARGUMENTS.md`。
+使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-tech-research/template.md) 的结构生成 `.ai/tech-research/<file-name>.md`。
 
 如果某章节不适用，保留章节并标记"不适用"及原因，不要直接删除。
 
@@ -142,7 +146,7 @@ description: Research technical feasibility for a feature by scanning the codeba
 - 需要引入的新库数量和名称（如适用）
 - 主要影响范围
 - 关键风险点
-- 下一步命令：业务功能进入 `/t-prd $ARGUMENTS`；不涉及业务逻辑变动的纯技术方案可进入 `/t-design $ARGUMENTS`
+- 下一步命令：业务功能进入 `/t-prd <file-name>`；不涉及业务逻辑变动的纯技术方案可进入 `/t-design <file-name>`
 
 ## 质量门禁
 
@@ -161,7 +165,7 @@ description: Research technical feasibility for a feature by scanning the codeba
 
 ## 失败处理
 
-- 参数缺失：终止并给出 `/t-tech-research [feature-name]` 示例
+- 参数缺失：终止并给出 `/t-tech-research <file-name>` 示例
 - 文件名非法：终止并说明允许字符范围
 - 无法创建输出目录或写文件：终止并报告
 - 需求描述不足：先补问；仍不足则继续，但在报告中写出缺口
