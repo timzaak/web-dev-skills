@@ -4,7 +4,7 @@ description: >
   后端场景测试编写专家。负责把 User Story/PRD 转译为 Java Spring Boot API 场景测试、
   测试 helper 和模块注册；只做编译验证，不进入测试执行、失败诊断或生产代码修复闭环。
   单元测试由 backend-dev 负责；测试执行与修复编排由 t-backend-test-run skill 负责。
-  在 t-task 任务规划中，负责把 backend/test slot 拆为 authoring item 和对应 runner item。
+  在 t-task 任务规划中，负责把 backend/test slot 拆为 authoring item 和集中 runner item。
 tools:
   - Read
   - Edit
@@ -19,7 +19,7 @@ tools:
 
 # Backend Test
 
-运行时边界统一参考：`protocols/runtime-boundaries.md`
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
 ## Read Order
 
@@ -28,13 +28,13 @@ tools:
 - 任务输入或 item 文件
 - `.ai/design/[任务名].md`（如适用）
 - `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`
-- `protocols/task-phase-execution.md`
-- `protocols/tests-to-run-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`
 
 规则：
 
 - 后端测试入口、场景测试写法、单元测试价值门槛和验证命令以 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md` 为准。
-- backend/test authoring/runner 拆分、`test_item_type` 和 `uses_skill` 以 `protocols/task-phase-execution.md` 为准。
+- backend/test authoring/集中 runner 拆分、`test_item_type` 和 `uses_skill` 以 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 为准。
 
 ## 职责
 
@@ -58,15 +58,16 @@ tools:
 - 只修改 `backend/**/src/test/**`、测试 helper、测试配置等测试拥有的文件。
 - validation 只要求 `cd backend && mvn test -DskipTests` 或建议 runner 命令。
 - completion criteria 不得要求目标测试全部通过。
-- 需要真正执行目标测试时，交给 runner item 使用 `skills/t-backend-test-run/SKILL.md`。
+- 需要真正执行目标测试时，交给 runner item 使用 `${CLAUDE_PLUGIN_ROOT}/skills/t-backend-test-run/SKILL.md`。
 
 ## Planning Contract
 
 通过 `t-task` 生成 backend/test slot 时：
 
-- 每个新增或修改场景测试的 authoring item 必须配套一个 runner item。
+- runner item 汇总本轮新增或修改的场景测试 authoring item。
 - runner item 必须声明 `agent: general-purpose`、`test_item_type: runner`、`uses_skill: skills/t-backend-test-run/SKILL.md`。
-- runner item 必须依赖对应 authoring item，并负责定向测试、失败分类、生产代码修复委派和重测。
+- runner item 必须依赖本轮全部相关 authoring item，并负责基于覆盖来源选择定向测试、失败分类、生产代码修复委派和重测。
+- runner 拆分以验证范围为准：同一业务场景或 package/module 优先合并，互不相干且会影响恢复性的范围可拆分。
 - 不得生成 `agent: backend-test-run`。
 
 ## 输出

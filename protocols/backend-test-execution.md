@@ -1,7 +1,5 @@
 # Backend Test Execution Contract
 
-定义 `t-backend-test-run` 的后端测试执行、诊断和修复编排边界。
-
 ## Scope
 
 - 适用于 backend/test `test_item_type: runner`。
@@ -15,8 +13,10 @@
 ## Workflow
 
 - 分析改动：`git status`, `git diff --name-only`。
+- 读取 runner item 的 `Expected Test Manifest`，建立预期测试函数清单。
+- 运行 `uv run scripts/check-test-runner-coverage.py <feature> --layer backend`，或等价执行 `cargo nextest list`，确认定向命令会选中全部预期测试。
 - 选择最小可靠测试范围。
-- 运行定向测试。
+- 运行定向测试，覆盖当前 runner item 汇总的全部相关 authoring item。
 - 解析失败并记录命令、测试名、文件/行、失败类型和关键消息。
 - 判断所有权：机械性测试问题可修测试；生产代码问题委派 `backend-dev`。
 - 定向复测。
@@ -25,6 +25,7 @@
 ## Scope Mapping
 
 - 单个测试或 helper 影响 => 指向具体测试。
+- 多个相关测试 authoring item 影响同一业务场景 => 使用同一 package/module/test pattern 集中覆盖。
 - 单 Maven module 或单测试类影响 => 使用对应模块/测试过滤参数。
 - API 层影响 => `-E 'package(api)'`。
 - 多处局部影响但仍可收敛 => `package + test(pattern)`。
@@ -37,6 +38,23 @@
 - `uv run scripts/backend-test.py -- --tests '*UserServiceTest'`
 - `uv run scripts/backend-test.py -- --tests '*UserServiceTest.createSuccess'`
 - `uv run scripts/backend-test.py -- --module user-service --tests '*UserServiceTest'`
+
+runner 命令以覆盖来源和变更范围推导；同一业务场景或 package/module 使用同一个最小可靠命令。全量 `uv run scripts/backend-test.py` 仅在定向范围不可靠或门禁要求时使用。
+
+后端测试命令使用 `uv run scripts/backend-test.py -- [filter]`。需要串行执行时使用 `uv run scripts/backend-test.py -- --test-threads 1 [filter]`，并记录串行原因（例如全局状态、端口、单例或非隔离外部资源）。`cargo run` 只用于启动应用或导出 OpenAPI，不作为测试入口。
+
+## Coverage Manifest
+
+backend/test runner item 必须包含 `Expected Test Manifest`：
+
+| 字段 | 说明 |
+|---|---|
+| source_item | 产生或修改测试的 authoring item |
+| test_file | 测试文件路径 |
+| test_name | Rust 测试函数名 |
+| runner_command | 预期覆盖该测试的定向命令 |
+
+runner 完成报告必须写明 expected/selected/missing 数量。若 `cargo nextest list` 无法选中任一预期测试，runner 不得继续声称测试覆盖完成；应修正 runner 命令或返回覆盖缺口。
 
 ## Ownership
 

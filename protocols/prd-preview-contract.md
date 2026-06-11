@@ -1,27 +1,21 @@
 # PRD HTML Preview Contract
 
-PRD 专用的 HTML Preview 契约。通用规则（技术约束、审阅流程、内容模型）定义在 `protocols/html-show-contract.md`，此处不重复。
-
-定义 `/t-html-show` 在 PRD 模式下的专用规则，以及 `/t-prd-check` 对该预览的检查边界。
-
-## Purpose
-
-HTML Preview 是 PRD 的可视化审阅和协作产物，用于帮助人类快速理解、反馈和修改功能目标、用户路径、状态变化和待确认假设。
-
-它不是实现方案、不是接口契约、不是最终 UI 设计稿。它是 PRD 的主要阅读界面，Markdown PRD 是结构化产品语义契约；两者必须同步。
+通用规则见 `${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md`。
 
 ## File Location
 
-每份 PRD 必须在 `.ai/preview/` 下生成对应 HTML Preview（不进入代码仓库）：
+每份 PRD 草稿或正式 PRD 必须在 `.ai/preview/` 下生成对应 HTML Preview（不进入代码仓库）：
 
-- PRD: `docs/prd/<domain>/<feature>.md`
+- PRD 草稿: `.ai/prd/<domain>/<feature>.md`
+- 正式 PRD: `docs/prd/<domain>/<feature>.md`
 - Preview: `.ai/preview/<domain>/<feature>.html`
 
-Preview 是临时验证产物，不纳入版本控制。每次 `/t-html-show` 或 `/t-prd` 运行时会重新生成。
+Preview 是临时验证产物，不纳入版本控制。每次 `/t-html-show`、`/t-prd`、`/t-prd-check` 修复后或正式 PRD 更新后可重新生成。
 
 ## Source of Truth
 
-- Markdown PRD 是正式产品语义契约。
+- `.ai/prd` 中的 Markdown PRD 是临时候选产品语义契约，用于草稿审阅、设计、任务、实现和验收阶段，同步到正式 PRD 后应删除。
+- `docs/prd` 中的 Markdown PRD 是已发布的正式产品语义契约。
 - HTML Preview 是从 Markdown PRD 派生的可视化审阅视图，也是人机沟通时优先打开和讨论的协作界面。
 - HTML Preview 不允许引入 Markdown PRD 未声明的新需求、权限规则、业务规则或验收目标。
 - 如果人类基于 HTML Preview 提出修改，必须同时更新 HTML Preview 和 Markdown PRD，不能只改其中一个。

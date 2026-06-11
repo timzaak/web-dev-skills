@@ -14,7 +14,7 @@ allowed-tools:
 
 # 技术设计文档生成
 
-运行时边界统一参考：`protocols/runtime-boundaries.md`
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
 设计生成应保持简单、当前必需、可追溯；如果需求、spec、代码或本 skill 冲突，停止并说明冲突。
 
@@ -36,7 +36,7 @@ allowed-tools:
 
 ## 目标
 
-基于用户故事、PRD、用户已准备的仓库内资料和现有代码，生成一份可实施、可追踪、可用于 `/t-task` 的技术设计文档。
+基于通过 `/t-prd-check` 的用户故事、PRD 草稿、已发布 PRD 基线、技术预研、用户已准备的仓库内资料和现有代码，生成一份可实施、可追踪、可用于 `/t-task` 的技术设计文档。
 
 输出文件：
 - `.ai/design/$ARGUMENTS.md`
@@ -46,10 +46,15 @@ allowed-tools:
 
 ## Input Contract
 
-上游输入（来自 `/t-prd` 产出）：
-- `docs/prd/<domain>/<feature>.md` — PRD 文档（必须存在或显式标记缺失）
-- `docs/user-stories/**/*.md` — 相关用户故事
-- `docs/prd/00-index.md` — PRD 索引
+上游输入（按设计类型选择）：
+- 业务功能设计：
+  - `.ai/prd/<domain>/<feature>.md` — PRD 草稿（如存在，作为当前候选需求）
+  - `docs/prd/<domain>/<feature>.md` — 已发布 PRD 基线（如存在，作为正式需求基线）
+  - `docs/user-stories/**/*.md` — 相关用户故事
+  - `docs/prd/00-index.md` — PRD 索引
+- 纯技术方案设计：
+  - `.ai/tech-research/<feature>.md` — 技术预研报告，可作为唯一上游需求来源
+  - 仅适用于不涉及业务逻辑、产品规则、用户可见流程或验收目标变动的设计
 
 可选输入：
 - `${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md` — 环境与测试指南
@@ -63,7 +68,7 @@ allowed-tools:
 下游产出（供 `/t-design-check` 和 `/t-task` 使用）：
 - `.ai/design/$ARGUMENTS.md` — 技术设计文档，包含：
   - 目标与范围
-  - 用户故事/PRD 引用
+  - 用户故事/PRD/技术预研引用
   - 现有实现分析
   - 方案设计与关键取舍
   - API 接口设计（如适用）
@@ -77,7 +82,11 @@ allowed-tools:
 
 ## 核心约束
 
-- 需求语义以 `docs/` 为准；执行流程与质量门禁以 `${CLAUDE_PLUGIN_ROOT}/guides/` 为准
+- 业务功能设计必须混合验证 `.ai/prd` 草稿与 `docs/prd` 正式 PRD：草稿是通过 PRD Check 后进入设计、任务和实现的候选需求，正式 PRD 是已发布基线；两者存在未说明冲突时停止并要求修正草稿后再次运行 `/t-prd-check [feature]`
+- 若存在 `.ai/prd` 草稿且内容会影响设计，默认基于草稿继续设计，并在设计文档中标记"基于已检查 PRD 草稿"；不得要求先发布到 `docs/prd`
+- 若没有 `.ai/prd` 草稿但存在 `docs/prd` 正式 PRD，可基于正式 PRD 继续设计，并在设计文档中标记"未发现 PRD 草稿"
+- 纯技术方案没有 PRD/用户故事时，以 `.ai/tech-research/<feature>.md` 中的技术目标、约束和影响范围为准；执行流程与质量门禁以 `${CLAUDE_PLUGIN_ROOT}/guides/` 为准
+- 没有 PRD/用户故事时，必须在设计文档中声明"纯技术方案设计，不涉及业务逻辑变动"，并引用对应 `.ai/tech-research/<feature>.md`
 - 先读索引，再读相关明细
 - 只引用用户故事，不粘贴完整故事正文或整段 Gherkin
 - 优先复用现有实现，不凭空设计新架构
@@ -94,6 +103,9 @@ allowed-tools:
 按以下顺序建立上下文：
 - `docs/user-stories/00-index.md`
 - `docs/prd/00-index.md`
+- `.ai/prd/$ARGUMENTS.md` 或 `.ai/prd/**/$ARGUMENTS.md`（如存在）
+- `docs/prd/**/$ARGUMENTS.md`（如存在）
+- `.ai/tech-research/$ARGUMENTS.md`（如存在）
 - `${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md` 和/或 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md`
@@ -124,7 +136,9 @@ allowed-tools:
 
 只搜索真实目录：
 - `docs/user-stories/**/*.md`
+- `.ai/prd/**/*.md`
 - `docs/prd/**/*.md`
+- `.ai/tech-research/**/*.md`
 - `docs/design/**/*.md`（如果存在相关先例）
 - `.ai/design/**/*.md`（如果存在相关先例）
 
@@ -133,14 +147,26 @@ allowed-tools:
 - 再对候选文档做 `Grep`
 - 最后 `Read` 真正相关的少量文件
 
-至少提取这些内容：
+业务功能设计至少提取这些内容：
 - 用户故事 ID、标题、优先级、来源文件
 - 场景概述或验收目标的简短摘要
-- PRD 中的业务边界、规则、非功能要求
+- PRD 草稿中的当前候选业务边界、规则、非功能要求
+- 已发布 PRD 中的正式基线，以及草稿相对基线的目标、范围、规则、状态和验收目标差异
+
+如果同时存在草稿和正式 PRD：
+- 草稿与正式 PRD 一致或明确是增量/替换 → 继续设计，并在"需求来源"中同时引用两者和差异摘要
+- 草稿与正式 PRD 在核心业务边界、权限规则或验收目标上冲突，且无法从草稿确认覆盖关系 → 停止并提示修正草稿后再次运行 `/t-prd-check [feature]`
 
 如果没有找到足够的用户故事或 PRD：
-- 在设计文档中显式记录"缺失输入/假设"
+- 优先检查是否存在 `.ai/tech-research/$ARGUMENTS.md`
+- 如果存在且内容足以支撑纯技术方案，继续生成设计，并在需求来源中标记 PRD/用户故事不适用
+- 如果不存在或技术预研不足，在设计文档中显式记录"缺失输入/假设"
 - 仅在缺失会影响方案判断时再问用户
+
+纯技术方案设计至少提取这些内容：
+- 技术目标、当前约束、选定技术路线
+- 依赖或版本变化
+- 影响范围、风险和不涉及业务逻辑变动的边界声明
 
 ### 4. 分析现有实现
 
@@ -167,11 +193,11 @@ allowed-tools:
 
 ### 5. 生成设计文档
 
-使用 [template.md](template.md) 作为结构模板生成 `.ai/design/$ARGUMENTS.md`。
+使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-design/template.md) 作为结构模板生成 `.ai/design/$ARGUMENTS.md`。
 
 输出内容必须满足：
 - 有明确目标和范围
-- 有用户故事/PRD 引用
+- 有用户故事/PRD 草稿/正式 PRD 引用；纯技术方案可改为技术预研引用，并声明不涉及业务逻辑变动
 - 有现有实现分析
 - 有方案设计与替代方案或关键取舍
 - 有 API 接口设计、数据库设计、前端设计中的适用部分
@@ -243,7 +269,8 @@ allowed-tools:
 ## 质量检查清单
 
 生成前逐项自检：
-- 是否遵循 `docs/ -> ${CLAUDE_PLUGIN_ROOT}/guides/ -> code` 的信息优先级
+- 是否遵循 `.ai/prd + docs/prd 混合验证 / .ai/tech-research -> ${CLAUDE_PLUGIN_ROOT}/guides/ -> code` 的信息优先级
+- 如果没有 PRD/用户故事，是否明确声明这是纯技术方案设计且不涉及业务逻辑变动
 - 是否使用真实文件路径
 - 是否避免过度设计
 - 是否与现有 Java Spring Boot + React 架构一致
@@ -264,9 +291,4 @@ allowed-tools:
 
 ## 附加资源
 
-- 设计文档结构模板：[template.md](template.md)
-
-## 相关引用
-- `skills/t-prd/SKILL.md`
-- `skills/t-task/SKILL.md`
-- `skills/t-design-check/SKILL.md`
+- 设计文档结构模板：[template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-design/template.md)

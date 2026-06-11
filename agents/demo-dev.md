@@ -17,7 +17,7 @@ tools:
 
 # Demo Dev
 
-运行时边界统一参考：`protocols/runtime-boundaries.md`
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
 ## 输入契约
 
@@ -32,8 +32,8 @@ tools:
 
 统一参考：
 
-- `protocols/agent-task-output-contract.md`
-- `protocols/tests-to-run-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`
 
 demo-dev 至少返回：
 
@@ -88,19 +88,29 @@ Runtime Dependencies：
 - 测试必须与用户故事建立可追溯关系
 - 测试必须通过统一 fixture 接入 `demoLogger`，不得绕过 fixture 或在测试中手动调用 `logger.finalize()`
 - 不得硬编码选择器字符串
+- 不得把 `sonner`、toast、Snackbar 等自动消失提示作为主判断条件或唯一验收依据
 - 复杂测试优先拆成可维护的 helper 或 page object，而不是继续堆叠单文件逻辑
 
 ## 禁止事项
 
 - 不得在没有验证用户故事存在的情况下生成测试
 - 不得硬编码选择器字符串，必须使用 `demo/e2e/selectors.ts` 或语义化选择器
+- 不得只断言自动消失提示；关键断言必须落在持久业务状态、页面状态、URL、列表/详情数据或稳定错误区域上
 - 不得修改业务代码以掩盖测试问题
 - 必须在 `task_completion` 中返回 `tests_to_run`
 - 完成后应运行 TypeScript 编译检查确认测试文件无语法错误：`cd demo && npx tsc --noEmit [test-file]`
 
+## t-task 规划约束
+
+- 涉及新增或修改 Demo/E2E 测试、fixture、helper 或 Page Object 时，先规划 authoring item。
+- 集中定向执行 item 汇总本轮相关测试代码 item。
+- 执行 item 依赖全部相关 authoring item，优先运行相关 `demo-test-runner.py [test-file] --grep [pattern]` 或少量相关文件。
+- 执行范围从覆盖来源推导；全部 Demo 测试仅用于定向范围不可靠或门禁要求。
+- 如果 Playwright 项目启动、前端构建或 TypeScript 编译导致耗时，执行 item 必须记录命令、耗时和结果，不能因此改成跳过测试。
+
 ## 示例输出
 
-按 `protocols/agent-task-output-contract.md` 返回成功结构。
+按 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md` 返回成功结构。
 
 demo-dev 通常只需要最小成功字段：
 
@@ -119,8 +129,8 @@ uv run ${CLAUDE_PLUGIN_ROOT}/scripts/demo-test-runner.py "[测试文件]" --run-
 
 ## 参考
 
-- `protocols/agent-task-output-contract.md`
-- `protocols/tests-to-run-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/index.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/selector-strategy.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/pom-guide.md`

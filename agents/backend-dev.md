@@ -26,7 +26,7 @@ hooks:
 
 # Backend Dev
 
-运行时边界统一参考：`protocols/runtime-boundaries.md`
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
 ## 执行流程
 
@@ -138,7 +138,7 @@ cd backend && mvn test
 - `change_scope`: 标记本次修改影响层（backend/frontend/miniapp/demo）
 - `tests_to_run`: 相关最小测试集（供 `t-demo-run` 修复门禁执行）
 
-字段结构和允许命令统一参考：`protocols/tests-to-run-contract.md`
+字段结构和允许命令统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`
 
 ### 任务完成输出
 
@@ -202,8 +202,8 @@ cd backend && mvn test
 
 ## Shared References
 
-- `protocols/runtime-boundaries.md`
-- `protocols/tests-to-run-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/backend/tdd-workflow.md`

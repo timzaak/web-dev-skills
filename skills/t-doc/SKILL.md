@@ -96,11 +96,11 @@ docs/tutorials/
 
 按项目实际裁剪。没有 API 层就不写 `api-reference.md`；部署只是 `git push` 的话，放在 `getting-started.md` 末尾即可。
 
-具体章节骨架见 [references/doc-templates.md](references/doc-templates.md)。
+具体章节骨架见 [references/doc-templates.md](${CLAUDE_PLUGIN_ROOT}/skills/t-doc/references/doc-templates.md)。
 
 ## 写作要求
 
-写作前读取 [references/writing-style.md](references/writing-style.md)。每章写完后也按里面的自检清单检查一遍。
+写作前读取 [references/writing-style.md](${CLAUDE_PLUGIN_ROOT}/skills/t-doc/references/writing-style.md)。每章写完后也按里面的自检清单检查一遍。
 
 核心要求：
 
@@ -116,7 +116,7 @@ docs/tutorials/
 - 信息收集：按上面的来源扫描，用批量搜索建立项目事实。
 - 确认大纲：告诉用户准备写哪些章节、各章覆盖什么，等用户确认或调整。
 - 逐章编写：确认后按章节写入目标目录。
-- 自检修订：按 [references/writing-style.md](references/writing-style.md) 检查所有文件，改掉 AI 味、空话和不可验证内容。
+- 自检修订：按 [references/writing-style.md](${CLAUDE_PLUGIN_ROOT}/skills/t-doc/references/writing-style.md) 检查所有文件，改掉 AI 味、空话和不可验证内容。
 
 不要跳过大纲确认。先确认再写，避免整套文档返工。
 
@@ -135,10 +135,5 @@ docs/tutorials/
 
 - 扫描阶段得到的项目上下文，不要让它重新猜。
 - 本章目标、输出文件和需要读取的源文件路径。
-- [references/doc-templates.md](references/doc-templates.md) 中对应章节的骨架。
-- [references/writing-style.md](references/writing-style.md) 的风格要求和自检清单。
-
-## references
-
-- [references/doc-templates.md](references/doc-templates.md)：章节骨架。
-- [references/writing-style.md](references/writing-style.md)：反 AI 写作规则、词汇黑名单、自检清单。
+- [references/doc-templates.md](${CLAUDE_PLUGIN_ROOT}/skills/t-doc/references/doc-templates.md) 中对应章节的骨架。
+- [references/writing-style.md](${CLAUDE_PLUGIN_ROOT}/skills/t-doc/references/writing-style.md) 的风格要求和自检清单。

@@ -1,16 +1,6 @@
 ---
 name: html-show
-description: >
-  文档 HTML 可视化专家。负责把 Markdown 文档转成单文件、
-  技术栈无关的 HTML Preview，帮助人类快速理解文档内容。
-
-  触发场景：
-  - /t-html-show 生成或更新文档 HTML Preview
-  - 用户围绕 HTML Preview 提出修改，需要同步调整可视化表达
-  - 后端或无 UI 功能需要用流程图、状态图、能力矩阵表达
-  - 任意 Markdown 文档需要可视化审阅
-
-  关键词：HTML Preview, document visualization, low fidelity prototype, backend flow diagram
+description: 将 Markdown 文档转为单文件 HTML Preview，支持交互原型、流程图、状态图与能力矩阵。
 
 tools:
   - Read
@@ -23,7 +13,7 @@ tools:
 
 # 文档 HTML 可视化专家
 
-运行时边界统一参考：`protocols/runtime-boundaries.md`
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
 ## 职责
 
@@ -56,8 +46,8 @@ tools:
 - 文档路径：源 Markdown 文件路径
 
 agent 自动推断：
-- 输出路径：PRD（`docs/prd/<domain>/<feature>.md`）→ `.ai/preview/<domain>/<feature>.html`；其他 → `.ai/preview/<stem>.html`
-- 文档类型：从路径推断（`docs/prd/**` → PRD，其他 → 通用）
+- 输出路径：PRD（`.ai/prd/<domain>/<feature>.md` 或 `docs/prd/<domain>/<feature>.md`）→ `.ai/preview/<domain>/<feature>.html`；其他 → `.ai/preview/<stem>.html`
+- 文档类型：从路径推断（`.ai/prd/**` 或 `docs/prd/**` → PRD，其他 → 通用）
 - 模式：输出路径已存在 → update，否则 → create
 
 执行前读取：
@@ -72,13 +62,13 @@ PRD 文档额外读取：
 
 - 读取源文档，提取目标、范围、流程、状态、规则等关键内容。
 - 判断文档类型：
-  - `docs/prd/**/*.md` → PRD 模式：使用固定 section（Overview, Scope, Flow, States, Rules, Acceptance, Assumptions）。
+  - `.ai/prd/**/*.md` 或 `docs/prd/**/*.md` → PRD 模式：使用固定 section（Overview, Scope, Flow, States, Rules, Acceptance, Assumptions）。
   - 其他 → 通用模式：从文档标题和大纲推断 section，生成可读 HTML。
 - 判断表达形态：
   - 有前端/交互入口：生成可点击的低保真交互 Preview。
   - 纯后端或无 UI：生成流程图、状态图、调用方场景、能力边界矩阵或验收矩阵。
   - 通用文档：按文档结构生成可读的可视化页面。
-- 使用 `templates/preview-template.html` 的 CSS/layout 框架创建或更新 Preview。
+- 使用 `${CLAUDE_PLUGIN_ROOT}/templates/preview-template.html` 的 CSS/layout 框架创建或更新 Preview。
 - 保持单文件 HTML，CSS 和少量原生 JS 内联。
 - 用 `data-doc-source`、`data-doc-section` 标记来源。
 - 如使用示例数据，明确写出"示例数据，不是接口契约"。
@@ -131,7 +121,7 @@ PRD 文档额外传入 `--type prd`。
 
 ## 参考
 
-- `protocols/html-show-contract.md`
-- `protocols/prd-preview-contract.md`（PRD 模式）
-- `templates/preview-template.html`
-- `scripts/check-html-show.py`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md`（PRD 模式）
+- `${CLAUDE_PLUGIN_ROOT}/templates/preview-template.html`
+- `${CLAUDE_PLUGIN_ROOT}/scripts/check-html-show.py`

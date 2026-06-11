@@ -5,7 +5,7 @@
 ## 工作定位
 
 - 面向目标项目使用时，标准入口是 `/t-tools:t-*` 命令，而不是让模型自由选择流程。
-- 插件主链路是 `PRD -> PRD Check -> Design -> Design Check -> Task -> Task Check -> Run -> Backend Finalize -> Demo Run -> Demo Accept -> Release`。
+- 插件主链路是 `PRD Draft -> PRD Check -> Design -> Design Check -> Task -> Task Check -> Run -> Backend Finalize -> Demo Run -> Demo Accept -> PRD Publish -> Release`。
 - 这个 plugin 的核心价值是统筹 AI 编程：把需求、设计、任务、实现、测试、验收和 Demo 交付拆成有边界、有状态、有门禁的阶段。
 - 不要把本仓库当成目标项目来生成业务代码。目标项目运行时事实主要落在目标项目的 `docs/` 和 `.ai/` 中。
 
@@ -24,14 +24,14 @@
 - 修改共享规则时，优先判断它属于 `protocols/`、`guides/`、`skills/` 还是 `agents/`，避免把同一规则复制到多个地方。
 - 如果变更影响命令调用、skill 名称、完整工作流或安装方式，同步更新 `README.md` 和 `README.en.md`。
 - 如果变更影响插件暴露能力或依赖，同步检查 `.claude-plugin/plugin.json`。
-- 如果变更影响目标项目运行时文件结构，优先检查 `protocols/runtime-boundaries.md` 和 `skills/t-init/` 相关模板。
+- 如果变更影响目标项目运行时文件结构，优先检查 `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md` 和 `${CLAUDE_PLUGIN_ROOT}/skills/t-init/` 相关模板。
 - Agent 文档应保持角色边界清晰：dev 可以实现，test 专注测试，accept 默认只读验收并输出证据。
 - Check / accept 阶段不是可选装饰。涉及流程文档时，不要弱化这些门禁。
 
 ## 质量与验证
 
-- Markdown 链接检查使用 `scripts/check-markdown-links.py`。
-- 发布流程由 `scripts/release.py` 和 `/t-tools:t-release` 约束，语义版本文件不带 `v`，git tag 使用 `v` 前缀。
+- Markdown 链接检查使用 `${CLAUDE_PLUGIN_ROOT}/scripts/check-markdown-links.py`。
+- 发布流程由 `${CLAUDE_PLUGIN_ROOT}/scripts/release.py` 和 `/t-tools:t-release` 约束，语义版本文件不带 `v`，git tag 使用 `v` 前缀。
 - `packages/playwright-unified-logger/` 的验证应在该 package 目录内运行 npm 脚本。
 - 当前仓库可能存在用户未提交改动；不要回滚与当前任务无关的文件。
 

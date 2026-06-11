@@ -144,12 +144,12 @@ Subagent prompt 必须要求：
 
 ### Step 7: 生成 AGENTS.md、CLAUDE.md 和 README.md（主 Agent）
 
-读取 [references/agents-template.md](references/agents-template.md) 获取模板内容。
+读取 [references/agents-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/agents-template.md) 获取模板内容。
 
 生成三个根目录文件：
 - `AGENTS.md` — 项目描述占位符 + 项目行为准则
 - `CLAUDE.md` — 仅包含 `@AGENTS.md`
-- `README.md` — 快速启动指南（从 [references/scripts-template.md](references/scripts-template.md) 获取项目本地脚本命令）
+- `README.md` — 快速启动指南（从 [references/scripts-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/scripts-template.md) 获取项目本地脚本命令）
 
 生成后提示用户填写 `AGENTS.md` 顶部的项目描述占位符。
 
@@ -216,15 +216,9 @@ Subagent prompt 必须要求：
 
 ## 附加资源
 
-- 后端文件模板：[references/backend-template.md](references/backend-template.md)
-- 前端文件模板：[references/frontend-template.md](references/frontend-template.md)
-- Demo E2E 测试模板：[references/demo-template.md](references/demo-template.md)
-- Unified Logger 包模板：[references/unified-logger-package-template.md](references/unified-logger-package-template.md)
-- 脚本模板：[references/scripts-template.md](references/scripts-template.md)
-- AGENTS.md 模板：[references/agents-template.md](references/agents-template.md)
-
-## 相关引用
-
-- `skills/t-prd/SKILL.md` — 初始化完成后可开始 PRD 编写
-- `skills/t-design/SKILL.md` — 功能设计
-- `skills/t-task/SKILL.md` — 任务规划
+- 后端文件模板：[references/backend-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/backend-template.md)
+- 前端文件模板：[references/frontend-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/frontend-template.md)
+- Demo E2E 测试模板：[references/demo-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/demo-template.md)
+- Unified Logger 包模板：[references/unified-logger-package-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/unified-logger-package-template.md)
+- 脚本模板：[references/scripts-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/scripts-template.md)
+- AGENTS.md 模板：[references/agents-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/agents-template.md)

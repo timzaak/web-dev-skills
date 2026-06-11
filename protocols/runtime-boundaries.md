@@ -1,7 +1,5 @@
 # Runtime Boundaries
 
-用于所有 `/t-*` skills 和 agents 的统一边界说明。
-
 ## Plugin-Owned Paths
 
 以下路径属于插件自身，可作为稳定引用：

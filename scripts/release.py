@@ -163,12 +163,7 @@ def run_validation() -> None:
 
     backend_dir = REPO_ROOT / "backend"
     if (backend_dir / "pom.xml").is_file():
-        if (backend_dir / "mvnw.cmd").is_file():
-            commands.append(([str(backend_dir / "mvnw.cmd"), "test"], backend_dir))
-        elif (backend_dir / "mvnw").is_file():
-            commands.append(([str(backend_dir / "mvnw"), "test"], backend_dir))
-        else:
-            commands.append(([require_executable("mvn", "mvn.cmd"), "test"], backend_dir))
+        commands.append(([require_executable("mvn", "mvn.cmd"), "test"], backend_dir))
 
     npm = None
     if command_exists("npm"):

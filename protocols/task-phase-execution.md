@@ -1,7 +1,5 @@
 # Task Phase Execution Contract
 
-定义 `t-task` 与 `t-run` 共用的 phase/slot/item 编排规则。
-
 ## Supported And Active Phases
 
 `supported_phases` 固定为：
@@ -92,17 +90,38 @@ backend 的 `finalize.md` 只作为 `/t-backend-finalize` 输入，不得由 `/t
 - 当前 phase 的最小状态切片
 - 当前 item 的 completion criteria / validation
 
+## Test Execution Consolidation
+
+测试规划必须遵循集中执行原则：
+
+- 测试运行 item 汇总本轮相关测试 authoring item 的产物。
+- 测试运行 item 依赖本轮全部相关 authoring item，并记录覆盖来源。
+- 测试运行 item 必须包含 `Expected Test Manifest`，逐项列出本轮 authoring item 产生或修改的测试文件、测试函数/用例标题、来源 authoring item 和预期 runner 命令。
+- 测试运行 item 只运行能覆盖这些来源的最小可靠定向测试、类型检查或构建命令，不默认全量测试。
+- 如果定向运行需要等待 Rust 编译、TypeScript 编译、Vite/Vitest 预构建、Taro 构建或 Playwright 项目启动，这属于允许的执行成本；item 必须记录实际命令和失败/耗时证据。
+- 只有定向范围无法可靠覆盖风险，或发布/验收门禁明确要求时，才升级全量测试，并说明原因。
+- 可用 `uv run scripts/check-test-runner-coverage.py <feature> --layer <backend|frontend|miniapp|demo>` 校验 runner item 的预期测试清单与定向命令覆盖关系；backend 会通过 `cargo nextest list` 做动态命中校验，frontend/miniapp/demo 默认做静态命令覆盖校验。
+
+适用阶段：
+
+- backend/test：用集中 runner item 执行定向后端测试。
+- frontend/test：在全部 Vitest/MSW authoring item 后执行定向 `npm run test:run -- [pattern]`，按需加 `type-check`。
+- miniapp/test：在全部测试或验证资产写完后执行相关 `typecheck`、构建或专项 gate。
+- demo/dev：在全部 Demo/E2E、fixture、Page Object 写完后执行相关 `demo-test-runner.py [test-file] --grep [pattern]` 或少量相关文件。
+
 ## Backend Test Item Types
 
 backend/test item 必须声明 `test_item_type`：
 
 - `authoring`：由 `backend-test` 编写或维护场景测试、helper、模块注册，只做编译验证。
-- `runner`：由 `general-purpose` 加载 `skills/t-backend-test-run/SKILL.md`，执行定向测试、失败分类、生产代码修复委派和重测。
+- `runner`：由 `general-purpose` 加载 `${CLAUDE_PLUGIN_ROOT}/skills/t-backend-test-run/SKILL.md`，汇总相关 authoring item 后执行定向测试、失败分类、生产代码修复委派和重测。
 
 backend/test slot 必须显式规划测试执行闭环：
 
-- 每个新增或修改场景测试的 `authoring` item 必须有对应的 `runner` item。
+- 每个新增或修改场景测试的 `authoring` item 必须被 runner 的覆盖来源显式纳入。
+- runner 的拆分以验证范围为准：同一业务场景或 package/module 优先合并，互不相干且会影响恢复性的范围可拆分。
 - `runner` item 的 `agent` 必须为 `general-purpose`，并声明 `uses_skill: skills/t-backend-test-run/SKILL.md`。
+- `runner` item 必须依赖本轮全部相关 `authoring` item。
 - backend/accept item 必须依赖至少一个 `runner` item，不得只依赖 `authoring` item。
 - `t-backend-test-run` 不得作为 agent 出现在 item 中。
 

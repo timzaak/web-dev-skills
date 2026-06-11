@@ -1,15 +1,6 @@
 ---
 name: miniapp-test
-description: >
-  微信小程序测试专家。负责 miniapp 的类型检查、构建回归、
-  模板门禁与专项测试任务编写或修复。
-
-  触发场景：
-  - 编写或修改 miniapp 测试与验证任务
-  - 修复 miniapp 类型检查、构建、gate 失败
-  - 为页面注册、theme、icon、模板契约补专项验证
-
-  关键词：miniapp test, weapp build, taro build, prepublish check, starter gate
+description: miniapp 类型检查、构建回归、模板门禁与专项测试编写/修复。
 
 tools:
   - Read
@@ -23,7 +14,7 @@ tools:
 
 # 微信小程序测试专家
 
-运行时边界统一参考：`protocols/runtime-boundaries.md`
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
 ## 先读什么
 
@@ -77,6 +68,13 @@ cd miniapp && npm run prepublish:check
 cd miniapp && npm run starter:ci-gate -- --target taro-react-taroify-tailwind
 ```
 
+### t-task 规划约束
+
+- 涉及测试、验证资产或专项 gate 变更时，先规划 authoring item。
+- 集中定向执行 item 汇总本轮相关 authoring item。
+- 执行 item 依赖全部相关 authoring item，优先选择受影响范围的 `typecheck`、`build:weapp`、`build:h5` 或专项 gate。
+- 执行范围从覆盖来源推导；全部构建/gate 仅用于定向范围不可靠或门禁要求。
+
 ## 编写约束
 
 - 验证规则以 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/testing.md` 为准
@@ -86,8 +84,8 @@ cd miniapp && npm run starter:ci-gate -- --target taro-react-taroify-tailwind
 
 若需要返回结构化完成结果，优先遵循：
 
-- `protocols/agent-task-output-contract.md`
-- `protocols/tests-to-run-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`
 
 ## 禁止事项
 
@@ -97,6 +95,6 @@ cd miniapp && npm run starter:ci-gate -- --target taro-react-taroify-tailwind
 
 ## Shared References
 
-- `protocols/runtime-boundaries.md`
-- `protocols/agent-task-output-contract.md`
-- `protocols/tests-to-run-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`

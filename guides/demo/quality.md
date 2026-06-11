@@ -40,12 +40,14 @@ P0：
 - 使用 `verifyTestEnvironment()`
 - 使用 `cleanupTestData()` 或等价封装完成清理
 - 使用 `demoLogger` fixture
+- 主验收断言不得依赖 `sonner`、toast、Snackbar 等自动消失提示
 - 固定延迟 `waitForTimeout` 最小化
 
 P1：
 - 选择器优先语义化（`getByRole` / `getByLabel`）
 - 复杂场景提供 `data-testid` 后备
 - `waitForResponse` 使用 Promise 先注册后触发
+- 自动消失提示仅可作为辅助断言，必须另有持久业务状态、页面状态、URL、列表/详情数据或稳定错误区域断言
 
 P2：
 - 文件和函数复杂度可控
@@ -76,7 +78,7 @@ npx jscpd --pattern "**/*.ts" --reporters console demo/e2e
 
 状态阈值：
 - 90-100：`ACCEPTED`
-- 80-89：`ACCEPTED WITH IMPROVEMENTS`（仅在所有测试通过时允许）
+- 80-89：`ACCEPTED_WITH_IMPROVEMENTS`（仅在所有测试通过时允许）
 - < 80：`REJECTED`
 
 ## 4. 拒绝条件
@@ -87,6 +89,7 @@ npx jscpd --pattern "**/*.ts" --reporters console demo/e2e
 - 任一测试失败或超时
 - 缺失测试隔离（环境验证/数据清理）
 - 缺失 `demoLogger` fixture
+- 使用 `sonner`、toast、Snackbar 等自动消失提示作为主判断条件或唯一验收依据
 
 ## 5. 报告模板要求
 
@@ -101,7 +104,7 @@ npx jscpd --pattern "**/*.ts" --reporters console demo/e2e
 
 批量验收需额外输出汇总报告：
 - 总测试数
-- ACCEPTED / ACCEPTED WITH IMPROVEMENTS / REJECTED 统计
+- ACCEPTED / ACCEPTED_WITH_IMPROVEMENTS / REJECTED 统计
 - 失败测试与修复建议
 
 ## 6. 禁止行为

@@ -15,7 +15,7 @@ tools:
 
 # Backend Accept（流程入口）
 
-运行时边界统一参考：`protocols/runtime-boundaries.md`
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
 ## 输入契约
 
@@ -55,8 +55,8 @@ tools:
 
 ### 步骤 4：输出报告
 - 输出到 `.ai/quality/backend-accept-[feature]-[YYYYMMDD-HHMMSS].md`
-- 给出状态：`ACCEPTED` / `REJECTED` / `ACCEPTED WITH IMPROVEMENTS`
-- 明确 handoff 给 `/t-backend-finalize [feature]` 做 `/code-review`、Java 质量任务、OpenAPI 导出与前端 API 生成收口
+- 给出状态：`ACCEPTED` / `REJECTED` / `ACCEPTED_WITH_IMPROVEMENTS`
+- 明确 handoff 给 `t-backend-finalize [feature]` 做 `/code-review`、Java 质量任务、OpenAPI 导出与前端 API 生成收口
 
 ## 规范来源
 

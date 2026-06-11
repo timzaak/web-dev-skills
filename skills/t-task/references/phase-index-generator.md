@@ -25,7 +25,7 @@ tools:
 | `item_dag` | 是 | item 依赖图 |
 | `design_doc_path` | 是 | 设计文档路径 |
 | `dependencies` | 是 | 阶段与 item 依赖映射 |
-| `user_stories` | 否 | 用户故事列表 |
+| `requirement_sources` | 否 | 用户故事、PRD 或技术预研来源列表 |
 
 ## Phase Metadata
 | phase | index 文件名 | slot manifests | item directories |
@@ -37,7 +37,7 @@ tools:
 
 ## Required Sections in index.md
 - 阶段概述
-- 相关用户故事（可空）
+- 需求来源（用户故事、PRD 或技术预研；可空）
 - 设计文档参考（仅列该阶段相关章节）
 - 前置条件
 - Slot Manifest 列表
@@ -61,8 +61,8 @@ def determine_next_step(feature, phase):
 ## 阶段概述
 {{PhaseSummary}}
 
-## 相关用户故事
-{{UserStoryItems}}
+## 需求来源
+{{RequirementSourceItems}}
 
 ## 设计文档参考
 {{DesignDocPath}}

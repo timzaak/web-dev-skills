@@ -3,8 +3,8 @@
 ## 阶段概述
 {{PhaseSummary}}
 
-## 相关用户故事
-{{UserStoryItems}}
+## 需求来源
+{{RequirementSourceItems}}
 
 ## 设计文档参考
 {{DesignDocPath}}

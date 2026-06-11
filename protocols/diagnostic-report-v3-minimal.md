@@ -1,18 +1,5 @@
 # 诊断报告协议 v3.0 - 极简版
 
-## 目的
-
-定义 `demo-diagnose` 输出给后续修复流程使用的最小诊断报告契约。
-
-设计原则：
-- 只保留修复和复现真正需要的信息
-- 章节顺序固定，避免下游消费方猜测结构
-- 使用 Markdown 文档，不要求 JSON
-- 同时支持单用例失败和整文件失败
-- API 复现信息为条件章节，仅在 API 类失败时出现
-
-本文件是诊断报告结构的唯一真源。`agents/demo-diagnose.md` 只声明何时产出报告，`guides/demo/diagnose-guide.md` 只描述诊断流程；两者不得重新定义另一套字段或章节。
-
 ## 输出路径
 
 - 目录：`.ai/diagnose/`
@@ -141,6 +128,6 @@
 
 ## 一致性要求
 
-- `agents/demo-diagnose.md` 必须引用本协议
+- `${CLAUDE_PLUGIN_ROOT}/agents/demo-diagnose.md` 必须引用本协议
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/diagnose-guide.md` 只描述流程、证据优先级和产出时机
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/templates/diagnose-report-template-v3-minimal.md` 只是便捷骨架，不得与本协议冲突

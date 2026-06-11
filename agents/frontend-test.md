@@ -26,7 +26,7 @@ tools:
 
 # 前端测试专家
 
-运行时边界统一参考：`protocols/runtime-boundaries.md`
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
 ## 先读什么
 
@@ -97,6 +97,13 @@ cd frontend && npm run type-check
 cd frontend && npm run lint
 ```
 
+### t-task 规划约束
+
+- 涉及新增或修改测试代码时，先规划测试 authoring item。
+- 集中定向执行 item 汇总本轮相关 Vitest/MSW/helper authoring item。
+- 执行 item 依赖全部相关 authoring item，优先运行 `npm run test:run -- [pattern]`，按需加 `type-check`。
+- 执行范围从覆盖来源推导；全量 `npm run test:run` 仅用于定向范围不可靠或门禁要求。
+
 ## 编写约束
 
 - 测试策略、MSW 规则、查询优先级以 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/testing.md` 为准
@@ -111,8 +118,8 @@ cd frontend && npm run lint
 
 若需要返回结构化完成结果，优先遵循：
 
-- `protocols/agent-task-output-contract.md`
-- `protocols/tests-to-run-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`
 
 Context7 常用库 ID：
 - `/vitest-dev/vitest`

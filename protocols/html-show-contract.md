@@ -1,27 +1,20 @@
 # HTML Preview 通用契约
 
-定义 `html-show` agent 和 `/t-html-show` 生成的 HTML Preview 通用契约。
-
-PRD 专用规则见 `protocols/prd-preview-contract.md`。
-
-## Purpose
-
-HTML Preview 是 Markdown 文档的可视化审阅和协作产物，用于帮助人类快速理解文档的目标、流程、状态变化和待确认假设。
-
-它不是实现方案、不是接口契约、不是最终 UI 设计稿。它是文档的主要阅读界面，Markdown 是结构化真相源；两者必须同步。
+PRD 专用规则见 `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md`。
 
 ## File Location
 
 HTML Preview 写入 `.ai/preview/` 下（不进入代码仓库）：
 
-- PRD: `docs/prd/<domain>/<feature>.md` → `.ai/preview/<domain>/<feature>.html`
+- PRD 草稿: `.ai/prd/<domain>/<feature>.md` → `.ai/preview/<domain>/<feature>.html`（临时草稿，发布后删除）
+- 正式 PRD: `docs/prd/<domain>/<feature>.md` → `.ai/preview/<domain>/<feature>.html`
 - 其他文档: `<path>/<name>.md` → `.ai/preview/<name>.html`
 
 Preview 是临时验证产物，不纳入版本控制。每次运行时重新生成。
 
 ## Source of Truth
 
-- Markdown 文档是正式结构化真相源。
+- Markdown 文档是当前 Preview 的结构化真相源。
 - HTML Preview 是从 Markdown 文档派生的可视化审阅视图。
 - HTML Preview 不允许引入源文档未声明的新需求、规则或约束。
 - 如果 Preview 为了演示流程使用示例数据，必须显式标注"示例数据，不是接口契约"。
@@ -83,7 +76,7 @@ Preview 使用固定结构：
 - 是否包含来源文档路径。
 - 是否没有出现接口端点清单、请求响应 schema、数据库设计或代码类型定义。
 
-PRD 专用检查项见 `protocols/prd-preview-contract.md`。
+PRD 专用检查项见 `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md`。
 
 违反 Preview 契约时：
 

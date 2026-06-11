@@ -55,18 +55,30 @@ class PreviewResult:
 
 
 def find_prd_files(root: Path, feature: str | None) -> list[Path]:
-    prd_root = root / "docs" / "prd"
-    if not prd_root.exists():
-        return []
-
-    files = [path for path in prd_root.rglob("*.md") if path.name != "00-index.md"]
+    draft_root = root / ".ai" / "prd"
+    published_root = root / "docs" / "prd"
+    draft_files = [path for path in draft_root.rglob("*.md") if path.name != "00-index.md"] if draft_root.exists() else []
+    published_files = [path for path in published_root.rglob("*.md") if path.name != "00-index.md"] if published_root.exists() else []
     if feature and feature != "--all":
         normalized = feature.lower()
-        files = [
+        draft_matches = [
             path
-            for path in files
+            for path in draft_files
             if path.stem.lower() == normalized or normalized in path.stem.lower()
         ]
+        if draft_matches:
+            return sorted(draft_matches)
+        return sorted(
+            path
+            for path in published_files
+            if path.stem.lower() == normalized or normalized in path.stem.lower()
+        )
+
+    draft_keys = {(path.parent.name, path.stem.lower()) for path in draft_files}
+    published_without_drafts = [
+        path for path in published_files if (path.parent.name, path.stem.lower()) not in draft_keys
+    ]
+    files = draft_files + published_without_drafts
     return sorted(files)
 
 
@@ -74,6 +86,8 @@ def detect_doc_type(source_path: Path, root: Path) -> str:
     try:
         relative = source_path.relative_to(root)
         parts = relative.parts
+        if len(parts) >= 4 and parts[0] == ".ai" and parts[1] == "prd":
+            return "prd"
         if len(parts) >= 3 and parts[0] == "docs" and parts[1] == "prd":
             return "prd"
     except ValueError:
@@ -85,6 +99,9 @@ def derive_preview_path(source_path: Path, root: Path) -> Path:
     try:
         relative = source_path.relative_to(root)
         parts = relative.parts
+        if len(parts) >= 4 and parts[0] == ".ai" and parts[1] == "prd":
+            domain = parts[2]
+            return root / ".ai" / "preview" / domain / source_path.with_suffix(".html").name
         if len(parts) >= 4 and parts[0] == "docs" and parts[1] == "prd":
             domain = parts[2]
             return root / ".ai" / "preview" / domain / source_path.with_suffix(".html").name

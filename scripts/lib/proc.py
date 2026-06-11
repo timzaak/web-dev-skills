@@ -239,7 +239,7 @@ def kill_process_by_port(port: int) -> bool:
             # Kill known backend build-tool parents only; other parents may be terminals or shells.
             if ppid:
                 parent_name = _get_process_name_windows(ppid)
-                if parent_name and parent_name.lower() in {"mvn.exe", "mvnw.cmd", "java.exe"}:
+                if parent_name and parent_name.lower() in {"mvn.exe", "java.exe"}:
                     try:
                         subprocess.run(
                             ["taskkill", "/PID", ppid, "/F", "/T"],

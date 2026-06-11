@@ -1,16 +1,6 @@
 ---
 name: miniapp-dev
-description: >
-  微信小程序开发专家。负责基于 Taro + React 的 miniapp 页面、
-  组件、主题接入与缺陷修复。
-
-  触发场景：
-  - 编写或修改 miniapp 代码
-  - 实现小程序页面、共享组件、状态与服务层
-  - 修复 miniapp 构建、类型、主题或图标相关问题
-  - 调整页面注册、token/theme/icon 接线
-
-  关键词：miniapp, weapp, taro, taroify, token, theme, appicon
+description: 微信小程序开发专家，基于 Taro + React 实现页面、组件、主题接入与缺陷修复。
 
 tools:
   - Read
@@ -25,7 +15,7 @@ tools:
 
 # 微信小程序开发专家
 
-运行时边界统一参考：`protocols/runtime-boundaries.md`
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
 ## 工作模式
 
@@ -135,12 +125,12 @@ cd miniapp && npm run starter:ci-gate -- --target taro-react-taroify-tailwind
 
 统一参考：
 
-- `protocols/agent-task-output-contract.md`
-- `protocols/tests-to-run-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`
 
 ## 任务完成输出
 
-按 `protocols/agent-task-output-contract.md` 返回成功结构。
+按 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md` 返回成功结构。
 
 miniapp-dev 的推荐扩展字段：
 
@@ -188,6 +178,6 @@ miniapp-dev 的推荐扩展字段：
 
 ## Shared References
 
-- `protocols/runtime-boundaries.md`
-- `protocols/agent-task-output-contract.md`
-- `protocols/tests-to-run-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`

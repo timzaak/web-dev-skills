@@ -12,7 +12,7 @@ allowed-tools:
 
 # 技术设计质量检查
 
-运行时边界统一参考：`protocols/runtime-boundaries.md`
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
 ## 目标
 - 评估技术设计文档的可实施性、完整性与一致性。
@@ -20,7 +20,7 @@ allowed-tools:
 - 输出 P0/P1/P2 修复清单。
 - 为后续任务拆解提供明确的设计质量门禁结论。
 
-评分维度、严重级别和报告要求统一参考：`protocols/design-check-rubric.md`
+评分维度、严重级别和报告要求统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-check-rubric.md`
 
 ## 使用方式
 ```bash
@@ -33,7 +33,7 @@ allowed-tools:
 
 ## 输入范围
 - 设计文档：`.ai/design/[feature].md`
-- 需求来源：`docs/user-stories/**/*.md`、`docs/prd/**/*.md`
+- 需求来源：`docs/user-stories/**/*.md`、`docs/prd/**/*.md`、`.ai/tech-research/**/*.md`
 - 规范来源：
   - `${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md`
   - `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md`
@@ -43,10 +43,11 @@ allowed-tools:
 
 ## 执行流程
 - 校验设计文档是否存在。
-- 从设计文档提取引用的用户故事、PRD、接口、数据库变更、前端范围、测试策略。
+- 从设计文档提取引用的用户故事、PRD、技术预研、接口、数据库变更、前端范围、测试策略。
 - 核对设计文档与需求来源的一致性。
+- 如果设计文档声明为纯技术方案且不涉及业务逻辑变动，可接受 `.ai/tech-research/[feature].md` 作为唯一需求来源；此时不得因缺少 PRD/用户故事扣 P0，但需要核对技术目标、约束、影响范围和风险是否一致。
 - 核对设计文档与项目规范的一致性。
-- 按 `protocols/design-check-rubric.md` 检查 API、数据库、前端与测试策略。
+- 按 `${CLAUDE_PLUGIN_ROOT}/protocols/design-check-rubric.md` 检查 API、数据库、前端与测试策略。
 - 生成评分与问题清单。
 - 写入报告：`.ai/quality/design-check-[feature]-[YYYYMMDD-HHMMSS].md`。
 
@@ -56,7 +57,7 @@ allowed-tools:
 |---|---|---|---|
 | `DESIGN_DOC_MISSING` | 设计文档不存在 | 未找到设计文档 | 先运行 `/t-design [feature]` |
 | `DESIGN_DOC_INVALID` | 设计文档缺少标题或主要章节结构 | 设计文档结构不完整 | 按模板补齐章节后重试 |
-| `REQUIREMENT_SOURCE_MISSING` | 无法定位任何关联的用户故事或 PRD | 未找到可追溯的需求来源 | 在设计文档中补充引用后重试 |
+| `REQUIREMENT_SOURCE_MISSING` | 无法定位任何关联的用户故事、PRD 或技术预研 | 未找到可追溯的需求来源 | 在设计文档中补充引用后重试 |
 | `REPORT_WRITE_FAILED` | 质量报告写入失败 | 无法写入检查报告 | 检查 `.ai/quality/` 目录权限后重试 |
 
 ## 示例
@@ -88,8 +89,3 @@ P1 问题:
 - 分项分值之和必须等于 100。
 - 每个扣分项必须有文件定位。
 - 结论必须可追溯到证据。
-
-## 相关引用
-
-- `protocols/runtime-boundaries.md`
-- `protocols/design-check-rubric.md`

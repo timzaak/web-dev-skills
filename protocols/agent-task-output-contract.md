@@ -1,7 +1,5 @@
 # Agent Task Output Contract
 
-定义实现类 agent 在完成或失败时返回的通用结构化结果。
-
 ## Success Envelope
 
 默认返回：
@@ -70,7 +68,7 @@
 
 ## `tests_to_run`
 
-字段结构和允许命令统一参考：`protocols/tests-to-run-contract.md`
+字段结构和允许命令统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`
 
 规则：
 

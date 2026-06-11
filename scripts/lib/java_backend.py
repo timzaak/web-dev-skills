@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 from .cli import require_executable
@@ -6,34 +5,20 @@ from .cli import require_executable
 
 def backend_dir(repo_root: Path) -> Path:
     nested = repo_root / "backend"
-    if (
-        (nested / "mvnw").is_file()
-        or (nested / "mvnw.cmd").is_file()
-        or (nested / "pom.xml").is_file()
-    ):
+    if (nested / "pom.xml").is_file():
         return nested
-    if (repo_root / "mvnw").is_file() or (repo_root / "mvnw.cmd").is_file() or (repo_root / "pom.xml").is_file():
+    if (repo_root / "pom.xml").is_file():
         return repo_root
     return nested
 
 
-def _script_path(path: Path) -> str:
-    if os.name == "nt" and path.with_suffix(path.suffix + ".cmd").is_file():
-        return str(path.with_suffix(path.suffix + ".cmd"))
-    return str(path)
-
-
 def detect_build_tool(root: Path) -> str:
-    if (root / "mvnw").is_file() or (root / "mvnw.cmd").is_file() or (root / "pom.xml").is_file():
+    if (root / "pom.xml").is_file():
         return "maven"
     raise RuntimeError("Backend changes detected, but no Maven build file was found in backend/.")
 
 
 def maven_command(root: Path, goals: list[str]) -> list[str]:
-    if os.name == "nt" and (root / "mvnw.cmd").is_file():
-        return [str(root / "mvnw.cmd"), *goals]
-    if (root / "mvnw").is_file():
-        return [_script_path(root / "mvnw"), *goals]
     return [require_executable("mvn", "mvn.cmd"), *goals]
 
 
@@ -45,7 +30,7 @@ def build_test_command(root: Path, extra_args: list[str] | None = None) -> list[
 
 def build_quality_commands(root: Path) -> list[list[str]]:
     detect_build_tool(root)
-    commands = [maven_command(root, ["test"])]
+    commands: list[list[str]] = []
     format_check = build_format_check_command(root)
     if format_check is not None:
         commands.append(format_check)
