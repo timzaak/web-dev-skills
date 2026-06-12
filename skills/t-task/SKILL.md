@@ -129,9 +129,9 @@ demo 阶段：
 - 按当前阶段 slot 串行调度相应 agent。每个 slot agent 必须通过 `Agent` tool 启动，`subagent_type` 按 Agent Dispatch Mapping 映射。传入 prompt 必须包含：设计文档相关节、上游 slot handoff（如有）、guide 路径、Agent Output Contract 要求的字段列表。
    - prompt 必须引用 `${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md`，要求 agent 在返回前自检 P0/P1 规则。
    - prompt 必须引用 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`，避免生成无法被 `/t-run` 执行的 item。
-   - backend/test slot prompt 必须要求读取 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`，并以该 guide 的测试入口、编写规则和验证命令作为硬性约束。
+   - backend/test slot prompt 必须要求读取 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`，并以该 guide 的测试入口、编写规则和验证命令作为硬性约束；后端 runner 命令必须写成目标项目内路径 `uv run scripts/backend-test.py -- [filter]`，不得写 `${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py`，也不得省略 `--`。
    - backend/test slot prompt 必须要求 runner item 汇总当前 slot 的 authoring 结果，依赖本轮相关测试 authoring item，并选择覆盖这些结果的最小定向测试命令。
-   - backend/test runner item 必须包含 `Expected Test Manifest`，列出每个 authoring item 产生或修改的测试文件、测试函数名和预期 runner 命令。
+   - backend/test runner item 必须包含 `Expected Test Manifest`，列出每个 authoring item 产生或修改的测试文件、测试函数名和预期 runner 命令；其中后端 runner 命令必须以 `uv run scripts/backend-test.py --` 开头。
    - frontend/test、miniapp/test 和 demo/dev 中涉及测试代码 authoring 时，也必须规划汇总型定向执行 item，用本轮测试代码产物推导验证范围，并包含 `Expected Test Manifest`（测试文件、用例标题或 grep pattern、来源 authoring item、预期 runner 命令）。
 - 每个 slot agent 必须返回：
    - slot manifest 正文
@@ -267,7 +267,7 @@ slot agent 输出必须至少包含：
 - 测试执行 item 只运行能覆盖上述来源的最小必要定向测试或构建/类型检查命令，不默认全量测试。
 - 如果定向测试因编译、类型生成或框架预编译产生额外耗时，item 需要在 `validation` 或 `completion_criteria` 中显式说明这是预期编译成本，并记录实际命令与耗时。
 - 只有当定向范围无法可靠覆盖风险，或用户/发布门禁明确要求时，才升级全量测试；升级原因必须写入 handoff。
-- 后端测试使用 `uv run scripts/backend-test.py -- [filter]`。需要串行执行时使用 `uv run scripts/backend-test.py -- --test-threads 1 [filter]`，并写明串行原因（例如全局状态、端口、单例或非隔离外部资源）。`cargo run` 只用于启动应用或导出 OpenAPI，不作为测试入口。
+- 后端测试必须使用目标项目内脚本入口 `uv run scripts/backend-test.py -- [filter]`；即使没有 filter，也必须写为 `uv run scripts/backend-test.py --`。不得写成 `${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py` 或省略 `--`。需要串行执行时使用 `uv run scripts/backend-test.py -- --test-threads 1 [filter]`，并写明串行原因（例如全局状态、端口、单例或非隔离外部资源）。`cargo run` 只用于启动应用或导出 OpenAPI，不作为测试入口。
 - accept item 必须依赖集中测试执行 item，不能只依赖测试 authoring item。
 
 各阶段建议：
@@ -291,6 +291,8 @@ authoring item 只创建或修改场景测试、测试 helper 和模块注册；
 runner item 只执行汇总后的定向测试、分析失败、委派生产代码修复和重测；测试语义可能错误时停止并输出诊断报告。runner 数量由验证范围决定：同一业务场景或 package/module 优先合并，互不相干且会影响恢复性的范围可拆为少量 runner。
 
 runner item 的 `Expected Test Manifest` 是测试覆盖校验的真源。生成后可用 `uv run scripts/check-test-runner-coverage.py <feature> --layer backend` 验证预期测试函数是否会被 runner 命令选中。
+
+runner item 中出现的每条后端测试命令都必须以 `uv run scripts/backend-test.py --` 开头；全量升级也写为 `uv run scripts/backend-test.py --` 并说明升级原因。
 
 backend/test slot 不规划源文件内单元测试；确有必要的高价值单元测试归入对应 backend/dev item。
 

@@ -11,7 +11,7 @@
 
 ## Allowed Commands
 
-- `backend`: `uv run scripts/backend-test.py -- [filter]`
+- `backend`: `uv run scripts/backend-test.py -- [filter]`（无 filter 时也写为 `uv run scripts/backend-test.py --`）
 - `frontend`: `cd frontend && npm run test:run -- [pattern]`
 - `miniapp`: `cd miniapp && npm run typecheck` 或 `cd miniapp && npm run build:weapp`
 - `demo`: `uv run scripts/demo-test-runner.py "[测试文件]" --run-id [RUN_ID] --grep "[测试标题]"`

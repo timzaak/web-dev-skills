@@ -43,7 +43,7 @@ npx jscpd --pattern "**/*.rs" --reporters console backend
 ```
 
 规则：
-- `backend-accept` 默认先做改动分析，再执行定向 `uv run scripts/backend-test.py -- <targeted filter>`；不得默认直接跑全量 `uv run scripts/backend-test.py`。
+- `backend-accept` 默认先做改动分析，再执行定向 `uv run scripts/backend-test.py -- <targeted filter>`；不得默认直接跑全量 `uv run scripts/backend-test.py --`。
 - 只有在用户明确要求全量测试，或影响范围无法可靠收敛时，`backend-accept` 才允许升级到全量测试；一旦升级，则全量结果也必须通过。
 - `backend-accept` 完成后，必须继续执行 backend finalize 收口。
 - 收口入口固定为 `/t-backend-finalize [feature]`，负责 `/code-review -> cargo clippy --fix -> cargo fmt --all -> OpenAPI 导出 -> 前端 API 生成`。

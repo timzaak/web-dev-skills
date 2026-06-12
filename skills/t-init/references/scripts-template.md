@@ -9,7 +9,7 @@
 uv run scripts/test-start.py
 
 # 运行后端测试
-uv run scripts/backend-test.py
+uv run scripts/backend-test.py --
 
 # 停止测试依赖
 uv run scripts/test-stop.py

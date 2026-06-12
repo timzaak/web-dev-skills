@@ -162,7 +162,7 @@ cd backend && cargo check --package <api-package>
     "tests_to_run": [
       {
         "layer": "backend",
-        "command": "uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- <related_test_filter>",
+        "command": "uv run scripts/backend-test.py -- <related_test_filter>",
         "reason": "修改了后端业务逻辑，需要回归相关场景",
         "required": true
       }

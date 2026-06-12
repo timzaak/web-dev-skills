@@ -40,7 +40,7 @@ tools:
 - 先分析改动范围与上游 handoff，再执行编译与定向测试命令
 - 执行重复代码扫描并保留报告证据
 - 收集失败证据与日志
-- 默认不直接运行全量 `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py`
+- 默认不直接运行全量 `uv run scripts/backend-test.py --`
 - 仅在用户明确要求全量测试，或影响范围无法可靠收敛时，才升级为全量测试
 
 ### 步骤 2：环境验证（MANDATORY）
@@ -71,4 +71,4 @@ tools:
 - ❌ 未经授权不得修改代码
 - ✅ 每条结论必须标明文件来源
 - ❌ 禁止空泛建议
-- ❌ 禁止把全量 `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py` 当作 `backend-accept` 的默认步骤
+- ❌ 禁止把全量 `uv run scripts/backend-test.py --` 当作 `backend-accept` 的默认步骤
