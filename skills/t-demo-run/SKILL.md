@@ -12,7 +12,6 @@ allowed-tools:
   - TaskUpdate
   - TaskList
   - TaskGet
-  - Write
   - Agent
 ---
 
@@ -82,13 +81,6 @@ uv run scripts/demo-test-runner.py "[测试文件]" --run-id [RUN_ID] --grep "[�
 
 - 汇总输出。
 - 控制台输出通过/修复/失败统计。
-- 写入 `.ai/quality/demo-run-[name]-[YYYYMMDD-HHMMSS].md`。
-- 报告必须包含：
-  - `whole_file_result`
-  - `fix_attempts`
-  - `related_tests`（命令、层级、结果、耗时、reason）
-  - `demo_result`
-  - `overall_risk`（当补测失败但 Demo 通过时标记"通过但高风险"）
 
 ## 恢复机制
 当流程中断时：
@@ -107,4 +99,4 @@ uv run scripts/demo-test-runner.py "[测试文件]" --run-id [RUN_ID] --grep "[�
 - 拆分后的用例执行必须串行。
 - 每个失败用例必须有诊断记录。
 - 每次修复后必须先执行相关层补测，再执行 Demo 验证。
-- 必须输出最终汇总。
+- 必须输出控制台汇总。

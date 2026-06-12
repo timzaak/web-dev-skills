@@ -253,7 +253,7 @@ allowed-tools:
 - 文档路径
 - 本次设计覆盖的核心范围
 - 关键风险或待确认点
-- 下一步命令：`/t-task $ARGUMENTS`
+- 下一步命令：`/t-design-check $ARGUMENTS`
 
 ## 用户故事引用规则
 

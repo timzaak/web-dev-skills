@@ -140,59 +140,6 @@ Subagent 按工程角色拆分：
 
 Agent 文档只说明"什么时候读这些 guide、如何执行、返回什么"，不把 guide 里的规则再写一遍。这样可以减少规则漂移。
 
-## 从 PRD 到交付的流程
-
-T-Tools 推荐的完整链路：
-
-```mermaid
-%%{init: {'flowchart': {'defaultRenderer': 'elk'}}}%%
-flowchart TD
-    subgraph Init["初始化（可选）"]
-        direction LR
-        A1["t-init"] --> A2["t-tech-research"]
-    end
-
-    subgraph PRD["PRD"]
-        B1["t-prd"] --> B2{"t-prd-check"}
-        B2 -->|未通过| B1
-    end
-
-    subgraph Design["设计"]
-        C1["t-design"] --> C2{"t-design-check"}
-        C2 -->|未通过| C1
-    end
-
-    subgraph Task["任务"]
-        D1["t-task"] --> D2{"t-task-check"}
-        D2 -->|未通过| D1
-    end
-
-    subgraph Dev["开发"]
-        E1["t-run"] --> E2["code-review"]
-        E2 --> E3["t-backend-finalize（仅后端）"]
-    end
-
-    subgraph Demo["Demo"]
-        F1["t-demo-run"] --> F2{"t-demo-accept"}
-        F2 -->|未通过| F1
-    end
-
-    subgraph Post["后续"]
-        G1["t-prd-publish"] --> G2["t-push"] --> G3["t-release"]
-    end
-
-    A2 -.-> B1
-    B2 -->|通过| C1
-    C2 -->|通过| D1
-    D2 -->|通过| E1
-    E3 --> F1
-    F2 -->|通过| G1
-```
-
-这条链路把 AI 编程拆成产品定义、设计、任务规划、实现、测试、验收、Demo 交付和发布多个阶段。每个阶段都有输入契约、输出契约和质量门禁。菱形节点是质量门禁，未通过时回到当前阶段修正；虚线表示可选路径。
-
-关键点是不要跳过 check / accept。这个项目的价值不只是生成内容，而是在每个阶段收口，避免把上游问题带到下游。
-
 ## t-prd 的设计思路：让 AI 产物先被人看懂
 
 `t-prd` 的核心变化不是"多生成一个 HTML 文件"，而是改变人类审阅 AI 产物的方式。
