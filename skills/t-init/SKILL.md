@@ -424,6 +424,10 @@ allowed-tools:
 - [ ] `scripts/demo-run-all.py`
 - [ ] `scripts/demo-start.py`
 - [ ] `scripts/demo-stop.py`
+- [ ] `scripts/debug-test.py`
+- [ ] `scripts/cleanup-demo.py`
+- [ ] `scripts/cleanup-test-logs.py`
+- [ ] `scripts/demo-failure-summary.py`
 - [ ] `scripts/lib/*.py`
 - [ ] `README.md`
 
