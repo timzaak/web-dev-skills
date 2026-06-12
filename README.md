@@ -20,6 +20,8 @@
 
 推荐先读 [human/structure.md](/human/structure.md)，理解 skill、subagent、protocol 如何协同驱动 AI 编程。
 
+![T-Tools 知识图谱](knowledge-graph.png)
+
 ## 3 分钟快速上手
 
 前置条件：
