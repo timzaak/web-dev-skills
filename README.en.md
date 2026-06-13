@@ -163,7 +163,3 @@ Prerequisites:
 - [Herald](https://github.com/timzaak/herald) — A multi-tenant authentication and authorization system (Rust Axum + SeaORM + PostgreSQL / React 19 + TanStack), providing auth services for both single-tenant and multi-tenant scenarios
 - [RMQTT-Things](https://github.com/timzaak/rmqtt-things) — An IoT thing-model management platform built on RMQTT (Rust Axum + SQLx + PostgreSQL / React 19 + TanStack), with device management, command delivery, OTA firmware updates, and TLS certificate issuance
 - [RWiki](https://github.com/timzaak/rwiki) — An AI-enhanced knowledge base built on Wiki.js data (Rust Axum + SQLx + PostgreSQL / React 19 + TanStack), with wiki content sync, semantic search, and intelligent Q&A
-
-## Dependencies
-
-- `Context7`: used by `backend-dev`, `backend-test`, `frontend-dev`, and `frontend-test` to query third-party library documentation
