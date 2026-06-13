@@ -131,11 +131,7 @@ subagent 的详细规则见 `${CLAUDE_PLUGIN_ROOT}/agents/html-show.md` 和 `${C
 
 ### 5. 打开 Preview
 
-生成完成后，运行：
-
-```bash
-python ${CLAUDE_PLUGIN_ROOT}/scripts/open-html-show.py <preview-path> --root .
-```
+生成完成后，用系统默认浏览器打开 `<preview-path>`（例如 `.ai/preview/<domain>/[feature].html`）。
 
 ### 6. 收尾
 
@@ -165,6 +161,5 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/open-html-show.py <preview-path> --root .
 - HTML Preview 模板：`${CLAUDE_PLUGIN_ROOT}/templates/preview-template.html`
 - HTML Preview 通用契约：`${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md`
 - HTML Preview PRD 契约：`${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md`
-- HTML Preview 打开脚本：`${CLAUDE_PLUGIN_ROOT}/scripts/open-html-show.py`
 - HTML Preview 检查脚本：`${CLAUDE_PLUGIN_ROOT}/scripts/check-html-show.py`
 - HTML Preview subagent：`${CLAUDE_PLUGIN_ROOT}/agents/html-show.md`

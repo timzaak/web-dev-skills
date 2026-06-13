@@ -174,8 +174,53 @@ Subagent prompt 必须要求：
 - [ ] `backend/src/main/resources/application.yml`
 - [ ] `backend/src/test/java/{{PROJECT_PACKAGE_PATH}}/{{PROJECT_NAME_PASCAL}}ApplicationTests.java`
 
-**前端、脚本、AI 辅助配置和 Demo E2E 测试：**
-- 按 [references/frontend-template.md](references/frontend-template.md)、[references/demo-template.md](references/demo-template.md) 和本文件 Step 6/7 输出清单确认。
+**前端（必须）：**
+- [ ] `frontend/package.json`
+- [ ] `frontend/tsconfig.json`
+- [ ] `frontend/vite.config.ts`
+- [ ] `frontend/openapi-ts.config.ts`
+- [ ] `frontend/index.html`
+- [ ] `frontend/src/main.tsx`
+- [ ] `frontend/src/styles.css`
+- [ ] `frontend/src/routes/__root.tsx`
+- [ ] `frontend/src/routes/index.tsx`
+- [ ] `frontend/src/components/ui/sonner.tsx`（由 shadcn CLI 生成）
+- [ ] `frontend/src/lib/api-client.ts`
+
+**脚本和文档：**
+- [ ] `scripts/backend-test.py`
+- [ ] `scripts/test-start.py`
+- [ ] `scripts/test-stop.py`
+- [ ] `scripts/demo-test-runner.py`
+- [ ] `scripts/demo-run-all.py`
+- [ ] `scripts/demo-start.py`
+- [ ] `scripts/demo-stop.py`
+- [ ] `scripts/debug-test.py`
+- [ ] `scripts/cleanup-demo.py`
+- [ ] `scripts/cleanup-test-logs.py`
+- [ ] `scripts/demo-failure-summary.py`
+- [ ] `scripts/lib/*.py`
+- [ ] `README.md`
+
+**AI 辅助配置（必须）：**
+- [ ] `AGENTS.md`
+- [ ] `CLAUDE.md`
+
+**Demo E2E 测试（必须）：**
+- [ ] `demo/package.json`
+- [ ] `demo/tsconfig.json`
+- [ ] `demo/playwright.config.ts`
+- [ ] `demo/eslint.config.js`
+- [ ] `demo/.gitignore`
+- [ ] `demo/e2e/smoke.e2e.ts`（冒烟测试，不依赖后端）
+- [ ] `demo/e2e/demo-basic.e2e.ts`
+- [ ] `demo/e2e/fixtures/demo-auth.fixtures.ts`
+- [ ] `demo/e2e/fixtures/test-data.ts`
+- [ ] `demo/e2e/helpers/auth.ts`
+- [ ] `demo/e2e/helpers/environment-setup.ts`
+- [ ] `demo/e2e/pages/base-page.ts`
+- [ ] `demo/e2e/pages/login-page.ts`
+- [ ] `demo/e2e/selectors.ts`
 
 ## 收尾输出
 

@@ -11,7 +11,7 @@
 
 ## Allowed Commands
 
-- `backend`: `uv run scripts/backend-test.py -- [filter]`
+- `backend`: `uv run scripts/backend-test.py -- [filter]`（无 filter 时也写为 `uv run scripts/backend-test.py --`）
 - `backend`: Java/Spring 质量检查命令，仅在修改影响编译、静态检查或格式检查时返回：
   - Maven：`cd backend && mvn test`、`cd backend && mvn verify`，或目标项目 `pom.xml` 已配置的质量检查 goal
 - `frontend`: `cd frontend && npm run test:run -- [pattern]`

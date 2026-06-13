@@ -253,7 +253,8 @@ allowed-tools:
 - 文档路径
 - 本次设计覆盖的核心范围
 - 关键风险或待确认点
-- 下一步命令：`/t-task $ARGUMENTS`
+- 下一步命令：`/t-design-check $ARGUMENTS`
+- 如文档内容较多或结构复杂，可使用 `/t-html-show .ai/design/$ARGUMENTS.md` 生成 HTML 可视化预览，方便人类快速审阅
 
 ## 用户故事引用规则
 

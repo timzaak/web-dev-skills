@@ -26,7 +26,7 @@ Prerequisites:
 
 - The t-tools plugin has been loaded by following the [Installation](#installation) steps
 - The target project has runtime directories: `docs/` and `.ai/`
-- `context7` is enabled
+- [`context7`](https://github.com/upstash/context7) is enabled
 
 Minimal end-to-end example:
 
@@ -156,12 +156,8 @@ claude --plugin-dir /path/to/skills
 Prerequisites:
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI is installed and logged in
-- MCP Server `context7` is configured for third-party library documentation lookup
+- MCP Server [`context7`](https://github.com/upstash/context7) is configured for third-party library documentation lookup
 
 ## Projects Using This Plugin
 
 - Java Spring Boot + React target projects can load this plugin and use the `t-*` workflow for requirements, design, tasks, implementation, acceptance, and demo delivery.
-
-## Dependencies
-
-- `Context7`: used by `backend-dev`, `backend-test`, `frontend-dev`, and `frontend-test` to query third-party library documentation

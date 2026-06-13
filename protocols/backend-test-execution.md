@@ -33,15 +33,15 @@
 
 ## Allowed Commands
 
-- `uv run scripts/backend-test.py`
+- `uv run scripts/backend-test.py --`
 - `uv run scripts/backend-test.py -- <test_name>`
 - `uv run scripts/backend-test.py -- --tests '*UserServiceTest'`
 - `uv run scripts/backend-test.py -- --tests '*UserServiceTest.createSuccess'`
 - `uv run scripts/backend-test.py -- --module user-service --tests '*UserServiceTest'`
 
-runner 命令以覆盖来源和变更范围推导；同一业务场景或 package/module 使用同一个最小可靠命令。全量 `uv run scripts/backend-test.py` 仅在定向范围不可靠或门禁要求时使用。
+runner 命令以覆盖来源和变更范围推导；同一业务场景或 package/module 使用同一个最小可靠命令。全量 `uv run scripts/backend-test.py --` 仅在定向范围不可靠或门禁要求时使用。
 
-后端测试命令使用 `uv run scripts/backend-test.py -- [filter]`。需要串行执行时使用 `uv run scripts/backend-test.py -- --test-threads 1 [filter]`，并记录串行原因（例如全局状态、端口、单例或非隔离外部资源）。`cargo run` 只用于启动应用或导出 OpenAPI，不作为测试入口。
+后端测试命令必须使用目标项目内脚本入口 `uv run scripts/backend-test.py -- [filter]`；即使没有 filter，也必须写为 `uv run scripts/backend-test.py --`。不得写成 `${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py` 或省略 `--`。需要串行执行时使用 `uv run scripts/backend-test.py -- --test-threads 1 [filter]`，并记录串行原因（例如全局状态、端口、单例或非隔离外部资源）。`cargo run` 只用于启动应用或导出 OpenAPI，不作为测试入口。
 
 ## Coverage Manifest
 

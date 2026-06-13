@@ -246,7 +246,7 @@ create 路径使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-prd/template.md
 源文档: .ai/prd/<domain>/[feature].md
 ```
 
-`html-show` subagent 会基于指定草稿生成 `.ai/preview/<domain>/[feature].html`。生成完成后运行 `${CLAUDE_PLUGIN_ROOT}/scripts/open-html-show.py` 打开浏览器。
+`html-show` subagent 会基于指定草稿生成 `.ai/preview/<domain>/[feature].html`。生成完成后用系统默认浏览器打开该 HTML 文件。
 
 如果 html-show 失败，终止并报告，不能只交付 Markdown PRD 草稿。
 

@@ -26,7 +26,7 @@ COMMAND_MARKERS = {
 
 TEST_TOKEN_RE = re.compile(r"`([^`]+)`")
 COMMAND_LINE_RE = re.compile(
-    r"(?P<command>(?:uv\s+run\s+scripts/backend-test\.py|uv\s+run\s+scripts\\backend-test\.py|"
+    r"(?P<command>(?:uv\s+run\s+(?:\$\{CLAUDE_PLUGIN_ROOT\}/)?scripts/backend-test\.py|uv\s+run\s+(?:\$\{CLAUDE_PLUGIN_ROOT\}\\)?scripts\\backend-test\.py|"
     r"(?:cd\s+\S+\s+&&\s+)?npm\s+run\s+(?:test(?::run)?|typecheck|build(?::[A-Za-z0-9_-]+)?)|"
     r"uv\s+run\s+scripts/demo-test-runner\.py|uv\s+run\s+scripts\\demo-test-runner\.py)"
     r"[^\n`]*)"
@@ -149,8 +149,8 @@ def is_full_suite_command(command: str, layer: str) -> bool:
     normalized = " ".join(command.strip().split())
     if layer == "backend":
         return normalized in {
-            "uv run scripts/backend-test.py",
-            "uv run scripts\\backend-test.py",
+            "uv run scripts/backend-test.py --",
+            "uv run scripts\\backend-test.py --",
         }
     if layer == "frontend":
         return re.fullmatch(r"(?:cd\s+\S+\s+&&\s+)?npm\s+run\s+test(?::run)?", normalized) is not None
@@ -188,6 +188,31 @@ def parse_backend_nextest_args(command: str) -> list[str]:
     if rest and rest[0] == "--":
         return rest[1:]
     return rest
+
+
+def backend_command_errors(command: str) -> list[str]:
+    normalized = command.replace("\\", "/")
+    parts = normalized.split()
+    errors: list[str] = []
+    script_part = next((part for part in parts if part.endswith("scripts/backend-test.py")), "")
+    if "${CLAUDE_PLUGIN_ROOT}" in normalized:
+        errors.append(
+            "Backend test command must use target project script path: "
+            "uv run scripts/backend-test.py -- [filter]"
+        )
+    if script_part and not script_part == "scripts/backend-test.py":
+        errors.append(
+            "Backend test command must not use plugin-root or absolute script paths: "
+            "uv run scripts/backend-test.py -- [filter]"
+        )
+    try:
+        idx = next(i for i, part in enumerate(parts) if part.endswith("scripts/backend-test.py"))
+    except StopIteration:
+        return errors
+    rest = parts[idx + 1 :]
+    if not rest or rest[0] != "--":
+        errors.append("Backend test command must include '--' after scripts/backend-test.py.")
+    return errors
 
 
 def list_backend_tests(root: Path, command: str) -> tuple[int, set[str], str]:
@@ -238,11 +263,16 @@ def check_runner(root: Path, path: Path, dynamic: bool) -> RunnerCheck:
         errors.append("No test runner command found.")
 
     for command in commands:
+        if layer == "backend":
+            command_errors = backend_command_errors(command)
+            errors.extend(command_errors)
         if is_full_suite_command(command, layer) and not has_full_suite_reason(content):
             errors.append(f"Full-suite command lacks escalation reason: {command}")
 
     if dynamic and layer == "backend" and commands:
         for command in commands:
+            if backend_command_errors(command):
+                continue
             if is_full_suite_command(command, layer):
                 continue
             code, listed, stderr = list_backend_tests(root, command)

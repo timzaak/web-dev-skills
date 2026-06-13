@@ -83,7 +83,7 @@ tools:
     "validation": [
       {"command": "cd backend && mvn test -DskipTests", "status": "passed|failed|skipped", "reason": "说明"}
     ],
-    "suggested_runner_command": "uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py -- <test_name>"
+    "suggested_runner_command": "uv run scripts/backend-test.py -- <test_name>"
   }
 }
 ```

@@ -7,14 +7,14 @@
 推荐入口：
 
 ```bash
-uv run scripts/backend-test.py
+uv run scripts/backend-test.py --
 ```
 
 需要显式复用环境时：
 
 ```bash
 uv run scripts/test-start.py
-uv run scripts/backend-test.py
+uv run scripts/backend-test.py --
 uv run scripts/test-stop.py
 ```
 
@@ -41,7 +41,7 @@ uv run scripts/test-stop.py
 常用命令：
 
 ```bash
-uv run scripts/backend-test.py
+uv run scripts/backend-test.py --
 uv run scripts/backend-test.py -- --tests '*UserRegistration*'
 uv run scripts/backend-test.py -- --tests '*UserRegistrationTest.createSuccess'
 ```
