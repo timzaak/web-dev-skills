@@ -38,7 +38,7 @@ tools:
   "tech_stack": {"frontend": "React, TanStack Router, React Query"},
   "relevant_sections": {
     "frontend_design": ["## 4.4 前端设计"],
-    "frontend_testing": ["## 5. 测试策略"]
+    "frontend_testing": ["## 6. 测试策略"]
   },
   "context_summary": "前端阶段所需最小上下文，聚焦页面、组件、状态与测试。"
 }

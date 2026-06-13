@@ -221,6 +221,10 @@ slot agent 输出必须至少包含：
 状态字段、执行顺序、依赖选择统一以 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 和
 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 为准，不在本文件重复定义第二套状态机。
 
+### Cargo 命令包名核验
+
+item 中任何 `cargo check|run|test|clippy|nextest --package <name>` 命令的 `<name>` 必须与 `backend/<dir>/Cargo.toml` 中 `[package]` 段的 `name = "..."` 实际值一致；不得假设包名等于目录名（典型反例：`backend/core/` 的包名通常是 `<crate>-core`，而非 `core`）。生成 item 前先 `Read` 对应 `Cargo.toml` 核对，再把命令写入 Validation 或 Steps 节。
+
 ## Splitting Rules
 必须拆分 item，如果任一条件成立：
 - 预计超过 1 天才能完成。

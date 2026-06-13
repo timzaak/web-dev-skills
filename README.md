@@ -28,7 +28,7 @@
 
 - 已按下方 [安装](#安装) 步骤加载 t-tools 插件
 - 目标项目具备运行时目录：`docs/`、`.ai/`
-- 已启用 `context7`
+- 已启用 [`context7`](https://github.com/upstash/context7)
 
 最短闭环示例：
 
@@ -91,7 +91,7 @@ claude --plugin-dir /path/to/skills
 前置依赖：
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI 能正常使用
-- MCP Server `context7` 已配置（用于查询第三方库文档）
+- MCP Server [`context7`](https://github.com/upstash/context7) 已配置（用于查询第三方库文档）
 
 ## 使用本插件的项目
 
