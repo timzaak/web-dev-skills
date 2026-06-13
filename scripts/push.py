@@ -100,7 +100,7 @@ def npm_script_step(name: str, app_dir: Path, script: str, *, optional: bool = F
     return Step(name=name, command=[npm, "run", script], cwd=app_dir)
 
 
-def backend_steps() -> list[Step]:
+def backend_steps(*, skip_tests: bool = False) -> list[Step]:
     root = backend_dir(REPO_ROOT)
     detect_build_tool(root)
     return [
@@ -109,15 +109,19 @@ def backend_steps() -> list[Step]:
     ]
 
 
-def frontend_steps() -> list[Step]:
+def frontend_steps(*, skip_tests: bool = False) -> list[Step]:
     frontend_dir = REPO_ROOT / "frontend"
     steps: list[Step] = []
-    for name, script, optional in (
+    all_items = [
         ("Frontend lint", "lint", False),
         ("Frontend format check", "format:check", True),
         ("Frontend type check", "type-check", False),
         ("Frontend tests", "test:run", True),
-    ):
+    ]
+    for name, script, optional in all_items:
+        if skip_tests and script == "test:run":
+            print(f"Skipping {name}: --skip-tests", flush=True)
+            continue
         step = npm_script_step(name, frontend_dir, script, optional=optional)
         if step:
             steps.append(step)
@@ -146,10 +150,11 @@ def run_steps(area: str, steps: list[Step]) -> None:
             raise RuntimeError(f"{step.name} failed with exit code {result.returncode}.")
 
 
-def run_ci(areas: set[str]) -> None:
+def run_ci(areas: set[str], *, skip_tests: bool = False) -> None:
+    kw = {"skip_tests": skip_tests}
     builders = {
-        "backend": backend_steps,
-        "frontend": frontend_steps,
+        "backend": lambda: backend_steps(**kw),
+        "frontend": lambda: frontend_steps(**kw),
         "demo": demo_steps,
     }
     selected = {area: builders[area]() for area in sorted(areas)}
@@ -216,6 +221,7 @@ def main() -> int:
     parser.add_argument("--no-push", action="store_true", help="Create the commit locally without pushing.")
     parser.add_argument("--checks-only", action="store_true", help="Run selected local CI checks without committing or pushing.")
     parser.add_argument("--dry-run", action="store_true", help="Inspect changes and selected checks without running CI or committing.")
+    parser.add_argument("--skip-tests", action="store_true", help="Skip test steps in local CI checks.")
     args = parser.parse_args()
 
     try:
@@ -244,7 +250,7 @@ def main() -> int:
         if args.dry_run:
             return 0
 
-        run_ci(areas)
+        run_ci(areas, skip_tests=args.skip_tests)
         if args.checks_only:
             print("Selected local CI checks passed; no commit or push performed.")
             return 0
