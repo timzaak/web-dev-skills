@@ -4,10 +4,10 @@
 
 ## 入口
 
-推荐入口：
+后端测试统一使用目标项目内脚本入口：
 
 ```bash
-uv run scripts/backend-test.py --
+uv run scripts/backend-test.py -- [filter]
 ```
 
 需要显式复用环境时：
@@ -40,12 +40,20 @@ uv run scripts/test-stop.py
 常用命令：
 
 ```bash
+# 全量后端测试
 uv run scripts/backend-test.py --
+
+# 按测试名或 pattern 定向执行
 uv run scripts/backend-test.py -- test_scenario
+
+# 运行最近失败的测试
 uv run scripts/backend-test.py -- -R latest
+
+# 使用 nextest 表达式收敛范围
+uv run scripts/backend-test.py -- -E 'package(<crate>) and test(<pattern>)'
 ```
 
-后端测试统一使用 `uv run scripts/backend-test.py -- [filter]`。需要串行执行时，仍使用统一入口并传递 nextest 参数：`uv run scripts/backend-test.py -- --test-threads 1 [filter]`，同时说明串行原因（例如全局状态、端口、单例或非隔离外部资源）。`cargo run` 只适用于启动应用、导出 OpenAPI 等二进制入口，不作为测试入口。
+`[filter]` 是传给底层测试运行器的可选参数；没有 filter 时命令就是 `uv run scripts/backend-test.py --`。需要串行执行时，仍使用同一入口并传递 nextest 参数：`uv run scripts/backend-test.py -- --test-threads 1 [filter]`，同时说明串行原因（例如全局状态、端口、单例或非隔离外部资源）。
 
 格式与静态检查收口：
 

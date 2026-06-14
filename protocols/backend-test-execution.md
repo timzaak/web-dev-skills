@@ -31,17 +31,27 @@
 - 多处局部影响但仍可收敛 => `package + test(pattern)`。
 - 跨 crate 或影响不清晰 => 记录原因后升级全量。
 
-## Allowed Commands
+## Backend Test Command
 
-- `uv run scripts/backend-test.py --`
-- `uv run scripts/backend-test.py -- <test_name>`
-- `uv run scripts/backend-test.py -- -E 'package(<crate>)'`
-- `uv run scripts/backend-test.py -- -E 'test(<pattern>)'`
-- `uv run scripts/backend-test.py -- -E 'package(<crate>) and test(<pattern>)'`
+后端测试统一使用：
+
+```bash
+uv run scripts/backend-test.py -- [filter]
+```
+
+常用形态：
+
+```bash
+uv run scripts/backend-test.py --
+uv run scripts/backend-test.py -- <test_name>
+uv run scripts/backend-test.py -- -E 'package(<crate>)'
+uv run scripts/backend-test.py -- -E 'test(<pattern>)'
+uv run scripts/backend-test.py -- -E 'package(<crate>) and test(<pattern>)'
+```
 
 runner 命令以覆盖来源和变更范围推导；同一业务场景或 package/module 使用同一个最小可靠命令。全量 `uv run scripts/backend-test.py --` 仅在定向范围不可靠或门禁要求时使用。
 
-后端测试命令必须使用目标项目内脚本入口 `uv run scripts/backend-test.py -- [filter]`；即使没有 filter，也必须写为 `uv run scripts/backend-test.py --`。不得写成 `${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py` 或省略 `--`。需要串行执行时使用 `uv run scripts/backend-test.py -- --test-threads 1 [filter]`，并记录串行原因（例如全局状态、端口、单例或非隔离外部资源）。`cargo run` 只用于启动应用或导出 OpenAPI，不作为测试入口。
+`[filter]` 是可选参数；没有 filter 时命令就是 `uv run scripts/backend-test.py --`。需要串行执行时使用 `uv run scripts/backend-test.py -- --test-threads 1 [filter]`，并记录串行原因（例如全局状态、端口、单例或非隔离外部资源）。
 
 ## Coverage Manifest
 

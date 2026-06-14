@@ -58,7 +58,7 @@ tools:
 - 只修改 `*_scenarios.rs`、测试 helper、模块注册等测试拥有的文件。
 - validation 只要求 `cd backend && cargo check --tests` 或建议 runner 命令。
 - completion criteria 不得要求目标测试全部通过。
-- 需要真正执行目标测试时，交给 runner item 使用 `${CLAUDE_PLUGIN_ROOT}/skills/t-backend-test-run/SKILL.md`。
+- 需要真正执行目标测试时，交给 runner item 使用 `${CLAUDE_PLUGIN_ROOT}/skills/t-backend-test-run/SKILL.md`，runner 命令统一写成 `uv run scripts/backend-test.py -- [filter]`。
 
 ## Planning Contract
 
@@ -67,6 +67,7 @@ tools:
 - runner item 汇总本轮新增或修改的场景测试 authoring item。
 - runner item 必须声明 `agent: general-purpose`、`test_item_type: runner`、`uses_skill: skills/t-backend-test-run/SKILL.md`。
 - runner item 必须依赖本轮全部相关 authoring item，并负责基于覆盖来源选择定向测试、失败分类、生产代码修复委派和重测。
+- runner item 的测试命令使用 `uv run scripts/backend-test.py -- [filter]`；优先写能覆盖相关 authoring item 的最窄可靠 filter。
 - runner 拆分以验证范围为准：同一业务场景或 package/module 优先合并，互不相干且会影响恢复性的范围可拆分。
 - 不得生成 `agent: backend-test-run`。
 
