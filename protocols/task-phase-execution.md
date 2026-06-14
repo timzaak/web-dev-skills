@@ -174,7 +174,7 @@ backend/test slot 必须显式规划测试执行闭环：
 - `runner` item 的 `agent` 必须为 `general-purpose`，并声明 `uses_skill: skills/t-backend-test-run/SKILL.md`。
 - `runner` item 必须依赖本轮全部相关 `authoring` item。
 - `runner` item 中出现的每条后端测试命令都必须以 `uv run scripts/backend-test.py --` 开头；没有 filter 时也写成 `uv run scripts/backend-test.py --`。
-- 需要串行执行时，使用 `uv run scripts/backend-test.py -- --test-threads 1 [filter]`，并写明串行原因。
+- 需要串行执行时，使用 `uv run scripts/backend-test.py -- [filter]`，并写明串行原因。
 - 不得写 `${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py`，也不得省略 `--`；目标项目本地脚本失败时不得改用插件脚本绕过。
 - backend/accept item 必须依赖至少一个 `runner` item，不得只依赖 `authoring` item。
 - `t-backend-test-run` 不得作为 agent 出现在 item 中。

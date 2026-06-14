@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 """Check that task runner items cover their planned tests.
 
-This is a planning gate. It does not execute tests. For Rust backend runners it
-can ask cargo-nextest to list the tests selected by the documented command.
-Frontend and demo runners are checked statically because project scripts vary.
+This is a planning gate. It does not execute tests. For Java/Maven backend
+runners it statically enumerates the @Test methods selected by the documented
+--module / --tests filter. Frontend and demo runners are checked statically
+because project scripts vary.
 """
 
 from __future__ import annotations
 
 import argparse
+import fnmatch
 import re
 import shlex
-import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -107,9 +108,9 @@ def is_probable_test_token(token: str) -> bool:
     if not token:
         return False
     lower = token.lower()
-    if any(part in token for part in ("/", "\\", ".md", ".rs", ".ts", ".tsx", ".py")):
+    if any(part in token for part in ("/", "\\", ".md", ".java", ".ts", ".tsx", ".py")):
         return False
-    if lower.startswith(("uv ", "cd ", "npm ", "cargo ", "skills/")):
+    if lower.startswith(("uv ", "cd ", "npm ", "mvn ", "skills/")):
         return False
     if lower in {"backend", "frontend", "miniapp", "demo", "authoring", "runner", "none"}:
         return False
@@ -174,7 +175,8 @@ def has_full_suite_reason(content: str) -> bool:
     )
 
 
-def parse_backend_nextest_args(command: str) -> list[str]:
+def parse_backend_filter(command: str) -> tuple[str | None, list[str]]:
+    """Return (module, test_patterns) parsed from a backend-test.py command."""
     normalized = command.replace("\\", "/")
     try:
         parts = shlex.split(normalized, posix=True)
@@ -183,11 +185,29 @@ def parse_backend_nextest_args(command: str) -> list[str]:
     try:
         idx = next(i for i, part in enumerate(parts) if part.endswith("backend-test.py"))
     except StopIteration:
-        return []
+        return None, []
     rest = parts[idx + 1 :]
     if rest and rest[0] == "--":
-        return rest[1:]
-    return rest
+        rest = rest[1:]
+    module: str | None = None
+    patterns: list[str] = []
+    i = 0
+    while i < len(rest):
+        arg = rest[i]
+        if arg == "--module" and i + 1 < len(rest):
+            module = rest[i + 1]
+            i += 2
+            continue
+        if arg == "--tests" and i + 1 < len(rest):
+            patterns.append(rest[i + 1])
+            i += 2
+            continue
+        if arg.startswith("-"):
+            i += 1
+            continue
+        patterns.append(arg)  # bare positional filter, e.g. a test name
+        i += 1
+    return module, patterns
 
 
 def backend_command_errors(command: str) -> list[str]:
@@ -215,30 +235,121 @@ def backend_command_errors(command: str) -> list[str]:
     return errors
 
 
+MODIFIER_TOKENS = {
+    "public", "protected", "private", "static", "final", "default",
+    "synchronized", "abstract", "native", "strictfp", "transient",
+    "volatile", "void", "class", "interface", "enum", "record",
+    "return", "new", "throws",
+}
+
+CLASS_DECL_RE = re.compile(r"\b(?:class|interface|enum|record)\s+(\w+)")
+
+
+def backend_root_for(root: Path) -> Path:
+    nested = root / "backend"
+    if (nested / "pom.xml").is_file():
+        return nested
+    if (root / "pom.xml").is_file():
+        return root
+    return nested
+
+
+def is_backend_test_source(path: Path) -> bool:
+    if path.suffix != ".java":
+        return False
+    parts = {part.lower() for part in path.parts}
+    if "migrations" in parts:
+        return False
+    return "test" in path.name.lower() or "test" in parts
+
+
+def method_name_after_annotation(tail: str) -> str | None:
+    stripped = re.sub(r"@\w+(?:\s*\([^)]*\))?", " ", tail)
+    paren = stripped.find("(")
+    if paren == -1:
+        return None
+    ids = re.findall(r"[A-Za-z_]\w*", stripped[:paren])
+    return ids[-1] if ids else None
+
+
+def extract_java_tests(content: str) -> tuple[str | None, list[str]]:
+    match = CLASS_DECL_RE.search(content)
+    class_name = match.group(1) if match else None
+    methods: list[str] = []
+    for token in re.finditer(r"@Test\b", content):
+        name = method_name_after_annotation(content[token.end():token.end() + 300])
+        if name and name not in MODIFIER_TOKENS:
+            methods.append(name)
+    return class_name, methods
+
+
+def expand_filter_patterns(patterns: list[str]) -> list[tuple[str, str | None]]:
+    pieces: list[tuple[str, str | None]] = []
+    for pattern in patterns:
+        for raw in pattern.split(","):
+            raw = raw.strip()
+            if not raw:
+                continue
+            cls_glob: str = raw
+            meth_glob: str | None = None
+            if "#" in raw:
+                cls_glob, meth_glob = raw.split("#", 1)
+            elif "*" in raw:
+                # Java docs also use '.' as a method separator, e.g. *FooTest.createSuccess
+                star = raw.rfind("*")
+                dot = raw.find(".", star + 1)
+                if dot != -1:
+                    cls_glob, meth_glob = raw[:dot], raw[dot + 1:]
+            pieces.append((cls_glob.strip(), meth_glob.strip() if meth_glob else None))
+    return pieces
+
+
+def glob_matches(value: str, pattern: str) -> bool:
+    return fnmatch.fnmatchcase(value.lower(), pattern.lower())
+
+
 def list_backend_tests(root: Path, command: str) -> tuple[int, set[str], str]:
-    backend_root = root / "backend"
+    """Statically enumerate the Java @Test methods a backend-test.py command selects.
+
+    Maven/Surefire has no native 'list tests' mode, so this scans backend test
+    sources and applies the command's --module / --tests filter. Returns
+    (exit_code, selected_names, note).
+    """
+    backend_root = backend_root_for(root)
     if not backend_root.is_dir():
         return 1, set(), f"backend directory not found: {backend_root}"
-    args = parse_backend_nextest_args(command)
-    cmd = ["cargo", "nextest", "list", "-T", "oneline", *args]
-    result = subprocess.run(
-        cmd,
-        cwd=backend_root,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        check=False,
-    )
-    selected: set[str] = set()
-    for line in result.stdout.splitlines():
-        line = line.strip()
-        if not line or line.startswith("Compiling ") or line.startswith("Finished "):
+
+    module, patterns = parse_backend_filter(command)
+    class_methods: dict[str, set[str]] = {}
+    for path in backend_root.rglob("*.java"):
+        if not is_backend_test_source(path):
             continue
-        selected.add(line)
-        selected.add(line.split()[-1])
-        selected.add(line.split("::")[-1])
-    return result.returncode, selected, result.stderr.strip()
+        if module and module not in path.parts:
+            continue
+        class_name, methods = extract_java_tests(read_text(path))
+        if class_name:
+            class_methods.setdefault(class_name, set()).update(methods)
+
+    selected: set[str] = set()
+    pieces = expand_filter_patterns(patterns)
+    if not pieces:
+        for cls, methods in class_methods.items():
+            selected.add(cls)
+            selected.update(methods)
+    else:
+        for cls_glob, meth_glob in pieces:
+            for cls, methods in class_methods.items():
+                if not glob_matches(cls, cls_glob):
+                    continue
+                selected.add(cls)
+                if meth_glob is None:
+                    selected.update(methods)
+                else:
+                    for meth in methods:
+                        if glob_matches(meth, meth_glob):
+                            selected.add(meth)
+                            selected.add(f"{cls}.{meth}")
+    return 0, selected, ""
 
 
 def command_mentions_expected(command: str, expected: set[str], layer: str) -> set[str]:
@@ -277,7 +388,7 @@ def check_runner(root: Path, path: Path, dynamic: bool) -> RunnerCheck:
                 continue
             code, listed, stderr = list_backend_tests(root, command)
             if code != 0:
-                errors.append(f"cargo nextest list failed for command: {command}")
+                errors.append(f"backend test listing failed for command: {command}")
                 if stderr:
                     warnings.append(stderr)
                 continue
@@ -330,7 +441,7 @@ def main() -> int:
     parser.add_argument("--project-root", type=Path, default=Path.cwd(), help="Target project root. Defaults to cwd.")
     parser.add_argument("--layer", choices=["backend", "frontend", "miniapp", "demo"], help="Limit to one layer.")
     parser.add_argument("--runner-file", type=Path, action="append", help="Specific runner item file to check.")
-    parser.add_argument("--no-dynamic", action="store_true", help="Skip dynamic backend cargo-nextest list checks.")
+    parser.add_argument("--no-dynamic", action="store_true", help="Skip dynamic backend test-listing checks.")
     args = parser.parse_args()
 
     root = args.project_root.resolve()
