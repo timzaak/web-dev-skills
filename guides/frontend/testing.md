@@ -187,117 +187,22 @@ expect(screen.findByTestId('loading')).toBeDefined()
 
 ## 推荐测试模式
 
-### describe 组织
+- 按用户场景分组，不按实现细节分组；避免把 `rendering`、`state`、`callbacks` 当默认分组名。
+- 逻辑型组件测试关注可观察状态、校验错误、禁用态、提交结果和错误反馈。
+- 条件渲染只在承载业务状态或权限/错误分支时测试。
+- Mock 模块或 hooks 时，只 mock 当前场景需要的边界，不伪造整条业务链路。
+- 需要 QueryClient 时，在测试内部显式创建最小 wrapper；只有形成稳定复用后再统一收敛。
 
-按用户场景分组，不按实现细节分组：
-
-```tsx
-describe('ClientAppWizard', () => {
-  describe('device code grant configuration', () => {
-    // tests
-  })
-})
-```
-
-避免使用 `rendering`、`state`、`callbacks` 作为默认分组名，除非它们就是用户可理解的业务场景。
-
-### 逻辑型组件测试
-
-```tsx
-test('shows validation error when derived state becomes invalid', async () => {
-  render(<RegistrationConfigForm {...props} />)
-
-  await userEvent.click(screen.getByTestId('reg-save-button'))
-
-  expect(await screen.findByText(/required/i)).toBeInTheDocument()
-})
-```
-
-### 条件渲染测试
-
-```tsx
-test('renders alert when message is provided', () => {
-  render(<Alert type="error" message="Error!" />)
-  expect(screen.getByTestId('alert-error')).toBeInTheDocument()
-})
-
-test('does not render when message is empty', () => {
-  render(<Alert type="error" message="" />)
-  expect(screen.queryByTestId('alert-error')).toBeNull()
-})
-```
-
-### Mock 模块或 hooks
-
-```tsx
-vi.mock('@/hooks/use-form-mutation', () => ({
-  useFormMutation: vi.fn(),
-}))
-
-test('submits through wrapped mutation hook', async () => {
-  vi.mocked(useFormMutation).mockReturnValue({
-    isSubmitting: false,
-    mutate: mockMutate,
-  } as never)
-
-  render(<MyForm />)
-  await userEvent.click(screen.getByTestId('submit-button'))
-
-  expect(mockMutate).toHaveBeenCalled()
-})
-```
-
-### React Query 场景
-
-需要 QueryClient 时，在测试内部显式创建最小 wrapper，不把一次性 wrapper 误写成全局规范：
-
-```tsx
-function createTestQueryClient() {
-  return new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-    },
-  })
-}
-```
-
-说明：
-- 不把历史项目中的 `test-utils.tsx` 或 wrapper 路径当作稳定标准入口
-- 新测试优先在文件内按需声明 wrapper，只有形成稳定复用后再统一收敛
+- 不把历史项目中的 `test-utils.tsx` 或 wrapper 路径当作稳定标准入口。
 - 不单测 `retry === 1`、`staleTime === 120000` 这类常量赋值；只在它们承载业务契约时测试行为结果。
 - query key 不展开测试每个字段，选择 1-2 个代表性 key shape 覆盖隔离性。
-
-### 数据构造
-
-用工厂函数表达业务默认值，避免大量硬编码 fixture：
-
-```ts
-function makeInvoice(overrides?: Partial<Invoice>): Invoice {
-  return { id: 'inv-1', status: 'draft', ...overrides }
-}
-```
+- 用工厂函数表达业务默认值，避免大量硬编码 fixture。
 
 ## 断言与调试
 
-常见断言：
-
-```tsx
-expect(screen.getByTestId('form')).toBeInTheDocument()
-expect(screen.queryByTestId('error')).toBeNull()
-expect(screen.getByText('Success')).toBeVisible()
-expect(screen.getByRole('button')).toBeDisabled()
-```
-
-调试方式：
-
-```tsx
-const { container } = render(<MyComponent />)
-console.log(container.innerHTML)
-```
-
-注意：
 - `setTimeout` 只用于临时调试，不作为正式等待方式
 - 正式测试统一使用 `findBy*` 或 `waitFor`
+- 断言优先落在持久业务状态、权限状态、错误区域、禁用态、请求 payload 或页面状态上。
 
 ## 最佳实践
 

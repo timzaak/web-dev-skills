@@ -81,17 +81,34 @@
 
 ```json
 {
-  "error": {
-    "severity": "P0|P1|P2|P3",
-    "type": "type_check_error|build_error|runtime_error|logic_error",
-    "message": "错误描述",
-    "location": "文件路径:行号",
-    "details": "详细错误信息",
-    "suggested_fix": "建议的修复方案",
-    "blocked_by": ["阻塞原因"]
+  "task_completion": {
+    "status": "failed",
+    "change_scope": {
+      "backend": false,
+      "frontend": true,
+      "miniapp": false,
+      "demo": false
+    },
+    "tests_to_run": [],
+    "error": {
+      "severity": "P0|P1|P2|P3",
+      "type": "type_check_error|build_error|runtime_error|logic_error",
+      "message": "错误描述",
+      "location": "文件路径:行号",
+      "details": "详细错误信息",
+      "suggested_fix": "建议的修复方案",
+      "blocked_by": ["阻塞原因"]
+    }
   }
 }
 ```
+
+失败返回规则：
+
+- 失败也必须使用 `task_completion` envelope，便于调用方统一读取 `task_completion.status`。
+- `task_completion.status` 必须为 `failed`。
+- `change_scope` 必须按已产生或可能影响的层填写；无法判断时四项都保留并在 `error.details` 说明不确定性。
+- 若失败发生在修复或验证闭环中，`tests_to_run` 可以为空数组，但必须在 `error.details` 或 `suggested_fix` 中说明无法给出补测命令的原因。
 
 ## Role-Specific Extensions
 

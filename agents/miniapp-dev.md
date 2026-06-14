@@ -117,57 +117,26 @@ cd miniapp && npm run starter:ci-gate -- --target taro-react-taroify-tailwind
 - 不绕过 `src/app.config.ts` 做页面注册
 - 不用 `any` 和不安全断言绕过类型系统
 
-## 修复后补测契约
+## 结构化输出
 
 当 miniapp-dev 用于修复 `t-demo-run` 失败时，`task_completion` 必须返回：
+
 - `change_scope`
 - `tests_to_run`
 
-统一参考：
+任务完成、失败输出、修复后补测字段结构和允许命令统一参考：
 
 - `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`
 - `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`
 
-## 任务完成输出
-
-按 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md` 返回成功结构。
-
 miniapp-dev 的推荐扩展字段：
 
-```json
-{
-  "task_completion": {
-    "status": "success|partial|failed",
-    "summary": "任务完成摘要",
-    "changes_made": {
-      "files_modified": ["相对路径1", "相对路径2"],
-      "files_created": ["相对路径3"],
-      "components_added": ["组件名1"],
-      "components_modified": ["组件名2"]
-    },
-    "change_scope": {
-      "backend": false,
-      "frontend": false,
-      "miniapp": true,
-      "demo": false
-    },
-    "tests_to_run": [
-      {
-        "layer": "miniapp",
-        "command": "cd miniapp && npm run typecheck",
-        "reason": "最小相关回归",
-        "required": true
-      }
-    ],
-    "validation_results": {
-      "type_check": "passed|failed",
-      "weapp_build": "passed|failed",
-      "extra_checks": "passed|failed|skipped"
-    },
-    "next_steps": ["建议的后续步骤"]
-  }
-}
-```
+- `files_modified`
+- `files_created`
+- `components_added`
+- `components_modified`
+- `validation_results`
+- `next_steps`
 
 ## 禁止事项
 
