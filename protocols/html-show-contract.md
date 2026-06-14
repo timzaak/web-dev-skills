@@ -8,6 +8,9 @@ HTML Preview 写入 `.ai/preview/` 下（不进入代码仓库）：
 
 - PRD 草稿: `.ai/prd/<domain>/<feature>.md` → `.ai/preview/<domain>/<feature>.html`（临时草稿，发布后删除）
 - 正式 PRD: `docs/prd/<domain>/<feature>.md` → `.ai/preview/<domain>/<feature>.html`
+- Decision Brief: `.ai/decision/<feature>.md` → `.ai/preview/decision/<feature>.html`
+- Tech Research: `.ai/tech-research/<feature>.md` → `.ai/preview/tech-research/<feature>.html`
+- Design: `.ai/design/<feature>.md` → `.ai/preview/design/<feature>.html`
 - 其他文档: `<path>/<name>.md` → `.ai/preview/<name>.html`
 
 Preview 是临时验证产物，不纳入版本控制。每次运行时重新生成。
@@ -56,6 +59,20 @@ Preview 应结合"可视化阅读器"和"低保真交互原型"两种形态。
 
 具体 section 由 agent 根据文档类型自适应选择。PRD 文档使用固定 section profile（见 `prd-preview-contract.md`）。
 
+## Document Profiles
+
+`templates/preview-template.html` 是通用壳和组件库，不代表每种文档都必须展示全部 section。生成时按文档类型裁剪：
+
+| 文档类型 | 推荐 section | 适合的表达组件 |
+|---|---|---|
+| Decision Brief | `Decision`、`Overview`、`Scope`、`Evidence`、`Rules`、`Handoff`、`Assumptions` | verdict callout、metric-grid、compare、timeline |
+| PRD | `Overview`、`Scope`、`Flow`、`States`、`Rules`、`Acceptance`、`Assumptions` | low-fidelity prototype、state-list、acceptance table |
+| Tech Research | `Overview`、`Evidence`、`Scope`、`Rules`、`Handoff`、`Assumptions` | feasibility callout、gap matrix、risk table、reference list |
+| Design | `Overview`、`Scope`、`Flow`、`States`、`Rules`、`Acceptance`、`Handoff` | diagram、timeline、matrix、risk table |
+| Generic | 按 Markdown 标题自适应 | document-reader、table、callout |
+
+不得为了套模板而制造源文档没有的内容。模板中的占位 section 如果源文档没有对应信息，生成时应删除或标注为“无”，不要编造。
+
 ## Determinism Rules
 
 Preview 使用固定结构：
@@ -63,6 +80,7 @@ Preview 使用固定结构：
 - 页面标题使用 `[文档名称] Preview`。
 - 顶部 summary 区展示元数据和一句话目标。
 - 页面元素使用语义化 `data-doc-*` 属性标记来源，例如 `data-doc-source`、`data-doc-section`。
+- `<html>` 应标注 `data-doc-type`，取值为 `prd`、`decision`、`design`、`tech-research` 或 `generic`。
 - 样式应保持中性、低保真、易读，不追求目标项目视觉还原。
 
 ## Check Scope

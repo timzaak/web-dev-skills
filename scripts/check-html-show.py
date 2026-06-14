@@ -90,6 +90,12 @@ def detect_doc_type(source_path: Path, root: Path) -> str:
             return "prd"
         if len(parts) >= 3 and parts[0] == "docs" and parts[1] == "prd":
             return "prd"
+        if len(parts) >= 3 and parts[0] == ".ai" and parts[1] == "decision":
+            return "decision"
+        if len(parts) >= 3 and parts[0] == ".ai" and parts[1] == "tech-research":
+            return "tech-research"
+        if len(parts) >= 3 and parts[0] == ".ai" and parts[1] == "design":
+            return "design"
     except ValueError:
         pass
     return "generic"
@@ -105,6 +111,12 @@ def derive_preview_path(source_path: Path, root: Path) -> Path:
         if len(parts) >= 4 and parts[0] == "docs" and parts[1] == "prd":
             domain = parts[2]
             return root / ".ai" / "preview" / domain / source_path.with_suffix(".html").name
+        if len(parts) >= 3 and parts[0] == ".ai" and parts[1] == "decision":
+            return root / ".ai" / "preview" / "decision" / source_path.with_suffix(".html").name
+        if len(parts) >= 3 and parts[0] == ".ai" and parts[1] == "tech-research":
+            return root / ".ai" / "preview" / "tech-research" / source_path.with_suffix(".html").name
+        if len(parts) >= 3 and parts[0] == ".ai" and parts[1] == "design":
+            return root / ".ai" / "preview" / "design" / source_path.with_suffix(".html").name
     except ValueError:
         pass
     return root / ".ai" / "preview" / source_path.with_suffix(".html").name
@@ -172,7 +184,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Validate HTML Preview files.")
     parser.add_argument("target", nargs="?", default="--all", help="Feature name, file path, or --all")
     parser.add_argument("--root", default=".", help="Target project root, defaults to current directory")
-    parser.add_argument("--type", choices=["prd", "generic"], default=None, help="Document type (auto-detect if not specified)")
+    parser.add_argument("--type", choices=["prd", "decision", "tech-research", "design", "generic"], default=None, help="Document type (auto-detect if not specified)")
     parser.add_argument("--json", action="store_true", help="Print machine-readable JSON")
     args = parser.parse_args()
 

@@ -7,7 +7,7 @@ description: Assess technical feasibility for a feature. Scans codebase, checks 
 
 ## 目标
 
-基于用户需求和现有代码库，评估技术可行性、依赖缺口、代码影响范围和关键风险，生成报告供后续 `/t-prd` 或纯技术方案 `/t-design` 参考。
+基于 Decision Brief、用户需求和现有代码库，评估技术可行性、依赖缺口、代码影响范围和关键风险，生成报告供后续 `/t-prd` 或纯技术方案 `/t-design` 参考。
 
 输出文件：
 - `.ai/tech-research/<file-name>.md`（file-name 取自 `$ARGUMENTS` 第一个空格前的部分）
@@ -18,6 +18,7 @@ description: Assess technical feasibility for a feature. Scans codebase, checks 
 ## 输入与输出
 
 输入：
+- `.ai/decision/<file-name>.md`（可选但推荐，来自 `/t-decision`）
 - 用户原始需求描述（参数、当前对话或补问获取）
 - 现有代码库
 - 可选：`docs/prd/00-index.md`、`docs/user-stories/00-index.md`、`.ai/design/**/*.md`
@@ -48,6 +49,8 @@ description: Assess technical feasibility for a feature. Scans codebase, checks 
 ## 核心约束
 
 - 先分析现有代码和依赖，再评估缺口；不凭空列举库
+- 如果存在 `.ai/decision/<file-name>.md`，必须承接其中 Verdict、Scope Direction、D0/D1 决策和 Handoff；不得用技术预研改写产品立项结论
+- 如果 Decision Brief 的 Verdict 是 `Needs Clarification`、`Park` 或 `Reject`，除非用户明确要求技术探索，否则应停止并提示先回到 `/t-decision`
 - 依赖评估必须基于真实 `Cargo.toml`、`package.json` 和 lock 文件（如存在）
 - 外部搜索只用于库级事实、最佳实践和兼容性信息，不能替代本地代码分析
 - Context7 优先，WebSearch 只作补充
@@ -76,6 +79,7 @@ description: Assess technical feasibility for a feature. Scans codebase, checks 
 ### 2. 建立本地上下文
 
 按需读取以下文件，跳过不存在的文件：
+- `.ai/decision/<file-name>.md`
 - `backend/Cargo.toml`
 - `frontend/package.json`
 - `Cargo.lock`
@@ -158,6 +162,7 @@ description: Assess technical feasibility for a feature. Scans codebase, checks 
 - 是否移除了方案对比、候选排序和开放式选择
 - 报告是否不含任何"待确认"/"需确认"/"待定"/"TBD"等未决项；未确认信息是否已全部转为显式假设
 - PRD 编写建议是否明确可执行；如不涉及业务逻辑变动，是否说明可直接进入 `/t-design`
+- 如存在 Decision Brief，是否没有偏离其目标用户、范围方向和已确认产品决策
 - 影响分析中的路径是否真实存在
 - 可行性判定是否明确
 - 风险评估是否区分 P0/P1/P2
@@ -166,6 +171,7 @@ description: Assess technical feasibility for a feature. Scans codebase, checks 
 ## 失败处理
 
 - 参数缺失：终止并给出 `/t-tech-research <file-name>` 示例
+- Decision Brief 明确 `Reject` / `Park` 且用户未要求继续探索：终止并提示先回到 `/t-decision`
 - 文件名非法：终止并说明允许字符范围
 - 无法创建输出目录或写文件：终止并报告
 - 需求描述不足：先补问；仍不足则继续，但在报告中写出缺口

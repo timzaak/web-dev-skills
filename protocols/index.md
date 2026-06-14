@@ -3,6 +3,7 @@
 | 你要确认的问题 | 对应协议 |
 | --- | --- |
 | 插件资源与目标项目运行时边界 | [runtime-boundaries.md](${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md) |
+| 产品立项决策简报结构、结论和下游承接规则 | [decision-brief-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/decision-brief-contract.md) |
 | 实现类 agent 的通用结构化输出 | [agent-task-output-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md) |
 | 修复后补测集合的字段与允许命令 | [tests-to-run-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md) |
 | `.ai/task/.../.state.json` 的唯一结构真相 | [task-state-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md) |

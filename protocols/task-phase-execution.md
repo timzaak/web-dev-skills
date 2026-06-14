@@ -86,7 +86,7 @@ backend 的 `finalize.md` 只作为 `/t-backend-finalize` 输入，不得由 `/t
 可选增强：
 
 - 当前 slot manifest
-- 由 `context-isolator` 提取的设计摘要
+- 当前 phase 的设计摘要
 - 当前 phase 的最小状态切片
 - 当前 item 的 completion criteria / validation
 

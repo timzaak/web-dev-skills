@@ -126,7 +126,13 @@ demo 阶段：
 - 校验 `.ai/design/[feature].md` 存在。
 - 解析 `[feature]` 和 `--phase`；根据 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 检测 active phases；未传 `--phase` 时自动选择第一未完成 active phase。
 - 按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 校验阶段前置和 slot 顺序；未启用的 phase 不参与校验或生成。
-- 按当前阶段 slot 串行调度相应 agent。每个 slot agent 必须通过 `Agent` tool 启动，`subagent_type` 按 Agent Dispatch Mapping 映射。传入 prompt 必须包含：设计文档相关节、上游 slot handoff（如有）、guide 路径、Agent Output Contract 要求的字段列表。
+- 按当前 phase 提取设计文档最小相关上下文：
+   - backend：API、数据模型、后端实现、后端测试。
+   - frontend：前端实现、交互与状态、前端测试。
+   - miniapp：小程序页面、主题、构建与模板门禁。
+   - demo：Demo/E2E、用户故事场景或技术验收场景。
+   - 未命中相关章节时记录警告，但不得编造设计事实；下游 prompt 必须说明缺口。
+- 按当前阶段 slot 串行调度相应 agent。每个 slot agent 必须通过 `Agent` tool 启动，`subagent_type` 按 Agent Dispatch Mapping 映射。传入 prompt 必须包含：当前 phase 的设计摘要、上游 slot handoff（如有）、guide 路径、Agent Output Contract 要求的字段列表。
    - prompt 必须引用 `${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md`，要求 agent 在返回前自检 P0/P1 规则。
    - prompt 必须引用 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`，避免生成无法被 `/t-run` 执行的 item。
    - backend/test slot prompt 必须要求读取 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`，并以该 guide 的测试入口、编写规则和验证命令作为硬性约束；后端 runner 命令必须写成目标项目内路径 `uv run scripts/backend-test.py -- [filter]`，不得写 `${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py`，也不得省略 `--`。
@@ -314,7 +320,7 @@ accept item 必须依赖集中 runner item，不能只依赖 authoring item。`t
 
 ## Failure
 - 设计文档不存在：提示先运行 `/t-design [feature]`。
-- 前置阶段未完成：返回阻塞阶段与阻塞 items。
+- 前置阶段未完成：返回阻塞阶段、当前状态、阻塞 items/slots 和下一步命令；不得修改 `.state.json`。
 - 任一 slot agent 生成失败：终止本次任务生成，不写入该 slot 的成功状态，并返回失败 agent 与失败原因。
 - slot agent 返回 item 缺少必填字段、依赖不存在或形成环：拒绝写入成功状态，要求重新生成该 slot。
 - slot agent 返回缺失 `self_check`、manifest 覆盖不完整、backend/test 类型非法或触发必须拆分规则：拒绝写入成功状态，要求重新生成该 slot。
