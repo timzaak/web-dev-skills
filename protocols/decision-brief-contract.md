@@ -25,12 +25,24 @@ Preview 必须遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md`。
 - `## 2. Problem`
 - `## 3. Target User`
 - `## 4. Evidence`
-- `## 5. Scope Direction`
-- `## 6. Options Considered`
-- `## 7. Product Decisions`
-- `## 8. Risks`
-- `## 9. Open Questions`
-- `## 10. Handoff`
+- `## 5. Lethal Assumptions & Kill Criteria`
+- `## 6. Scope Direction`
+- `## 7. Options Considered`
+- `## 8. Product Decisions`
+- `## 9. Risks`
+- `## 10. Open Questions`
+- `## 11. Handoff`
+
+## 六问诘问 Spine
+
+`/t-decision` 的诘问主线是六问 forcing questions，写 Verdict 前必须逐项有结论或显式跳过理由。六问跑完后才进入场景追问框架（Product / Internal / Engineering Enabler / Builder），框架只补充场景特有判断，不重复六问。
+
+1. 谁在痛、痛到什么程度（强制量化）。
+2. 这是问题，还是方案（至少提一个 reframe 替代定义）。
+3. 用户现在怎么绕（现状替代方案与摩擦成本）。
+4. 最小楔子是什么（wedge vs MVP）。
+5. 哪个假设错了会致命（最小证伪方式 + Kill Criteria）。
+6. 有没有更大、更易讲、更高杠杆的版本（10x 反转）。
 
 ## Scope Direction
 
@@ -54,7 +66,8 @@ Preview 必须遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md`。
 
 ## Downstream
 
-- `/t-tech-research` 承接技术未知项，不改写 Verdict。
+- `/t-tech-research` 承接技术未知项，不改写 Verdict。若 Verdict=Research First 且 Decision Brief 含致命假设，可被指派“最小证伪计划”作为预研目标。
 - `/t-prd` 承接目标用户、范围、成功标准和已确认 D0/D1；不得把 Open Questions 写成已确认。
 - `/t-prd-check` 检查 PRD 是否偏离 Decision Brief。
 - `/t-design` 不得用技术方案推翻 Decision Brief；冲突时回到 `/t-decision`。
+- `Park` / `Reject` 必须引用 §5 的 Kill Criteria 作为依据。

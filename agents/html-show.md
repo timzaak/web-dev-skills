@@ -63,7 +63,7 @@ PRD 文档额外读取：
 - 读取源文档，提取目标、范围、流程、状态、规则等关键内容。
 - 判断文档类型：
   - `.ai/prd/**/*.md` 或 `docs/prd/**/*.md` → PRD 模式：使用固定 section（Overview, Scope, Flow, States, Rules, Acceptance, Assumptions）。
-  - `.ai/decision/**/*.md` → Decision 模式：突出 Verdict、Problem、Target User、Evidence、Scope Direction、Product Decisions、Risks、Open Questions、Handoff。
+  - `.ai/decision/**/*.md` → Decision 模式：突出 Verdict、Problem、Target User、Evidence、Lethal Assumptions & Kill Criteria、Scope Direction、Product Decisions、Risks、Open Questions、Handoff。
   - `.ai/tech-research/**/*.md` → Tech Research 模式：突出可行性、差距、技术路线、影响、风险和后续建议。
   - `.ai/design/**/*.md` → Design 模式：突出目标范围、方案、接口/数据/前端适用性、风险、测试和文件影响范围。
   - 其他 → 通用模式：从文档标题和大纲推断 section，生成可读 HTML。
@@ -73,7 +73,7 @@ PRD 文档额外读取：
   - 通用文档：按文档结构生成可读的可视化页面。
 - 使用 `${CLAUDE_PLUGIN_ROOT}/templates/preview-template.html` 的 CSS/layout 框架创建或更新 Preview。
 - 按文档类型裁剪模板 section：模板是组件库，不是必须完整保留的页面结构。
-- Decision Brief 优先展示 Verdict、Confidence、Scope Direction、证据强度、方案比较、D0/D1 决策、Open Questions 和 Handoff。
+- Decision Brief 优先展示 Verdict、Confidence、Scope Direction、证据强度、致命假设与 Kill Criteria、方案比较、D0/D1 决策、Open Questions 和 Handoff。
 - Tech Research 优先展示可行性结论、差距、选定路线、风险、后续 PRD/Design 建议和参考来源。
 - Design 优先展示目标范围、架构/流程图、接口/数据/前端适用性摘要、风险、测试策略和文件影响范围。
 - 保持单文件 HTML，CSS 和少量原生 JS 内联。

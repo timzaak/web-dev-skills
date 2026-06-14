@@ -68,6 +68,7 @@ Markdown 使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-decision/template.m
 
 保持直接、具体、可验证：
 
+- **主动重构问题（reframe）**：锁定 problem statement 前，至少主动提出一个替代问题定义让用户确认或否决，而不是只在心里做代理问题检查。这是借鉴 gstack office-hours 最核心的一招——用户说“做个日历简报 App”，诘问后发现真问题是“缺一个个人幕僚”。
 - 对每个关键回答都形成判断：支持继续、削弱继续、还是需要更多证据。
 - 不迎合模糊表达。用户说“体验更好”“更智能”“更完整”时，追问到具体场景、指标、行为或后果。
 - 不把“有人觉得有用”当需求证据。行为、付费、业务阻塞、替代方案成本更重要。
@@ -81,23 +82,24 @@ Markdown 使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-decision/template.m
 - “建议考虑”但不说明取舍。
 - “后面 PRD 再细化”来逃避当前必须确认的 D0 决策。
 
-## 必问判断
+## 六问诘问（必跑）
 
-只问会影响 Verdict、Scope 或成功标准的问题；一次一个。
+这是 `/t-decision` 的诘问主线，借鉴 gstack office-hours 的 forcing questions，但只保留门禁。**写 Verdict 前六问必须逐项有结论**（或显式写跳过理由）；上下文已能回答的直接引用，不重复问；一次只问一个，只问会影响 Verdict、Scope 或成功标准的问题。
 
-优先澄清：
+1. **谁在痛、痛到什么程度** — 定位到角色 + 场景 + 可观察后果。强制量化：发生频率、占用时长、涉及人数、花费金钱或业务阻塞强度。给不出数字，证据强度记 Weak，并把该项写入“待量化”。
+2. **这是问题，还是方案** — 把“我要做 X”翻译成“谁在 Y 场景下受困于 Z”。**至少提出一个替代问题定义（reframe）**让用户确认或否决；用户描述若只是方案包装，必须改写成问题。
+3. **用户现在怎么绕** — 现有替代方案是什么，摩擦成本有多大（时间/钱/风险/人工协调）。绕法已经很顺 → 削弱继续；绕法很痛 → 最强需求证据。
+4. **最小楔子是什么** — 区分 MVP（太大）和 wedge（最薄能产生真实学习的切片）。能否在一两天内交付一条窄路径并拿到真实反馈。
+5. **哪个假设错了会致命** — 列出 1-3 个核心假设，标出致命的那个。最小成本如何证伪。**Kill criteria**：什么结果会让你直接放弃。
+6. **有没有更大、更易讲、更高杠杆的版本** — 当前想法是不是某个更大问题的代理。是否存在一个 10x 版本反而更简单、更值得，或反过来证明当前范围太散。
 
-- 真实问题：如果不做，会损失什么？
-- 目标用户：谁最需要？现状怎么解决？成本是什么？
-- 证据：有什么行为、付费、反馈、业务阻塞或现有文档支持？
-- 最小切入：最小可验证版本是什么？
-- 范围方向：`Expand / Selective Expand / Hold / Reduce / Explore`
+范围方向收敛为 `Expand / Selective Expand / Hold / Reduce / Explore` 之一（见 Scope 模式）。
 
-如果用户要求跳过，最多再问 1-2 个最高影响问题，然后继续写简报，并把证据弱点写清楚。
+如果用户要求跳过，最多再问 1-2 个最高影响问题，然后继续写简报，并把证据弱点和未跑完的六问项写清楚。
 
 ## 追问框架
 
-按场景选择问题，不需要机械问完。已有上下文能回答的，直接引用，不重复问。
+四套框架（Product / Internal / Engineering Enabler / Builder）是六问主线跑完后的**场景深化透镜**，不重复六问，只补充该场景特有的判断。按场景选择问题，不需要机械问完。已有上下文能回答的，直接引用，不重复问。
 
 ### Product / Startup
 
@@ -109,7 +111,7 @@ Markdown 使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-decision/template.m
 2. **现状替代方案**：用户现在怎么解决？这个方案耗费多少时间、钱、风险或人工协调？
 3. **目标用户具体化**：谁最需要？他的角色、场景、压力和后果是什么？
 4. **最小切入**：最小可验证价值是什么？是否能先做一条窄路径，而不是整个平台？
-5. **未来适配**：3-12 个月后，这个能力会更重要还是更不重要？为什么？
+5. **未来适配**：3-12 个月后，这个能力会更重要还是更不重要？为什么。
 
 红旗：
 
@@ -186,6 +188,7 @@ Markdown 使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-decision/template.m
 
 写简报前至少生成两个选项：
 
+- `Wedge`：最薄能产生真实学习的切片，比 Minimal 更窄、更快，用于快速验证致命假设。
 - `Minimal`：最小可验证价值，最少范围。
 - `Recommended`：当前证据下最合理路径。
 - `Ambitious`：更大或 10x 版本，仅在确有价值时列出。
@@ -205,12 +208,12 @@ Markdown 使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-decision/template.m
 必须给出一个：
 
 - `Proceed`：值得继续，产品方向足够明确。
-- `Research First`：值得探索，但技术可行性、成本或依赖会影响范围。
+- `Research First`：值得探索，但技术可行性、成本或依赖会影响范围。若存在致命假设，把“最小证伪计划”明确写入 Handoff 交给 `/t-tech-research`。
 - `Needs Clarification`：关键产品判断缺失，继续写 PRD 会制造假设。
 - `Park`：暂存，记录重启条件。
 - `Reject`：不建议做。
 
-`Needs Clarification`、`Park`、`Reject` 也要写简报，方便后续恢复。
+`Needs Clarification`、`Park`、`Reject` 也要写简报，方便后续恢复。`Park` 和 `Reject` 必须引用已写明的 Kill Criteria 作为依据，不能只凭直觉暂缓或否决。
 
 ## AskUserQuestion 规则
 
@@ -231,8 +234,8 @@ Markdown 使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-decision/template.m
 
 1. 校验参数，确保 `.ai/decision/` 存在。
 2. 读取上下文，识别已有 PRD、用户故事、决策、技术预研和冲突。
-3. 只追问阻塞决策的问题。
-4. 形成至少两个选项：`Minimal` 和 `Recommended`；必要时加 `Ambitious`。
+3. 跑六问诘问主线，只追问阻塞决策的问题。
+4. 形成至少两个选项：`Minimal` 和 `Recommended`；若六问识别出致命假设，加 `Wedge`；确有价值时加 `Ambitious`。
 5. 写入 `.ai/decision/<feature>.md`。
 6. 委派 `html-show`：
 
@@ -258,9 +261,14 @@ Markdown 使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-decision/template.m
 ## 质量门禁
 
 - Verdict 明确
-- 目标用户、现状替代方案、痛点成本、证据、范围方向齐全
+- 六问诘问已跑：逐项有结论，或显式写跳过理由
+- 至少提出一个 reframe 替代问题定义，并记录用户确认的真问题
+- 致命假设已识别，含最小证伪路径和 Kill Criteria
+- 痛点已量化（频率/时长/人数/金钱/阻塞），或显式标注“待量化”及原因
+- 目标用户、现状替代方案、证据、范围方向齐全
 - 至少完成一次前提挑战
 - 至少包含 Minimal 和 Recommended 两个选项
+- `Park` / `Reject` 引用了 Kill Criteria
 - 未确认 D0 只进入 Open Questions，不写成已确认
 - 不包含接口、数据库、技术设计、任务拆解或实现细节
 - Preview 存在且与 Markdown 一致
