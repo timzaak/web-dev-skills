@@ -28,6 +28,9 @@ allowed-tools:
 
 输出文件：
 - PRD: `.ai/preview/<domain>/[feature].html`
+- Decision Brief: `.ai/preview/decision/[feature].html`
+- Tech Research: `.ai/preview/tech-research/[feature].html`
+- Design: `.ai/preview/design/[feature].html`
 - 其他: `.ai/preview/[stem].html`
 
 ## 使用方式
@@ -55,10 +58,14 @@ allowed-tools:
 **路径与域**：
 - Preview 写入 `.ai/preview/` 下，不进入代码仓库
 - PRD 来源路径为 `.ai/prd/<domain>/[feature].md` 或 `docs/prd/<domain>/[feature].md`，输出 `.ai/preview/<domain>/[feature].html`
+- Decision Brief 来源路径为 `.ai/decision/[feature].md`，输出 `.ai/preview/decision/[feature].html`
+- Tech Research 来源路径为 `.ai/tech-research/[feature].md`，输出 `.ai/preview/tech-research/[feature].html`
+- Design 来源路径为 `.ai/design/[feature].md`，输出 `.ai/preview/design/[feature].html`
 - 其他文档：输出 `.ai/preview/<stem>.html`
 
 **Preview 边界**：
 - 是源文档的可视化审阅视图，不能引入源文档未声明的新需求或规则
+- 模板是通用组件库；生成时必须按文档类型裁剪 section，不为套模板编造内容
 - 有前端/交互入口时，UI 示意聚焦文档定义的目标体验和关键状态
 - 使用单文件 HTML、内联 CSS 和少量原生 JS，不依赖外部构建工具或 CDN
 - 技术栈无关，浏览器直接打开即可审阅

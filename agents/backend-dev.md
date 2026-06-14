@@ -132,69 +132,15 @@ cd backend && mvn test
 
 ## 结构化输出规范
 
-### 修复后补测契约（MANDATORY）
-
 当 backend-dev 被用于修复 `t-demo-run` 失败时，`task_completion` 必须返回：
+
 - `change_scope`: 标记本次修改影响层（backend/frontend/miniapp/demo）
 - `tests_to_run`: 相关最小测试集（供 `t-demo-run` 修复门禁执行）
 
-字段结构和允许命令统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`
+任务完成、失败输出、修复后补测字段结构和允许命令统一参考：
 
-### 任务完成输出
-
-完成任务后，应返回以下结构化输出：
-
-```json
-{
-  "task_completion": {
-    "status": "success",
-    "files_modified": ["backend/src/main/java/com/example/user/UserController.java"],
-    "compilation": {
-      "status": "passed",
-      "errors": 0
-    },
-    "change_scope": {
-      "backend": true,
-      "frontend": false,
-      "miniapp": false,
-      "demo": false
-    },
-    "tests_to_run": [
-      {
-        "layer": "backend",
-        "command": "uv run scripts/backend-test.py -- <related_test_filter>",
-        "reason": "修改了后端业务逻辑，需要回归相关场景",
-        "required": true
-      }
-    ],
-    "tests_written": {
-      "unit_tests": 0
-    },
-    "next_steps": ["Run demo tests to verify end-to-end functionality"]
-  }
-}
-```
-
-### 错误输出格式
-
-遇到错误时，应返回以下结构化输出：
-
-```json
-{
-  "task_completion": {
-    "status": "failed",
-    "error": {
-      "type": "compilation_error",
-      "message": "Type mismatch in user registration controller",
-      "details": {
-        "file": "backend/src/main/java/com/example/user/UserController.java",
-        "line": 42,
-        "suggested_fix": "Update type from String to Uuid for user_id field"
-      }
-    }
-  }
-}
-```
+- `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`
 
 ### 校准模式输出
 

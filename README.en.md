@@ -2,7 +2,7 @@
 
 [中文](README.md)
 
-A Claude Code plugin for Java Spring Boot + React projects. It turns `PRD -> Design -> Task -> Development -> Acceptance -> Demo` into a reusable workflow, so teams do not need to repeatedly design prompts, switch context manually, or maintain stage boundaries by hand.
+A Claude Code plugin for Java Spring Boot + React projects. It turns `Decision -> Tech Research -> PRD -> Design -> Task -> Development -> Acceptance -> Demo` into a reusable workflow, so teams do not need to repeatedly design prompts, switch context manually, or maintain stage boundaries by hand.
 
 It is designed for teams and projects that:
 
@@ -31,6 +31,12 @@ Prerequisites:
 Minimal end-to-end example:
 
 ```bash
+# Decide whether this feature should enter the workflow, then open HTML for review
+/t-tools:t-decision user-management
+
+# Run technical feasibility research when dependencies, cost, or risk affect scope
+/t-tools:t-tech-research user-management
+
 # Create or update the .ai/prd draft, then open HTML for review
 /t-tools:t-prd user-management
 
@@ -71,6 +77,7 @@ Additional notes:
 
 - This README consistently uses `/t-tools:t-*` as the standard invocation format.
 - All `t-*` skills in this plugin are manual command entries and must not be invoked automatically by the model.
+- `t-decision` is the product decision gate before PRD. It writes `.ai/decision/<feature>.md` and `.ai/preview/decision/<feature>.html`; continue to tech research or PRD only after a `Proceed` or `Research First` verdict. Its interaction model is inspired by Garry Tan's [gstack](https://github.com/garrytan/gstack), especially `office-hours` and `plan-ceo-review`, but it is translated into a t-tools stage gate and does not vendor the gstack runtime.
 - `t-doc` is for project documentation, onboarding tutorials, API references, configuration, and deployment notes. It is not for PRDs, technical designs, or small document edits.
 - `t-dream` defaults to a read-only audit that reorganizes PRDs, user stories, design/task docs, implementation facts, and project structure, reducing stale, duplicated, conflicting, or misleading context; use `--govern-prd` explicitly when PRD governance should write changes.
 - `t-backend-test-run` is an internal execution skill reused by flows such as `backend-test`; it is not recommended as a manual entry point.
@@ -82,7 +89,7 @@ Additional notes:
 flowchart TD
     subgraph Init["Init (optional)"]
         direction LR
-        A1["t-init"] --> A2["t-tech-research"]
+        A1["t-init"] --> A2["t-decision"] --> A3["t-tech-research"]
     end
 
     subgraph PRD["PRD"]
@@ -115,6 +122,7 @@ flowchart TD
     end
 
     A2 -.-> B1
+    A3 -.-> B1
     B2 -->|pass| C1
     C2 -->|pass| D1
     D2 -->|pass| E1
@@ -133,6 +141,7 @@ Key behaviors:
 Helper commands:
 
 - `t-init <project-name>`: initializes a full-stack project scaffold for Java Spring Boot + React TanStack, including backend, frontend, E2E tests, development scripts, and the complete directory structure
+- `t-decision <feature>`: evaluates whether a feature should enter the workflow before tech research or PRD, writes `.ai/decision/<feature>.md`, generates `.ai/preview/decision/<feature>.html`, and recommends `t-tech-research`, `t-prd`, or stopping
 - `t-tech-research`: evaluates technical feasibility before writing the PRD, including dependency gap analysis, library research, impact analysis, and feasibility judgment; for pure technical designs that do not change business logic, it may be the direct upstream input to `t-design`
 - `t-prd-publish <feature>`: after implementation and acceptance, reviews `.ai/prd/<domain>/<feature>.md`, the existing formal PRD, and post-implementation evidence, presents a publish summary, then fixes missing, stale, or conflicting content in `docs/prd/<domain>/<feature>.md` and deletes the draft
 - `t-doc <project-or-module-name>`: scans the target project codebase and generates newcomer-oriented tutorial documentation under `docs/tutorials/<name>/` by default

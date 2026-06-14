@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN" data-doc-source="<source-path>">
+<html lang="zh-CN" data-doc-source="<source-path>" data-doc-type="<prd|decision|design|tech-research|generic>">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -16,6 +16,8 @@
       --ok: #0f766e;
       --warn: #b45309;
       --bad: #b91c1c;
+      --info: #1d4ed8;
+      --soft: #eef2f7;
     }
 
     * {
@@ -146,6 +148,29 @@
       background: #fbfcfe;
     }
 
+    .callout {
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--info);
+      border-radius: 6px;
+      padding: 12px;
+      background: #f8fbff;
+    }
+
+    .callout.ok {
+      border-left-color: var(--ok);
+      background: #f0fdfa;
+    }
+
+    .callout.warn {
+      border-left-color: var(--warn);
+      background: #fffbeb;
+    }
+
+    .callout.bad {
+      border-left-color: var(--bad);
+      background: #fef2f2;
+    }
+
     .flow {
       display: grid;
       gap: 10px;
@@ -180,6 +205,19 @@
 
     .state.bad {
       border-color: #fecaca;
+    }
+
+    .diagram {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 12px;
+      background: #0f172a;
+      color: #e5e7eb;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.45;
+      white-space: pre;
     }
 
     .prototype {
@@ -259,6 +297,8 @@
       <h1 data-doc-section="title">[文档名称] Preview</h1>
       <div class="meta">
         <span class="pill">来源：<source-path></span>
+        <span class="pill">类型：<doc-type></span>
+        <span class="pill">视图：<visualization-type></span>
       </div>
       <p class="summary" data-doc-section="goal">[一句话说明文档目标]</p>
     </div>
@@ -315,6 +355,8 @@
           <div class="step">2. [关键动作]</div>
           <div class="step">3. [结果或状态变化]</div>
         </div>
+
+        <pre class="diagram" aria-label="ASCII diagram">[可选 ASCII 图：状态机、数据流、部署顺序、决策树或依赖关系]</pre>
 
         <div class="prototype" aria-label="Low fidelity preview">
           <div class="toolbar">

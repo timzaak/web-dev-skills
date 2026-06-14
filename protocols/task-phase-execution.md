@@ -86,9 +86,60 @@ backend 的 `finalize.md` 只作为 `/t-backend-finalize` 输入，不得由 `/t
 可选增强：
 
 - 当前 slot manifest
-- 由 `context-isolator` 提取的设计摘要
+- 当前 phase 的设计摘要
 - 当前 phase 的最小状态切片
 - 当前 item 的 completion criteria / validation
+
+## Item Contract
+
+每个 item 文件必须包含足够让 `/t-run` 单独恢复执行的信息：
+
+- `id`: 稳定 ID，例如 `BE-D01`、`FE-T02`、`MA-A01`、`DE-A01`
+- `title`
+- `agent`
+- `scope`
+- `inputs`
+- `steps`
+- `expected_files`
+- `validation`
+- `depends_on`
+- `handoff_summary`
+- `completion_criteria`
+
+backend/test item 额外要求见 [Backend Test Item Types](#backend-test-item-types)。
+
+item 规划原则：
+
+- 单个 item 应可由一个 agent 在一次可恢复执行中完成。
+- 不合并可独立交付、独立验证的主交付物。
+- 不把测试代码编写和测试运行/修复闭环放在同一个 item。
+- 不把大范围跨模块重构、多个页面域或多个完整用户故事塞进同一 item。
+- 验证命令必须来自目标项目实际脚本、package 名或配置。涉及 Maven module 时，item 中任何带 `--module <name>` 的命令的 `<name>` 必须是 `backend/` 下实际存在的 Maven reactor module（见父 `pom.xml` 的 `<modules>` 段或对应子目录的 `pom.xml`）；不得假设 module 名等于目录名。生成 item 前先 `Read` 对应 `pom.xml` 核对，再写入 validation 或 steps。
+
+## Splitting Heuristics
+
+以下触发条件任一成立，必须拆分：
+
+- 预计超过 1 天才能完成。
+- 预计修改超过 5 个核心文件。
+- 跨越超过 2 个领域模块或页面域。
+- 超过 8 个主要步骤。
+- 单个 item 文件预计超过 12KB 且不是验收清单。
+- scope 包含两个可独立交付、独立验证的主交付物（例如 `A + B`、两个页面、页面 + 弹窗、helper + 场景测试）。
+- 单个 HTTP/API item 同时包含 5 个以上 endpoint、DTO、路由注册和 OpenAPI/schema 更新。
+- 单个 demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流。
+
+各阶段推荐拆分维度：
+
+- backend dev：数据库/实体、domain、repository、service/use case、HTTP/OpenAPI、外部集成、SDK/API 影响点。
+- backend HTTP/API：DTO 与 Controller 路由骨架、读模型/list/detail、写操作/create/update、状态操作、配置类接口分别拆分；每个 item 必须能用定向 Maven 编译测试或场景测试验证。
+- backend unit test：不得规划“为新增 struct/DTO/builder/getter/常量补单测”这类低价值 item；确有必要的高价值单元测试归入对应 backend/dev item。
+- frontend dev：API/type 适配、schema/query/store、页面主流程、状态与错误处理、权限与空态；一个 item 默认只交付一个页面域或一个可复用组件族，配置页、用户页、管理页、dialog 等可独立验证的 UI 不应合并。
+- miniapp dev：页面注册、组件主流程、主题接线、token/icon 集成、平台差异处理。
+- demo dev：先拆 fixtures/helpers，再拆主流程、异常/校验场景、权限场景；不要把 helper 和完整业务流放在同一个 item。
+- accept：design consistency、public API contract、business rules、permission/security、test evidence、demo readiness。纯技术方案不涉及业务逻辑变动时，accept 应聚焦技术目标、兼容性、公共契约、迁移/配置影响、测试证据和回归风险，不强行补业务规则验收项。
+
+backend/test、frontend/test、miniapp/test、demo/dev 的测试拆分与集中执行见 [Test Execution Consolidation](#test-execution-consolidation) 与 [Backend Test Item Types](#backend-test-item-types)。
 
 ## Test Execution Consolidation
 
@@ -98,9 +149,9 @@ backend 的 `finalize.md` 只作为 `/t-backend-finalize` 输入，不得由 `/t
 - 测试运行 item 依赖本轮全部相关 authoring item，并记录覆盖来源。
 - 测试运行 item 必须包含 `Expected Test Manifest`，逐项列出本轮 authoring item 产生或修改的测试文件、测试函数/用例标题、来源 authoring item 和预期 runner 命令。
 - 测试运行 item 只运行能覆盖这些来源的最小可靠定向测试、类型检查或构建命令，不默认全量测试。
-- 如果定向运行需要等待 Rust 编译、TypeScript 编译、Vite/Vitest 预构建、Taro 构建或 Playwright 项目启动，这属于允许的执行成本；item 必须记录实际命令和失败/耗时证据。
+- 如果定向运行需要等待 Java/Maven 编译、TypeScript 编译、Vite/Vitest 预构建、Taro 构建或 Playwright 项目启动，这属于允许的执行成本；item 必须记录实际命令和失败/耗时证据。
 - 只有定向范围无法可靠覆盖风险，或发布/验收门禁明确要求时，才升级全量测试，并说明原因。
-- 可用 `uv run scripts/check-test-runner-coverage.py <feature> --layer <backend|frontend|miniapp|demo>` 校验 runner item 的预期测试清单与定向命令覆盖关系；backend 会通过 `cargo nextest list` 做动态命中校验，frontend/miniapp/demo 默认做静态命令覆盖校验。
+- 可用 `uv run scripts/check-test-runner-coverage.py <feature> --layer <backend|frontend|miniapp|demo>` 校验 runner item 的预期测试清单与定向命令覆盖关系；backend 做动态命中校验，frontend/miniapp/demo 默认做静态命令覆盖校验。
 
 适用阶段：
 
@@ -122,6 +173,9 @@ backend/test slot 必须显式规划测试执行闭环：
 - runner 的拆分以验证范围为准：同一业务场景或 package/module 优先合并，互不相干且会影响恢复性的范围可拆分。
 - `runner` item 的 `agent` 必须为 `general-purpose`，并声明 `uses_skill: skills/t-backend-test-run/SKILL.md`。
 - `runner` item 必须依赖本轮全部相关 `authoring` item。
+- `runner` item 中出现的每条后端测试命令都必须以 `uv run scripts/backend-test.py --` 开头；没有 filter 时也写成 `uv run scripts/backend-test.py --`。
+- 需要串行执行时，使用 `uv run scripts/backend-test.py -- --test-threads 1 [filter]`，并写明串行原因。
+- 不得写 `${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py`，也不得省略 `--`；目标项目本地脚本失败时不得改用插件脚本绕过。
 - backend/accept item 必须依赖至少一个 `runner` item，不得只依赖 `authoring` item。
 - `t-backend-test-run` 不得作为 agent 出现在 item 中。
 

@@ -52,25 +52,7 @@ hooks:
 - 返回修正建议
 - 不修改文件
 
-**输出格式**:
-
-```json
-{
-  "calibration_report": {
-    "original_code_issues": [
-      {
-        "severity": "P0|P1|P2",
-        "issue": "问题描述",
-        "location": "代码位置",
-        "suggestion": "修改建议"
-      }
-    ],
-    "corrected_code": "修正后的代码（如需要）",
-    "rationale": "修改原因说明",
-    "references": ["相关文档链接或参考"]
-  }
-}
-```
+**输出**: 返回 `calibration_report`，包含问题、位置、建议、必要的修正代码和参考依据。
 
 ## 先读什么
 
@@ -160,20 +142,17 @@ cd frontend && npm run lint
 - 不用 `any` 和不安全断言绕过类型系统
 - UI 组件不直接承担不必要的数据访问和全局状态写入
 
-## 修复后补测契约
+## 结构化输出
 
 当 frontend-dev 用于修复 `t-demo-run` 失败时，`task_completion` 必须返回：
+
 - `change_scope`
 - `tests_to_run`
 
-统一参考：
+任务完成、失败输出、修复后补测字段结构和允许命令统一参考：
 
 - `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`
 - `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`
-
-## 任务完成输出
-
-按 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md` 返回成功结构。
 
 frontend-dev 的推荐扩展字段：
 
@@ -185,10 +164,6 @@ frontend-dev 的推荐扩展字段：
 - `next_steps`
 
 若本次修改影响 Demo 修复闭环，`tests_to_run` 不能为空。
-
-## 错误输出格式
-
-按 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md` 返回失败结构。
 
 ## 禁止事项
 

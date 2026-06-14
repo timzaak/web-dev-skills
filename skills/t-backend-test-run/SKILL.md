@@ -36,7 +36,7 @@ allowed-tools:
 - 读取 runner item 的 `Expected Test Manifest`；如果缺失，则从 authoring item 的 handoff 中重建预期测试清单，并报告 manifest 缺口。
 - 执行测试前，运行或等价模拟 `uv run scripts/check-test-runner-coverage.py <feature> --layer backend`，确认文档中的后端命令会选中全部预期测试。
 - 根据 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md` 选择能覆盖 runner 所依赖全部 authoring item 的最窄可靠命令。
-- 通过 `scripts/backend-test.py` 运行定向测试；除非拆成多条命令能明显提升失败恢复性，否则不要为每个新增测试单独跑一条命令。
+- 使用 `uv run scripts/backend-test.py -- [filter]` 运行定向测试；除非拆成多条命令能明显提升失败恢复性，否则按同一业务场景或 package/module 合并执行。
 - 将失败分类为编译失败、运行时失败、断言失败、环境问题或语义不清。
 - 生产代码问题委派给 `backend-dev`，并附带场景测试写入限制。
 - 重新运行定向命令。

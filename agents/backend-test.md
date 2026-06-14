@@ -58,17 +58,15 @@ tools:
 - 只修改 `backend/**/src/test/**`、测试 helper、测试配置等测试拥有的文件。
 - validation 只要求 `cd backend && mvn test -DskipTests` 或建议 runner 命令。
 - completion criteria 不得要求目标测试全部通过。
-- 需要真正执行目标测试时，交给 runner item 使用 `${CLAUDE_PLUGIN_ROOT}/skills/t-backend-test-run/SKILL.md`。
+- 需要真正执行目标测试时，交给 runner item 使用 `${CLAUDE_PLUGIN_ROOT}/skills/t-backend-test-run/SKILL.md`，runner 命令统一写成 `uv run scripts/backend-test.py -- [filter]`。
 
 ## Planning Contract
 
 通过 `t-task` 生成 backend/test slot 时：
 
-- runner item 汇总本轮新增或修改的场景测试 authoring item。
-- runner item 必须声明 `agent: general-purpose`、`test_item_type: runner`、`uses_skill: skills/t-backend-test-run/SKILL.md`。
-- runner item 必须依赖本轮全部相关 authoring item，并负责基于覆盖来源选择定向测试、失败分类、生产代码修复委派和重测。
-- runner 拆分以验证范围为准：同一业务场景或 package/module 优先合并，互不相干且会影响恢复性的范围可拆分。
-- 不得生成 `agent: backend-test-run`。
+- authoring item 由本 agent 规划或执行。
+- runner item、覆盖来源、`uses_skill`、`Expected Test Manifest` 和禁止项统一以 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 为准。
+- 本 agent 不维护 backend/test 的第二套 runner 规则。
 
 ## 输出
 

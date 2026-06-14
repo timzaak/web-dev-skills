@@ -27,7 +27,7 @@ allowed-tools:
 
 ## 目标
 
-基于现有 user story、正式 PRD、已有 PRD 草稿和用户补充信息，先补齐必要的 user story，再创建或更新一份 PRD 草稿，并生成 HTML Preview，供人类快速审阅。`.ai/prd` 是实现前和实现期间的临时候选需求工作区，不是长期权威源。
+基于 Decision Brief、现有 user story、正式 PRD、已有 PRD 草稿和用户补充信息，先补齐必要的 user story，再创建或更新一份 PRD 草稿，并生成 HTML Preview，供人类快速审阅。`.ai/prd` 是实现前和实现期间的临时候选需求工作区，不是长期权威源。
 
 输出文件：
 - `.ai/prd/<domain>/[feature].md`
@@ -80,6 +80,8 @@ allowed-tools:
 - 只在目标域、范围边界、成功标准或补充 user story 所需信息无法可靠推断时，才使用 `AskUserQuestion`
 - 一次只问一个；每个问题给出推荐答案，用户可接受、修改或拒绝
 - PRD 只记录已确认决策；仍待确认的信息在对话收尾中列出，不写入 Markdown PRD
+- 如果存在 `.ai/decision/[feature].md`，PRD 必须承接其中 Verdict、Scope Direction、D0/D1 决策和 Handoff；不得把 Open Questions 写成已确认决策
+- 如果 Decision Brief 的 Verdict 是 `Needs Clarification`、`Park` 或 `Reject`，停止并提示先回到 `/t-decision [feature]`
 - 信息足够生成可审阅 PRD 草稿时停止追问，不为了完美而继续打断
 
 ## PRD 前置澄清门禁
@@ -124,6 +126,7 @@ PRD Grill Snapshot
 上游输入（可选，如果存在会提升质量）：
 - `docs/user-stories/**/*.md` — 用户故事文档
 - `docs/prd/00-index.md` — 正式 PRD 索引
+- `.ai/decision/[feature].md` — 产品立项决策简报（推荐，来自 `/t-decision`）
 - `docs/prd/<domain>/[feature].md` — 已发布正式 PRD（可选，用作草稿基线）
 - `.ai/prd/<domain>/[feature].md` — 已有 PRD 草稿（可选，用作更新基线）
 - `.ai/tech-research/[feature].md` — 技术可行性研究报告（可选，来自 `/t-tech-research`）
@@ -162,6 +165,7 @@ HTML Preview 由 `/t-html-show` 自动生成到 `.ai/preview/<domain>/[feature].
 
 先读取：
 - `docs/prd/00-index.md`
+- `.ai/decision/$ARGUMENTS.md`（如存在，从中提取 Verdict、Scope Direction、D0/D1 决策、Open Questions 和 Handoff）
 - `docs/user-stories/00-index.md`
 - `.ai/tech-research/$ARGUMENTS.md`（如已存在，从中提取技术需求和影响分析）
 - `.ai/prd/**/*.md` 和 `docs/prd/**/*.md` 中与 `$ARGUMENTS` 相关的少量候选文件
@@ -177,7 +181,9 @@ HTML Preview 由 `/t-html-show` 自动生成到 `.ai/preview/<domain>/[feature].
 
 ### 4. 收集信息
 
-如已存在 `.ai/tech-research/$ARGUMENTS.md`，先从中提取技术需求（§1.2）、代码库评估（§2）、影响分析（§5）和 PRD 建议（§7）。
+如已存在 `.ai/decision/$ARGUMENTS.md`，先从中提取目标用户、问题陈述、范围方向、已确认产品决策、仍阻塞 PRD 的问题和给 PRD 的 Handoff。若 Verdict 不允许继续进入 PRD，停止并提示回到 `/t-decision`。
+
+如已存在 `.ai/tech-research/$ARGUMENTS.md`，再从中提取技术需求（§1.2）、代码库评估（§2）、影响分析（§5）和 PRD 建议（§7）。
 
 仅当上下文无法可靠推断时，用 `AskUserQuestion` 补齐：
 - 功能目标与范围边界
@@ -277,6 +283,7 @@ create 路径使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-prd/template.md
 - 文件无法写入 → 终止并报告
 - user story 信息不足 → 先补问；仍不足则继续，PRD 中标记缺口
 - HTML Preview 无法生成 → 终止并报告，不能只交付 Markdown PRD
+- Decision Brief 阻塞 PRD → 终止并提示 `/t-decision [feature]`
 - HTML Preview 无法打开 → 报告失败和文件路径（`.ai/preview/<domain>/[feature].html`），保留已生成文件
 
 ## 质量门禁

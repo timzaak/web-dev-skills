@@ -44,14 +44,27 @@ SEVERITY = {
 }
 
 LINK_PATTERN = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
+PLUGIN_ROOT_PREFIX = "${CLAUDE_PLUGIN_ROOT}/"
+TARGET_PROJECT_PATH_PREFIXES = (
+    "/.ai/",
+    "/docs/",
+    "${TARGET_PROJECT_ROOT}/",
+)
+INTERNAL_MD_PATH_PATTERN = re.compile(
+    r"(?P<url>"
+    r"\$\{CLAUDE_PLUGIN_ROOT\}/[^\s`\"')\]|,，。；;]+\.md(?:#[^\s`\"')\]|,，。；;]+)?"
+    r"|/(?:agents|guides|human|protocols|skills)/[^\s`\"')\]|,，。；;]+\.md(?:#[^\s`\"')\]|,，。；;]+)?"
+    r")"
+)
 
 
 class MarkdownLink:
-    def __init__(self, text: str, url: str, line_number: int, source_file: Path):
+    def __init__(self, text: str, url: str, line_number: int, source_file: Path, kind: str = "markdown"):
         self.text = text
         self.url = url
         self.line_number = line_number
         self.source_file = source_file
+        self.kind = kind
         self.is_external = url.startswith(("http://", "https://", "ftp://", "mailto:"))
         self.is_anchor = "#" in url
         self.is_relative_path = url.startswith("../") or url.startswith("./")
@@ -135,6 +148,10 @@ def remove_inline_code(line: str) -> str:
 def should_skip_url(url: str) -> bool:
     if url in ("待补充（TBD）", "TBD", "待补充"):
         return True
+    if url.startswith(TARGET_PROJECT_PATH_PREFIXES):
+        return True
+    if "*" in url:
+        return True
     if url.startswith(("![[", "[[[")):
         return True
     if re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", url) and not re.search(r"[/.]", url):
@@ -146,6 +163,7 @@ def should_skip_url(url: str) -> bool:
 
 def extract_links_from_file(file_path: Path) -> List[MarkdownLink]:
     links: List[MarkdownLink] = []
+    seen: Set[Tuple[int, str]] = set()
     content = file_path.read_text(encoding="utf-8")
     lines = content.splitlines()
 
@@ -164,7 +182,15 @@ def extract_links_from_file(file_path: Path) -> List[MarkdownLink]:
             url = match.group(2).strip()
             if should_skip_url(url):
                 continue
-            links.append(MarkdownLink(text, url, line_num, file_path))
+            seen.add((line_num, url))
+            links.append(MarkdownLink(text, url, line_num, file_path, "markdown"))
+
+        for match in INTERNAL_MD_PATH_PATTERN.finditer(line):
+            url = match.group("url").strip()
+            if should_skip_url(url) or (line_num, url) in seen:
+                continue
+            seen.add((line_num, url))
+            links.append(MarkdownLink(url, url, line_num, file_path, "path-reference"))
 
     return links
 
@@ -172,6 +198,8 @@ def extract_links_from_file(file_path: Path) -> List[MarkdownLink]:
 def resolve_relative_path(source_file: Path, target: str) -> Path:
     if not target:
         return source_file.resolve()
+    if target.startswith(PLUGIN_ROOT_PREFIX):
+        return (PROJECT_ROOT / target[len(PLUGIN_ROOT_PREFIX) :]).resolve()
     # 如果以 / 开头，表示从项目根目录开始的绝对路径
     if target.startswith("/"):
         return (PROJECT_ROOT / target[1:]).resolve()
@@ -241,6 +269,12 @@ def get_file_type(file_path: Path) -> str:
         return "doc"
     if relative_path.startswith("demo/"):
         return "demo"
+    if relative_path.startswith("guides/"):
+        return "guide"
+    if relative_path.startswith("human/"):
+        return "human"
+    if relative_path.startswith("templates/"):
+        return "template"
     return "other"
 
 
@@ -248,7 +282,7 @@ def is_repo_index_doc(file_path: Path) -> bool:
     rel = file_path.relative_to(PROJECT_ROOT).as_posix()
     if file_path.name not in INDEX_PATTERNS:
         return False
-    return rel.startswith("docs/") or rel.startswith("spec/")
+    return rel.startswith(("docs/", "guides/", "protocols/", "spec/"))
 
 
 def is_readme_doc(file_path: Path) -> bool:

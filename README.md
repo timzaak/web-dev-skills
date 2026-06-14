@@ -2,7 +2,7 @@
 
 [English](README.en.md)
 
-面向 Java Spring Boot + React 项目的 Claude Code plugin。它把 `PRD -> 设计 -> 任务 -> 开发 -> 验收 -> Demo` 串成一套可复用工作流，让你不用反复设计 prompt、切换上下文或手工维护阶段边界。
+面向 Java Spring Boot + React 项目的 Claude Code plugin。它把 `Decision -> 技术预研 -> PRD -> 设计 -> 任务 -> 开发 -> 验收 -> Demo` 串成一套可复用工作流，让你不用反复设计 prompt、切换上下文或手工维护阶段边界。
 
 适合这类团队和项目：
 
@@ -33,6 +33,12 @@
 最短闭环示例：
 
 ```bash
+# 先判断这个 feature 是否值得进入后续流程，并打开 HTML 供审阅
+/t-tools:t-decision user-management
+
+# 需要技术可行性、依赖或成本判断时，先做技术预研
+/t-tools:t-tech-research user-management
+
 # 创建或更新 .ai/prd 草稿，并打开 HTML 供审阅
 /t-tools:t-prd user-management
 
@@ -73,6 +79,7 @@
 
 - 本 README 统一使用 `/t-tools:t-*` 作为标准调用形式
 - 本插件所有 `t-*` skill 均为手工触发入口，不允许模型根据语义自动触发
+- `t-decision` 是 PRD 前的产品立项门禁，输出 `.ai/decision/<feature>.md` 和 `.ai/preview/decision/<feature>.html`；结论为 `Proceed` 或 `Research First` 后再进入技术预研或 PRD。它的交互方式借鉴 Garry Tan 的 [gstack](https://github.com/garrytan/gstack) 中 `office-hours` 与 `plan-ceo-review` 的产品诊断和 CEO review 思路，但已转译为 t-tools 的阶段门禁，不 vendoring gstack 运行时
 - `t-doc` 用于项目文档、上手教程、API 参考、配置和部署说明，不用于 PRD、技术设计或只改某个文档片段
 - `t-dream` 默认以只读 audit 方式整理 PRD、用户故事、设计/任务、实现事实与项目结构，减少过期、重复、冲突和误导性上下文累积；需要写入 PRD 治理时显式使用 `--govern-prd`
 - `t-backend-test-run` 是内部执行型 skill，供 `backend-test` 等流程复用，不作为推荐的手动入口
