@@ -58,6 +58,7 @@ allowed-tools:
   - 仅适用于不涉及业务逻辑、产品规则、用户可见流程或验收目标变动的设计
 
 可选输入：
+- `.ai/design-ui/<feature>/ui-spec.md` — 已确认 UI 规格（如存在，前端设计必须承接）
 - `${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md` — 环境与测试指南
 - `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md` — 后端开发规范
 - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md` — 前端开发规范
@@ -96,6 +97,7 @@ allowed-tools:
 - 只有在人类明确要求补充外部依据时，才可将外部资料作为附加参考
 - 设计文档必须包含：目标、范围、API 接口设计、数据库设计、测试策略、风险
 - 涉及前端时，必须包含页面/组件说明和页面线框说明
+- 若存在 `.ai/design-ui/<feature>/ui-spec.md`，前端设计必须承接其中的页面结构、组件映射与关键状态，并在前端设计章节标记"基于已确认 UI 规格"；不得静默偏离
 - 设计文档整体可保留 API 接口设计章节，但前端设计部分不单列 API 契约描述
 - 数据库设计遵循"尽量简洁、当前必需、避免过度审计设计"
 - 文档中的文件路径必须使用仓库真实路径，不允许使用不存在的示例路径
@@ -109,6 +111,7 @@ allowed-tools:
 - `.ai/prd/$ARGUMENTS.md` 或 `.ai/prd/**/$ARGUMENTS.md`（如存在）
 - `docs/prd/**/$ARGUMENTS.md`（如存在）
 - `.ai/tech-research/$ARGUMENTS.md`（如存在）
+- `.ai/design-ui/$ARGUMENTS/ui-spec.md`（如存在）
 - `${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md` 和/或 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md`
@@ -155,6 +158,7 @@ allowed-tools:
 - 场景概述或验收目标的简短摘要
 - PRD 草稿中的当前候选业务边界、规则、非功能要求
 - 已发布 PRD 中的正式基线，以及草稿相对基线的目标、范围、规则、状态和验收目标差异
+- 已确认 UI 规格中的页面结构、组件映射和关键状态（如存在）
 
 如果同时存在草稿和正式 PRD：
 - 草稿与正式 PRD 一致或明确是增量/替换 → 继续设计，并在"需求来源"中同时引用两者和差异摘要
@@ -243,6 +247,7 @@ allowed-tools:
 - 页面/路由/组件清单
 - 页面线框说明：页面区域、主要交互、关键状态、数据来源或依赖
 - 与现有前端模式的一致性说明，例如表单、查询、错误处理、路由承接方式
+- 如存在 `.ai/design-ui/<feature>/ui-spec.md`，说明"基于已确认 UI 规格"，并承接其页面结构、组件映射、关键状态、`data-testid` 或 Demo 选择器影响
 
 注意：
 - 整体设计文档中的 API 接口设计章节仍用于描述后端接口与 OpenAPI/SDK 关系

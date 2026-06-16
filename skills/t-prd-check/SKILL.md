@@ -22,7 +22,7 @@ allowed-tools:
 - 检查 PRD 草稿与 `docs/prd` 已发布基线是否存在未说明冲突
 - 检查 PRD / 用户故事是否错误混入接口、建表、schema 等实现细节
 - 输出量化评分和修复清单
-- 明确通过后的下一步：进入 `/t-design [feature]`；若有修复，重新运行 `/t-prd-check [feature]`
+- 明确通过后的下一步：有显著前端 UI 时可先进入 `/t-ui-design [feature]`，否则进入 `/t-design [feature]`；若有修复，重新运行 `/t-prd-check [feature]`
 
 评分、扣分和问题分级统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md`
 
@@ -107,7 +107,7 @@ allowed-tools:
 ### 9. 输出要求
 - 控制台摘要和报告结构统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md`
 - 详细报告文件：`.ai/quality/prd-check-[YYYYMMDD-HHMMSS].md`
-- 通过时建议下一步为 `/t-design [feature]`
+- 通过时建议下一步为 `/t-ui-design [feature]`（有显著前端 UI）或 `/t-design [feature]`
 - 未通过或修复后，建议再次运行 `/t-prd-check [feature]`
 
 ### 10. 失败处理

@@ -1,8 +1,14 @@
 # 前端 UI 探索能力设计说明（design-shotgun 适配方案）
 
-本文是一份**设计说明**，不是已实现的 skill。它记录将来如何在本项目里补上类似 gstack `/design-shotgun` 的前端 UI 探索能力：多方案生成 → 并排对比 → 反馈迭代 → 收敛定稿。
+本文是 `t-ui-design` 的设计背景说明。该能力已落地为：
 
-目标是让设计意图和现有结构对齐，等真正实现时可以直接照此落地，而不是临时重新设计。
+- skill：`skills/t-ui-design/SKILL.md`
+- subagent：`agents/ui-design.md`
+- 共享契约：`protocols/ui-design-contract.md`
+
+它记录本项目如何适配类似 gstack `/design-shotgun` 的前端 UI 探索能力：多方案生成 → 并排对比 → 反馈迭代 → 收敛定稿。
+
+目标是说明设计意图和现有结构如何对齐，后续修改应优先更新 skill、agent 和 protocol 中的正式契约。
 
 ## 它解决什么问题
 
@@ -24,7 +30,7 @@ gstack 的 `/design-shotgun` 用 GPT Image 生成图片 mockup，再用 `/design
 
 因此变体应该用 **HTML/CSS mockup**（单文件 HTML，可用 Tailwind 风格的 class），而不是图片。这反而是一个优势：HTML mockup 离真实 React 实现最近，winner 选定后几乎能直接映射成组件结构，比图片 mockup 更能指导开发，也不需要任何外部 API。
 
-## 推荐的 skill 形态
+## 已落地的 skill 形态
 
 - **名称**：`t-ui-design`，遵循 `t-*` 命名，命令式入口、手工触发，不被模型自动触发。
 - **位置**：`/t-prd-check` 通过之后、`/t-design` 之前或并行。仅当 feature 有显著前端 UI 时才跑；纯后端、纯技术方案跳过。
@@ -85,7 +91,7 @@ gstack 有持久化的项目级 taste profile（含 5%/周衰减）。本项目�
 
 ## 与 gstack 的取舍对照
 
-| 维度 | gstack `/design-shotgun` | 本项目 `t-ui-design`（设计说明） |
+| 维度 | gstack `/design-shotgun` | 本项目 `t-ui-design` |
 |---|---|---|
 | 变体形式 | GPT Image 图片 mockup | HTML/CSS mockup（贴近 React+Tailwind 实现） |
 | 外部依赖 | 需图像生成 API | 无（单文件 HTML） |
