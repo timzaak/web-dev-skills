@@ -139,7 +139,7 @@ PRD Grill Snapshot
 
 ## Output Contract
 
-下游产出（供 `/t-prd-check` 和 `/t-design` 使用）：
+下游产出：
 
 `.ai/prd/<domain>/[feature].md` — PRD 草稿，包含：
 - 相关用户故事引用
@@ -252,7 +252,7 @@ create 路径使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-prd/template.md
 源文档: .ai/prd/<domain>/[feature].md
 ```
 
-`html-show` subagent 会基于指定草稿生成 `.ai/preview/<domain>/[feature].html`。生成完成后用系统默认浏览器打开该 HTML 文件。
+`html-show` subagent 会基于指定草稿生成 `.ai/preview/<domain>/[feature].html`。生成完成后默认不自动打开；只报告 Preview 路径和打开命令。仅当用户明确要求打开时才执行，使用 `html-show-contract.md` 的 `Opening the Preview` 中定义的命令并校验启动结果，不得谎报"已打开"。
 
 如果 html-show 失败，终止并报告，不能只交付 Markdown PRD 草稿。
 

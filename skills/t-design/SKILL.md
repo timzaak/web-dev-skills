@@ -67,7 +67,7 @@ allowed-tools:
 
 ## Output Contract
 
-下游产出（供 `/t-design-check` 和 `/t-task` 使用）：
+下游产出：
 - `.ai/design/$ARGUMENTS.md` — 技术设计文档，包含：
   - 目标与范围
   - 用户故事/PRD/技术预研引用
@@ -262,7 +262,7 @@ allowed-tools:
 - 本次设计覆盖的核心范围
 - 关键风险或待确认点
 - 下一步命令：`/t-design-check $ARGUMENTS`
-- 如文档内容较多或结构复杂，可使用 `/t-html-show .ai/design/$ARGUMENTS.md` 生成 HTML 可视化预览，方便人类快速审阅
+- 如文档内容较多或结构复杂，可使用 `/t-html-show .ai/design/$ARGUMENTS.md` 生成 HTML 可视化预览
 
 ## 用户故事引用规则
 

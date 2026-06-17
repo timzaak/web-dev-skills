@@ -24,7 +24,7 @@ allowed-tools:
 - 整体失败时，再按用例粒度顺序执行。
 - 单个用例失败时先诊断，再分发到对应 agent 修复。
 - 修复后必须执行相关后端/前端补测，不能只跑 Demo。
-- 输出可恢复的任务状态与最终汇总。
+- 输出可恢复的任务状态与机器可解析结果。
 
 ## 使用方式
 ```bash
@@ -45,9 +45,9 @@ uv run scripts/cleanup-demo.py
 uv run scripts/demo-test-runner.py "[测试文件]" --run-id [RUN_ID]
 ```
 
-- 若整个测试文件通过。
-- 不再拆分用例运行。
-- 直接进入汇总输出。
+- 若整个测试文件通过：
+  - 不再拆分用例运行。
+  - 直接输出结果 JSON。
 
 - 若整个测试文件失败，列出测试用例。
 ```bash
@@ -79,8 +79,20 @@ uv run scripts/demo-test-runner.py "[测试文件]" --run-id [RUN_ID] --grep "[�
   - 执行最小兜底补测（按改动层至少 1 条 backend/frontend/miniapp 相关测试）
 - 重新运行当前用例验证修复（即 `demo` 层验证）。
 
-- 汇总输出。
-- 控制台输出通过/修复/失败统计。
+- 结果输出。
+- 最后一行必须输出机器可解析 JSON，格式固定为：
+```text
+Result: {"success":"true|false","fixed":"true|false","logs":"demo/test-results/runs/[RUN_ID]","exit_code":0,"test_file":"demo/e2e/...","run_id":"[RUN_ID]","error":""}
+```
+- 字段含义：
+  - `success`: 最终 Demo 验证是否通过。
+  - `fixed`: 本次是否经历失败后修复并通过；首次整体通过时为 `false`。
+  - `logs`: 本次运行主日志目录，优先使用 `demo-test-runner.py` 返回的 `logs`。
+  - `exit_code`: 最终 Demo 验证退出码。
+  - `test_file`: 输入测试文件路径。
+  - `run_id`: 本次运行 ID。
+  - `error`: 失败时的简要错误；成功时为空字符串。
+- 不再额外要求自然语言“最终总结”；必要说明只保留为失败诊断、修复记录或 `error` 字段。
 
 ## 恢复机制
 当流程中断时：
@@ -99,4 +111,4 @@ uv run scripts/demo-test-runner.py "[测试文件]" --run-id [RUN_ID] --grep "[�
 - 拆分后的用例执行必须串行。
 - 每个失败用例必须有诊断记录。
 - 每次修复后必须先执行相关层补测，再执行 Demo 验证。
-- 必须输出控制台汇总。
+- 必须输出最后一行 `Result: {...}`。

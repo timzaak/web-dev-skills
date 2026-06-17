@@ -36,7 +36,7 @@ allowed-tools:
 
 ## Output Contract
 
-下游产出（供 `/t-task-check` 和 `/t-run` 使用）：
+下游产出：
 - `.ai/task/[feature]/.state.json` — 任务状态文件，包含 phase/slot/item 层级状态
 - `.ai/task/[feature]/<phase>/index.md` — 阶段总览
 - `.ai/task/[feature]/<phase>/<slot>.md` — Slot manifest（导航与依赖）
@@ -47,7 +47,7 @@ allowed-tools:
 ## Purpose
 - 从 `.ai/design/[feature].md` 生成 `.ai/task/[feature]/` 任务目录和 `.state.json`。
 - 固定使用 `phase -> slot -> item` 模型。
-- 生成可供 `/t-run` 串行执行的 item 文件，而不是把 manifest 当执行输入。
+- 生成串行执行的 item 文件，而不是把 manifest 当执行输入。
 - backend 阶段额外生成 `finalize.md`，由 `/t-backend-finalize` 独立执行。
 
 ## Args

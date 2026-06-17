@@ -213,7 +213,7 @@ Markdown 使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-decision/template.m
 - `Park`：暂存，记录重启条件。
 - `Reject`：不建议做。
 
-`Needs Clarification`、`Park`、`Reject` 也要写简报，方便后续恢复。`Park` 和 `Reject` 必须引用已写明的 Kill Criteria 作为依据，不能只凭直觉暂缓或否决。
+`Needs Clarification`、`Park`、`Reject` 也要写简报。`Park` 和 `Reject` 必须引用已写明的 Kill Criteria 作为依据，不能只凭直觉暂缓或否决。
 
 ## AskUserQuestion 规则
 
@@ -244,7 +244,7 @@ Markdown 使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-decision/template.m
 源文档: .ai/decision/<feature>.md
 ```
 
-7. 打开 `.ai/preview/decision/<feature>.html`。
+7. 默认不自动打开；报告 `.ai/preview/decision/<feature>.html` 路径与打开命令。仅当用户明确要求打开时才执行（命令见 `html-show-contract.md` 的 `Opening the Preview`）。
 
 如果 Preview 生成失败，终止并报告；不能只交付 Markdown。
 

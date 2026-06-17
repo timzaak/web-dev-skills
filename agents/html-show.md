@@ -90,6 +90,10 @@ PRD 文档额外传入 `--type prd`。
 
 - 如检查失败，修复 Preview 后重跑。
 
+## 打开 Preview
+
+默认不自动打开浏览器。生成 Preview 后只报告路径和打开命令；仅当调用方或人类明确要求打开时才执行，且必须使用 `protocols/html-show-contract.md` 的 `Opening the Preview` 中定义的命令并校验启动结果。不得在未真正打开时报告"已打开"。
+
 ## 后端可视化选择
 
 - `backend-flow`：表达调用方、能力边界、业务步骤、结果。

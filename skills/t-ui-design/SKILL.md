@@ -72,7 +72,7 @@ allowed-tools:
 - `.ai/design-ui/<feature>/variants/*.html` — 独立 HTML mockup
 - `.ai/design-ui/<feature>/feedback.md` — 反馈记录
 - `.ai/design-ui/<feature>/winner.html` — 选中方案
-- `.ai/design-ui/<feature>/ui-spec.md` — UI 设计规格，供 `/t-design` 承接
+- `.ai/design-ui/<feature>/ui-spec.md` — UI 设计规格
 
 ## 核心约束
 
@@ -166,11 +166,9 @@ winner: <variant-name-or-path>
 必须遵循: ${CLAUDE_PLUGIN_ROOT}/protocols/ui-design-contract.md
 ```
 
-### 5. 打开 board
+### 5. 打开 board（可选，默认不打开）
 
-生成或更新 `board.html` 后，用当前环境的系统默认方式打开 `.ai/design-ui/$ARGUMENTS/board.html`。
-
-如果无法打开，报告失败并保留文件路径。
+生成或更新 `board.html` 后，默认不自动打开；报告 `.ai/design-ui/$ARGUMENTS/board.html` 路径与打开命令。仅当用户明确要求打开时才执行，使用 `html-show-contract.md` 的 `Opening the Preview` 中定义的命令并校验启动结果。如果无法打开，报告失败并保留文件路径。
 
 ### 6. 收集反馈
 
