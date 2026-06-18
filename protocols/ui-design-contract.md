@@ -65,8 +65,8 @@ UI mockup 必须保持可直接审阅、无外部运行时依赖：
 
 - 列出所有 variants 的方向、适用场景和主要取舍。
 - 通过内嵌 HTML、同目录 iframe 或等价结构并排/分组展示 variants。
-- 提供清晰的 winner/feedback 记录区域，但不需要持久化交互。
-- `board.html` 自身无网络依赖；如引用 sibling variants，只允许引用 `.ai/design-ui/<feature>/variants/` 下的本地产物。
+- 提供清晰的 winner/feedback 记录区域。该区域是**持久记录**，不是非持久草稿：决策前可临时记录偏好（“选为 winner”等点击交互刷新后可复位，这部分不要求持久化）；**winner 一经确认，必须把选定方向、保留/并入/淘汰元素以及指向 `winner.html`/`ui-spec.md`/`feedback.md` 的链接回写进 `board.html`**，使看板与确认结果一致，不得停留在首轮“未选择”状态。“不需要持久化交互”仅指决策前的点击交互，不豁免收敛后的回写。
+- `board.html` 自身无网络依赖；如引用 sibling 产物，只允许引用 `.ai/design-ui/<feature>/` 下的本地产物（`variants/*.html`、`winner.html` 等）。
 
 ## Feedback Rules
 
@@ -115,3 +115,4 @@ v1 只维护单 feature 的反馈记忆。跨 feature 的项目级 taste profile
 - variants 有真实差异。
 - `ui-spec.md` 未越界到 API、数据库或生产代码。
 - `ui-spec.md` 与 PRD/用户故事不冲突。
+- 收敛后 `board.html` 已回写（标注 winner、保留/并入/淘汰元素，链接 `winner.html`/`ui-spec.md`/`feedback.md`），未停留在首轮“未选择”状态。

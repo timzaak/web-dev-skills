@@ -183,6 +183,8 @@ winner: <variant-name-or-path>
 
 如果用户确认 winner，委派 `ui-design` 生成 `winner.html` 和 `ui-spec.md`。
 
+确认 winner 后，必须把结论回写进 `board.html`：标注选中 variant、保留/并入/淘汰的元素，并把 winner/反馈区从决策前的临时状态更新为持久记录（链接 `winner.html`/`ui-spec.md`/`feedback.md`）。收敛后的 `board.html` 必须与确认结果一致，不得停留在首轮“未选择”状态。详见 `${CLAUDE_PLUGIN_ROOT}/protocols/ui-design-contract.md` 的 Board Requirements。
+
 ### 7. 收尾输出
 
 完成后说明：
@@ -202,6 +204,7 @@ winner: <variant-name-or-path>
 - 是否标注 mock data 和假设。
 - `ui-spec.md` 是否只描述 UI 规格，不越界写 API/数据库/生产代码。
 - `ui-spec.md` 是否能被 `/t-design` 前端章节直接承接。
+- 收敛后 `board.html` 是否已回写（标注 winner、保留/并入/淘汰元素、链接 `winner.html`/`ui-spec.md`/`feedback.md`），没有停留在首轮“未选择”状态。
 
 ## 失败处理
 
