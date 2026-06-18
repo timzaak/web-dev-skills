@@ -83,9 +83,9 @@ allowed-tools:
    - 对 backend/frontend/miniapp/demo 的集中测试执行 item，优先运行 `uv run scripts/check-test-runner-coverage.py [feature] --layer [layer]` 做覆盖校验；backend 动态校验失败应记 P1 或 P0（取决于是否导致新增测试无法执行），frontend/miniapp/demo 静态校验失败至少记 P1
    - 后端测试命令必须使用目标项目内脚本入口 `uv run scripts/backend-test.py -- [filter]`；即使没有 filter，也必须写为 `uv run scripts/backend-test.py --`。不得写成 `${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py` 或省略 `--`。需要串行执行时使用 `uv run scripts/backend-test.py -- --test-threads 1 [filter]` 并说明串行原因。若测试 item 使用 `cargo run`、裸 `cargo test -- --test-threads=1`、插件根路径或省略 `--` 的后端测试命令，记 P1，并改为统一入口。
    - 不得把完整 slot 内容塞进一个 item
-   - 超过拆分阈值必须有合理说明，否则记 P1
+   - 超过拆分阈值，或职责、验证、恢复边界可疑时，必须有合理说明，否则记 P1
    - scope 中包含两个可独立交付、独立验证的主交付物时，必须拆分，否则记 P1
-   - 单个 HTTP/API item 同时包含 5 个以上 endpoint、DTO、路由注册和 OpenAPI/schema 更新时，必须拆分，否则记 P1
+   - 单个 HTTP/API item 覆盖超过 7 个 endpoint，或混合不同资源域、读写操作、状态操作、配置类接口时，必须拆分，否则记 P1
    - 单个 demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流时，必须拆分，否则记 P1
 - 核对设计文档与任务文档的一致性；纯技术方案任务可只追溯设计文档中的技术预研来源，不得因缺少 PRD/用户故事扣 P0。
 - 通过 `Agent` tool 调度当前阶段对应 subagent 做专业校验。每个 subagent 独立启动，传入 prompt 包含：该 agent/slot 相关 item 的文件路径、关键字段摘要、必要 item 全文或片段、设计文档相关节、验证范围、`${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md` 中的 agent 评审边界、输出格式要求（score/findings/fixes/summary）。可并行调度同阶段多个 subagent。
