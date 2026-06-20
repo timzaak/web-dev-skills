@@ -106,6 +106,22 @@ def backend_steps() -> list[Step]:
             cwd=backend_dir,
         ),
         Step(name="Backend format", command=[cargo, "fmt", "--all"], cwd=backend_dir),
+        # `cargo clippy --fix` exits 0 even when it cannot auto-resolve a denied
+        # lint (it emits a warning instead), so a clean non-fixing check is needed
+        # to actually enforce `-D warnings` and surface unfixable lints as failures.
+        Step(
+            name="Backend clippy check",
+            command=[
+                cargo,
+                "clippy",
+                "--all-targets",
+                "--all-features",
+                "--",
+                "-D",
+                "warnings",
+            ],
+            cwd=backend_dir,
+        ),
     ]
 
 
