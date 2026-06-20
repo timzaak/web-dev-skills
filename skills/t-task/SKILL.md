@@ -132,6 +132,7 @@ demo 阶段：
    - miniapp：小程序页面、主题、构建与模板门禁。
    - demo：Demo/E2E、用户故事场景或技术验收场景。
    - 未命中相关章节时记录警告，但不得编造设计事实；下游 prompt 必须说明缺口。
+   - 若设计文档或用户输入涉及大范围重构、替换旧架构、迁移旧模块或删除旧接口/状态/字段，下游 prompt 必须要求 agent 按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Refactor And Legacy Cleanup 生成旧代码清理清单；没有真实兼容约束时，先删旧实现再写新结构。
 - 按当前阶段 slot 串行调度相应 agent。每个 slot agent 必须通过 `Agent` tool 启动，`subagent_type` 按 Agent Dispatch Mapping 映射。传入 prompt 必须包含：当前 phase 的设计摘要、上游 slot handoff（如有）、guide 路径、Agent Output Contract 要求的字段列表。
    - prompt 必须引用 `${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md`，要求 agent 在返回前自检 P0/P1 规则。
    - prompt 必须引用 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`，要求 item 字段、拆分原则、测试集中执行和 backend/test item 类型符合该协议。

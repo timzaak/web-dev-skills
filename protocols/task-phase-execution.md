@@ -116,6 +116,25 @@ item 规划原则：
 - 不把大范围跨模块重构、多个页面域或多个完整用户故事塞进同一 item。
 - 验证命令必须来自目标项目实际脚本、package 名或配置。涉及 Cargo package 名时，item 中任何 `cargo check|run|test|clippy|nextest --package <name>` 的 `<name>` 必须与 `backend/<dir>/Cargo.toml` 中 `[package]` 段的 `name = "..."` 实际值一致；不得假设包名等于目录名（典型反例：`backend/core/` 的包名通常是 `<crate>-core`，而非 `core`）。生成 item 前先 `Read` 对应 `Cargo.toml` 核对，再写入 validation 或 steps。
 
+## Refactor And Legacy Cleanup
+
+当设计文档或用户明确要求大范围重构、替换旧架构、迁移旧模块、移除旧接口/状态/字段，且没有真实外部兼容约束时，`/t-task` 必须按“清理旧实现后重写”的方式规划任务。
+
+兼容性只在 PRD、设计文档、外部 API 契约、数据保留、跨版本部署或用户显式要求时成立。仅为了让旧代码和新代码短期共存，不算兼容性理由。
+
+这类任务至少要有一张旧代码清理清单，可以是独立 item，也可以写入相关 item 的 `handoff_summary`。清单按以下顺序组织：
+
+1. 梳理所有要迁移或删除的旧代码、旧入口、旧配置、旧测试、旧文档引用和旧数据结构。
+2. 写明删除边界：哪些必须删，哪些因真实兼容约束暂时保留。
+3. 先删除旧实现和旧引用，再在目标结构中改写或新增代码。
+4. 用 `rg` 或项目等价工具搜索旧路径、旧符号、旧接口和旧状态名，确认没有无意义的过渡代码残留。
+
+禁止项：
+
+- 没有真实兼容要求时，为旧实现新增 adapter、bridge、fallback、alias、deprecated wrapper、双路径分支或双写逻辑。
+- 把“先兼容、以后再删”作为默认实现策略。
+- 只新增新实现而不删除已被替代的旧入口、旧测试和旧文档引用。
+
 ## Splitting Heuristics
 
 以下触发条件任一成立，必须拆分：
