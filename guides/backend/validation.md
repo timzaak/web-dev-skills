@@ -51,11 +51,15 @@ cd backend && cargo fmt --check
 cd backend && cargo fmt
 ```
 
-### 4. 快速测试（可选但推荐）
+### 4. 受影响单元测试（backend-dev 新增/改动单测时 MANDATORY）
+
+凡新增或改动了 `#[cfg(test)]` 单元测试，交付前必须用统一入口跑通相关测试（收敛到最小范围，不要默认全量）：
 
 ```bash
-uv run scripts/backend-test.py -- --package <core-package> --lib
+uv run scripts/backend-test.py -- -E 'package(<core-package>) and test(<pattern>)'
 ```
+
+`<core-package>` 必须是 `backend/<dir>/Cargo.toml` 中 `[package] name = "..."` 的实际值。**禁止**用裸 `cargo test` 或 `cargo nextest run` 替代统一入口（会缺失测试环境与 DDL guard）。
 
 ## 任务完成定义
 

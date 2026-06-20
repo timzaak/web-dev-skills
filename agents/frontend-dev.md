@@ -22,13 +22,6 @@ tools:
   - WebSearch
   - mcp__context7__resolve-library-id
   - mcp__context7__query-docs
-
-hooks:
-  PostToolWrite:
-    - matcher: "Edit|Write"
-      hooks:
-        - type: command
-          command: "uv run ${CLAUDE_PLUGIN_ROOT}/scripts/frontend-format-check.py"
 ---
 
 # 前端开发专家

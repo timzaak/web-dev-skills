@@ -113,7 +113,7 @@ grep "FAILED" demo/test-results/console-logs/*.log
 ```bash
 # Backend
 cd backend && cargo check --package <api-package>
-uv run scripts/backend-test.py -- --package <core-package> --lib
+uv run scripts/backend-test.py -- -E 'package(<core-package>)'
 
 # Frontend
 cd frontend && npm run type-check
