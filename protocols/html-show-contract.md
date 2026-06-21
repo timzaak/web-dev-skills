@@ -35,15 +35,40 @@ HTML Preview 必须保持目标项目技术栈无关：
 
 ## Review Workflow
 
-`/t-html-show` 生成或更新 Preview 后，必须立即打开 HTML 文件供人类审阅。
+`/t-html-show` 生成或更新 Preview 后，默认不自动打开；打开为可选项，规则与命令见下方 `Opening the Preview`。
 
 推荐流程：
 
 - 生成或更新 HTML Preview。
-- 立即打开。
+- 报告 Preview 路径和打开命令（默认不自动打开，见 `Opening the Preview`）。
 - 人类提出修改意见。
 - 同步修改 HTML Preview 与源文档。
 - 重复审阅，直到人类确认 Preview 表达了真实意图。
+
+## Opening the Preview
+
+默认不自动打开。生成或更新 Preview 后，只报告 `preview_path` 和当前平台对应的打开命令，由人类自行决定是否打开。
+
+仅当人类在对话中明确要求打开（如"打开预览"/"open it"）时才执行打开；不解析额外 flag。
+
+打开时按平台选择命令：
+
+| 平台 | 命令 |
+|---|---|
+| macOS | `open "<path>"` |
+| Windows（Git Bash） | `cmd.exe //c start "" "<path>"` |
+| Linux | `xdg-open "<path>"` |
+
+分支判断写法：
+
+```bash
+path="<preview-path>"
+if [ "$(uname -s)" = "Darwin" ]; then open "$path"
+elif [ -n "$WINDIR" ]; then cmd.exe //c start "" "$(cygpath -w "$path" 2>/dev/null || echo "$path")"
+else xdg-open "$path"; fi
+```
+
+校验要求：执行后必须确认命令返回成功；失败时如实报告路径与命令，不得谎报"已打开"。子代理同样遵守：不得在未真正打开时报告"已打开"。
 
 ## Content Model
 

@@ -113,7 +113,7 @@ grep "FAILED" demo/test-results/console-logs/*.log
 ```bash
 # Backend
 cd backend && mvn test
-uv run scripts/backend-test.py -- --package <core-package> --lib
+uv run scripts/backend-test.py -- --tests '*<TestClass>'
 
 # Frontend
 cd frontend && npm run type-check

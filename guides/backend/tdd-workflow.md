@@ -74,11 +74,14 @@ private boolean hasUppercase(String password) {
 }
 ```
 
-**快速反馈**：
+**快速反馈**（统一用 backend-test.py 入口，不要退回裸 `mvn test`）：
 
 ```bash
-# Maven：只运行当前测试类
-cd backend && mvn test -Dtest=PasswordPolicyTest
+# 只运行当前测试类
+uv run scripts/backend-test.py -- --tests '*PasswordPolicyTest'
+
+# 只运行单个测试方法
+uv run scripts/backend-test.py -- --tests '*PasswordPolicyTest.validateRejectsNoUppercase'
 ```
 
 说明：上例测试的是 `validate` 的业务行为，不测试构造函数是否把字段赋值成功；只有构造函数包含校验、默认值合成或规范化时才测构造函数本身。

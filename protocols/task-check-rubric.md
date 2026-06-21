@@ -58,6 +58,7 @@
 - 若当前阶段为 backend，backend/test slot 符合 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 authoring/集中 runner 覆盖与 `uses_skill` 要求
 - 若当前阶段为 backend，backend/accept item 依赖 runner item，不只依赖 authoring item
 - 若当前阶段为 frontend/miniapp/demo，涉及测试代码 authoring 时必须有集中定向执行 item，且不得默认规划全量测试
+- 大范围重构、旧架构替换或旧模块迁移任务包含旧代码清理清单，并按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 先删除旧实现再改写新结构
 - 设计文档与任务文档一致
 - 调用当前阶段对应 agents 做专业校验
 - 主流程复核后生成最终结论
@@ -137,11 +138,14 @@ agent 评审边界：
 
 - slot 状态与 item 聚合状态不匹配
 - item 缺少关键章节
-- item 超过拆分阈值且无合理说明
+- item 超过拆分阈值，或职责、验证、恢复边界可疑且无合理说明
 - item 职责混杂，单次 agent 调用高概率无法完成
 - item 合并多个可独立交付、独立验证的主交付物
-- HTTP/API item 同时覆盖 5 个以上 endpoint、DTO、路由注册和 OpenAPI/schema 更新
+- HTTP/API item 覆盖超过 7 个 endpoint，或混合不同资源域、读写操作、状态操作、配置类接口，导致单次执行或验证闭环不可恢复
+- item 略大但 scope 单一、验证定向、依赖清晰、handoff 可恢复时不应仅因规模记 P1
 - demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流
+- 大范围重构缺少旧代码清理清单，清单没有说明删除边界与残留搜索方式，或未按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的“先删除旧实现再改写新结构”顺序组织
+- 没有真实兼容约束（按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的兼容性来源判定：PRD、设计文档、外部 API 契约、数据保留、跨版本部署或用户显式要求均不成立）时，任务计划仍以兼容层、adapter、bridge、fallback、双路径分支或“以后再删”作为主路径
 - 下游 item 缺少 handoff 追溯
 - backend 缺少 `awaiting_finalize` 收口语义
 - `finalize.md` 缺少必要收口/重试说明

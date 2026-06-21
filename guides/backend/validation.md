@@ -59,11 +59,15 @@ cd backend && mvn spotless:check
 cd backend && mvn spotless:apply
 ```
 
-### 4. 快速测试（可选但推荐）
+### 4. 受影响单元测试（backend-dev 新增/改动单测时 MANDATORY）
+
+凡新增或改动了单元测试，交付前必须用统一入口跑通相关测试（收敛到最小范围，不要默认全量）：
 
 ```bash
-cd backend && mvn test -Dtest=<TestClassName>
+uv run scripts/backend-test.py -- --tests '*<TestClass>'
 ```
+
+`<TestClass>` 取目标仓库实际的 Java 测试类名。**禁止**用裸 `mvn test` 替代统一入口（会缺失测试环境与 DDL guard）。
 
 ## 任务完成定义
 

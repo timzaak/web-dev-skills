@@ -34,7 +34,7 @@ HTML Preview 必须保持目标项目技术栈无关：
 
 ## Review Workflow
 
-`/t-html-show` 在 PRD 模式下生成或更新 Preview 后，必须立即打开 `.ai/preview/<domain>/<feature>.html` 供人类审阅。
+`/t-html-show` 在 PRD 模式下生成或更新 Preview 后，默认不自动打开；打开为可选项，规则与命令见 `html-show-contract.md` 的 `Opening the Preview`。
 
 审阅流程遵循 `html-show-contract.md` 中定义的通用 Review Workflow，并增加：运行 `/t-prd-check` 验证 Preview 与 Markdown PRD 描述一致。
 

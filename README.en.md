@@ -43,6 +43,9 @@ Minimal end-to-end example:
 # Quality gate: prevent upstream issues from entering the design stage
 /t-tools:t-prd-check user-management
 
+# Optional: for significant frontend UI, generate HTML mockup variants and converge a UI spec
+/t-tools:t-ui-design user-management
+
 # Produce technical design from the PRD; pure technical designs may also use t-tech-research as input
 /t-tools:t-design user-management
 
@@ -78,6 +81,7 @@ Additional notes:
 - This README consistently uses `/t-tools:t-*` as the standard invocation format.
 - All `t-*` skills in this plugin are manual command entries and must not be invoked automatically by the model.
 - `t-decision` is the product decision gate before PRD. It writes `.ai/decision/<feature>.md` and `.ai/preview/decision/<feature>.html`; continue to tech research or PRD only after a `Proceed` or `Research First` verdict. Its interaction model is inspired by Garry Tan's [gstack](https://github.com/garrytan/gstack), especially `office-hours` and `plan-ceo-review`, but it is translated into a t-tools stage gate and does not vendor the gstack runtime.
+- `t-ui-design` is an optional frontend UI exploration stage after PRD Check and before technical design. It generates multiple single-file HTML mockup variants, a comparison board, and `.ai/design-ui/<feature>/ui-spec.md` without image generation, Figma, or external AI UI tools.
 - `t-doc` is for project documentation, onboarding tutorials, API references, configuration, and deployment notes. It is not for PRDs, technical designs, or small document edits.
 - `t-dream` defaults to a read-only audit that reorganizes PRDs, user stories, design/task docs, implementation facts, and project structure, reducing stale, duplicated, conflicting, or misleading context; use `--govern-prd` explicitly when PRD governance should write changes.
 - `t-backend-test-run` is an internal execution skill reused by flows such as `backend-test`; it is not recommended as a manual entry point.
@@ -95,6 +99,10 @@ flowchart TD
     subgraph PRD["PRD"]
         B1["t-prd"] --> B2{"t-prd-check"}
         B2 -->|fail| B1
+    end
+
+    subgraph UI["UI Exploration (optional)"]
+        U1["t-ui-design"]
     end
 
     subgraph Design["Design"]
@@ -124,6 +132,8 @@ flowchart TD
     A2 -.-> B1
     A3 -.-> B1
     B2 -->|pass| C1
+    B2 -.->|significant UI| U1
+    U1 -.-> C1
     C2 -->|pass| D1
     D2 -->|pass| E1
     E3 --> F1
@@ -133,7 +143,8 @@ flowchart TD
 Key behaviors:
 
 - `t-prd` generates a temporary `.ai/prd` draft and Preview. It does not write directly into formal `docs/prd`.
-- `t-prd-check` is the quality gate for PRDs, HTML Previews, and user stories. After it passes, continue to `t-design`; after fixes, run `t-prd-check` again.
+- `t-prd-check` is the quality gate for PRDs, HTML Previews, and user stories. After it passes, continue to `t-design`, or run optional `t-ui-design` first for significant frontend UI; after fixes, run `t-prd-check` again.
+- `t-ui-design` generates HTML-only UI variants and a confirmed `.ai/design-ui/<feature>/ui-spec.md` for `t-design` to consume.
 - `t-prd-publish` runs after implementation, testing, and Demo acceptance. It summarizes the draft against the existing formal PRD and post-implementation evidence, fixes missing, stale, or conflicting content in `docs/prd`, then deletes the matching `.ai/prd` draft.
 - `t-task-check` is the gate for task breakdown, DAG validity, and item executability. It verifies that task documents are ready for implementation.
 - `t-demo-accept` is the demo-stage acceptance gate. It verifies test coverage, runnability, and delivery quality.
@@ -143,6 +154,7 @@ Helper commands:
 - `t-init <project-name>`: initializes a full-stack project scaffold for Java Spring Boot + React TanStack, including backend, frontend, E2E tests, development scripts, and the complete directory structure
 - `t-decision <feature>`: evaluates whether a feature should enter the workflow before tech research or PRD, writes `.ai/decision/<feature>.md`, generates `.ai/preview/decision/<feature>.html`, and recommends `t-tech-research`, `t-prd`, or stopping
 - `t-tech-research`: evaluates technical feasibility before writing the PRD, including dependency gap analysis, library research, impact analysis, and feasibility judgment; for pure technical designs that do not change business logic, it may be the direct upstream input to `t-design`
+- `t-ui-design <feature>`: optional frontend UI exploration after PRD Check; writes `.ai/design-ui/<feature>/` with HTML mockup variants, a comparison board, feedback history, winner mockup, and `ui-spec.md` for `t-design`
 - `t-prd-publish <feature>`: after implementation and acceptance, reviews `.ai/prd/<domain>/<feature>.md`, the existing formal PRD, and post-implementation evidence, presents a publish summary, then fixes missing, stale, or conflicting content in `docs/prd/<domain>/<feature>.md` and deletes the draft
 - `t-doc <project-or-module-name>`: scans the target project codebase and generates newcomer-oriented tutorial documentation under `docs/tutorials/<name>/` by default
 - `t-html-show <feature | path>`: generates or updates HTML Preview for quick human review. Supports PRDs (pass feature name) and any Markdown document (pass file path). Usually triggered automatically by `t-prd`, but can also be run independently

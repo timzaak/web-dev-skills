@@ -24,7 +24,7 @@ allowed-tools:
 
 ## 目标
 
-基于任意 Markdown 文档生成或更新 HTML Preview，用于人类快速理解文档内容。
+基于任意 Markdown 文档生成或更新 HTML Preview。
 
 输出文件：
 - PRD: `.ai/preview/<domain>/[feature].html`
@@ -136,9 +136,9 @@ PRD 模式额外读取：
 
 subagent 的详细规则见 `${CLAUDE_PLUGIN_ROOT}/agents/html-show.md` 和 `${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md`。
 
-### 5. 打开 Preview
+### 5. 打开 Preview（可选，默认不打开）
 
-生成完成后，用系统默认浏览器打开 `<preview-path>`（例如 `.ai/preview/<domain>/[feature].html`）。
+生成完成后，默认不自动打开；只报告 `<preview-path>`（例如 `.ai/preview/<domain>/[feature].html`）和当前平台的打开命令。仅当用户在对话中明确要求打开时才执行，使用 `html-show-contract.md` 的 `Opening the Preview` 中定义的命令并校验启动结果，不得谎报"已打开"。
 
 ### 6. 收尾
 

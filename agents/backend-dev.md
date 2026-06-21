@@ -16,12 +16,6 @@ examples:
   - "实现用户注册 API 端点"
   - "修复登录接口的 bug"
   - "添加验证功能"
-hooks:
-  PostToolWrite:
-    - matcher: "Edit|Write"
-      hooks:
-        - type: command
-          command: "uv run ${CLAUDE_PLUGIN_ROOT}/scripts/backend-format-check.py"
 ---
 
 # Backend Dev
@@ -108,13 +102,32 @@ hooks:
 
 测试价值门槛统一参考 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`；不得新增 record/DTO/builder/getter/setter、常量或机械字段映射测试。
 
-## 编译验证步骤
+## 验证步骤
 
 完成前至少执行最小必要验证：
+
+### 1. 编译验证（MANDATORY）
+
 ```bash
-cd backend && mvn test
+cd backend && mvn test-compile
 ```
 优先从 `backend/` 下的 `pom.xml`、Maven wrapper 或现有验证脚本中确认真实命令。
+
+### 2. 单元测试验证（本次新增/改动了单元测试时 MANDATORY）
+
+凡本次新增或修改了 `backend/**/src/test/**` 下的单元测试（`*Test.java`），交付前**必须**用统一脚本入口跑通相关测试：
+
+```bash
+uv run scripts/backend-test.py -- --tests '*<TestClass>'
+```
+
+- 没有新增/改动单元测试时跳过本步，并在完成报告中说明原因（如改动仅为 DTO/路由注册/字段透传/OpenAPI 注解）。
+- `[filter]` 收敛到本次相关的最小测试范围；不要默认跑全量 `uv run scripts/backend-test.py --`。
+- 多模块后端用 `--module <module>`（取自 `backend/<dir>/pom.xml` 的 `<artifactId>`）指定模块，并可叠加 `--tests '*<TestClass>.<method>'` 收敛到具体测试方法。
+
+**禁止用裸 `mvn test` 直接运行后端测试。** 后端测试统一入口是 `uv run scripts/backend-test.py`：它负责测试容器环境（PostgreSQL/Redis）、必要环境变量注入和测试代码 DDL guard。绕过它会缺失环境与 guard，产生不可靠结果。
+
+完整测试命令形态与 filter 写法以 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md` 和 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md` 为准。
 
 更完整的验证顺序参考 `${CLAUDE_PLUGIN_ROOT}/guides/backend/validation.md`
 
@@ -125,6 +138,7 @@ cd backend && mvn test
 - 已按需完成 Design-First 检查
 - 已参考 `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md`
 - 编译或相关定向验证通过
+- 本次新增/改动的单元测试已用 `uv run scripts/backend-test.py` 跑通，或未涉及单元测试并已说明原因
 - 没有忽略关键失败项
 
 完整门禁列表以 `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md` 和

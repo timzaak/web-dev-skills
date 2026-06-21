@@ -1,8 +1,14 @@
 # 前端 UI 探索能力设计说明（design-shotgun 适配方案）
 
-本文是一份**设计说明**，不是已实现的 skill。它记录将来如何在本项目里补上类似 gstack `/design-shotgun` 的前端 UI 探索能力：多方案生成 → 并排对比 → 反馈迭代 → 收敛定稿。
+本文是 `t-ui-design` 的设计背景说明。该能力已落地为：
 
-目标是让设计意图和现有结构对齐，等真正实现时可以直接照此落地，而不是临时重新设计。
+- skill：`skills/t-ui-design/SKILL.md`
+- subagent：`agents/ui-design.md`
+- 共享契约：`protocols/ui-design-contract.md`
+
+它记录本项目如何适配类似 gstack `/design-shotgun` 的前端 UI 探索能力：多方案生成 → 并排对比 → 反馈迭代 → 收敛定稿。
+
+目标是说明设计意图和现有结构如何对齐，后续修改应优先更新 skill、agent 和 protocol 中的正式契约。
 
 ## 它解决什么问题
 
@@ -24,7 +30,7 @@ gstack 的 `/design-shotgun` 用 GPT Image 生成图片 mockup，再用 `/design
 
 因此变体应该用 **HTML/CSS mockup**（单文件 HTML，可用 Tailwind 风格的 class），而不是图片。这反而是一个优势：HTML mockup 离真实 React 实现最近，winner 选定后几乎能直接映射成组件结构，比图片 mockup 更能指导开发，也不需要任何外部 API。
 
-## 推荐的 skill 形态
+## 已落地的 skill 形态
 
 - **名称**：`t-ui-design`，遵循 `t-*` 命名，命令式入口、手工触发，不被模型自动触发。
 - **位置**：`/t-prd-check` 通过之后、`/t-design` 之前或并行。仅当 feature 有显著前端 UI 时才跑；纯后端、纯技术方案跳过。
@@ -53,7 +59,7 @@ gstack 的 `/design-shotgun` 用 GPT Image 生成图片 mockup，再用 `/design
 
 1. **读上游**：`.ai/decision`、`.ai/prd`、`docs/prd`、`.ai/design` 的前端章节、`guides/frontend/` 的开发与设计模式规范。
 2. **生成变体**：产出 4-6 个**不同设计方向**的单文件 HTML mockup（不是同一布局的微调，而是密度、信息层级、视觉风格有实质差异的方案）。每个变体在 `variants/` 下独立成文件，并标注它的设计方向（如"高密度表格优先""卡片流""向导式分步"）。
-3. **组成看板**：把所有变体并排组装成 `board.html`（沿用 `html-show` 的单文件 HTML 约定），用系统默认浏览器打开。
+3. **组成看板**：把所有变体并排组装成 `board.html`（沿用 `html-show` 的单文件 HTML 约定）。默认不自动打开，需打开时用 `html-show` 契约 `Opening the Preview` 的命令。
 4. **收集反馈**：用 `AskUserQuestion` 收集偏好和修改意见（"留白更多""标题更大""去掉渐变""A 和 B 的头部结合"）。反馈写入 `feedback.md`。
 5. **迭代**：基于反馈生成下一轮——标记 winner、对 winner 生成变体、淘汰劣势方案。重复直到用户锁定。
 6. **收敛**：把 winner 复制为 `winner.html`，并写 `ui-spec.md`（含组件映射）。
@@ -62,7 +68,7 @@ gstack 的 `/design-shotgun` 用 GPT Image 生成图片 mockup，再用 `/design
 ## 如何复用现有基础设施
 
 - **HTML 渲染约定**：沿用 `html-show` subagent 的单文件 HTML、内联 CSS/JS、无外部依赖约定，以及 `templates/preview-template.html` 的组件思路。
-- **打开方式**：沿用"系统默认浏览器打开"（提交 `32357eb` 已移除专用脚本）。
+- **打开方式**：默认不自动打开（可选）；需打开时沿用 `html-show` 契约 `Opening the Preview` 的命令（提交 `32357eb` 已移除专用脚本）。
 - **运行时边界**：沿用 `.ai/` 作为目标项目运行时产物根，不进版本控制（见 `protocols/runtime-boundaries.md`）。
 - **前端规范**：变体生成时遵循 `guides/frontend/development.md` 的技术基线和 `guides/frontend/patterns.md` 的设计模式，保证 winner 能落地到真实组件。
 
@@ -85,7 +91,7 @@ gstack 有持久化的项目级 taste profile（含 5%/周衰减）。本项目�
 
 ## 与 gstack 的取舍对照
 
-| 维度 | gstack `/design-shotgun` | 本项目 `t-ui-design`（设计说明） |
+| 维度 | gstack `/design-shotgun` | 本项目 `t-ui-design` |
 |---|---|---|
 | 变体形式 | GPT Image 图片 mockup | HTML/CSS mockup（贴近 React+Tailwind 实现） |
 | 外部依赖 | 需图像生成 API | 无（单文件 HTML） |

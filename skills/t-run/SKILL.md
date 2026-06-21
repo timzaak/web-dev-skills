@@ -39,7 +39,7 @@ allowed-tools:
 
 ## Output Contract
 
-下游产出（供后续阶段或 `/t-backend-finalize` 使用）：
+下游产出：
 - 更新的 `.state.json` — item/slot/phase 状态变更
   - item 完成后写入 `completed_at` 和 `handoff_summary`
   - item 失败后写入 `last_error`

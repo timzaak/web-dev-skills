@@ -15,10 +15,10 @@ allowed-tools:
 
 ## 目标
 - 自动发现全部 Demo 测试并逐个执行。
-- 默认通过 Claude CLI 调用 `/t-demo-run`，以便复用单文件运行与自动修复逻辑。
+- 默认通过 Claude CLI 调用 `/t-demo-run`。
 - Claude CLI 不可用时，允许回退到直接执行 `demo-test-runner.py`。
 - 记录每个文件的通过/修复/失败结果。
-- 生成统一汇总报告，并为后续 `demo-diagnose` 分类提供 JSON 输入。
+- 生成统一 Markdown/JSON 汇总报告。
 - 支持 `continue`，从上一次批量运行的失败/中断位置继续执行。
 
 ## 使用方式
@@ -98,7 +98,7 @@ JSON 批次状态必须持续写盘，至少包含：
 - 每个文件的状态、耗时、日志路径
 - `Fixed Files` 与 `Unfixed Files` 清单
 - 总耗时与通过率
-- 供 `demo-diagnose` 使用的 `run_id` / 日志路径
+- `run_id` / 日志路径
 
 ## 失败处理
 - 单文件失败：标记失败并继续。
@@ -112,5 +112,5 @@ JSON 批次状态必须持续写盘，至少包含：
 - 不允许使用 slow/headed 模式。
 - 必须产出汇总报告。
 - 不允许在批量运行前执行 cleanup。
-- 默认优先复用 `/t-demo-run`，保证单文件运行协议一致。
+- 默认优先复用 `/t-demo-run`。
 - 先批量发现失败，再用 `demo-diagnose` 分类后统一安排修复。
