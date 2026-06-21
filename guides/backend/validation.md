@@ -6,10 +6,10 @@
 
 ### 1. 编译/测试验证（MANDATORY）
 
-优先使用目标项目 Maven wrapper。
+后端测试统一入口是 `uv run scripts/backend-test.py`：它负责测试容器环境（PostgreSQL/Redis）、必要环境变量注入和测试代码 DDL guard。不要用裸 `mvn test` 替代，否则会缺失环境与 guard，产生不可靠结果。
 
 ```bash
-cd backend && mvn test
+uv run scripts/backend-test.py --
 ```
 
 **验收标准**：
@@ -28,7 +28,7 @@ cd backend && mvn test
 - 编译错误必须在完成前修复
 - 不能将"编译有错误"的任务标记为"完成"
 - 这是任务完成的**必要条件**，不是可选步骤
-- 若目标项目提供更窄的模块命令，应从 `backend/pom.xml`、现有脚本或 CI 配置确认真实模块名后执行
+- 需要收敛到更窄范围时，用 `--module <module>` 或 `--tests '*<TestClass>'`；模块名取自 `backend/<dir>/pom.xml` 的 `<artifactId>`
 
 ### 2. 最终收口（backend accept 后必须执行）
 
