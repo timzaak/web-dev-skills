@@ -34,7 +34,7 @@ uv run scripts/backend-test.py --
 
 ```bash
 /code-review
-cd backend && mvn test
+uv run scripts/backend-test.py --
 cd backend && mvn verify
 ```
 
