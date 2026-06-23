@@ -53,7 +53,7 @@ uv run scripts/backend-test.py -- -R latest
 uv run scripts/backend-test.py -- -E 'package(<crate>) and test(<pattern>)'
 ```
 
-`[filter]` 是传给底层测试运行器的可选参数；没有 filter 时命令就是 `uv run scripts/backend-test.py --`。需要串行执行时，仍使用同一入口并传递 nextest 参数：`uv run scripts/backend-test.py -- --test-threads 1 [filter]`，同时说明串行原因（例如全局状态、端口、单例或非隔离外部资源）。
+`[filter]` 是传给底层测试运行器的可选参数；没有 filter 时命令就是 `uv run scripts/backend-test.py --`。
 
 格式与静态检查收口：
 
