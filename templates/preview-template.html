@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN" data-doc-source="<source-path>" data-doc-type="<prd|decision|design|tech-research|generic>">
+<html lang="zh-CN" data-doc-source="<source-path>" data-doc-type="<prd|decision|design|tech-research|task|generic>">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -16,13 +16,10 @@
       --ok: #0f766e;
       --warn: #b45309;
       --bad: #b91c1c;
-      --info: #1d4ed8;
       --soft: #eef2f7;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -37,22 +34,15 @@
       background: var(--panel);
     }
 
-    main,
-    .header-inner {
+    .header-inner,
+    main {
       width: min(1180px, calc(100% - 32px));
       margin: 0 auto;
     }
 
-    .header-inner {
-      padding: 24px 0;
-    }
+    .header-inner { padding: 24px 0; }
 
-    h1,
-    h2,
-    h3,
-    p {
-      margin-top: 0;
-    }
+    h1, h2, h3, p { margin-top: 0; }
 
     h1 {
       margin-bottom: 8px;
@@ -61,16 +51,23 @@
     }
 
     h2 {
-      font-size: 18px;
       margin-bottom: 12px;
+      font-size: 18px;
     }
 
     h3 {
-      font-size: 15px;
       margin-bottom: 8px;
+      font-size: 15px;
     }
 
-    .meta {
+    .summary {
+      max-width: 880px;
+      margin-bottom: 0;
+      color: var(--muted);
+    }
+
+    .meta,
+    .toolbar {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
@@ -86,12 +83,6 @@
       font-size: 13px;
     }
 
-    .summary {
-      max-width: 860px;
-      color: var(--muted);
-      margin-bottom: 0;
-    }
-
     main {
       display: grid;
       grid-template-columns: 260px 1fr;
@@ -100,10 +91,11 @@
     }
 
     nav,
-    section {
-      background: var(--panel);
+    section,
+    .card {
       border: 1px solid var(--line);
       border-radius: 8px;
+      background: var(--panel);
     }
 
     nav {
@@ -115,25 +107,66 @@
 
     nav a {
       display: block;
-      padding: 8px 10px;
       border-radius: 6px;
+      padding: 8px 10px;
       color: var(--text);
       text-decoration: none;
       font-size: 14px;
     }
 
-    nav a:hover {
-      background: #eef2ff;
-    }
+    nav a:hover { background: #eef2ff; }
 
     .content {
       display: grid;
       gap: 16px;
     }
 
-    section {
-      padding: 18px;
+    section { padding: 18px; }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.8fr);
+      gap: 14px;
     }
+
+    .insight {
+      border-left: 5px solid var(--accent);
+      padding: 14px;
+      background: #f8fbff;
+    }
+
+    .attention {
+      display: grid;
+      gap: 8px;
+    }
+
+    .signal {
+      border: 1px solid var(--line);
+      border-left-width: 5px;
+      border-radius: 6px;
+      padding: 10px;
+      background: #fbfcfe;
+    }
+
+    .signal.ok { border-left-color: var(--ok); }
+    .signal.warn { border-left-color: var(--warn); }
+    .signal.bad { border-left-color: var(--bad); }
+    .signal.neutral { border-left-color: var(--muted); }
+
+    /* Von Restorff 孤立效应：多个状态信号并列时，有且仅有一个 dominant 被放大，
+       成为「真正的阻塞」。等权多信号会互相抵消、无一突出（Few 单一最重要指标）。
+       dominant 由 data-rank="dominant" 标记，样式在此承担视觉隔离。 */
+    .signal.dominant {
+      font-size: 16px;
+      font-weight: 700;
+      border-left-width: 7px;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    /* WCAG 1.4.1：状态色必须配冗余图标/文字。图标内联在元素文本里（如 ✗/⚠/✓），
+       不用 CSS ::before 注入——后者检查器与部分读屏不可见，颜色会沦为唯一编码。
+       颜色通道由 border-left 承担，图标通道由内联字符承担。 */
 
     .grid {
       display: grid;
@@ -141,97 +174,103 @@
       gap: 12px;
     }
 
-    .box {
+    .card { padding: 12px; }
+
+    .matrix,
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .lane {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+    }
+
+    .lane-step {
       border: 1px solid var(--line);
-      border-radius: 6px;
+      border-top: 5px solid var(--accent);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fbfcfe;
+      min-height: 84px;
+    }
+
+    .lane-step.ok { border-top-color: var(--ok); }
+    .lane-step.warn { border-top-color: var(--warn); }
+    .lane-step.bad { border-top-color: var(--bad); }
+
+    .dag,
+    .change-map {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
       padding: 12px;
       background: #fbfcfe;
     }
 
-    .callout {
-      border: 1px solid var(--line);
-      border-left: 4px solid var(--info);
-      border-radius: 6px;
-      padding: 12px;
-      background: #f8fbff;
-    }
-
-    .callout.ok {
-      border-left-color: var(--ok);
-      background: #f0fdfa;
-    }
-
-    .callout.warn {
-      border-left-color: var(--warn);
-      background: #fffbeb;
-    }
-
-    .callout.bad {
-      border-left-color: var(--bad);
-      background: #fef2f2;
-    }
-
-    .flow {
-      display: grid;
-      gap: 10px;
-    }
-
-    .step {
-      border-left: 4px solid var(--accent);
-      padding: 10px 12px;
-      background: #f8fbff;
-      border-radius: 6px;
-    }
-
-    .state-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 10px;
-    }
-
-    .state {
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      padding: 10px;
-    }
-
-    .state.ok {
-      border-color: #99f6e4;
-    }
-
-    .state.warn {
-      border-color: #fed7aa;
-    }
-
-    .state.bad {
-      border-color: #fecaca;
-    }
-
-    .diagram {
-      overflow-x: auto;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      padding: 12px;
-      background: #0f172a;
-      color: #e5e7eb;
-      font-family: Consolas, "Courier New", monospace;
-      font-size: 13px;
-      line-height: 1.45;
-      white-space: pre;
-    }
-
-    .prototype {
-      border: 1px dashed var(--line);
-      border-radius: 8px;
-      padding: 12px;
-      background: #fcfcfd;
-    }
-
-    .toolbar {
+    .node-row {
       display: flex;
       flex-wrap: wrap;
+      align-items: center;
       gap: 8px;
-      margin-bottom: 12px;
+      margin: 8px 0;
+    }
+
+    .node {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 8px 10px;
+      background: #ffffff;
+      min-width: 120px;
+    }
+
+    .arrow {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .heatmap {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+    }
+
+    .risk {
+      border-radius: 8px;
+      padding: 10px;
+      color: #111827;
+    }
+
+    .risk.low { background: #ecfdf5; border: 1px solid #99f6e4; }
+    .risk.medium { background: #fffbeb; border: 1px solid #fed7aa; }
+    .risk.high { background: #fef2f2; border: 1px solid #fecaca; }
+
+    /* 风险等级：颜色（背景/边框）+ 内联图标/文字 双通道冗余（WCAG 1.4.1），
+       等级标签由内联文本「✗ 高风险：/⚠ 中风险：/✓ 低风险：」承担，不用 CSS 注入。 */
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: #fbfcfe;
+    }
+
+    details + details { margin-top: 8px; }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
     }
 
     button {
@@ -249,45 +288,22 @@
       background: #eff6ff;
     }
 
-    .panel {
-      display: none;
-    }
-
-    .panel.active {
-      display: block;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-
-    th,
-    td {
-      border-bottom: 1px solid var(--line);
-      padding: 8px;
-      text-align: left;
-      vertical-align: top;
-    }
+    .panel { display: none; }
+    .panel.active { display: block; }
 
     .note {
       color: var(--muted);
       font-size: 13px;
     }
 
-    @media (max-width: 820px) {
-      main {
+    @media (max-width: 860px) {
+      main,
+      .hero-grid {
         grid-template-columns: 1fr;
       }
 
-      nav {
-        position: static;
-      }
-
-      .grid {
-        grid-template-columns: 1fr;
-      }
+      nav { position: static; }
+      .grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -300,125 +316,70 @@
         <span class="pill">类型：<doc-type></span>
         <span class="pill">视图：<visualization-type></span>
       </div>
-      <p class="summary" data-doc-section="goal">[一句话说明文档目标]</p>
+      <p class="summary" data-doc-section="goal">[一句话结论或目标]</p>
     </div>
   </header>
 
   <main>
     <nav aria-label="Preview sections">
-      <a href="#overview">Overview</a>
-      <a href="#scope">Scope</a>
-      <a href="#flow">Flow</a>
-      <a href="#states">States</a>
-      <a href="#rules">Rules</a>
-      <a href="#acceptance">Acceptance</a>
-      <a href="#assumptions">Assumptions</a>
+      <a href="#primary">重点</a>
+      <a href="#map">结构</a>
+      <a href="#details">细节</a>
     </nav>
 
     <div class="content">
-      <section id="overview" data-doc-section="Overview">
-        <h2>Overview</h2>
-        <div class="grid">
-          <article class="box">
-            <h3>目标能力</h3>
-            <p>[说明文档定义的能力目标]</p>
-          </article>
-          <article class="box">
-            <h3>边界约束</h3>
-            <p>[说明关键边界、入口或约束]</p>
-          </article>
-        </div>
-      </section>
-
-      <section id="scope" data-doc-section="Scope">
-        <h2>Scope</h2>
-        <div class="grid">
-          <div class="box">
-            <h3>In Scope</h3>
-            <ul>
-              <li>[包含内容]</li>
-            </ul>
+      <section id="primary" data-doc-section="PrimaryVisual">
+        <h2>重点</h2>
+        <!--
+          task 文档（.ai/task/**）首屏改用情境感知三锚点，替代单一结论：
+            <div data-sa="current">[当前 phase/slot 进度]</div>
+            <div data-sa="blocking">[阻塞门禁]</div>
+            <div data-sa="next">[下一步命令]</div>
+          对应 Endsley 情境感知三层（Perception→Comprehension→Projection），
+          且不得折叠进 <details>（check_task_situational_awareness 校验）。
+        -->
+        <div class="hero-grid">
+          <div class="insight">
+            <h3>[最重要结论]</h3>
+            <p>[用 1-3 句话说明读者必须先理解的变化、决策或阻塞。]</p>
           </div>
-          <div class="box">
-            <h3>Out of Scope</h3>
-            <ul>
-              <li>[不包含内容]</li>
-            </ul>
+          <div class="attention" data-doc-section="Attention">
+            <!-- 有多个 bad/warn 时，仅这一个标 data-rank="dominant"（Von Restorff 孤立效应）。 -->
+            <div class="signal bad dominant" data-rank="dominant">✗ [阻塞或高风险；如无则删除]</div>
+            <div class="signal warn">⚠ [待确认或中风险；如无则删除]</div>
+            <div class="signal ok">✓ [已满足或可继续；如无则删除]</div>
           </div>
         </div>
       </section>
 
-      <section id="flow" data-doc-section="Flow">
-        <h2>Flow</h2>
-        <div class="flow">
-          <div class="step">1. [入口或触发条件]</div>
-          <div class="step">2. [关键动作]</div>
-          <div class="step">3. [结果或状态变化]</div>
-        </div>
-
-        <pre class="diagram" aria-label="ASCII diagram">[可选 ASCII 图：状态机、数据流、部署顺序、决策树或依赖关系]</pre>
-
-        <div class="prototype" aria-label="Low fidelity preview">
-          <div class="toolbar">
-            <button class="active" type="button" data-panel-target="happy">成功路径</button>
-            <button type="button" data-panel-target="empty">空态</button>
-            <button type="button" data-panel-target="error">异常态</button>
-          </div>
-          <div class="panel active" data-panel="happy">[成功路径低保真示意，或后端流程图]</div>
-          <div class="panel" data-panel="empty">[空态、无数据、无权限时的表现]</div>
-          <div class="panel" data-panel="error">[失败、冲突、校验不通过时的表现]</div>
-        </div>
-      </section>
-
-      <section id="states" data-doc-section="States">
-        <h2>States</h2>
-        <div class="state-list">
-          <div class="state ok">
-            <h3>正常</h3>
-            <p>[正常状态说明]</p>
-          </div>
-          <div class="state warn">
-            <h3>待处理</h3>
-            <p>[加载、等待、部分完成或需确认状态]</p>
-          </div>
-          <div class="state bad">
-            <h3>异常</h3>
-            <p>[错误、拒绝、冲突或失败状态]</p>
+      <section id="map" data-doc-section="Map">
+        <h2>[主视觉名称]</h2>
+        <div class="change-map" aria-label="Change map">
+          <div class="node-row">
+            <div class="node">[现状或输入]</div>
+            <span class="arrow">→</span>
+            <div class="node">[关键变化]</div>
+            <span class="arrow">→</span>
+            <div class="node">[目标状态或输出]</div>
           </div>
         </div>
       </section>
 
-      <section id="rules" data-doc-section="Rules">
-        <h2>Rules</h2>
-        <ul>
-          <li>[关键规则]</li>
-        </ul>
-      </section>
-
-      <section id="acceptance" data-doc-section="Acceptance">
-        <h2>Acceptance</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>目标</th>
-              <th>可验收表现</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>[验收目标]</td>
-              <td>[人类可审阅的结果]</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      <section id="assumptions" data-doc-section="Assumptions">
-        <h2>Assumptions</h2>
+      <section id="details" data-doc-section="Details">
+        <h2>按需展开</h2>
+        <details>
+          <summary>[细节分组]</summary>
+          <p>[文件影响、测试策略、证据、item steps、handoff 或其他长细节。]</p>
+        </details>
+        <details>
+          <summary>风险与影响（按等级排序，位置即优先级）</summary>
+          <div class="heatmap">
+            <div class="risk high">✗ 高风险：[高风险项说明]</div>
+            <div class="risk medium">⚠ 中风险：[中风险项说明]</div>
+            <div class="risk low">✓ 低风险：[低风险项说明]</div>
+          </div>
+        </details>
         <p class="note">如使用示例数据：示例数据，不是接口契约。</p>
-        <ul>
-          <li>[待确认假设；如无则写"无"]</li>
-        </ul>
       </section>
     </div>
   </main>

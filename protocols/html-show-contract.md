@@ -11,6 +11,7 @@ HTML Preview 写入 `.ai/preview/` 下（不进入代码仓库）：
 - Decision Brief: `.ai/decision/<feature>.md` → `.ai/preview/decision/<feature>.html`
 - Tech Research: `.ai/tech-research/<feature>.md` → `.ai/preview/tech-research/<feature>.html`
 - Design: `.ai/design/<feature>.md` → `.ai/preview/design/<feature>.html`
+- Task: `.ai/task/<feature>/.../<name>.md` → `.ai/preview/task/<feature>/.../<name>.html`
 - 其他文档: `<path>/<name>.md` → `.ai/preview/<name>.html`
 
 Preview 是临时验证产物，不纳入版本控制。每次运行时重新生成。
@@ -72,31 +73,79 @@ else xdg-open "$path"; fi
 
 ## Content Model
 
-Preview 应结合"可视化阅读器"和"低保真交互原型"两种形态。
+Preview 不是 Markdown 的 HTML 复写，而是面向人类快速判断的解释视图。
+
+每个 Preview 必须先回答：
+
+- 这份文档是什么。
+- 最重要的结论、变化或阻塞是什么。
+- 人类需要优先审阅哪里。
+
+页面结构遵循 Shneiderman 视觉信息觅食口诀「Overview first, zoom and filter, then details-on-demand」（1996）：
+
+- **Overview first**：首屏必须有一句话结论、来源文档路径、文档类型、主视觉和最多 4 个注意项（数量受工作记忆 4±1 chunks 约束，Cowan 2001；超出则读者无法在首屏保持）。首屏的「结论 + 来源 + 类型 + 主视觉」共同构成 *information scent*（Pirolli & Card 信息觅食理论），让读者一眼判断是否值得深入。
+- **Zoom/filter**：主体按文档类型展示关键关系、变化、依赖、风险或状态，不按 Markdown 原文顺序机械搬运。
+- **Details on demand**：长表、步骤、证据、文件清单和细节说明默认放入 `<details>` 或次级区域。
+
+首屏主信息按文档的审阅任务分治，不是所有文档都"结论先行"：
+
+- **Decision / Tech Research（判断类）**：结论先行，首屏给结论、置信度、致命假设与风险。
+- **Task（执行/恢复类）**：首屏给 Current Progress（当前 phase/slot 进度）+ Blocking（阻塞门禁）+ Next Action（下一步命令），让执行者一眼定位"现在干什么、卡在哪"，而非一句话结论。这三段对应 Endsley 情境感知三层：Perception（当前到哪）→ Comprehension（卡在哪/为何阻塞）→ Projection（下一步干什么），也是 operational dashboard「status at a glance」的惯例。
+- **PRD（完整性审查类）**：不要结论先行 + 折叠细节。用强视觉层级（明确标题与区块）诱发 layer-cake 扫描以覆盖完整性；边界态、异常态、权限覆盖等完整性要点必须上提到注意项区域且禁止折叠，避免读者走 F-pattern 漏审。
+- **Design / Generic**：首屏给主变化或核心答案，细节折叠。
 
 必须包含：
 
 - 文档标题、来源文档路径。
-- 一句话目标。
-- 从源文档提取的关键内容，按逻辑分组为可审阅区域。
+- 一句话结论或目标（结论先行型须短到可一眼判读，见下「首屏一眼可读」）。
+- 一个主视觉区域，使用 `data-doc-section="PrimaryVisual"` 标记。
+- 注意项区域，使用 `data-doc-section="Attention"` 标记；如没有风险或待确认项，写“无”。
 - 示例数据声明（如使用）。
 - 待确认假设（如有）。
 
-具体 section 由 agent 根据文档类型自适应选择。PRD 文档使用固定 section profile（见 `prd-preview-contract.md`）。
+### 首屏一眼可读（status at a glance）
+
+首屏不是把结论写满，而是让读者**不滚动**即可抓到 #1 事实（Few 运营看板「5 秒规则」）。按文档类型落实：
+
+- **结论先行型（decision / tech-research / design / generic）**：hero 结论标题必须是**单个从句**（建议 ≤ 40 汉字 / 80 字符），超长即无法一眼判读。`check_hero_brevity` 校验 `.insight` 首个标题长度。
+- **task（执行/恢复型）**：首屏用三个情境感知锚点替代单一结论，标注 `data-sa="current"`（Perception：当前 phase/slot 进度）、`data-sa="blocking"`（Comprehension：阻塞门禁）、`data-sa="next"`（Projection：下一步命令），对应 Endsley 情境感知三层。`check_task_situational_awareness` 校验三锚点齐备且**不在 `<details>` 内**。
+
+### 决策关键内容必须可见
+
+kill criteria、阻塞门禁、边界态等**决定结论**的要点不得折叠进 `<details>`——折叠等于藏起 kill switch。`check_critical_content_visible` 按 doc type 校验：PRD（异常/空态/权限）、Decision（杀死/致命/不可逆）、Task（阻塞/门禁）。仅当某要点「全文仅出现在 `<details>` 内」才记违规（有可见副本即放行）。
+
+禁止生成流水账式 Preview：连续卡片、长列表、按 Markdown 标题逐段复制、没有主视觉的表格堆叠，都不算合格 Preview。这类形态制造 *extraneous cognitive load*（Sweller 认知负荷理论）：读者把心智花在「拼接散落卡片」上而非理解内容，因此必须用主视觉把关系一次性外化。
+
+## Visual Encoding Rules
+
+- 位置：最重要的信息固定在首屏顶部或左上。
+- 大小与孤立：只有结论、阻塞、主变化可以放大。多个状态信号并列时，**有且仅有一个**最优先信号用 `data-rank="dominant"` 标记并放大（Von Restorff 孤立效应：唯一突出的元素才被记住；等权多信号互相抵消，无一成为真正的阻塞；亦即 Mayer 信号原理所依）。`check_attention_dominance` 校验 Attention 区 bad/warn ≥ 2 时有且仅有一个 dominant。
+- 颜色：只表达状态，不做装饰（Tufte 数据墨水比：最大化承载信息的墨水，最小化装饰墨水）。红色表示阻塞或高风险，黄色表示待确认，绿色表示已满足，灰色表示背景信息。
+- 颜色冗余：状态色不得是唯一编码手段。红/黄/绿必须同时配**内联**文字标签或图标（如 ✓/⚠/✗），满足无障碍（WCAG 1.4.1 Use of Color）。图标必须内联在元素文本里，不得仅靠 CSS `::before` 注入——后者机械检查与部分读屏不可见，等于没有冗余。
+- 对比度：正文与背景对比度 ≥ 4.5:1（WCAG 1.4.3 AA）。`check_contrast` 校验 `:root` 调色板的正文/次要正文配对——防止修改设计令牌引入低对比度配色。
+- 空间邻近：标签须紧贴其描述对象（Mayer 空间邻近原理），例如 DAG 节点内联标注而非另设图例，避免读者在「图例↔图形」间反复对位。
+- 编码通道：需做大小判断的信号（风险、优先级、进度）必须用位置或长度编码，颜色和面积只能做辅助语义，不得单独承担判断（依据 Cleveland & McGill 1984 图形感知精度排序：位置（共同刻度）> 长度 > 方向/角度 > 面积 > 体积/曲度 > 饱和度 > 色相）。
+- 前注意加工：颜色、位置、长度是前注意属性（Treisman），<200ms 并行感知。这解释了「颜色快但不精确」：色相能瞬间吸引注意，却无法可靠传递量级，故只能做状态提示，不能做大小判断。
+- 分组：同一 phase、slot、模块、风险类别或验收域必须放在共同区域中（Gestalt 共同区域）。
+- 连线：只表达依赖、迁移、调用、状态流转或 handoff，不用作装饰。
+- 细节：能折叠的细节不要挤占首屏。
 
 ## Document Profiles
 
-`templates/preview-template.html` 是通用壳和组件库，不代表每种文档都必须展示全部 section。生成时按文档类型裁剪：
+`templates/preview-template.html` 是解释型组件库，不代表每种文档都必须展示全部 section。生成时必须按文档类型选择 profile：
 
-| 文档类型 | 推荐 section | 适合的表达组件 |
-|---|---|---|
-| Decision Brief | `Decision`、`Overview`、`Scope`、`Evidence`、`Rules`、`Handoff`、`Assumptions` | verdict callout、metric-grid、compare、timeline |
-| PRD | `Overview`、`Scope`、`Flow`、`States`、`Rules`、`Acceptance`、`Assumptions` | low-fidelity prototype、state-list、acceptance table |
-| Tech Research | `Overview`、`Evidence`、`Scope`、`Rules`、`Handoff`、`Assumptions` | feasibility callout、gap matrix、risk table、reference list |
-| Design | `Overview`、`Scope`、`Flow`、`States`、`Rules`、`Acceptance`、`Handoff` | diagram、timeline、matrix、risk table |
-| Generic | 按 Markdown 标题自适应 | document-reader、table、callout |
+| 文档类型 | 人类审阅问题 | 首屏主视觉 | 推荐 section |
+|---|---|---|---|
+| PRD | 产品意图、范围、规则和验收目标是否正确 | 用户路径/业务状态 + 完整性要点（上提、禁折叠） | `Overview`、`Scope`、`Flow`、`States`、`Rules`、`Acceptance`、`Assumptions` |
+| Decision Brief | 是否值得做，边界和杀死条件是什么 | 决策地图 | `Decision`、`Confidence`、`Scope Direction`、`Kill Criteria`、`D0/D1 Decisions`、`Open Questions`、`Handoff` |
+| Tech Research | 技术路线是否可行，差距和风险在哪里 | 可行性地图 | `Feasibility`、`Gap Matrix`、`Option Comparison`、`Risks`、`Handoff` |
+| Design | 实现结构会怎么变，影响面和风险在哪里 | 结构变化地图 | `Intent`、`Traceability`、`Architecture Change`、`Interface & Data Impact`、`Frontend Impact`、`Risks`、`Test Strategy`、`File Impact`、`Handoff` |
+| Task | 怎么执行、怎么恢复、哪些门禁会阻塞 | 执行地图（Current + Blocking + Next） | `Execution Overview`、`Phase & Slot Map`、`Item DAG`、`Blocking Gates`、`Validation Plan`、`Resume Points`、`Handoff` |
+| Generic | 这份文档讲什么，核心答案是什么 | answer board 或文档导读 | 按 Markdown 大纲自适应 |
 
-不得为了套模板而制造源文档没有的内容。模板中的占位 section 如果源文档没有对应信息，生成时应删除或标注为“无”，不要编造。
+**section 与 3-block 骨架的映射**：通用模板 `preview-template.html` 是「重点（PrimaryVisual）/ 结构（Map）/ 细节（Details）」三块骨架。上表每个文档类型的”推荐 section”是该类型应在结构区及其下展开的内容块，不要求页面逐字出现这些标题——agent 在 3-block 骨架内用对应组件（`change-map`、`dag`、`lane`、`matrix`、`signal`、`details` 分组等）表达这些内容。PRD 走 `prd-preview-contract.md` 的固定结构，不套用 3-block 骨架。
+
+不得为了套模板而制造源文档没有的内容。模板中的占位 section 如果源文档没有对应信息，生成时应删除或标注为”无”，不要编造。
 
 ## Determinism Rules
 
@@ -105,7 +154,10 @@ Preview 使用固定结构：
 - 页面标题使用 `[文档名称] Preview`。
 - 顶部 summary 区展示元数据和一句话目标。
 - 页面元素使用语义化 `data-doc-*` 属性标记来源，例如 `data-doc-source`、`data-doc-section`。
-- `<html>` 应标注 `data-doc-type`，取值为 `prd`、`decision`、`design`、`tech-research` 或 `generic`。
+- `<html>` 应标注 `data-doc-type`，取值为 `prd`、`decision`、`design`、`tech-research`、`task` 或 `generic`。
+- 命名空间：PRD Preview 使用 `data-prd-source`/`data-prd-section`（见 `prd-preview-contract.md`）；其他类型使用 `data-doc-source`/`data-doc-section`。两套标记并存，机械检查各自认各自的 marker。
+- 情境感知锚点：task 用 `data-sa="current|blocking|next"` 标注三锚点（见「首屏一眼可读」）。
+- 孤立信号：Attention 区多信号时用 `data-rank="dominant"` 标记唯一最优先信号（见「Visual Encoding Rules · 大小与孤立」）。
 - 样式应保持中性、低保真、易读，不追求目标项目视觉还原。
 
 ## Check Scope
@@ -118,6 +170,11 @@ Preview 使用固定结构：
 - 是否为单文件 HTML，且不依赖外部脚本、样式、CDN。
 - 是否包含来源文档路径。
 - 是否没有出现接口端点清单、请求响应 schema、数据库设计或代码类型定义。
+- 颜色冗余（WCAG 1.4.1）：状态色块须内联文字/图标，不得仅靠 CSS 注入。
+- 对比度（WCAG 1.4.3 AA）：`:root` 调色板正文配对 ≥ 4.5:1。
+- 首屏一眼可读：结论先行型 hero 标题长度、task 的 Current/Blocking/Next 三锚点齐备且未折叠。
+- 孤立信号（Von Restorff）：Attention 区多信号时有且仅有一个 `dominant`。
+- 决策关键内容可见：kill criteria/阻塞门禁/边界态不得仅藏在 `<details>` 内。
 
 PRD 专用检查项见 `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md`。
 

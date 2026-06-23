@@ -31,6 +31,7 @@ allowed-tools:
 - Decision Brief: `.ai/preview/decision/[feature].html`
 - Tech Research: `.ai/preview/tech-research/[feature].html`
 - Design: `.ai/preview/design/[feature].html`
+- Task: `.ai/preview/task/<feature>/.../[name].html`
 - 其他: `.ai/preview/[stem].html`
 
 ## 使用方式
@@ -61,11 +62,13 @@ allowed-tools:
 - Decision Brief 来源路径为 `.ai/decision/[feature].md`，输出 `.ai/preview/decision/[feature].html`
 - Tech Research 来源路径为 `.ai/tech-research/[feature].md`，输出 `.ai/preview/tech-research/[feature].html`
 - Design 来源路径为 `.ai/design/[feature].md`，输出 `.ai/preview/design/[feature].html`
+- Task 来源路径为 `.ai/task/<feature>/.../[name].md`，输出 `.ai/preview/task/<feature>/.../[name].html`
 - 其他文档：输出 `.ai/preview/<stem>.html`
 
 **Preview 边界**：
 - 是源文档的可视化审阅视图，不能引入源文档未声明的新需求或规则
-- 模板是通用组件库；生成时必须按文档类型裁剪 section，不为套模板编造内容
+- 模板是解释型组件库；生成时必须按文档类型选择信息架构和主视觉，不为套模板编造内容
+- 首屏必须突出结论、主视觉和注意项，不得把 Markdown 章节流水账搬进 HTML
 - 有前端/交互入口时，UI 示意聚焦文档定义的目标体验和关键状态
 - 使用单文件 HTML、内联 CSS 和少量原生 JS，不依赖外部构建工具或 CDN
 - 技术栈无关，浏览器直接打开即可审阅
@@ -94,7 +97,8 @@ PRD 模式额外读取：
 
 `.ai/preview/...html` — HTML Preview，包含：
 - 元数据、来源文档路径和一句话目标
-- 从文档提取的关键内容，按逻辑分组
+- 从文档提取的 3-5 个关键事实（受工作记忆 4±1 chunks 约束），按人类审阅任务重组
+- 一个主视觉区域和注意项区域，用于快速传达重点、变化、依赖、风险或下一步
 - 前端功能目标体验的低保真交互示意，或后端场景的流程图/状态图/能力矩阵
 
 ## 工作流程
@@ -146,7 +150,7 @@ subagent 的详细规则见 `${CLAUDE_PLUGIN_ROOT}/agents/html-show.md` 和 `${C
 - Preview 路径
 - 文档类型（PRD / 通用）
 - 本次走 create 还是 update
-- 可视化类型（interactive-preview / backend-flow / state-diagram / capability-matrix / acceptance-matrix / document-reader）
+- 可视化类型（prd-review / decision-map / research-map / design-change-map / task-execution-map / answer-board / interactive-preview / backend-flow / state-diagram / capability-matrix / acceptance-matrix / document-reader）
 - PRD 模式下一步：`/t-prd-check [feature]` 验证一致性
 
 ## 失败处理
