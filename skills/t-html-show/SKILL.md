@@ -69,9 +69,10 @@ allowed-tools:
 - 是源文档的可视化审阅视图，不能引入源文档未声明的新需求或规则
 - 模板是解释型组件库；生成时必须按文档类型选择信息架构和主视觉，不为套模板编造内容
 - 首屏必须突出结论、主视觉和注意项，不得把 Markdown 章节流水账搬进 HTML
+- 主视觉必须按语义选择 HTML 表达形态，不得默认堆 card；可使用 flow graph、state graph、DAG、timeline、swimlane、matrix、heatmap、pipeline、hub map 或 interactive preview
 - 有前端/交互入口时，UI 示意聚焦文档定义的目标体验和关键状态
-- 使用单文件 HTML、内联 CSS 和少量原生 JS，不依赖外部构建工具或 CDN
-- 技术栈无关，浏览器直接打开即可审阅
+- 允许使用外部脚本、样式、CDN、npm 包、构建工具、第三方图库或辅助资源；如使用，必须在 Preview 可见区域声明依赖来源、用途和打开/运行方式
+- 辅助资源必须写入 `.ai/preview/` 下与主 HTML 同名或同目录的资源目录，不得写入目标项目源码
 
 **更新行为**：
 - 已有同名 Preview → 以当前源文档语义为基准更新
@@ -99,7 +100,8 @@ PRD 模式额外读取：
 - 元数据、来源文档路径和一句话目标
 - 从文档提取的 3-5 个关键事实（受工作记忆 4±1 chunks 约束），按人类审阅任务重组
 - 一个主视觉区域和注意项区域，用于快速传达重点、变化、依赖、风险或下一步
-- 前端功能目标体验的低保真交互示意，或后端场景的流程图/状态图/能力矩阵
+- 前端功能目标体验的低保真交互示意，或后端场景的流程图、状态图、依赖图、时间线、泳道图、能力矩阵、验收矩阵、风险热力、pipeline 或 hub map
+- 外部依赖声明与打开/运行方式（如使用外部脚本、样式、CDN、npm 包、构建工具、第三方图库或辅助资源）
 
 ## 工作流程
 
@@ -142,7 +144,7 @@ subagent 的详细规则见 `${CLAUDE_PLUGIN_ROOT}/agents/html-show.md` 和 `${C
 
 ### 5. 打开 Preview（可选，默认不打开）
 
-生成完成后，默认不自动打开；只报告 `<preview-path>`（例如 `.ai/preview/<domain>/[feature].html`）和当前平台的打开命令。仅当用户在对话中明确要求打开时才执行，使用 `html-show-contract.md` 的 `Opening the Preview` 中定义的命令并校验启动结果，不得谎报"已打开"。
+生成完成后，默认不自动打开；只报告 `<preview-path>`（例如 `.ai/preview/<domain>/[feature].html`）和当前平台的打开命令。如 Preview 使用外部依赖、构建工具或本地服务，还必须报告可复现的安装/构建/启动命令。仅当用户在对话中明确要求打开时才执行，使用 `html-show-contract.md` 的 `Opening the Preview` 中定义的命令或 Preview 声明的运行命令并校验启动结果，不得谎报"已打开"。
 
 ### 6. 收尾
 
@@ -150,7 +152,7 @@ subagent 的详细规则见 `${CLAUDE_PLUGIN_ROOT}/agents/html-show.md` 和 `${C
 - Preview 路径
 - 文档类型（PRD / 通用）
 - 本次走 create 还是 update
-- 可视化类型（prd-review / decision-map / research-map / design-change-map / task-execution-map / answer-board / interactive-preview / backend-flow / state-diagram / capability-matrix / acceptance-matrix / document-reader）
+- 可视化类型（prd-review / decision-map / research-map / design-change-map / task-execution-map / answer-board / interactive-preview / backend-flow / state-diagram / dependency-graph / timeline / swimlane / pipeline / hub-map / capability-matrix / acceptance-matrix / document-reader）
 - PRD 模式下一步：`/t-prd-check [feature]` 验证一致性
 
 ## 失败处理

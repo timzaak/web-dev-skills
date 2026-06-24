@@ -35,15 +35,23 @@ PRIMARY_VISUAL_COMPONENTS = (
     "matrix",
     "node-row",
     "compare",
+    "svg-graph",
+    "flow-graph",
+    "state-graph",
+    "dependency-grid",
+    "timeline",
+    "swimlane",
+    "pipeline",
+    "hub-map",
 )
 
 # doc type -> 至少出现其一的主视觉组件（prd/generic 不强制）。
 # signal 是状态标签而非主视觉，不计入；insight 作为结论 hero 可作主视觉。
 DOC_PRIMARY_VISUAL: dict[str, tuple[str, ...]] = {
-    "design": ("change-map", "dag", "node-row"),
-    "task": ("lane", "dag", "node-row"),
+    "design": ("change-map", "dag", "node-row", "svg-graph", "dependency-grid", "hub-map"),
+    "task": ("lane", "dag", "node-row", "svg-graph", "dependency-grid", "timeline", "swimlane", "pipeline"),
     "decision": ("insight", "compare", "matrix"),
-    "tech-research": ("insight", "matrix", "compare"),
+    "tech-research": ("insight", "matrix", "compare", "timeline", "hub-map"),
 }
 
 # 抓取所有 class 属性值，做 token 级判断（避免 "matrix"/"lane" 出现在正文散文里被子串误命中）
@@ -100,6 +108,11 @@ EXTERNAL_DEPENDENCY_PATTERNS = {
     "cdn reference": re.compile(r"https?://|//cdn\.|unpkg\.com|jsdelivr\.net", re.IGNORECASE),
     "module import": re.compile(r"\bimport\s+.*\s+from\s+[\"']", re.IGNORECASE),
 }
+
+DEPENDENCY_DECLARATION_RE = re.compile(
+    r"依赖|dependency|dependencies|运行方式|打开方式|启动命令|run command|start command|npm|cdn|mermaid|d3|echarts|graphviz",
+    re.IGNORECASE,
+)
 
 PRD_PROFILE = {
     "required_sections": REQUIRED_SECTIONS_PRD,
@@ -446,6 +459,16 @@ def check_contrast(html: str, result: PreviewResult) -> None:
             )
 
 
+def check_dependency_declaration(html: str, result: PreviewResult) -> None:
+    """外部依赖允许使用，但必须声明来源、用途和打开/运行方式。"""
+    detected = [name for name, pattern in EXTERNAL_DEPENDENCY_PATTERNS.items() if pattern.search(html)]
+    if detected and not DEPENDENCY_DECLARATION_RE.search(_strip_tags(html)):
+        result.fail(
+            f"外部依赖缺少声明：检测到 {', '.join(detected)}；"
+            "使用外部脚本、样式、CDN、npm 包或构建工具时，Preview 须在可见区域声明依赖来源、用途和打开/运行方式"
+        )
+
+
 def validate_preview(source_path: Path, root: Path, doc_type: str | None = None) -> PreviewResult:
     relative = source_path.relative_to(root)
     detected_type = doc_type or detect_doc_type(source_path, root)
@@ -467,8 +490,6 @@ def validate_preview(source_path: Path, root: Path, doc_type: str | None = None)
     # Generic checks
     if "<!doctype html" not in html.lower():
         result.fail("missing <!doctype html>")
-    if "<style" not in html.lower():
-        result.fail("missing inline CSS")
 
     has_doc_source = "data-doc-source" in html
     has_prd_source = "data-prd-source" in html
@@ -477,9 +498,7 @@ def validate_preview(source_path: Path, root: Path, doc_type: str | None = None)
     if source not in html.replace("\\", "/"):
         result.fail(f"missing source document path: {source}")
 
-    for name, pattern in EXTERNAL_DEPENDENCY_PATTERNS.items():
-        if pattern.search(html):
-            result.fail(f"external dependency detected: {name}")
+    check_dependency_declaration(html, result)
 
     # PRD profile checks
     if detected_type == "prd":

@@ -24,13 +24,14 @@ Preview 是临时验证产物，不纳入版本控制。每次 `/t-html-show`、
 
 ## Technology Constraints
 
-HTML Preview 必须保持目标项目技术栈无关：
+HTML Preview 不再强制限定为单文件、内联 CSS/JS、无 npm/CDN/构建工具。允许为了提升 PRD 可审阅性使用外部样式、脚本、第三方图形库或辅助资源。
 
-- 使用单文件 HTML。
-- CSS 和少量 JavaScript 内联。
-- 不依赖 npm、构建工具、CDN、目标项目组件库或前端运行时。
-- 不引用目标项目源码中的 React/Vue/Svelte/miniapp 组件。
-- 不要求启动 dev server，浏览器直接打开即可审阅。
+必须满足：
+
+- Preview 主入口仍写入 `.ai/preview/<domain>/<feature>.html`。
+- 如果使用外部资源、构建工具、npm 包、CDN 或第三方图形库，必须在 Preview 可见区域标注依赖来源、用途和打开/运行方式。
+- 如果生成辅助文件，必须写入 `.ai/preview/` 下与主 HTML 同名或同目录的资源目录，不得写入目标项目源码。
+- 不引用目标项目源码中的 React/Vue/Svelte/miniapp 组件作为 Preview 的运行依赖；已有 UI 只可作为入口或约束说明，不作为 Preview 主体复刻。
 
 ## Review Workflow
 
@@ -73,7 +74,7 @@ PRD 的审阅任务是**完整性审查**（产品意图、范围、规则、验
 
 - 使用流程图、状态图、调用方场景、能力边界矩阵或验收矩阵表达。
 - 不展示无意义的数据页面。
-- 复杂后端场景应优先用 HTML/CSS 表达流程图或状态流转。
+- 复杂后端场景可使用 HTML/CSS、内联 SVG、Mermaid、D3、ECharts 或其他图形库表达流程图或状态流转；使用外部依赖时必须声明依赖和打开/运行方式。
 
 ## Determinism Rules
 
@@ -93,7 +94,7 @@ Preview 使用固定结构：
 
 - 可使用 `${CLAUDE_PLUGIN_ROOT}/scripts/check-html-show.py --type prd` 执行机械检查。
 - Preview 文件是否存在且路径为 `.ai/preview/<domain>/<feature>.html`。
-- 是否为单文件 HTML，且不依赖外部脚本、样式、CDN 或目标项目构建产物。
+- 如使用外部脚本、样式、CDN、npm 包或构建工具，是否声明依赖来源、用途和打开/运行方式。
 - 是否包含来源 PRD 路径。
 - 是否包含固定区域：`Overview`、`Scope`、`Flow`、`States`、`Rules`、`Acceptance`、`Assumptions`。
 - 边界态/异常态/权限等完整性要点是否被折叠进 `<details>`（由 `check_critical_content_visible` 校验，违反记 P1）。
@@ -108,5 +109,5 @@ Preview 使用固定结构：
 - 缺失 Preview 文件：P1。
 - Preview 引入 PRD 未声明的新业务规则、权限规则或验收目标：P1。
 - Preview 混入端点、schema、建表、迁移、类型定义等禁止内容：P0。
-- Preview 依赖目标项目技术栈、构建工具或外部 CDN：P1。
+- Preview 使用外部依赖但未声明来源、用途或打开/运行方式：P1。
 - Preview 缺少必要审阅区域或来源 PRD 路径：P2。

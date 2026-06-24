@@ -26,13 +26,15 @@ Preview 是临时验证产物，不纳入版本控制。每次运行时重新生
 
 ## Technology Constraints
 
-HTML Preview 必须保持目标项目技术栈无关：
+HTML Preview 不再强制限定为单文件、内联 CSS/JS、无 npm/CDN/构建工具。允许为了提升可读性使用外部样式、脚本、第三方图形库或辅助资源。
 
-- 使用单文件 HTML。
-- CSS 和少量 JavaScript 内联。
-- 不依赖 npm、构建工具、CDN、目标项目组件库或前端运行时。
-- 不引用目标项目源码中的 React/Vue/Svelte/miniapp 组件。
-- 不要求启动 dev server，浏览器直接打开即可审阅。
+必须满足：
+
+- Preview 主入口仍写入 `.ai/preview/` 下。
+- 如果使用外部资源、构建工具、npm 包、CDN 或第三方图形库，必须在 Preview 可见区域标注依赖来源、用途和打开/运行方式。
+- 如果生成辅助文件，必须写入 `.ai/preview/` 下与主 HTML 同名或同目录的资源目录，不得写入目标项目源码。
+- 不引用目标项目源码中的 React/Vue/Svelte/miniapp 组件作为 Preview 的运行依赖；目标项目已有 UI 只可作为入口或约束说明，不作为 Preview 主体复刻。
+- 不要求所有 Preview 都能直接双击打开；如果需要本地服务或构建步骤，必须报告可复现命令。
 
 ## Review Workflow
 
@@ -48,11 +50,11 @@ HTML Preview 必须保持目标项目技术栈无关：
 
 ## Opening the Preview
 
-默认不自动打开。生成或更新 Preview 后，只报告 `preview_path` 和当前平台对应的打开命令，由人类自行决定是否打开。
+默认不自动打开。生成或更新 Preview 后，只报告 `preview_path` 和当前平台对应的打开命令，由人类自行决定是否打开。如 Preview 依赖外部资源、npm 包、构建工具或本地服务，还必须报告依赖说明和可复现的安装/构建/启动命令。
 
 仅当人类在对话中明确要求打开（如"打开预览"/"open it"）时才执行打开；不解析额外 flag。
 
-打开时按平台选择命令：
+可直接打开的 Preview 按平台选择命令：
 
 | 平台 | 命令 |
 |---|---|
@@ -68,6 +70,8 @@ if [ "$(uname -s)" = "Darwin" ]; then open "$path"
 elif [ -n "$WINDIR" ]; then cmd.exe //c start "" "$(cygpath -w "$path" 2>/dev/null || echo "$path")"
 else xdg-open "$path"; fi
 ```
+
+需要本地服务或构建步骤的 Preview，按页面声明的运行命令启动，再打开对应 URL 或产物路径。
 
 校验要求：执行后必须确认命令返回成功；失败时如实报告路径与命令，不得谎报"已打开"。子代理同样遵守：不得在未真正打开时报告"已打开"。
 
@@ -100,6 +104,7 @@ Preview 不是 Markdown 的 HTML 复写，而是面向人类快速判断的解�
 - 一句话结论或目标（结论先行型须短到可一眼判读，见下「首屏一眼可读」）。
 - 一个主视觉区域，使用 `data-doc-section="PrimaryVisual"` 标记。
 - 注意项区域，使用 `data-doc-section="Attention"` 标记；如没有风险或待确认项，写“无”。
+- 依赖声明和打开/运行方式（如使用外部资源、npm 包、CDN、第三方图库、构建工具或辅助文件）。
 - 示例数据声明（如使用）。
 - 待确认假设（如有）。
 
@@ -115,6 +120,38 @@ Preview 不是 Markdown 的 HTML 复写，而是面向人类快速判断的解�
 kill criteria、阻塞门禁、边界态等**决定结论**的要点不得折叠进 `<details>`——折叠等于藏起 kill switch。`check_critical_content_visible` 按 doc type 校验：PRD（异常/空态/权限）、Decision（杀死/致命/不可逆）、Task（阻塞/门禁）。仅当某要点「全文仅出现在 `<details>` 内」才记违规（有可见副本即放行）。
 
 禁止生成流水账式 Preview：连续卡片、长列表、按 Markdown 标题逐段复制、没有主视觉的表格堆叠，都不算合格 Preview。这类形态制造 *extraneous cognitive load*（Sweller 认知负荷理论）：读者把心智花在「拼接散落卡片」上而非理解内容，因此必须用主视觉把关系一次性外化。
+
+## Expression Library
+
+HTML Preview 的主视觉必须按文档语义选择表达方式，不能默认堆卡片。`.card` 只适合承载局部说明或重复条目，不应成为页面的主要表达结构。
+
+可选表达形态：
+
+| 表达形态 | 适用语义 | 推荐 HTML 结构 |
+|---|---|---|
+| Flow graph | 步骤、调用链、审批链、数据流 | `.flow-graph` + `.flow-node` + `.flow-edge` |
+| State graph | 状态、触发条件、合法/非法迁移 | `.state-graph` + `.state-node` + `.transition` |
+| DAG / Dependency graph | task item 依赖、模块依赖、阻塞关系 | `.dag` + `.node-row` 或 `.dependency-grid` |
+| Inline SVG graph | 复杂连线、分支、汇聚、环路 | `<svg class="svg-graph">` + `<g>` + `<path>` + `<text>` |
+| Mermaid graph | 流程、状态、时序、类图等标准图 | Mermaid fenced source 或 Mermaid runtime |
+| D3 / ECharts graph | 复杂关系、布局、数据驱动图 | 外部脚本或本地依赖，必须声明依赖与打开方式 |
+| Timeline | 决策过程、版本演进、交付节奏 | `.timeline` + `.timeline-item` |
+| Swimlane | 角色协作、系统边界、跨端流程 | `.swimlane` + `.lane-track` |
+| Matrix | 能力边界、验收覆盖、方案比较 | `<table class="matrix">` |
+| Heatmap | 风险、影响范围、覆盖强弱 | `.heatmap`，按位置和等级排序 |
+| Funnel / Pipeline | 转化、处理阶段、排队和释放 | `.pipeline` + `.pipeline-stage` |
+| Radial / Hub map | 中心能力与周边调用方/约束 | `.hub-map` + `.hub` + `.spoke` |
+| Interactive preview | 有用户入口的前端目标体验 | 原生 HTML 控件 + `[data-panel]` |
+
+选型规则：
+
+- 有方向关系时优先使用 flow graph、state graph、DAG、swimlane 或 pipeline。
+- 连线复杂、分支汇聚较多、HTML 节点难以排布时，可使用内联 SVG、Mermaid、D3、ECharts 或其他图形库；使用第三方库时必须声明依赖与打开方式。
+- 有集合比较时优先使用 matrix、heatmap 或 option comparison。
+- 有时间顺序时优先使用 timeline。
+- 有中心能力与外部关系时优先使用 hub map。
+- 只有无法归类的说明性内容才使用 card；连续 3 个以上 card 必须重新判断是否应改成图、矩阵、时间线或泳道。
+- 图形节点必须包含内联标签、状态或简短解释，不能只用色块、连线或图例承载含义。
 
 ## Visual Encoding Rules
 
@@ -167,7 +204,7 @@ Preview 使用固定结构：
 通用检查项：
 
 - Preview 文件是否存在。
-- 是否为单文件 HTML，且不依赖外部脚本、样式、CDN。
+- Preview 主入口是否存在；如使用外部脚本、样式、CDN、npm 包或构建工具，是否声明依赖来源、用途和打开/运行方式。
 - 是否包含来源文档路径。
 - 是否没有出现接口端点清单、请求响应 schema、数据库设计或代码类型定义。
 - 颜色冗余（WCAG 1.4.1）：状态色块须内联文字/图标，不得仅靠 CSS 注入。
@@ -182,4 +219,4 @@ PRD 专用检查项见 `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md`
 
 - Preview 引入源文档未声明的新规则或约束：P1。
 - Preview 混入端点、schema、建表、迁移、类型定义等禁止内容：P0。
-- Preview 依赖目标项目技术栈、构建工具或外部 CDN：P1。
+- Preview 使用外部依赖但未声明来源、用途或打开/运行方式：P1。

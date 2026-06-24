@@ -65,7 +65,7 @@ allowed-tools:
 
 - 先运行 `${CLAUDE_PLUGIN_ROOT}/scripts/check-html-show.py [feature-name|--all] --type prd --root . --json` 获取机械检查结果
 - 检查 `.ai/preview/<domain>/<feature>.html` 是否存在
-- 检查 Preview 是否为目标技术栈无关的单文件 HTML
+- 检查 Preview 如使用外部脚本、样式、CDN、npm 包、构建工具或第三方图库，是否声明依赖来源、用途和打开/运行方式
 - 检查 Preview 是否包含来源 PRD 路径和固定审阅区域
 - 对前端/交互功能，检查 Preview 是否聚焦 PRD 定义的目标体验和关键状态，而不是复刻现有代码已经具备的 UI
 - 检查 Preview 是否没有引入 PRD 未声明的新业务规则、权限规则或验收目标

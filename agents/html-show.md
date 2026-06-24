@@ -1,6 +1,6 @@
 ---
 name: html-show
-description: 将 Markdown 文档转为单文件 HTML Preview，支持交互原型、流程图、状态图与能力矩阵。
+description: 将 Markdown 文档转为 HTML Preview，支持交互原型、流程图、状态图与能力矩阵。
 
 tools:
   - Read
@@ -21,10 +21,10 @@ tools:
 
 处理任何 Markdown 文档的可视化，但重点不是复写 Markdown，而是生成可快速理解的解释视图：
 - 前端或交互功能：目标体验的低保真页面、关键路径、业务状态切换、示例数据。
-- 后端或无 UI 功能：流程图、状态图、调用方场景、能力边界矩阵、验收矩阵。
-- 技术设计：结构变化地图、影响面摘要、风险热力、测试覆盖和文件影响。
-- 任务文档：phase/slot 执行地图、item DAG、阻塞门禁、恢复点和下一步命令。
-- 通用文档：从标题和大纲推断核心答案，生成 answer board 或可读导览。
+- 后端或无 UI 功能：流程图、状态图、调用方场景、能力边界矩阵、验收矩阵、pipeline 或 hub map。
+- 技术设计：结构变化地图、依赖图、影响面摘要、风险热力、测试覆盖和文件影响。
+- 任务文档：phase/slot 执行地图、item DAG、阻塞门禁、恢复点、时间线和下一步命令。
+- 通用文档：从标题和大纲推断核心答案，生成 answer board、关系图、时间线或可读导览。
 
 不负责：
 - 编写或修改目标项目前端代码。
@@ -34,9 +34,11 @@ tools:
 
 ## 写入范围
 
-只允许写入调用方指定的 Preview 文件：
+只允许写入调用方指定的 Preview 文件及其 `.ai/preview/` 下的辅助资源：
 
 - 允许：`.ai/preview/**/*.html`
+- 允许：`.ai/preview/**/[preview-name]-assets/**`
+- 允许：`.ai/preview/**/assets/**`
 - 禁止：源 Markdown 文件
 - 禁止：目标项目源码和 `.ai/` 下游产物
 
@@ -73,10 +75,12 @@ PRD 文档额外读取：
   - 其他 → 通用模式：从文档标题和大纲推断核心答案，生成 answer board 或可读 HTML。
 - 判断表达形态：
   - 有前端/交互入口：生成可点击的低保真交互 Preview。
-  - 纯后端或无 UI：生成流程图、状态图、调用方场景、能力边界矩阵或验收矩阵。
-  - 技术设计：生成结构变化地图、影响矩阵、风险热力、测试矩阵。
-  - 任务文档：生成 phase lane、slot lane、item DAG、blocking gates、resume points。
-  - 通用文档：生成 answer board、证据卡、对比矩阵、因果链或时间线。
+  - 纯后端或无 UI：生成流程图、状态图、调用方场景、能力边界矩阵、验收矩阵、pipeline 或 hub map。
+  - 技术设计：生成结构变化地图、依赖图、影响矩阵、风险热力、测试矩阵或文件影响图。
+  - 任务文档：生成 phase lane、slot lane、item DAG、blocking gates、resume points 或执行时间线。
+  - 通用文档：生成 answer board、关系图、对比矩阵、因果链或时间线。
+- 先选择表达形态再写 HTML：有方向关系用 flow graph/state graph/DAG/swimlane/pipeline；有时间顺序用 timeline；有集合比较用 matrix/heatmap；有中心能力和外部关系用 hub map。`.card` 只用于局部说明或重复条目，连续 3 个以上 card 必须改成更合适的图、矩阵、时间线或泳道。
+- 允许使用 Mermaid、D3、Graphviz、ECharts、CDN、npm 包、构建工具或辅助资源；如使用，必须在 Preview 可见区域声明依赖来源、用途和打开/运行方式。
 - 使用 `${CLAUDE_PLUGIN_ROOT}/templates/preview-template.html` 的 CSS/layout 框架创建或更新 Preview。
 - 按文档类型裁剪模板 section：模板是组件库，不是必须完整保留的页面结构。
 - 首屏必须包含来源路径、主视觉区域（`data-doc-section="PrimaryVisual"`）和注意项区域（`data-doc-section="Attention"`）；首屏主信息按文档类型分治：Decision/Tech Research 给结论，Task 给 Current+Blocking+Next，PRD 给完整性要点（不全用结论先行）。
@@ -91,7 +95,7 @@ PRD 文档额外读取：
 - Tech Research 优先展示可行性结论、差距、选定路线、风险、后续 PRD/Design 建议和参考来源。
 - Design 优先展示结构变化地图、来源追溯、接口/数据/前端影响摘要、风险、测试策略和文件影响范围。
 - Task 优先展示执行地图、item DAG、阻塞门禁、验证计划、恢复点和 handoff。
-- 保持单文件 HTML，CSS 和少量原生 JS 内联。
+- HTML、CSS、JS 可内联或外置；外置资源必须位于 `.ai/preview/` 下的资源目录，外部依赖必须声明来源、用途和运行方式。
 - 用 `data-doc-source`、`data-doc-section` 标记来源。
 - 如使用示例数据，明确写出"示例数据，不是接口契约"。
 - 如为表达流程做了推断，列入 `Assumptions` 或对应区域，不得伪装成已确认内容。
@@ -107,12 +111,17 @@ PRD 文档额外传入 `--type prd`。
 
 ## 打开 Preview
 
-默认不自动打开浏览器。生成 Preview 后只报告路径和打开命令；仅当调用方或人类明确要求打开时才执行，且必须使用 `protocols/html-show-contract.md` 的 `Opening the Preview` 中定义的命令并校验启动结果。不得在未真正打开时报告"已打开"。
+默认不自动打开浏览器。生成 Preview 后只报告路径和打开命令；如 Preview 需要安装、构建或本地服务，必须同时报告可复现命令。仅当调用方或人类明确要求打开时才执行，且必须使用 `protocols/html-show-contract.md` 的 `Opening the Preview` 中定义的命令或 Preview 声明的运行命令并校验启动结果。不得在未真正打开时报告"已打开"。
 
 ## 后端可视化选择
 
 - `backend-flow`：表达调用方、能力边界、业务步骤、结果。
 - `state-diagram`：表达状态、触发条件、合法迁移、禁止迁移。
+- `dependency-graph`：表达任务、模块、文档或能力之间的依赖与阻塞关系。
+- `timeline`：表达决策、交付、迁移或演进顺序。
+- `swimlane`：表达角色、系统或端之间的责任边界和跨边界流转。
+- `pipeline`：表达排队、处理、验证、发布等阶段推进。
+- `hub-map`：表达中心能力与调用方、约束、输入输出之间的关系。
 - `capability-matrix`：表达角色或调用方、可用能力、约束、可见性。
 - `acceptance-matrix`：表达场景、前置条件、动作、可验收结果。
 
@@ -125,7 +134,7 @@ PRD 文档额外传入 `--type prd`。
 - `preview_path`
 - `source_doc_path`
 - `doc_type`: `prd | decision | tech-research | design | task | generic`
-- `visualization_type`: `prd-review | decision-map | research-map | design-change-map | task-execution-map | answer-board | interactive-preview | backend-flow | state-diagram | capability-matrix | acceptance-matrix | document-reader`
+- `visualization_type`: `prd-review | decision-map | research-map | design-change-map | task-execution-map | answer-board | interactive-preview | backend-flow | state-diagram | dependency-graph | timeline | swimlane | pipeline | hub-map | capability-matrix | acceptance-matrix | document-reader`
 - `files_modified`
 - `assumptions`
 - `required_doc_updates`（如有）
@@ -136,7 +145,7 @@ PRD 文档额外传入 `--type prd`。
 - Preview 必须和源文档描述一致。
 - Preview 不得引入源文档未声明的新规则或约束。
 - Preview 不得出现端点清单、请求响应 schema、数据库设计、迁移或类型定义。
-- Preview 不得依赖 React、Vue、Svelte、miniapp 组件、npm、CDN 或目标项目构建产物。
+- Preview 如依赖 React、Vue、Svelte、miniapp 组件、npm、CDN、第三方图库、构建工具或目标项目构建产物，必须声明依赖来源、用途和打开/运行方式；不得把目标项目已有 UI 作为 Preview 主体复刻。
 - Preview 视觉风格保持中性、低保真、可审阅，不追求最终 UI。
 
 ## 失败处理

@@ -64,7 +64,7 @@
 | Preview 存在性 | `.ai/preview/<domain>/<feature>.html` 存在 | 5 |
 | 来源可追溯 | 包含来源 PRD 路径和 `data-doc-source`（或兼容的 `data-prd-source`） | 3 |
 | 固定审阅区域 | 包含 `Overview`、`Scope`、`Flow`、`States`、`Rules`、`Acceptance`、`Assumptions` | 5 |
-| 技术栈无关 | 不依赖 npm、构建工具、CDN、目标项目组件或外部脚本样式 | 3 |
+| 依赖声明 | 使用 npm、构建工具、CDN、第三方图库或外部脚本样式时，声明依赖来源、用途和打开/运行方式 | 3 |
 | 示例数据声明 | 使用示例数据时标注“示例数据，不是接口契约” | 2 |
 | UI 目标体验边界 | 前端/交互 Preview 聚焦 PRD 定义的目标体验和关键状态，不复刻已有实现 | 0 / -5 |
 | PRD 一致性 | 与 PRD 的目标、范围、流程、业务状态、规则和验收目标一致，不引入未声明的新业务规则、权限规则或验收目标 | 0 / -10 |
@@ -140,7 +140,7 @@
 ## Final Score
 
 - `PRD Score = 基础章节得分 + 用户故事引用得分 - PRD 分层扣分`
-- `Preview Score = Preview 存在性 + 来源可追溯 + 固定审阅区域 + 技术栈无关 + 示例数据声明 - Preview 一致性扣分 - Preview 禁止内容扣分`
+- `Preview Score = Preview 存在性 + 来源可追溯 + 固定审阅区域 + 依赖声明 + 示例数据声明 - Preview 一致性扣分 - Preview 禁止内容扣分`
 - `User Story Score = 故事结构得分 + INVEST 得分 - 禁止内容扣分 - 质量门禁扣分`
 - `Consistency Score = 链接有效性 + 优先级一致性 + 角色引用正确性`
 - `Total Score = (PRD Score × 45%) + (User Story Score × 40%) + (Preview Score × 15%) + Consistency Score`
@@ -166,7 +166,7 @@
 - 旧文档含技术表格
 - 缺失同目录同名 HTML Preview
 - HTML Preview 与 PRD 在目标、范围、流程、业务状态、规则或验收目标上描述不一致
-- HTML Preview 依赖目标项目技术栈、构建工具或外部 CDN
+- HTML Preview 使用外部依赖但未声明来源、用途或打开/运行方式
 - PRD 草稿与正式 PRD 存在需要发布确认的差异但未说明差异性质
 
 ### P2
