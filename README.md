@@ -86,6 +86,7 @@
 - `t-ui-design` 是可选的前端 UI 方案探索阶段，在 PRD Check 通过后、技术设计前使用；它生成多方案单文件 HTML mockup、对比看板和 `.ai/design-ui/<feature>/ui-spec.md`，不依赖图片生成、Figma 或外部 AI UI 工具
 - `t-doc` 用于项目文档、上手教程、API 参考、配置和部署说明，不用于 PRD、技术设计或只改某个文档片段
 - `t-dream` 默认以只读 audit 方式整理 PRD、用户故事、设计/任务、实现事实与项目结构，减少过期、重复、冲突和误导性上下文累积；需要写入 PRD 治理时显式使用 `--govern-prd`
+- `t-push` 在提交前由 AI 基于本次 diff 清理明显低价值代码注释，再总结 commit message，并调用 `${CLAUDE_PLUGIN_ROOT}/scripts/push.py` 运行受影响 CI、提交和推送
 - `t-backend-test-run` 是内部执行型 skill，供 `backend-test` 等流程复用，不作为推荐的手动入口
 
 ## 安装
