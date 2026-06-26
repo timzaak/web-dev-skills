@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>[文档名称] Preview</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js" defer></script>
   <style>
     :root {
       color-scheme: light;
@@ -212,11 +213,13 @@
 
     .flow-graph,
     .state-graph,
+    .mermaid-graph,
     .swimlane,
     .pipeline,
     .hub-map,
     .dag,
-    .change-map {
+    .change-map,
+    .compare {
       overflow-x: auto;
       border: 1px solid var(--line);
       border-radius: 8px;
@@ -257,6 +260,30 @@
       font-weight: 700;
     }
 
+    .mermaid-graph {
+      display: grid;
+      gap: 10px;
+    }
+
+    .mermaid {
+      width: 100%;
+      min-width: 620px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #ffffff;
+    }
+
+    .mermaid-fallback {
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
     .dependency-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -270,6 +297,24 @@
       padding: 10px;
       background: #fff;
     }
+
+    .compare {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+    }
+
+    .compare-option {
+      border: 1px solid var(--line);
+      border-top: 5px solid var(--accent);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fff;
+    }
+
+    .compare-option.ok { border-top-color: var(--ok); }
+    .compare-option.warn { border-top-color: var(--warn); }
+    .compare-option.bad { border-top-color: var(--bad); }
 
     .timeline {
       display: grid;
@@ -531,126 +576,26 @@
       <section id="map" data-doc-section="Map">
         <h2>[主视觉名称]</h2>
         <!--
-          按语义选择主视觉，不要默认堆 card：
-          - 方向关系：flow-graph / state-graph / dag / swimlane / pipeline
-          - 复杂连线：inline SVG graph / Mermaid / D3 / ECharts / Graphviz
-          - 时间顺序：timeline
-          - 集合比较：matrix / heatmap
-          - 中心能力与外部关系：hub-map
-          card 只用于局部说明或重复条目。
-
-          可直接替换下方 change-map 的片段示例：
-
-          Flow graph:
-          <div class="flow-graph" aria-label="Flow graph">
-            <div class="flow-row">
-              <div class="flow-node ok">✓ [输入/触发]</div>
-              <span class="flow-edge">→</span>
-              <div class="flow-node warn">⚠ [关键处理]</div>
-              <span class="flow-edge">→</span>
-              <div class="flow-node">[输出/结果]</div>
-            </div>
-          </div>
-
-          State graph:
-          <div class="state-graph" aria-label="State graph">
-            <div class="flow-row">
-              <div class="state-node ok">✓ [状态 A]</div>
-              <span class="transition">[触发条件] →</span>
-              <div class="state-node warn">⚠ [状态 B]</div>
-              <span class="transition">[禁止条件] ✗</span>
-            </div>
-          </div>
-
-          Timeline:
-          <div class="timeline" aria-label="Timeline">
-            <div class="timeline-item"><strong>[阶段 1]</strong><p>[关键事实]</p></div>
-            <div class="timeline-item"><strong>[阶段 2]</strong><p>[关键事实]</p></div>
-          </div>
-
-          Swimlane:
-          <div class="swimlane" aria-label="Swimlane">
-            <div class="lane-track">
-              <div class="lane-label">[角色/系统 A]</div>
-              <div class="lane-items"><div class="node">[动作]</div><div class="node">[产物]</div></div>
-            </div>
-            <div class="lane-track">
-              <div class="lane-label">[角色/系统 B]</div>
-              <div class="lane-items"><div class="node">[接收]</div><div class="node">[反馈]</div></div>
-            </div>
-          </div>
-
-          Pipeline:
-          <div class="pipeline" aria-label="Pipeline">
-            <div class="pipeline-stage ok">✓ [阶段 1]</div>
-            <div class="pipeline-stage warn">⚠ [阶段 2]</div>
-            <div class="pipeline-stage">[阶段 3]</div>
-          </div>
-
-          Hub map:
-          <div class="hub-map" aria-label="Hub map">
-            <div class="hub">[中心能力]</div>
-            <div class="spokes">
-              <div class="spoke">[调用方/输入]</div>
-              <div class="spoke">[约束]</div>
-              <div class="spoke">[输出]</div>
-            </div>
-          </div>
-
-          Dependency graph:
-          <div class="dependency-grid" aria-label="Dependency graph">
-            <div class="dependency-item"><strong>[节点 A]</strong><p>依赖：[节点 B]</p></div>
-            <div class="dependency-item"><strong>[节点 B]</strong><p>阻塞：✗ [原因]</p></div>
-          </div>
-
-          Inline SVG graph:
-          <svg class="svg-graph" viewBox="0 0 720 260" role="img" aria-label="Inline SVG graph">
-            <defs>
-              <marker id="arrowhead" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
-                <path d="M0,0 L10,4 L0,8 Z" fill="#5f6875"></path>
-              </marker>
-            </defs>
-            <path class="svg-edge" d="M150 80 C230 80, 250 80, 330 80"></path>
-            <path class="svg-edge warn" d="M450 80 C530 80, 550 80, 630 80"></path>
-            <path class="svg-edge bad" d="M390 116 C390 170, 300 180, 210 180"></path>
-            <g class="svg-node ok" transform="translate(30 52)">
-              <rect width="120" height="56"></rect>
-              <text x="14" y="24">✓ [输入]</text>
-              <text x="14" y="42" class="svg-label">[来源]</text>
-            </g>
-            <g class="svg-node warn" transform="translate(330 52)">
-              <rect width="120" height="56"></rect>
-              <text x="14" y="24">⚠ [处理]</text>
-              <text x="14" y="42" class="svg-label">[待确认]</text>
-            </g>
-            <g class="svg-node" transform="translate(630 52)">
-              <rect width="120" height="56"></rect>
-              <text x="14" y="24">[输出]</text>
-              <text x="14" y="42" class="svg-label">[结果]</text>
-            </g>
-            <g class="svg-node bad" transform="translate(90 152)">
-              <rect width="120" height="56"></rect>
-              <text x="14" y="24">✗ [阻塞]</text>
-              <text x="14" y="42" class="svg-label">[原因]</text>
-            </g>
-          </svg>
-
-          Third-party graph runtime:
-          如使用 Mermaid、D3、ECharts、Graphviz、CDN、npm 包或构建工具，
-          必须在「依赖与运行方式」区域写明依赖来源、用途和打开/运行命令。
+          默认用 Mermaid 表达流程、状态、时序、DAG。
+          时间顺序用 timeline；集合比较用 matrix/heatmap；角色协作用 swimlane；阶段推进用 pipeline。
+          insight/signal/card 不算主视觉；连续 3 个以上 card 会被检查器判为失败。
+          Mermaid 图必须保留 .mermaid-fallback。
         -->
-        <div class="change-map" aria-label="Change map">
-          <div class="node-row">
-            <div class="node">[现状或输入]<br><span class="note">[来源/触发]</span></div>
-            <span class="arrow">→</span>
-            <div class="node">[关键变化]<br><span class="note">[规则/处理]</span></div>
-            <span class="arrow">→</span>
-            <div class="node">[目标状态或输出]<br><span class="note">[验收/结果]</span></div>
+        <div class="mermaid-graph" aria-label="Mermaid primary graph">
+          <pre class="mermaid">
+flowchart LR
+  A["[现状或输入]"] --> B["[关键变化]"]
+  B --> C["[目标状态或输出]"]
+  B -. "⚠ [待确认]" .-> D["⚠ [风险/缺口]"]
+          </pre>
+          <div class="mermaid-fallback">
+            Mermaid fallback：[现状或输入] → [关键变化] → [目标状态或输出]；[关键变化] 同时关联 ⚠ [风险/缺口]。
           </div>
-          <div class="dependency-grid">
-            <div class="dependency-item"><strong>可替换为 graph</strong><p>当内容表达依赖、迁移、调用或执行顺序时，使用 flow/state/DAG/swimlane/pipeline。</p></div>
-            <div class="dependency-item"><strong>可替换为 matrix</strong><p>当内容表达角色、能力、验收或方案比较时，使用 matrix/heatmap。</p></div>
-          </div>
+        </div>
+        <div class="compare" aria-label="Option or coverage comparison">
+          <div class="compare-option ok">✓ [已确定/已覆盖]<br><span class="note">[证据或范围]</span></div>
+          <div class="compare-option warn">⚠ [待确认/部分覆盖]<br><span class="note">[缺口或问题]</span></div>
+          <div class="compare-option bad">✗ [阻塞/不覆盖]<br><span class="note">[原因或风险]</span></div>
         </div>
       </section>
 
@@ -669,8 +614,8 @@
           </div>
         </details>
         <details>
-          <summary>依赖与运行方式（如无外部依赖可写“无”）</summary>
-          <p>[依赖来源、用途、安装/构建/启动命令、打开路径或 URL。]</p>
+          <summary>依赖与运行方式</summary>
+          <p>Mermaid 11.16.0：通过 jsDelivr CDN 加载 <code>https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js</code>，用于渲染流程图、状态图、DAG 和关系图。可直接打开本 HTML；如网络不可用，查看 Mermaid fallback 文本摘要。</p>
         </details>
         <p class="note">如使用示例数据：示例数据，不是接口契约。</p>
       </section>
@@ -678,6 +623,24 @@
   </main>
 
   <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      if (window.mermaid) {
+        window.mermaid.initialize({
+          startOnLoad: true,
+          securityLevel: "strict",
+          theme: "base",
+          themeVariables: {
+            primaryColor: "#ffffff",
+            primaryTextColor: "#20242a",
+            primaryBorderColor: "#d8dde5",
+            lineColor: "#5f6875",
+            secondaryColor: "#eef2f7",
+            tertiaryColor: "#f7f8fa"
+          }
+        });
+      }
+    });
+
     const buttons = document.querySelectorAll("[data-panel-target]");
     const panels = document.querySelectorAll("[data-panel]");
 

@@ -27,12 +27,13 @@ REQUIRED_EXPLANATORY_SECTIONS = [
 
 # 主视觉组件 class，用于流水账检测与 doc-type 主视觉一致性检测
 PRIMARY_VISUAL_COMPONENTS = (
-    "insight",
     "change-map",
     "dag",
     "lane",
     "heatmap",
     "matrix",
+    "mermaid",
+    "mermaid-graph",
     "node-row",
     "compare",
     "svg-graph",
@@ -45,13 +46,14 @@ PRIMARY_VISUAL_COMPONENTS = (
     "hub-map",
 )
 
-# doc type -> 至少出现其一的主视觉组件（prd/generic 不强制）。
-# signal 是状态标签而非主视觉，不计入；insight 作为结论 hero 可作主视觉。
+# doc type -> 至少出现其一的主视觉组件（prd 不强制）。
+# signal/insight/card 是状态或说明容器，不计入主视觉。
 DOC_PRIMARY_VISUAL: dict[str, tuple[str, ...]] = {
-    "design": ("change-map", "dag", "node-row", "svg-graph", "dependency-grid", "hub-map"),
-    "task": ("lane", "dag", "node-row", "svg-graph", "dependency-grid", "timeline", "swimlane", "pipeline"),
-    "decision": ("insight", "compare", "matrix"),
-    "tech-research": ("insight", "matrix", "compare", "timeline", "hub-map"),
+    "design": ("change-map", "dag", "node-row", "svg-graph", "mermaid", "mermaid-graph", "dependency-grid", "hub-map"),
+    "task": ("lane", "dag", "node-row", "svg-graph", "mermaid", "mermaid-graph", "dependency-grid", "timeline", "swimlane", "pipeline"),
+    "decision": ("compare", "matrix", "timeline", "flow-graph", "hub-map", "svg-graph", "mermaid", "mermaid-graph"),
+    "tech-research": ("matrix", "compare", "timeline", "hub-map", "flow-graph", "svg-graph", "mermaid", "mermaid-graph"),
+    "generic": ("change-map", "dag", "node-row", "svg-graph", "mermaid", "mermaid-graph", "dependency-grid", "timeline", "swimlane", "pipeline", "hub-map", "matrix", "heatmap", "flow-graph", "state-graph", "compare"),
 }
 
 # 抓取所有 class 属性值，做 token 级判断（避免 "matrix"/"lane" 出现在正文散文里被子串误命中）
@@ -303,7 +305,35 @@ def check_laundry_list(html: str, result: PreviewResult) -> None:
     if block_count >= 4 and visual_count < 2:
         result.fail(
             f"流水账嫌疑：{block_count} 个区块但仅 {visual_count} 个主视觉组件；"
-            "用 change-map/dag/lane/matrix/insight 等主视觉替代连续卡片与表格堆叠"
+            "用 flow/state/DAG/swimlane/pipeline/matrix/heatmap/hub-map/inline SVG 等主视觉替代连续卡片与表格堆叠"
+        )
+
+
+def check_card_dominance(html: str, result: PreviewResult) -> None:
+    """拒绝 card 成为主要表达：card 只能承载局部说明或重复条目。"""
+    token_sets = _class_token_sets(html)
+    card_count = sum(1 for tokens in token_sets if "card" in tokens)
+    if card_count == 0:
+        return
+
+    visual_count = sum(
+        1 for tokens in token_sets if any(token in tokens for token in PRIMARY_VISUAL_COMPONENTS)
+    )
+    if card_count >= 3 and card_count >= visual_count:
+        result.fail(
+            f"卡片化 Preview：检测到 {card_count} 个 card，但只有 {visual_count} 个 graph/matrix/timeline 等主视觉组件；"
+            "card 只能做局部说明，主体必须改成 flow/state/DAG/swimlane/pipeline/matrix/heatmap/hub-map/inline SVG 等关系表达"
+        )
+
+    repeated_cards = re.search(
+        r'(?:<[^>]+class="[^"]*\bcard\b[^"]*"[^>]*>.*?</[^>]+>\s*){3,}',
+        html,
+        re.IGNORECASE | re.DOTALL,
+    )
+    if repeated_cards:
+        result.fail(
+            "连续 card 布局：发现 3 个以上相邻 card；"
+            "连续卡片必须改成图、矩阵、时间线、泳道或 pipeline，不能作为主要可视化"
         )
 
 
@@ -469,6 +499,19 @@ def check_dependency_declaration(html: str, result: PreviewResult) -> None:
         )
 
 
+def check_mermaid_fallback(html: str, result: PreviewResult) -> None:
+    """Mermaid 依赖网络/CDN；必须有无脚本 fallback，避免图形空白。"""
+    token_sets = _class_token_sets(html)
+    uses_mermaid = "mermaid" in html.lower() or any(
+        "mermaid" in tokens or "mermaid-graph" in tokens for tokens in token_sets
+    )
+    if uses_mermaid and "mermaid-fallback" not in html:
+        result.fail(
+            "Mermaid 图缺少 fallback：使用 Mermaid 时必须提供 .mermaid-fallback 文本/表格摘要，"
+            "避免 CDN 或脚本失败时 Preview 主视觉空白"
+        )
+
+
 def validate_preview(source_path: Path, root: Path, doc_type: str | None = None) -> PreviewResult:
     relative = source_path.relative_to(root)
     detected_type = doc_type or detect_doc_type(source_path, root)
@@ -499,6 +542,7 @@ def validate_preview(source_path: Path, root: Path, doc_type: str | None = None)
         result.fail(f"missing source document path: {source}")
 
     check_dependency_declaration(html, result)
+    check_mermaid_fallback(html, result)
 
     # PRD profile checks
     if detected_type == "prd":
@@ -530,6 +574,7 @@ def validate_preview(source_path: Path, root: Path, doc_type: str | None = None)
                 result.fail(f"missing explanatory section marker: {section}")
         check_primary_visual_for_doc_type(html, detected_type, result)
         check_laundry_list(html, result)
+        check_card_dominance(html, result)
         check_hero_brevity(html, detected_type, result)
         check_task_situational_awareness(html, detected_type, result)
         check_attention_dominance(html, result)

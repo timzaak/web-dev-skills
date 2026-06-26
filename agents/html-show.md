@@ -73,14 +73,15 @@ PRD 文档额外读取：
   - `.ai/design/**/*.md` → Design 模式：突出实现结构如何变化、影响面、关键取舍、最高风险、测试策略和文件影响范围。
   - `.ai/task/**/*.md` → Task 模式：首屏给 Current Progress（phase/slot 进度）+ Blocking（阻塞门禁）+ Next Action（下一步命令），再展开 item DAG、验证计划、恢复点和 handoff。
   - 其他 → 通用模式：从文档标题和大纲推断核心答案，生成 answer board 或可读 HTML。
-- 判断表达形态：
+- 判断表达形态，并先写出一行“表达选择”：`语义 -> visualization_type -> 组件`：
   - 有前端/交互入口：生成可点击的低保真交互 Preview。
   - 纯后端或无 UI：生成流程图、状态图、调用方场景、能力边界矩阵、验收矩阵、pipeline 或 hub map。
   - 技术设计：生成结构变化地图、依赖图、影响矩阵、风险热力、测试矩阵或文件影响图。
   - 任务文档：生成 phase lane、slot lane、item DAG、blocking gates、resume points 或执行时间线。
   - 通用文档：生成 answer board、关系图、对比矩阵、因果链或时间线。
-- 先选择表达形态再写 HTML：有方向关系用 flow graph/state graph/DAG/swimlane/pipeline；有时间顺序用 timeline；有集合比较用 matrix/heatmap；有中心能力和外部关系用 hub map。`.card` 只用于局部说明或重复条目，连续 3 个以上 card 必须改成更合适的图、矩阵、时间线或泳道。
-- 允许使用 Mermaid、D3、Graphviz、ECharts、CDN、npm 包、构建工具或辅助资源；如使用，必须在 Preview 可见区域声明依赖来源、用途和打开/运行方式。
+- Decision / Tech Research / Design / Task / Generic Preview 必须至少有一个真正主视觉：Mermaid、flow/state graph、DAG、swimlane、pipeline、timeline、matrix、heatmap、hub map、inline SVG 或同等第三方图形。`insight`、`signal`、`.card`、普通段落不算主视觉。
+- `.card` 只用于局部说明；连续 3 个以上 card 必须改成图、矩阵、时间线、泳道或 pipeline。
+- 第三方图形：普通流程/状态/DAG 默认用 Mermaid；数据图用 ECharts；复杂网络用 Cytoscape.js；D3 只作例外。必须声明依赖和运行方式；Mermaid 图必须带 `.mermaid-fallback`。
 - 使用 `${CLAUDE_PLUGIN_ROOT}/templates/preview-template.html` 的 CSS/layout 框架创建或更新 Preview。
 - 按文档类型裁剪模板 section：模板是组件库，不是必须完整保留的页面结构。
 - 首屏必须包含来源路径、主视觉区域（`data-doc-section="PrimaryVisual"`）和注意项区域（`data-doc-section="Attention"`）；首屏主信息按文档类型分治：Decision/Tech Research 给结论，Task 给 Current+Blocking+Next，PRD 给完整性要点（不全用结论先行）。

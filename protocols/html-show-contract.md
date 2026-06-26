@@ -36,6 +36,13 @@ HTML Preview 不再强制限定为单文件、内联 CSS/JS、无 npm/CDN/构建
 - 不引用目标项目源码中的 React/Vue/Svelte/miniapp 组件作为 Preview 的运行依赖；目标项目已有 UI 只可作为入口或约束说明，不作为 Preview 主体复刻。
 - 不要求所有 Preview 都能直接双击打开；如果需要本地服务或构建步骤，必须报告可复现命令。
 
+### Visualization Dependencies
+
+- 默认用 Mermaid 表达流程、状态、时序和简单 DAG。
+- 数据图表用 ECharts；复杂可交互网络图用 Cytoscape.js。
+- D3 仅用于 Mermaid/ECharts/Cytoscape.js 不够表达的定制图。
+- 第三方图形必须有可见依赖说明和 fallback；Mermaid 图必须带 `.mermaid-fallback`。
+
 ## Review Workflow
 
 `/t-html-show` 生成或更新 Preview 后，默认不自动打开；打开为可选项，规则与命令见下方 `Opening the Preview`。
@@ -103,6 +110,7 @@ Preview 不是 Markdown 的 HTML 复写，而是面向人类快速判断的解�
 - 文档标题、来源文档路径。
 - 一句话结论或目标（结论先行型须短到可一眼判读，见下「首屏一眼可读」）。
 - 一个主视觉区域，使用 `data-doc-section="PrimaryVisual"` 标记。
+- 一个承载关系、流转、比较、进度或结构的主视觉；`insight`、`signal`、`card`、普通段落不算主视觉。
 - 注意项区域，使用 `data-doc-section="Attention"` 标记；如没有风险或待确认项，写“无”。
 - 依赖声明和打开/运行方式（如使用外部资源、npm 包、CDN、第三方图库、构建工具或辅助文件）。
 - 示例数据声明（如使用）。
@@ -123,7 +131,7 @@ kill criteria、阻塞门禁、边界态等**决定结论**的要点不得折叠
 
 ## Expression Library
 
-HTML Preview 的主视觉必须按文档语义选择表达方式，不能默认堆卡片。`.card` 只适合承载局部说明或重复条目，不应成为页面的主要表达结构。
+HTML Preview 的主视觉必须按语义选择表达方式，不能默认堆卡片。`.card` 只用于局部说明；连续 3 个以上 card 视为不合格。
 
 可选表达形态：
 
@@ -150,8 +158,10 @@ HTML Preview 的主视觉必须按文档语义选择表达方式，不能默认�
 - 有集合比较时优先使用 matrix、heatmap 或 option comparison。
 - 有时间顺序时优先使用 timeline。
 - 有中心能力与外部关系时优先使用 hub map。
-- 只有无法归类的说明性内容才使用 card；连续 3 个以上 card 必须重新判断是否应改成图、矩阵、时间线或泳道。
+- 只有无法归类的说明性内容才使用 card；连续 3 个以上 card 必须改成图、矩阵、时间线、泳道或 pipeline。
 - 图形节点必须包含内联标签、状态或简短解释，不能只用色块、连线或图例承载含义。
+
+最低门槛：Decision / Tech Research / Design / Task / Generic Preview 必须至少包含一个 graph、matrix、timeline、swimlane、pipeline、hub map、heatmap、inline SVG graph 或等价第三方图形表达。
 
 ## Visual Encoding Rules
 
@@ -210,6 +220,7 @@ Preview 使用固定结构：
 - 颜色冗余（WCAG 1.4.1）：状态色块须内联文字/图标，不得仅靠 CSS 注入。
 - 对比度（WCAG 1.4.3 AA）：`:root` 调色板正文配对 ≥ 4.5:1。
 - 首屏一眼可读：结论先行型 hero 标题长度、task 的 Current/Blocking/Next 三锚点齐备且未折叠。
+- 主视觉非 card 化：Decision / Tech Research / Design / Task / Generic 必须有真正 graph/matrix/timeline 等主视觉；连续或主导性的 card 布局失败。
 - 孤立信号（Von Restorff）：Attention 区多信号时有且仅有一个 `dominant`。
 - 决策关键内容可见：kill criteria/阻塞门禁/边界态不得仅藏在 `<details>` 内。
 

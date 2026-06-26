@@ -69,7 +69,8 @@ allowed-tools:
 - 是源文档的可视化审阅视图，不能引入源文档未声明的新需求或规则
 - 模板是解释型组件库；生成时必须按文档类型选择信息架构和主视觉，不为套模板编造内容
 - 首屏必须突出结论、主视觉和注意项，不得把 Markdown 章节流水账搬进 HTML
-- 主视觉必须按语义选择 HTML 表达形态，不得默认堆 card；可使用 flow graph、state graph、DAG、timeline、swimlane、matrix、heatmap、pipeline、hub map 或 interactive preview
+- 主视觉必须是 graph/matrix/timeline/swimlane/pipeline/hub map/inline SVG/interactive preview 等关系表达
+- `insight`、`signal`、普通段落和 `.card` 不算主视觉；连续 3 个以上 card 视为不合格
 - 有前端/交互入口时，UI 示意聚焦文档定义的目标体验和关键状态
 - 允许使用外部脚本、样式、CDN、npm 包、构建工具、第三方图库或辅助资源；如使用，必须在 Preview 可见区域声明依赖来源、用途和打开/运行方式
 - 辅助资源必须写入 `.ai/preview/` 下与主 HTML 同名或同目录的资源目录，不得写入目标项目源码
