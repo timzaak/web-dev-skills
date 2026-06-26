@@ -58,7 +58,8 @@ allowed-tools:
   - 仅适用于不涉及业务逻辑、产品规则、用户可见流程或验收目标变动的设计
 
 可选输入：
-- `.ai/design-ui/<feature>/ui-spec.md` — 已确认 UI 规格（如存在，前端设计必须承接）
+- `.ai/design-ui/<feature>/ui-spec.md` — 已确认 UI 规格（如存在，前端设计必须承接；这是 UI 文本规格唯一真相源）
+- `.ai/design-ui/<feature>/winner.html` — 已确认 UI 视觉参考（仅在需要核对布局或状态表达时读取）
 - `${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md` — 环境与测试指南
 - `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md` — 后端开发规范
 - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md` — 前端开发规范
@@ -98,6 +99,7 @@ allowed-tools:
 - 设计文档必须包含：目标、范围、API 接口设计、数据库设计、测试策略、风险
 - 涉及前端时，必须包含页面/组件说明和页面线框说明
 - 若存在 `.ai/design-ui/<feature>/ui-spec.md`，前端设计必须承接其中的页面结构、组件映射与关键状态，并在前端设计章节标记"基于已确认 UI 规格"；不得静默偏离
+- 若存在已确认 UI 规格，下游设计只读取 `ui-spec.md`，必要时读取 `winner.html` 做视觉核对；不得读取 `.ai/design-ui/<feature>/variants/*.html`、`.ai/design-ui/<feature>/archive/**`，也不得从 `board.html` 中抽取历史或废弃 UI 作为设计输入
 - 设计文档整体可保留 API 接口设计章节，但前端设计部分不单列 API 契约描述
 - 数据库设计遵循"尽量简洁、当前必需、避免过度审计设计"
 - 文档中的文件路径必须使用仓库真实路径，不允许使用不存在的示例路径
@@ -112,6 +114,7 @@ allowed-tools:
 - `docs/prd/**/$ARGUMENTS.md`（如存在）
 - `.ai/tech-research/$ARGUMENTS.md`（如存在）
 - `.ai/design-ui/$ARGUMENTS/ui-spec.md`（如存在）
+- `.ai/design-ui/$ARGUMENTS/winner.html`（仅在存在 `ui-spec.md` 且需要视觉核对时读取）
 - `${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md` 和/或 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md`
@@ -152,6 +155,7 @@ allowed-tools:
 - 先从索引定位候选文档
 - 再对候选文档做 `Grep`
 - 最后 `Read` 真正相关的少量文件
+- UI 探索产物只允许读取 `.ai/design-ui/<feature>/ui-spec.md`，必要时读取 `winner.html`；不要 Glob 或 Read `variants/*.html`、`archive/**`、`board.html` 作为需求来源
 
 业务功能设计至少提取这些内容：
 - 用户故事 ID、标题、优先级、来源文件
@@ -248,6 +252,7 @@ allowed-tools:
 - 页面线框说明：页面区域、主要交互、关键状态、数据来源或依赖
 - 与现有前端模式的一致性说明，例如表单、查询、错误处理、路由承接方式
 - 如存在 `.ai/design-ui/<feature>/ui-spec.md`，说明"基于已确认 UI 规格"，并承接其页面结构、组件映射、关键状态、`data-testid` 或 Demo 选择器影响
+- 不得承接历史 variants、archive 或 board 中的废弃 UI 内容；如 `ui-spec.md` 与 `winner.html` 不一致，停止并要求重新运行 `/t-ui-design <feature>` 收敛
 
 注意：
 - 整体设计文档中的 API 接口设计章节仍用于描述后端接口与 OpenAPI/SDK 关系

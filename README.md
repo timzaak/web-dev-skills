@@ -83,7 +83,7 @@
 - 本 README 统一使用 `/t-tools:t-*` 作为标准调用形式
 - 本插件所有 `t-*` skill 均为手工触发入口，不允许模型根据语义自动触发
 - `t-decision` 是 PRD 前的产品立项门禁，输出 `.ai/decision/<feature>.md` 和 `.ai/preview/decision/<feature>.html`；结论为 `Proceed` 或 `Research First` 后再进入技术预研或 PRD。它的交互方式借鉴 Garry Tan 的 [gstack](https://github.com/garrytan/gstack) 中 `office-hours` 与 `plan-ceo-review` 的产品诊断和 CEO review 思路，但已转译为 t-tools 的阶段门禁，不 vendoring gstack 运行时
-- `t-ui-design` 是可选的前端 UI 方案探索阶段，在 PRD Check 通过后、技术设计前使用；它生成多方案单文件 HTML mockup、对比看板和 `.ai/design-ui/<feature>/ui-spec.md`，不依赖图片生成、Figma 或外部 AI UI 工具
+- `t-ui-design` 是可选的前端 UI 方案探索阶段，在 PRD Check 通过后、技术设计前使用；它生成多方案单文件 HTML mockup、对比看板和 `.ai/design-ui/<feature>/ui-spec.md`，确认 winner 后归档废弃 variants，并让 `t-design` 只消费已确认 UI 规格，不依赖图片生成、Figma 或外部 AI UI 工具
 - `t-doc` 用于项目文档、上手教程、API 参考、配置和部署说明，不用于 PRD、技术设计或只改某个文档片段
 - `t-dream` 默认以只读 audit 方式整理 PRD、用户故事、设计/任务、实现事实与项目结构，减少过期、重复、冲突和误导性上下文累积；需要写入 PRD 治理时显式使用 `--govern-prd`
 - `t-push` 在提交前由 AI 基于本次 diff 清理明显低价值代码注释，再总结 commit message，并调用 `${CLAUDE_PLUGIN_ROOT}/scripts/push.py` 运行受影响 CI、提交和推送

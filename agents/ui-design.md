@@ -26,6 +26,7 @@ tools:
 负责生成和维护 `.ai/design-ui/<feature>/` 下的 UI 探索产物：
 
 - `variants/*.html`
+- `archive/<round-or-timestamp>/`
 - `board.html`
 - `winner.html`
 - `ui-spec.md`
@@ -108,9 +109,13 @@ tools:
 
 人类确认 winner 后：
 
-- 将选中 variant 写入或更新为 `winner.html`。
+- 将最终选中方案写入或更新为 `winner.html`；如 winner 基于多个 variant 合并，`winner.html` 必须体现合并后的最终结果。
 - 生成 `ui-spec.md`，结构满足 `ui-design-contract.md` 的 UI Spec Contract。
 - 在 `ui-spec.md` 中明确哪些内容需要 `/t-design` 承接，哪些只是视觉探索参考。
+- 将未选中、被淘汰或已被合并吸收的 `variants/*.html` 移入 `archive/<round-or-timestamp>/variants/`，并在归档文件顶部或页面显著位置标注 `DEPRECATED UI EXPLORATION - DO NOT USE AS DESIGN INPUT`。
+- winner 来源文件也应移出或归档；收敛后的活跃视觉参考只能是 `winner.html`，避免 `/t-design` 或后续 agent 读取多个活跃副本。
+- 收敛后 `variants/` 不得保留废弃 HTML。可以为空，或只保留说明文件指向 `winner.html`、`ui-spec.md` 和 `archive/`。
+- 更新 `board.html`，标注 winner、保留/并入/淘汰元素、历史方案归档位置，并把 `winner.html` 与 `ui-spec.md` 标为唯一后续输入。
 
 ## HTML 质量规则
 
@@ -129,6 +134,7 @@ tools:
 - `mode`: `initial | iterate | finalize`
 - `board_path`
 - `variant_paths`
+- `archive_path`（finalize 后如有归档）
 - `winner_path`（如已确认）
 - `ui_spec_path`（如已生成）
 - `feedback_path`
