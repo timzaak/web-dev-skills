@@ -27,10 +27,11 @@ allowed-tools:
 
 ## 目标
 
-基于 Decision Brief、现有 user story、正式 PRD、已有 PRD 草稿和用户补充信息，先补齐必要的 user story，再创建或更新一份 PRD 草稿，并生成 HTML Preview，供人类快速审阅。`.ai/prd` 是实现前和实现期间的临时候选需求工作区，不是长期权威源。
+基于 Decision Brief、现有 user story、正式 PRD、已有 PRD 草稿和用户补充信息，先补齐必要的 draft user story，再创建或更新一份 PRD 草稿，并生成 HTML Preview，供人类快速审阅。`.ai/prd` 和 `.ai/user-stories` 是实现前和实现期间的临时候选需求工作区，不是长期权威源。
 
 输出文件：
 - `.ai/prd/<domain>/[feature].md`
+- `.ai/user-stories/<domain>/[feature].md`（如需新增或补齐用户故事）
 
 ## 使用方式
 
@@ -51,10 +52,13 @@ allowed-tools:
 
 **路径与域**：
 - PRD 草稿写入 `.ai/prd/<domain>/[feature].md`
+- draft user story 写入 `.ai/user-stories/<domain>/[feature].md`
 - HTML Preview 由 `/t-html-show` 写入 `.ai/preview/<domain>/[feature].html`
 - `<domain>` 只能是 `auth`、`billing`、`core`、`integration`
 - `/t-prd` 不写入 `docs/prd/`；若父目录缺失，仅在目标域已明确时创建 `.ai/prd/<domain>/`
-- `.ai/prd` 不作为长期权威源；它在设计、任务、实现和验收期间作为候选需求输入保留
+- `/t-prd` 不写入 `docs/user-stories/`；若需新增或补齐用户故事，只写 `.ai/user-stories/<domain>/`
+- `.ai/prd` 和 `.ai/user-stories` 不作为长期权威源；它们在设计、任务、实现和验收期间作为候选需求输入保留
+- PRD、用户故事和技术预研的读取与写入边界统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
 
 **PRD 内容边界**：
 - 聚焦产品边界与规则，不承载接口 schema、数据库建表或技术方案
@@ -66,12 +70,14 @@ allowed-tools:
 - 已有同名草稿 → update 路径，以草稿为基底逐章更新
 - 无草稿但有同名正式 PRD → draft-from-published 路径，以正式 PRD 为基线创建草稿，不覆盖正式 PRD
 - 无草稿且无正式 PRD → create 路径，使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-prd/template.md)
-- 已有同名 user story 文件 → 追加到合适章节，不重建
+- 已有同名 draft user story 文件 → 追加到合适章节，不重建
 - 已有同名 HTML Preview → 以当前草稿 PRD 语义为基准更新
 
 **user story 引用**：
 - PRD 只引用相关用户故事（ID、标题、优先级、来源文件），不复制完整验收文本
-- user story 优先追加到现有角色文件；只有现有分组明显不适合时才新增单独文件
+- 已发布 user story 足够覆盖时，PRD 可直接引用 `docs/user-stories/...`
+- 缺少或需要补齐的本轮用户故事写入 `.ai/user-stories/<domain>/<feature>.md`
+- draft user story 可以按角色分组组织在同一 feature 文件中；不得直接追加到 `docs/user-stories`
 
 ## 提问规则
 
@@ -100,7 +106,7 @@ PRD Grill Snapshot
 ```
 
 门禁规则：
-- Discover first：先读取 `docs/user-stories/`、`docs/prd/`、`.ai/prd/`、`.ai/tech-research/`、产品 guide 和必要代码上下文；能查明的事实不得问用户。
+- Discover first：先读取 `docs/user-stories/`、`.ai/user-stories/`、`docs/prd/`、`.ai/prd/`、`.ai/tech-research/`、产品 guide 和必要代码上下文；能查明的事实不得问用户。
 - Define next：只追问判断题，包括目标、范围边界、非目标、成功标准、关键异常、优先级取舍、角色价值和验收信号。
 - Depth-first：同一问题分支未澄清前，不同时抛出多个无关问题；每轮只问一个，并给出推荐答案。
 - Concrete only：若用户回答仍是"更好"、"尽快"、"合理"等模糊表达，继续追问同一判断点，要求给出可判断的范围、指标、状态或验收信号。
@@ -115,7 +121,7 @@ PRD Grill Snapshot
 
 ## 职责边界
 
-- `/t-prd`：补齐 user story → 创建/更新 `.ai/prd` 草稿 → 触发 `/t-html-show` 生成 HTML Preview
+- `/t-prd`：补齐 draft user story → 创建/更新 `.ai/prd` 草稿 → 触发 `/t-html-show` 生成 HTML Preview
 - `/t-html-show`：基于 PRD 草稿生成 HTML Preview（通过本 skill 自动触发）
 - `/t-prd-check`：检查 PRD 草稿、HTML Preview、正式 PRD 基线和用户故事质量（不在本 skill 范围内）
 - `/t-design`：基于通过检查的草稿 PRD 与正式 PRD 的混合验证生成技术设计（不在本 skill 范围内）
@@ -125,6 +131,7 @@ PRD Grill Snapshot
 
 上游输入（可选，如果存在会提升质量）：
 - `docs/user-stories/**/*.md` — 用户故事文档
+- `.ai/user-stories/**/*.md` — draft 用户故事文档
 - `docs/prd/00-index.md` — 正式 PRD 索引
 - `.ai/decision/[feature].md` — 产品立项决策简报（推荐，来自 `/t-decision`）
 - `docs/prd/<domain>/[feature].md` — 已发布正式 PRD（可选，用作草稿基线）
@@ -132,6 +139,7 @@ PRD Grill Snapshot
 - `.ai/tech-research/[feature].md` — 技术可行性研究报告（可选，来自 `/t-tech-research`）
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/index.md` — 产品规范入口
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/user-story.md` — 用户故事规范
+- `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md` — 需求来源正式/候选边界
 - `${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md` — HTML Preview 通用契约
 - `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md` — HTML Preview PRD 专用契约
 
@@ -149,7 +157,7 @@ PRD Grill Snapshot
 - 已确认决策
 - 参考资料
 
-可能更新用户故事文件（追加或新建）。
+`.ai/user-stories/<domain>/[feature].md` — draft 用户故事，按需新增或补齐。`/t-prd` 不写入 `docs/user-stories`。
 
 HTML Preview 由 `/t-html-show` 自动生成到 `.ai/preview/<domain>/[feature].html`，不进入代码仓库。
 
@@ -167,10 +175,11 @@ HTML Preview 由 `/t-html-show` 自动生成到 `.ai/preview/<domain>/[feature].
 - `docs/prd/00-index.md`
 - `.ai/decision/$ARGUMENTS.md`（如存在，从中提取 Verdict、Scope Direction、D0/D1 决策、Open Questions 和 Handoff）
 - `docs/user-stories/00-index.md`
+- `.ai/user-stories/**/*.md`
 - `.ai/tech-research/$ARGUMENTS.md`（如已存在，从中提取技术需求和影响分析）
 - `.ai/prd/**/*.md` 和 `docs/prd/**/*.md` 中与 `$ARGUMENTS` 相关的少量候选文件
 
-根据用户故事、草稿/正式 PRD 和需求语义推断目标域（`auth | billing | core | integration`）。无法推断时用 `AskUserQuestion` 询问一次。
+根据已发布/候选用户故事、草稿/正式 PRD 和需求语义推断目标域（`auth | billing | core | integration`）。无法推断时用 `AskUserQuestion` 询问一次。
 
 ### 3. 检查已有文件
 
@@ -214,12 +223,12 @@ HTML Preview 由 `/t-html-show` 自动生成到 `.ai/preview/<domain>/[feature].
 读取：
 - `docs/user-stories/00-index.md`、`_README.md`、`_roles.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/index.md` 和 `user-story.md`
-- 搜索 `docs/user-stories/**/*.md`、`docs/prd/**/*.md` 和 `.ai/prd/**/*.md`
+- 搜索 `docs/user-stories/**/*.md`、`.ai/user-stories/**/*.md`、`docs/prd/**/*.md` 和 `.ai/prd/**/*.md`
 
 执行：
 - 已存在足够覆盖的 user story → 直接引用，不重复创建
-- 缺少少量场景 → 优先在对应角色现有文件中追加
-- 现有角色文件都不适合 → 创建新文件
+- 缺少少量场景 → 写入或追加 `.ai/user-stories/<domain>/<feature>.md`
+- 已有同名 draft user story → 在其中追加合适章节，不重建
 - 从已有草稿/正式 PRD 提取交叉引用和已有能力边界
 
 新增 user story 必须遵循 `${CLAUDE_PLUGIN_ROOT}/guides/product/user-story.md` 的结构和 GWT 风格验收标准，使用 [user-story-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-prd/user-story-template.md)。
@@ -267,6 +276,7 @@ create 路径使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-prd/template.md
 
 完成后明确说明：
 - user story 文件路径和变更方式（新增/追加）
+- 若本轮产生 draft user story，说明其为 `.ai/user-stories` 候选来源，需在 `/t-prd-publish` 阶段合并到 `docs/user-stories`
 - PRD 草稿路径、所属域
 - HTML Preview 路径（`.ai/preview/<domain>/[feature].html`）
 - 本次走 create、draft-from-published 还是 update

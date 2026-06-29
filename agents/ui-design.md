@@ -19,6 +19,7 @@ tools:
 # UI 方案探索专家
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`  
+需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`  
 产物契约统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/ui-design-contract.md`
 
 ## 职责
@@ -55,6 +56,7 @@ tools:
   - `.ai/decision/<feature>.md`
   - `.ai/prd/**/*.md`
   - `docs/prd/**/*.md`
+  - `.ai/user-stories/**/*.md`
   - `docs/user-stories/**/*.md`
   - `.ai/design/<feature>.md`（如存在）
   - `.ai/design-ui/<feature>/feedback.md`（如存在）

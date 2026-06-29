@@ -13,6 +13,7 @@ allowed-tools:
 # Demo 测试验收
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
 
 ## 目标
 - 验证测试是否覆盖用户故事。
@@ -37,7 +38,7 @@ allowed-tools:
 
 - 用户故事一致性检查（必须）。
 - 读取测试文件顶部注释中的用户故事路径。
-- 校验用户故事文件存在。
+- 校验用户故事文件存在；路径可以是 `.ai/user-stories/...` draft 或 `docs/user-stories/...` 已发布文档。
 - 核对场景覆盖、角色匹配、关键断言与验收标准。
 
 - 编译检查（必须）。
@@ -80,7 +81,7 @@ wc -l [测试文件路径]
 - `demo/test-results/`
 
 ## 失败处理
-- 用户故事不存在：直接拒绝验收。
+- 用户故事不存在（`.ai/user-stories` 或 `docs/user-stories` 均未找到）：直接拒绝验收。
 - 编译失败：直接拒绝验收。
 - 测试失败或超时：直接拒绝验收。
 - 批量模式下：记录失败并继续处理后续文件。

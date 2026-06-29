@@ -13,6 +13,7 @@ allowed-tools:
 # PRD 草稿与 User Story Quality Check
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
 
 ## 目标
 - 验证 `.ai/prd` PRD 草稿完整性和规范性
@@ -20,6 +21,7 @@ allowed-tools:
 - 评估用户故事质量（INVEST 原则、GWT 格式）
 - 检查 PRD 与用户故事的一致性
 - 检查 PRD 草稿与 `docs/prd` 已发布基线是否存在未说明冲突
+- 检查 `.ai/user-stories` draft 与 `docs/user-stories` 已发布基线是否存在未说明冲突
 - 检查 PRD / 用户故事是否错误混入接口、建表、schema 等实现细节
 - 输出量化评分和修复清单
 - 明确通过后的下一步：有显著前端 UI 时可先进入 `/t-ui-design [feature]`，否则进入 `/t-design [feature]`；若有修复，重新运行 `/t-prd-check [feature]`
@@ -36,7 +38,8 @@ allowed-tools:
 - PRD 草稿: `.ai/prd/**/*.md`
 - 已发布 PRD 基线: `docs/prd/**/*.md`（排除 `00-index.md`）
 - PRD HTML Preview: `.ai/preview/**/*.html`
-- 用户故事: `docs/user-stories/**/*.md`
+- Draft 用户故事: `.ai/user-stories/**/*.md`
+- 已发布用户故事: `docs/user-stories/**/*.md`
 - 排除文件: `00-index.md`, `_roles.md`, `_README.md`, `client-app-settings.md`, `builtin_protection.md`
 
 ## 执行流程
@@ -59,6 +62,7 @@ allowed-tools:
 - 用户故事引用检查
 - PRD 分层与禁止内容检查
 - 如果存在同名正式 PRD，记录草稿与正式 PRD 的关键差异
+- 如果引用 `.ai/user-stories`，确认其为候选来源且路径存在
 
 ### 4. HTML Preview 检查
 按 `${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md` 和 `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md` 执行：
@@ -81,11 +85,17 @@ allowed-tools:
 - INVEST 原则检查
 - 禁止内容检测
 - 新文档质量门禁检查
+- 对 `.ai/user-stories` 与 `docs/user-stories` 分别标注 draft / published 来源
+- 若 draft story 与 published story 在角色、权限、目标、业务状态或验收目标上冲突且未说明覆盖关系，按一致性问题分级
 
 ### 6. 一致性检查
 - 检查 PRD 中的用户故事链接是否有效
 - 比较 PRD 与用户故事中的优先级是否一致
 - 校验用户故事中的角色是否存在于 `_roles.md`
+- 比较 `.ai/user-stories/<domain>/<feature>.md` 与相关 `docs/user-stories/**/*.md`：
+  - draft story 补充新场景且不冲突 → 记录为 publish 候选
+  - draft story 修改已发布故事语义 → 必须能识别差异性质
+  - draft story 与已发布故事有未说明冲突 → P1；若冲突会改变核心角色、权限或验收目标 → P0
 - 比较 HTML Preview 与 PRD 的关键规则、流程、状态和验收目标是否一致
 - 比较 `.ai/prd/<domain>/<feature>.md` 与 `docs/prd/<domain>/<feature>.md`：
   - 草稿对应正式 PRD 不存在 → 记录为 create-if-missing 候选

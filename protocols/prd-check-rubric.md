@@ -7,6 +7,7 @@
 - 评估用户故事质量
 - 检查 PRD 与用户故事的一致性
 - 检查 `.ai/prd` 草稿与 `docs/prd` 已发布基线是否存在未说明冲突
+- 检查 `.ai/user-stories` draft 与 `docs/user-stories` 已发布基线是否存在未说明冲突
 - 检查是否错误混入接口、建表、schema 等实现细节
 
 ## PRD Checks
@@ -37,6 +38,8 @@
 | 用户故事链接有效性 | 检查引用链接是否存在 | 10 |
 | 优先级标注 | 是否有 P0/P1/P2 标注 | 5 |
 | 优先级汇总表 | 是否有优先级汇总章节 | 5 |
+
+用户故事链接可以指向 `docs/user-stories/...` 或 `.ai/user-stories/...`。`.ai/user-stories` 是发布前候选来源；检查报告必须标注其 draft 来源属性。
 
 ### Layering and Forbidden Content
 
@@ -79,6 +82,14 @@
 | 发布目标明确 | 能定位到 `docs/prd/<domain>/<feature>.md` 作为 create/update 目标 | 0 / -5 |
 | 差异可解释 | 草稿相对正式 PRD 的目标、范围、规则、状态和验收目标变化可被识别 | 0 / -5 |
 | 核心冲突 | 草稿与正式 PRD 在业务边界、权限规则或验收目标上存在未说明冲突 | 0 / -15 |
+
+适用于 `.ai/user-stories/<domain>/<feature>.md` 存在时：
+
+| 检查项 | 验证内容 | 扣分 |
+|---|---|---:|
+| 发布目标明确 | 能定位到 `docs/user-stories/**/*.md` 中的合并目标，或说明需要 create-if-missing | 0 / -5 |
+| 差异可解释 | draft story 相对已发布 story 的角色、目标、业务状态和验收目标变化可被识别 | 0 / -5 |
+| 核心冲突 | draft story 与已发布 story 在核心角色、权限规则或验收目标上存在未说明冲突 | 0 / -15 |
 
 ## User Story Checks
 
@@ -156,6 +167,7 @@
 - PRD 含技术设计承接、`.ai/` 路径引用或代码文件索引
 - PRD 含当前任务是否完成、是否实现、完成比例、实现进度等易过期实施状态
 - PRD 草稿与正式 PRD 在核心业务边界、权限规则或验收目标上存在未说明冲突
+- Draft user story 与已发布 user story 在核心角色、权限规则或验收目标上存在未说明冲突
 - HTML Preview 含端点、schema、建表、迁移、类型定义等禁止内容
 
 ### P1
@@ -168,6 +180,7 @@
 - HTML Preview 与 PRD 在目标、范围、流程、业务状态、规则或验收目标上描述不一致
 - HTML Preview 使用外部依赖但未声明来源、用途或打开/运行方式
 - PRD 草稿与正式 PRD 存在需要发布确认的差异但未说明差异性质
+- Draft user story 与已发布 user story 存在需要发布确认的差异但未说明差异性质
 
 ### P2
 

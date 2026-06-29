@@ -11,7 +11,8 @@
 ## 2. 五阶段验收流程
 
 ### 阶段 1：用户故事一致性（MANDATORY）
-- 测试文件必须映射到 `docs/user-stories/*.md`
+- 测试文件必须映射到 `.ai/user-stories/*.md` 或 `docs/user-stories/*.md`
+- `.ai/user-stories` 是发布前候选来源；验收报告必须标注 draft 来源，不得把它改写为已发布事实
 - 场景、角色、断言与用户故事验收标准一致
 - 场景覆盖率 < 50% 直接拒绝
 
@@ -84,7 +85,7 @@ npx jscpd --pattern "**/*.ts" --reporters console demo/e2e
 ## 4. 拒绝条件
 
 任一满足即 `REJECTED`：
-- 用户故事文档不存在
+- 用户故事文档不存在（`.ai/user-stories` 或 `docs/user-stories` 均未找到）
 - 编译失败
 - 任一测试失败或超时
 - 缺失测试隔离（环境验证/数据清理）

@@ -156,7 +156,7 @@ HTML Preview 的设计目的，是把 AI 对需求的理解转换成更容易被
 
 因此，`t-prd` 更像是一个"产品理解可视化"阶段。Markdown 仍然是正式契约，但 Preview 是人类审阅契约的入口。它把长文档里的产品语义变成可扫描、可讨论、可反馈的界面，让人类更早发现 AI 的误解，而不是等到技术设计或代码实现后才发现方向偏了。
 
-这个思路也改变了 `t-prd-check` 的意义。PRD Check 不只是检查文档格式，而是确认"AI 写下的产品理解"和"人类通过 Preview 看到的产品理解"是否一致。`t-prd` 先把高频变更写入 `.ai/prd` 临时草稿；草稿通过检查后，可以进入 `t-design`。如果检查后继续修正草稿，应再次运行 `t-prd-check`。`t-prd-publish` 不再是设计前置步骤，而是在实现、测试和 Demo 验收完成后，基于草稿、现有正式 PRD 和实现后证据做发布总结，并修正 `docs/prd` 中缺失、过期或冲突的问题。
+这个思路也改变了 `t-prd-check` 的意义。PRD Check 不只是检查文档格式，而是确认"AI 写下的产品理解"和"人类通过 Preview 看到的产品理解"是否一致。`t-prd` 先把高频变更写入 `.ai/prd` 和 `.ai/user-stories` 临时草稿；草稿通过检查后，可以进入 `t-design`。如果检查后继续修正草稿，应再次运行 `t-prd-check`。`t-prd-publish` 不再是设计前置步骤，而是在实现、测试和 Demo 验收完成后，基于草稿、现有正式 PRD / 用户故事和实现后证据做发布总结，并修正 `docs/prd` 与 `docs/user-stories` 中缺失、过期或冲突的问题。
 
 `t-html-show` 已从 `t-prd` 中提取为独立 skill，并泛化为支持任意 Markdown 文档的可视化。`t-prd` 在流程中会自动触发它，但也可以单独调用。Preview 输出到 `.ai/preview/` 下，不进入版本控制。
 
@@ -231,8 +231,8 @@ Demo 阶段不是后端测试或前端测试的重复，而是一条独立的质
 
 T-Tools 把质量控制做成显式流程：
 
-- `t-prd-check` 检查 PRD 草稿/正式 PRD、Preview 与 user story。
-- `t-prd-publish` 在实现、测试和 Demo 验收完成后，基于草稿、现有正式 PRD 和实现后证据修正正式 PRD，并删除临时草稿。
+- `t-prd-check` 检查 PRD 草稿/正式 PRD、Preview、draft user story 与正式 user story。
+- `t-prd-publish` 在实现、测试和 Demo 验收完成后，基于草稿、现有正式 PRD / 用户故事和实现后证据修正 `docs/prd` / `docs/user-stories`，并删除临时草稿。
 - `t-design-check` 检查技术设计。
 - `t-task-check` 检查任务拆分、DAG、item 可执行性。
 - `backend-accept`、`frontend-accept`、`demo-accept` 输出只读验收报告。

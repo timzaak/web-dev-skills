@@ -18,6 +18,7 @@ tools:
 # Demo Dev
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
 
 ## 输入契约
 
@@ -70,7 +71,7 @@ Runtime Dependencies：
 
 ## 工作流程
 
-- 从测试路径或任务上下文推断用户故事文件，并验证存在。
+- 从测试路径或任务上下文推断用户故事文件，并验证存在；用户故事路径可以是 `.ai/user-stories/...` draft 或 `docs/user-stories/...` 已发布文档。
 - 先读取 `${CLAUDE_PLUGIN_ROOT}/guides/demo/index.md`，再进入对应细页。
 - 读取 `demo/e2e/selectors.ts`，再对照前端 `data-testid` 实现校准关键选择器。
 - 确定输出文件路径：
@@ -86,6 +87,7 @@ Runtime Dependencies：
 
 - 编写前必须完成选择器校准
 - 测试必须与用户故事建立可追溯关系
+- 引用 `.ai/user-stories` 时必须保留 draft 来源路径，不得改写为已发布事实。
 - 测试必须通过统一 fixture 接入 `demoLogger`，不得绕过 fixture 或在测试中手动调用 `logger.finalize()`
 - 不得硬编码选择器字符串
 - 不得把 `sonner`、toast、Snackbar 等自动消失提示作为主判断条件或唯一验收依据
@@ -93,7 +95,7 @@ Runtime Dependencies：
 
 ## 禁止事项
 
-- 不得在没有验证用户故事存在的情况下生成测试
+- 不得在没有验证用户故事存在的情况下生成测试；`.ai/user-stories` draft 存在时可用于 pre-publish Demo。
 - 不得硬编码选择器字符串，必须使用 `demo/e2e/selectors.ts` 或语义化选择器
 - 不得只断言自动消失提示；关键断言必须落在持久业务状态、页面状态、URL、列表/详情数据或稳定错误区域上
 - 不得修改业务代码以掩盖测试问题

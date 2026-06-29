@@ -29,7 +29,7 @@ UI 探索产物写入目标项目 `.ai/design-ui/<feature>/`，不进入正式�
 
 ## Source of Truth
 
-- PRD、Decision Brief、用户故事和目标项目代码事实是产品与工程真相源。
+- PRD、Decision Brief、用户故事和目标项目代码事实是产品与工程真相源；用户故事来源可以是发布前的 `.ai/user-stories/...` 或已发布的 `docs/user-stories/...`。
 - UI variant 是探索稿，用来帮助人类比较方向，不是产品契约。
 - winner 确认前，`variants/*.html` 是候选探索稿；winner 确认后，`variants/*.html` 不再是活跃交接源。
 - winner 确认后，`ui-spec.md` 是唯一文本规格真相源，`winner.html` 是唯一视觉参考真相源，供 `/t-design` 前端章节承接。

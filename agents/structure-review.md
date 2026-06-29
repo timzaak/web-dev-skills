@@ -17,6 +17,7 @@ tools:
 # 结构组织评估专家
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
 
 ## 职责
 
@@ -28,7 +29,7 @@ tools:
 
 按目标项目真实结构判断，不强行套固定目录。优先检查：
 - `docs/`：PRD、用户故事、领域模型、架构说明、ADR、教程和索引。
-- `.ai/`：design、task、quality、preview 等运行时产物。
+- `.ai/`：decision、prd、user-stories、tech-research、design、task、quality、preview 等运行时产物。
 - backend：domain、api/http、infra、application/service、migration、tests 等。
 - frontend：routes/pages、components、hooks、api/client、state、tests 等。
 - demo：Playwright E2E、Page Object、fixtures、logs、story mapping。
@@ -38,7 +39,7 @@ tools:
 
 ### 1. 文档结构
 - PRD 是否按稳定能力或领域组织。
-- 用户故事、设计、任务是否能回连到当前权威 PRD。
+- 用户故事、设计、任务是否能回连到当前权威 PRD；`.ai/user-stories` 应被识别为候选来源，不能误判为已发布权威文档。
 - README/AGENTS 是否是入口和目录，而不是过长百科。
 
 ### 2. 模块边界

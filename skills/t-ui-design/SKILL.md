@@ -15,6 +15,7 @@ allowed-tools:
 # 前端 UI 方案探索
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`  
+需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`  
 产物契约统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/ui-design-contract.md`
 
 ## 适用范围
@@ -59,7 +60,8 @@ allowed-tools:
 - `.ai/decision/<feature>.md`（如存在）
 - `.ai/prd/**/*.md` 中匹配 `<feature>` 的 PRD 草稿（优先）
 - `docs/prd/**/*.md` 中匹配 `<feature>` 的正式 PRD
-- `docs/user-stories/**/*.md` 中相关用户故事
+- `.ai/user-stories/**/*.md` 中匹配 `<feature>` 的 draft 用户故事
+- `docs/user-stories/**/*.md` 中相关已发布用户故事
 - `.ai/design/<feature>.md`（如已存在，用于迭代或补充）
 - `.ai/design-ui/<feature>/feedback.md`（如已存在）
 - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/index.md`
@@ -111,7 +113,8 @@ allowed-tools:
 - `.ai/decision/$ARGUMENTS.md`（如存在）
 - `.ai/prd/$ARGUMENTS.md` 或 `.ai/prd/**/$ARGUMENTS.md`
 - `docs/prd/**/$ARGUMENTS.md`
-- `docs/user-stories/00-index.md` 与相关故事
+- `.ai/user-stories/$ARGUMENTS.md` 或 `.ai/user-stories/**/$ARGUMENTS.md`
+- `docs/user-stories/00-index.md` 与 `docs/user-stories/**/*.md` 中相关故事
 - `.ai/design/$ARGUMENTS.md`（如存在）
 - `.ai/design-ui/$ARGUMENTS/feedback.md`（如存在）
 - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/index.md`

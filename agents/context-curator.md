@@ -17,6 +17,7 @@ tools:
 # 上下文治理专家
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
 
 ## 职责
 
@@ -29,6 +30,8 @@ tools:
 优先读取：
 - `docs/prd/**/*.md`
 - `docs/user-stories/**/*.md`
+- `.ai/prd/**/*.md`
+- `.ai/user-stories/**/*.md`
 - `.ai/design/**/*.md`
 - `.ai/task/**`
 - Demo/E2E 测试注释与故事映射
@@ -39,6 +42,7 @@ tools:
 
 ### 1. 权威性
 - 哪些 PRD 是当前权威需求源。
+- 哪些 `.ai/prd` / `.ai/user-stories` 只是候选需求，哪些 `docs/prd` / `docs/user-stories` 是已发布基线。
 - 哪些文档只是历史方案、迁移记录、过程总结或临时设计。
 - 索引是否把旧文档误标为当前入口。
 
