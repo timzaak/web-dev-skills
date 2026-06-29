@@ -27,12 +27,14 @@ tools:
 # 前端测试专家
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
 
 ## 先读什么
 
 执行前按这个顺序读取：
 
 - `docs/user-stories/00-index.md`
+- `.ai/user-stories/**/*.md`（任务或设计引用 draft 用户故事时）
 - `${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/index.md`
 - 按需进入：

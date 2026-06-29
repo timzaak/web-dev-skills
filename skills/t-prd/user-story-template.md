@@ -1,6 +1,7 @@
 # [角色名称] 用户故事
 
 > 角色定义以目标项目中的 `docs/user-stories/_roles.md` 为准。
+> 本模板用于 `.ai/user-stories/` draft 用户故事；发布前不得直接写入 `docs/user-stories/`。
 
 ## 用户故事
 

@@ -15,6 +15,7 @@ allowed-tools:
 # 前端 UI 方案探索
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`  
+需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`  
 产物契约统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/ui-design-contract.md`
 
 ## 适用范围
@@ -44,6 +45,7 @@ allowed-tools:
 
 - `board.html`
 - `variants/*.html`
+- `archive/<round-or-timestamp>/`
 - `feedback.md`
 - `winner.html`
 - `ui-spec.md`
@@ -58,7 +60,8 @@ allowed-tools:
 - `.ai/decision/<feature>.md`（如存在）
 - `.ai/prd/**/*.md` 中匹配 `<feature>` 的 PRD 草稿（优先）
 - `docs/prd/**/*.md` 中匹配 `<feature>` 的正式 PRD
-- `docs/user-stories/**/*.md` 中相关用户故事
+- `.ai/user-stories/**/*.md` 中匹配 `<feature>` 的 draft 用户故事
+- `docs/user-stories/**/*.md` 中相关已发布用户故事
 - `.ai/design/<feature>.md`（如已存在，用于迭代或补充）
 - `.ai/design-ui/<feature>/feedback.md`（如已存在）
 - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/index.md`
@@ -69,7 +72,8 @@ allowed-tools:
 下游产出遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/ui-design-contract.md`：
 
 - `.ai/design-ui/<feature>/board.html` — 多方案对比看板
-- `.ai/design-ui/<feature>/variants/*.html` — 独立 HTML mockup
+- `.ai/design-ui/<feature>/variants/*.html` — 决策前的活跃候选 HTML mockup
+- `.ai/design-ui/<feature>/archive/<round-or-timestamp>/` — 收敛后归档的历史探索稿
 - `.ai/design-ui/<feature>/feedback.md` — 反馈记录
 - `.ai/design-ui/<feature>/winner.html` — 选中方案
 - `.ai/design-ui/<feature>/ui-spec.md` — UI 设计规格
@@ -83,6 +87,7 @@ allowed-tools:
 - 所有 HTML 必须单文件、内联 CSS/JS、无外部依赖。
 - 生成 variants 时必须有真实方向差异，不能只改颜色、圆角或间距。
 - `ui-spec.md` 不得新增与 PRD 冲突的业务规则。
+- winner 确认后，下游交接真相源只能是 `ui-spec.md` 和 `winner.html`；废弃 variants 必须归档，不得继续留在活跃 `variants/` 下。
 - 如果用户反馈要求改变业务语义，先要求回到 `/t-prd` 或修正上游文档。
 
 ## 工作流程
@@ -108,7 +113,8 @@ allowed-tools:
 - `.ai/decision/$ARGUMENTS.md`（如存在）
 - `.ai/prd/$ARGUMENTS.md` 或 `.ai/prd/**/$ARGUMENTS.md`
 - `docs/prd/**/$ARGUMENTS.md`
-- `docs/user-stories/00-index.md` 与相关故事
+- `.ai/user-stories/$ARGUMENTS.md` 或 `.ai/user-stories/**/$ARGUMENTS.md`
+- `docs/user-stories/00-index.md` 与 `docs/user-stories/**/*.md` 中相关故事
 - `.ai/design/$ARGUMENTS.md`（如存在）
 - `.ai/design-ui/$ARGUMENTS/feedback.md`（如存在）
 - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/index.md`
@@ -163,6 +169,7 @@ feature: <feature>
 mode: finalize
 winner: <variant-name-or-path>
 输出目录: .ai/design-ui/<feature>/
+收敛要求: 将最终方案写入 winner.html，生成 ui-spec.md，将未选中或废弃 variants 归档到 archive/<round-or-timestamp>/，收敛后 variants/ 不得保留废弃 HTML。
 必须遵循: ${CLAUDE_PLUGIN_ROOT}/protocols/ui-design-contract.md
 ```
 
@@ -185,6 +192,14 @@ winner: <variant-name-or-path>
 
 确认 winner 后，必须把结论回写进 `board.html`：标注选中 variant、保留/并入/淘汰的元素，并把 winner/反馈区从决策前的临时状态更新为持久记录（链接 `winner.html`/`ui-spec.md`/`feedback.md`）。收敛后的 `board.html` 必须与确认结果一致，不得停留在首轮“未选择”状态。详见 `${CLAUDE_PLUGIN_ROOT}/protocols/ui-design-contract.md` 的 Board Requirements。
 
+确认 winner 后，还必须清理活跃候选目录：
+
+- 将最终选中方案写入 `winner.html`，并以 `ui-spec.md` 作为 `/t-design` 的唯一文本交接规格。
+- 将所有未选中或已废弃的 `variants/*.html` 移到 `.ai/design-ui/$ARGUMENTS/archive/<round-or-timestamp>/variants/`，并在归档文件显著标注 `DEPRECATED UI EXPLORATION - DO NOT USE AS DESIGN INPUT`。
+- winner 来源文件也应移出或归档；收敛后的活跃视觉参考只能是 `winner.html`。
+- 收敛后 `variants/` 不得保留废弃 HTML；可以为空，或只保留说明文件指向 `winner.html`、`ui-spec.md` 和 `archive/`。
+- `board.html` 可以保留历史对比摘要，但必须把历史方案标记为已淘汰/已归档，不得让后续 AI 把它们当成活跃 UI。
+
 ### 7. 收尾输出
 
 完成后说明：
@@ -193,6 +208,7 @@ winner: <variant-name-or-path>
 - variants 数量和方向
 - `feedback.md` 路径
 - `winner.html` 和 `ui-spec.md` 路径（如已确认）
+- 归档目录路径（如已确认）
 - 下一步：
   - 未确认 winner：再次运行 `/t-ui-design $ARGUMENTS`
   - 已确认 winner：运行 `/t-design $ARGUMENTS`
@@ -205,6 +221,7 @@ winner: <variant-name-or-path>
 - `ui-spec.md` 是否只描述 UI 规格，不越界写 API/数据库/生产代码。
 - `ui-spec.md` 是否能被 `/t-design` 前端章节直接承接。
 - 收敛后 `board.html` 是否已回写（标注 winner、保留/并入/淘汰元素、链接 `winner.html`/`ui-spec.md`/`feedback.md`），没有停留在首轮“未选择”状态。
+- 收敛后 `variants/` 是否没有废弃 HTML，历史候选是否已归档并标注不得作为设计输入。
 
 ## 失败处理
 

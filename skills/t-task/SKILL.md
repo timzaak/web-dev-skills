@@ -16,6 +16,7 @@ allowed-tools:
 # 任务规划生成
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
 
 任务拆分必须服务于简单、外科式、可验证的执行；如果设计文档、guide 或 protocol 冲突，停止并说明冲突。
 
@@ -30,7 +31,8 @@ allowed-tools:
 可选输入：
 - `.ai/task/[feature]/.state.json` — 已有任务状态（增量生成时）
 - `docs/prd/**/*.md` — PRD 文档
-- `docs/user-stories/**/*.md` — 用户故事
+- `.ai/user-stories/**/*.md` — draft 用户故事
+- `docs/user-stories/**/*.md` — 已发布用户故事
 - `.ai/tech-research/**/*.md` — 技术预研报告
 - `${CLAUDE_PLUGIN_ROOT}/guides/` — 开发规范
 

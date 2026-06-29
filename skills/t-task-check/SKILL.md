@@ -14,6 +14,7 @@ allowed-tools:
 # 任务规划质量检查
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
 
 ## 目标
 - 评估任务文档可执行性与一致性。
@@ -39,7 +40,7 @@ allowed-tools:
 
 ## 输入范围
 - 设计文档：`.ai/design/[feature].md`
-- 需求来源：`docs/user-stories/**/*.md`、`docs/prd/**/*.md`、`.ai/tech-research/**/*.md`（按设计文档引用读取）
+- 需求来源：`.ai/user-stories/**/*.md`、`docs/user-stories/**/*.md`、`.ai/prd/**/*.md`、`docs/prd/**/*.md`、`.ai/tech-research/**/*.md`（按设计文档引用读取）
 - 状态文件：`.ai/task/[feature]/.state.json`
 - 阶段目录：`.ai/task/[feature]/[phase]/`
 - 阶段索引：`index.md`
@@ -88,6 +89,7 @@ allowed-tools:
    - 单个 HTTP/API item 覆盖超过 7 个 endpoint，或混合不同资源域、读写操作、状态操作、配置类接口时，必须拆分，否则记 P1
    - 单个 demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流时，必须拆分，否则记 P1
 - 核对设计文档与任务文档的一致性；纯技术方案任务可只追溯设计文档中的技术预研来源，不得因缺少 PRD/用户故事扣 P0。
+- 若任务或设计引用 `.ai/user-stories`，确认其为 draft 候选来源且路径存在；不得要求先发布到 `docs/user-stories` 才能进入 `/t-run`。
 - 通过 `Agent` tool 调度当前阶段对应 subagent 做专业校验。每个 subagent 独立启动，传入 prompt 包含：该 agent/slot 相关 item 的文件路径、关键字段摘要、必要 item 全文或片段、设计文档相关节、验证范围、`${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md` 中的 agent 评审边界、输出格式要求（score/findings/fixes/summary）。可并行调度同阶段多个 subagent。
    - 不得默认把当前 phase 的全部 item 全文传给每个 subagent。
    - dev agent 默认只接收 dev item 与直接影响实现的跨 slot 摘要。

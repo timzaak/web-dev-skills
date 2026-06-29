@@ -16,6 +16,7 @@ tools:
 # 微信小程序开发专家
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
 
 ## 工作模式
 
@@ -39,6 +40,7 @@ tools:
 执行前按这个顺序读取：
 
 - `docs/user-stories/00-index.md`
+- `.ai/user-stories/**/*.md`（任务或设计引用 draft 用户故事时）
 - `docs/prd/00-index.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/index.md`
 - 按需进入：

@@ -42,6 +42,7 @@ Markdown 使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-decision/template.m
 
 - `docs/prd/00-index.md`
 - `docs/user-stories/00-index.md`
+- `.ai/user-stories/**/*.md`
 - `.ai/decision/**/*.md`
 - `.ai/prd/**/*.md`
 - `docs/prd/**/*.md`

@@ -2,7 +2,7 @@
 
 ## 目标
 
-本规范用于约束 `.ai/prd/**/*.md` 临时草稿和 `docs/prd/**/*.md` 正式 PRD 的内容边界，确保 PRD 聚焦“做什么/为什么做”，并与技术实现文档分层。
+本规范用于约束 `.ai/prd/**/*.md` 临时草稿和 `docs/prd/**/*.md` 正式 PRD 的内容边界，确保 PRD 聚焦“做什么/为什么做”，并与技术实现文档分层。用户故事的正式/候选来源边界参考 `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`。
 
 每份 PRD 草稿或正式 PRD 必须同步具备 HTML Preview，用于人类快速审阅、反馈和迭代。
 
@@ -83,11 +83,11 @@ Preview 应结合“可视化 PRD 阅读器”和“低保真交互原型”，�
 
 有前端/交互入口时，Preview 的 UI 示意必须聚焦 PRD 定义的目标体验和关键状态，不复刻代码库已经具备的现有页面或组件。已有 UI 只能作为入口或约束说明出现。
 
-Preview 必须目标技术栈无关，使用单文件 HTML、内联 CSS 和少量原生 JS。不得依赖 React/Vue/Svelte/miniapp 组件、npm、构建工具、CDN 或目标项目源码。
+Preview 不强制限定为单文件、内联 CSS/JS、无 npm/CDN/构建工具。为了提升可审阅性，可以使用外部样式、脚本、第三方图形库或辅助资源；如使用，必须在 Preview 可见区域声明依赖来源、用途和打开/运行方式，辅助资源必须写入 `.ai/preview/` 下，不得写入目标项目源码。
 
 纯后端或无用户界面的功能仍需生成 Preview，但不生成伪 UI；应使用流程图、状态图、调用方场景、能力边界矩阵或验收矩阵表达。
 
-`/t-prd` 生成或更新草稿 Preview 后，应立即打开 HTML 供人类审阅。后续沟通优先围绕 HTML Preview 进行；如果审阅中调整了功能意图、流程、状态或验收目标，必须同步修改 Markdown PRD 草稿和 HTML Preview。草稿通过 `/t-prd-check` 后进入 `/t-design`；如果草稿继续被修正，必须再次运行 `/t-prd-check`。实现、测试和 Demo 验收完成后，使用 `/t-prd-publish` 基于草稿、现有正式 PRD 和实现后证据做发布总结，并修正 `docs/prd` 中缺失、过期或冲突的问题；完成后对应 `.ai/prd` 草稿应删除。
+`/t-prd` 生成或更新草稿 Preview 后，应立即打开 HTML 供人类审阅。后续沟通优先围绕 HTML Preview 进行；如果审阅中调整了功能意图、流程、状态或验收目标，必须同步修改 Markdown PRD 草稿、draft user story 和 HTML Preview。草稿通过 `/t-prd-check` 后进入 `/t-design`；如果草稿继续被修正，必须再次运行 `/t-prd-check`。实现、测试和 Demo 验收完成后，使用 `/t-prd-publish` 基于草稿、现有正式 PRD / 用户故事和实现后证据做发布总结，并修正 `docs/prd` / `docs/user-stories` 中缺失、过期或冲突的问题；完成后对应 `.ai/prd` 与 `.ai/user-stories` 草稿应删除。
 
 `/t-prd-check` 必须验证 Markdown PRD 与 HTML Preview 描述一致。不一致时，必须修正到一致后才能通过。
 

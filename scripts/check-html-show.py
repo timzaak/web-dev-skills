@@ -20,6 +20,82 @@ REQUIRED_SECTIONS_PRD = [
     "Assumptions",
 ]
 
+REQUIRED_EXPLANATORY_SECTIONS = [
+    "PrimaryVisual",
+    "Attention",
+]
+
+# 主视觉组件 class，用于流水账检测与 doc-type 主视觉一致性检测
+PRIMARY_VISUAL_COMPONENTS = (
+    "change-map",
+    "dag",
+    "lane",
+    "heatmap",
+    "matrix",
+    "mermaid",
+    "mermaid-graph",
+    "node-row",
+    "compare",
+    "svg-graph",
+    "flow-graph",
+    "state-graph",
+    "dependency-grid",
+    "timeline",
+    "swimlane",
+    "pipeline",
+    "hub-map",
+)
+
+# doc type -> 至少出现其一的主视觉组件（prd 不强制）。
+# signal/insight/card 是状态或说明容器，不计入主视觉。
+DOC_PRIMARY_VISUAL: dict[str, tuple[str, ...]] = {
+    "design": ("change-map", "dag", "node-row", "svg-graph", "mermaid", "mermaid-graph", "dependency-grid", "hub-map"),
+    "task": ("lane", "dag", "node-row", "svg-graph", "mermaid", "mermaid-graph", "dependency-grid", "timeline", "swimlane", "pipeline"),
+    "decision": ("compare", "matrix", "timeline", "flow-graph", "hub-map", "svg-graph", "mermaid", "mermaid-graph"),
+    "tech-research": ("matrix", "compare", "timeline", "hub-map", "flow-graph", "svg-graph", "mermaid", "mermaid-graph"),
+    "generic": ("change-map", "dag", "node-row", "svg-graph", "mermaid", "mermaid-graph", "dependency-grid", "timeline", "swimlane", "pipeline", "hub-map", "matrix", "heatmap", "flow-graph", "state-graph", "compare"),
+}
+
+# 抓取所有 class 属性值，做 token 级判断（避免 "matrix"/"lane" 出现在正文散文里被子串误命中）
+CLASS_ATTR_RE = re.compile(r'class=(["\'])(?P<cls>[^"\']*)\1', re.IGNORECASE)
+
+# 匹配携带状态色 class 的叶子元素（class 含 bad|warn|ok|high|medium|low 之一）。
+# 用以逐元素校验 WCAG 1.4.1 颜色冗余，而非对全文计数。
+STATUS_ELEMENT_RE = re.compile(
+    r'<(?P<tag>div|span|td|li|article|section|p)\b'
+    r'[^>]*\bclass="[^"]*\b(?P<token>bad|warn|ok|high|medium|low)\b[^"]*"[^>]*>'
+    r'(?P<inner>.*?)</(?P=tag)\s*>',
+    re.IGNORECASE | re.DOTALL,
+)
+
+ICON_CHARS = "✓⚠✗●▲◆■"
+STATUS_WORDS_RE = re.compile(
+    r"阻塞|风险|待确认|已满足|已通过|通过|失败|高风险|中风险|低风险|下一步|门禁",
+)
+
+# PRD 完整性要点关键词：边界态/异常态/权限不得藏在 <details> 内折叠
+PRD_EDGE_KEYWORDS = ("异常", "空态", "错误", "失败", "无权限", "权限", "边界", "禁用")
+
+# 决策关键内容关键词（按 doc type）：仅出现在 <details> 内即判定折叠。
+# 这些是决定结论/阻塞的要点，必须留在可见区域——折叠等于藏起 kill switch。
+# PRD 沿用边界态关键词；decision 补致命/杀死条件；task 补阻塞门禁。
+VISIBLE_CRITICAL_KEYWORDS: dict[str, tuple[str, ...]] = {
+    "prd": PRD_EDGE_KEYWORDS,
+    "decision": ("杀死", "致命", "kill", "lethal", "不可逆"),
+    "task": ("阻塞", "门禁", "blocking", "gate"),
+}
+
+# 情境感知锚点（Endsley 三层）：task 首屏必须含 Current/Blocking/Next 三段。
+# 用 data-sa 标记，且不得折叠进 <details>（执行者要一眼定位现在干什么、卡在哪）。
+SA_MARKERS = ("current", "blocking", "next")
+
+# 首屏一句话结论标题长度上限（Few 运营看板「一眼可读」）。
+# 标题是从句而非段落；超过即无法在首屏被一眼判读。仅检查 .insight hero 的首个标题。
+HERO_HEADING_MAX_CHARS = 80
+
+# WCAG 1.4.3 AA 正文最小对比度。
+CONTRAST_MIN_NORMAL = 4.5
+
 FORBIDDEN_PATTERNS = {
     "endpoint detail": re.compile(r"\b(GET|POST|PUT|PATCH|DELETE)\s+/api\b", re.IGNORECASE),
     "database DDL": re.compile(r"\b(CREATE\s+TABLE|ALTER\s+TABLE|DROP\s+TABLE)\b", re.IGNORECASE),
@@ -34,6 +110,11 @@ EXTERNAL_DEPENDENCY_PATTERNS = {
     "cdn reference": re.compile(r"https?://|//cdn\.|unpkg\.com|jsdelivr\.net", re.IGNORECASE),
     "module import": re.compile(r"\bimport\s+.*\s+from\s+[\"']", re.IGNORECASE),
 }
+
+DEPENDENCY_DECLARATION_RE = re.compile(
+    r"依赖|dependency|dependencies|运行方式|打开方式|启动命令|run command|start command|npm|cdn|mermaid|d3|echarts|graphviz",
+    re.IGNORECASE,
+)
 
 PRD_PROFILE = {
     "required_sections": REQUIRED_SECTIONS_PRD,
@@ -96,6 +177,8 @@ def detect_doc_type(source_path: Path, root: Path) -> str:
             return "tech-research"
         if len(parts) >= 3 and parts[0] == ".ai" and parts[1] == "design":
             return "design"
+        if len(parts) >= 3 and parts[0] == ".ai" and parts[1] == "task":
+            return "task"
     except ValueError:
         pass
     return "generic"
@@ -117,9 +200,316 @@ def derive_preview_path(source_path: Path, root: Path) -> Path:
             return root / ".ai" / "preview" / "tech-research" / source_path.with_suffix(".html").name
         if len(parts) >= 3 and parts[0] == ".ai" and parts[1] == "design":
             return root / ".ai" / "preview" / "design" / source_path.with_suffix(".html").name
+        if len(parts) >= 3 and parts[0] == ".ai" and parts[1] == "task":
+            task_relative = Path(*parts[2:]).with_suffix(".html")
+            return root / ".ai" / "preview" / "task" / task_relative
     except ValueError:
         pass
     return root / ".ai" / "preview" / source_path.with_suffix(".html").name
+
+
+def _class_token_sets(html: str) -> list[set[str]]:
+    """从所有 class 属性提取 token 集合，用于 token 级（而非子串级）判断。"""
+    return [set(m.group("cls").split()) for m in CLASS_ATTR_RE.finditer(html)]
+
+
+def _strip_tags(text: str) -> str:
+    return re.sub(r"<[^>]+>", " ", text)
+
+
+HEADING_RE = re.compile(r"<h[1-6]\b[^>]*>(.*?)</h[1-6]>", re.IGNORECASE | re.DOTALL)
+
+
+def _section_inner(html: str, section_name: str) -> str:
+    """提取某 ``data-doc-section`` 区块的内部 HTML：从该 marker 到下一个 data-doc-section 或文末。
+
+    用以把检查范围限定在单个区块内（如 Attention），避免全文计数串扰。
+    """
+    marker = f'data-doc-section="{section_name}"'
+    start = html.find(marker)
+    if start < 0:
+        return ""
+    after = start + len(marker)
+    next_marker = html.find('data-doc-section="', after)
+    end = next_marker if next_marker > 0 else len(html)
+    return html[start:end]
+
+
+def _extract_block(html: str, class_token: str) -> str:
+    """提取首个含 class_token 的 ``<div>...</div>`` 块（含嵌套，按 div 配平）。
+
+    用于定位 .insight hero 等；找不到返回空串。
+    """
+    m = re.search(
+        rf'<div\b[^>]*\bclass="[^"]*\b{re.escape(class_token)}\b[^"]*"[^>]*>',
+        html,
+        re.IGNORECASE,
+    )
+    if not m:
+        return ""
+    i = m.end()
+    depth = 1
+    while depth > 0 and i < len(html):
+        nxt = re.search(r"<(/?)div\b", html[i:], re.IGNORECASE)
+        if not nxt:
+            return html[m.start():]
+        depth += -1 if nxt.group(1) == "/" else 1
+        i += nxt.end()
+    return html[m.start():i]
+
+
+def _luminance(hex_color: str) -> float:
+    """WCAG 相对亮度（sRGB → 线性 → 加权）。支持 #rgb / #rrggbb。"""
+    c = hex_color.lstrip("#")
+    if len(c) == 3:
+        c = "".join(ch * 2 for ch in c)
+    channels = [int(c[i : i + 2], 16) / 255 for i in (0, 2, 4)]
+
+    def linear(u: float) -> float:
+        return u / 12.92 if u <= 0.03928 else ((u + 0.055) / 1.055) ** 2.4
+
+    r, g, b = (linear(u) for u in channels)
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def _contrast_ratio(fg: str, bg: str) -> float:
+    """WCAG 对比度 (L1+0.05)/(L2+0.05)，L1 为较亮者。"""
+    l1, l2 = _luminance(fg), _luminance(bg)
+    hi, lo = (l1, l2) if l1 >= l2 else (l2, l1)
+    return (hi + 0.05) / (lo + 0.05)
+
+
+def check_primary_visual_for_doc_type(html: str, doc_type: str, result: PreviewResult) -> None:
+    """主视觉一致性：design/task/decision/tech-research 必须出现对应主视觉组件之一（token 级）。"""
+    expected = DOC_PRIMARY_VISUAL.get(doc_type)
+    if not expected:
+        return
+    token_sets = _class_token_sets(html)
+    found = any(token in tokens for tokens in token_sets for token in expected)
+    if not found:
+        result.fail(
+            f"主视觉与文档类型不匹配：{doc_type} 期望出现 "
+            f"{'/'.join(expected)} 之一作为主视觉（按 class token 判断）"
+        )
+
+
+def check_laundry_list(html: str, result: PreviewResult) -> None:
+    """流水账嫌疑：区块过多而主视觉组件过少（token 级计数）。"""
+    section_count = len(re.findall(r"<section\b", html, re.IGNORECASE))
+    h2_count = len(re.findall(r"<h2\b", html, re.IGNORECASE))
+    block_count = max(section_count, h2_count)
+    token_sets = _class_token_sets(html)
+    visual_count = sum(
+        1 for tokens in token_sets if any(token in tokens for token in PRIMARY_VISUAL_COMPONENTS)
+    )
+    if block_count >= 4 and visual_count < 2:
+        result.fail(
+            f"流水账嫌疑：{block_count} 个区块但仅 {visual_count} 个主视觉组件；"
+            "用 flow/state/DAG/swimlane/pipeline/matrix/heatmap/hub-map/inline SVG 等主视觉替代连续卡片与表格堆叠"
+        )
+
+
+def check_card_dominance(html: str, result: PreviewResult) -> None:
+    """拒绝 card 成为主要表达：card 只能承载局部说明或重复条目。"""
+    token_sets = _class_token_sets(html)
+    card_count = sum(1 for tokens in token_sets if "card" in tokens)
+    if card_count == 0:
+        return
+
+    visual_count = sum(
+        1 for tokens in token_sets if any(token in tokens for token in PRIMARY_VISUAL_COMPONENTS)
+    )
+    if card_count >= 3 and card_count >= visual_count:
+        result.fail(
+            f"卡片化 Preview：检测到 {card_count} 个 card，但只有 {visual_count} 个 graph/matrix/timeline 等主视觉组件；"
+            "card 只能做局部说明，主体必须改成 flow/state/DAG/swimlane/pipeline/matrix/heatmap/hub-map/inline SVG 等关系表达"
+        )
+
+    repeated_cards = re.search(
+        r'(?:<[^>]+class="[^"]*\bcard\b[^"]*"[^>]*>.*?</[^>]+>\s*){3,}',
+        html,
+        re.IGNORECASE | re.DOTALL,
+    )
+    if repeated_cards:
+        result.fail(
+            "连续 card 布局：发现 3 个以上相邻 card；"
+            "连续卡片必须改成图、矩阵、时间线、泳道或 pipeline，不能作为主要可视化"
+        )
+
+
+def check_color_redundancy(html: str, result: PreviewResult) -> None:
+    """WCAG 1.4.1：每个状态色块必须在自身文本内携带冗余文字/图标。
+
+    CSS ``::before`` 注入的图标不在 HTML 文本里、检查器不可见，因此要求冗余
+    信号内联在元素文本中。逐元素判断，而非对全文计数（否则只要模板 CSS 在场就恒过）。
+    """
+    offenders: list[str] = []
+    for match in STATUS_ELEMENT_RE.finditer(html):
+        inner = _strip_tags(match.group("inner"))
+        token = match.group("token")
+        has_icon = any(ch in inner for ch in ICON_CHARS)
+        has_word = bool(STATUS_WORDS_RE.search(inner))
+        if not has_icon and not has_word:
+            offenders.append(token)
+    if offenders:
+        result.fail(
+            f"颜色冗余编码缺失（WCAG 1.4.1）：{len(offenders)} 个状态色块"
+            f"（token 如 {offenders[0]}）未在自身文本内配文字/图标冗余，"
+            "颜色不得是唯一编码手段；状态元素须内联 ✓/⚠/✗ 或状态词，不得仅靠 CSS 注入"
+        )
+
+
+def check_critical_content_visible(html: str, doc_type: str, result: PreviewResult) -> None:
+    """决策关键内容（PRD 边界态 / Decision 杀死条件 / Task 阻塞门禁）不得仅藏在 <details> 内。
+
+    泛化自 PRD 完整性检查：凡决定结论或阻塞的要点，折叠等于藏起 kill switch。
+    仅当某关键词「全文出现但可见区不出现」时记违规（存在可见副本即放行）。
+    """
+    keywords = VISIBLE_CRITICAL_KEYWORDS.get(doc_type)
+    if not keywords:
+        return
+    visible = re.sub(
+        r"<details\b[^>]*>.*?</details>", " ", html, flags=re.IGNORECASE | re.DOTALL
+    )
+    # 只在「文本内容」里判断关键词出现：full_text 含 details 内文本，visible_text 不含。
+    # 用去标签文本而非原始 HTML，避免属性名（如 data-sa="blocking"）被误判为内容。
+    visible_lower = _strip_tags(visible).lower()
+    full_lower = _strip_tags(html).lower()
+    hidden = [kw for kw in keywords if kw.lower() in full_lower and kw.lower() not in visible_lower]
+    if hidden:
+        result.fail(
+            f"决策关键内容被折叠（{doc_type}）：{hidden} 仅出现在 <details> 内；"
+            "kill criteria/阻塞门禁/边界态等决定结论的要点须上提到可见区域且禁止折叠"
+        )
+
+
+def check_hero_brevity(html: str, doc_type: str, result: PreviewResult) -> None:
+    """首屏一句话结论须短（Few「一眼可读」）。
+
+    仅对结论先行型（decision/tech-research/design/generic）检查 .insight hero 的首个标题长度。
+    task 走情境感知三锚点，不在此检查；无 .insight 时跳过。
+    """
+    if doc_type == "task":
+        return
+    insight = _extract_block(html, "insight")
+    if not insight:
+        return
+    heading = HEADING_RE.search(insight)
+    if not heading:
+        return
+    text = _strip_tags(heading.group(1)).strip()
+    if len(text) > HERO_HEADING_MAX_CHARS:
+        result.fail(
+            f"首屏结论过长无法一眼判读：hero 标题 {len(text)} 字 > {HERO_HEADING_MAX_CHARS}；"
+            "运营看板须 status at a glance，把结论压成单个从句，细节移入正文/细节区"
+        )
+
+
+def check_task_situational_awareness(html: str, doc_type: str, result: PreviewResult) -> None:
+    """task 首屏须含 Current/Blocking/Next 三锚点（Endsley 情境感知三层），且不得折叠。
+
+    Perception（当前到哪）→ Comprehension（卡在哪）→ Projection（下一步干什么）。
+    """
+    if doc_type != "task":
+        return
+    visible = re.sub(
+        r"<details\b[^>]*>.*?</details>", " ", html, flags=re.IGNORECASE | re.DOTALL
+    )
+    visible_lower = visible.lower()
+    missing = [sa for sa in SA_MARKERS if f'data-sa="{sa}"' not in html.lower()]
+    collapsed = [
+        sa
+        for sa in SA_MARKERS
+        if f'data-sa="{sa}"' in html.lower() and f'data-sa="{sa}"' not in visible_lower
+    ]
+    if missing:
+        result.fail(
+            f"task 缺少情境感知锚点：{missing} 未用 data-sa 标记；"
+            "首屏须含 Current/Blocking/Next 三段（data-sa=\"current|blocking|next\"）"
+        )
+    if collapsed:
+        result.fail(
+            f"task 情境感知锚点被折叠：{collapsed} 出现在 <details> 内；"
+            "Current/Blocking/Next 须在可见首屏，执行者要一眼定位现在干什么、卡在哪"
+        )
+
+
+def check_attention_dominance(html: str, result: PreviewResult) -> None:
+    """Von Restorff 孤立效应：多个 bad/warn 信号并列时必须有且仅有一个 dominant。
+
+    等权多信号会互相抵消、无一成为真正的阻塞（Few「单一最重要指标」）。
+    dominant 由 ``data-rank="dominant"`` 或 class ``dominant`` 标记。
+    """
+    attention = _section_inner(html, "Attention")
+    if not attention:
+        return
+    bad_warn = re.findall(r'class="[^"]*\b(?:bad|warn)\b', attention, re.IGNORECASE)
+    if len(bad_warn) < 2:
+        return
+    # 数被标记为 dominant 的元素（开标签含 dominant，class 或 data-rank 均算，同一元素只计一次）
+    dominant_count = len(
+        re.findall(r"<(?:div|span|p|li|article|section|td)\b[^>]*\bdominant\b[^>]*>", attention, re.IGNORECASE)
+    )
+    if dominant_count == 0:
+        result.fail(
+            f"注意力稀释（Von Restorff 孤立效应）：Attention 区 {len(bad_warn)} 个 bad/warn 信号并列同权重，"
+            "无一标记 dominant；多信号等权互相抵消，须用 data-rank=\"dominant\" 指定唯一最优先信号并放大"
+        )
+    elif dominant_count > 1:
+        result.fail(
+            f"dominant 过多（Von Restorff 孤立效应）：Attention 区有 {dominant_count} 个 dominant；"
+            "孤立效应要求有且仅有一个最优先信号，其余须降级"
+        )
+
+
+def check_contrast(html: str, result: PreviewResult) -> None:
+    """WCAG 1.4.3 AA：:root 调色板的正文对比度 ≥ 4.5:1。
+
+    防止 agent 修改设计令牌引入低对比度配色。仅检查 ``:root`` 内定义的 CSS 变量对。
+    """
+    root = re.search(r":root\s*\{(.*?)\}", html, re.DOTALL)
+    if not root:
+        return
+    tokens = dict(re.findall(r"--([\w-]+)\s*:\s*(#[0-9a-fA-F]{3,8})", root.group(1)))
+    pairs = [
+        ("text", "bg", "正文"),
+        ("text", "panel", "卡片正文"),
+        ("muted", "bg", "次要正文"),
+        ("muted", "panel", "次要正文（卡片）"),
+    ]
+    for fg_name, bg_name, label in pairs:
+        fg, bg = tokens.get(fg_name), tokens.get(bg_name)
+        if not fg or not bg:
+            continue
+        ratio = _contrast_ratio(fg, bg)
+        if ratio < CONTRAST_MIN_NORMAL:
+            result.fail(
+                f"对比度不足（WCAG 1.4.3 AA）：{label} {fg}/{bg} 仅 {ratio:.2f}:1 < {CONTRAST_MIN_NORMAL}:1；"
+                "调正文/背景色使对比度达标"
+            )
+
+
+def check_dependency_declaration(html: str, result: PreviewResult) -> None:
+    """外部依赖允许使用，但必须声明来源、用途和打开/运行方式。"""
+    detected = [name for name, pattern in EXTERNAL_DEPENDENCY_PATTERNS.items() if pattern.search(html)]
+    if detected and not DEPENDENCY_DECLARATION_RE.search(_strip_tags(html)):
+        result.fail(
+            f"外部依赖缺少声明：检测到 {', '.join(detected)}；"
+            "使用外部脚本、样式、CDN、npm 包或构建工具时，Preview 须在可见区域声明依赖来源、用途和打开/运行方式"
+        )
+
+
+def check_mermaid_fallback(html: str, result: PreviewResult) -> None:
+    """Mermaid 依赖网络/CDN；必须有无脚本 fallback，避免图形空白。"""
+    token_sets = _class_token_sets(html)
+    uses_mermaid = "mermaid" in html.lower() or any(
+        "mermaid" in tokens or "mermaid-graph" in tokens for tokens in token_sets
+    )
+    if uses_mermaid and "mermaid-fallback" not in html:
+        result.fail(
+            "Mermaid 图缺少 fallback：使用 Mermaid 时必须提供 .mermaid-fallback 文本/表格摘要，"
+            "避免 CDN 或脚本失败时 Preview 主视觉空白"
+        )
 
 
 def validate_preview(source_path: Path, root: Path, doc_type: str | None = None) -> PreviewResult:
@@ -143,8 +533,6 @@ def validate_preview(source_path: Path, root: Path, doc_type: str | None = None)
     # Generic checks
     if "<!doctype html" not in html.lower():
         result.fail("missing <!doctype html>")
-    if "<style" not in html.lower():
-        result.fail("missing inline CSS")
 
     has_doc_source = "data-doc-source" in html
     has_prd_source = "data-prd-source" in html
@@ -153,9 +541,8 @@ def validate_preview(source_path: Path, root: Path, doc_type: str | None = None)
     if source not in html.replace("\\", "/"):
         result.fail(f"missing source document path: {source}")
 
-    for name, pattern in EXTERNAL_DEPENDENCY_PATTERNS.items():
-        if pattern.search(html):
-            result.fail(f"external dependency detected: {name}")
+    check_dependency_declaration(html, result)
+    check_mermaid_fallback(html, result)
 
     # PRD profile checks
     if detected_type == "prd":
@@ -177,6 +564,26 @@ def validate_preview(source_path: Path, root: Path, doc_type: str | None = None)
         if has_example_data and "示例数据，不是接口契约" not in html:
             result.fail("sample data appears without required disclaimer")
 
+    # 决策关键内容可见性（prd/decision/task）：kill criteria/阻塞门禁/边界态不得折叠
+    check_critical_content_visible(html, detected_type, result)
+
+    if detected_type in {"decision", "tech-research", "design", "task", "generic"}:
+        for section in REQUIRED_EXPLANATORY_SECTIONS:
+            marker = f'data-doc-section="{section}"'
+            if marker not in html:
+                result.fail(f"missing explanatory section marker: {section}")
+        check_primary_visual_for_doc_type(html, detected_type, result)
+        check_laundry_list(html, result)
+        check_card_dominance(html, result)
+        check_hero_brevity(html, detected_type, result)
+        check_task_situational_awareness(html, detected_type, result)
+        check_attention_dominance(html, result)
+
+    # WCAG 1.4.1 颜色冗余编码对所有文档类型生效
+    check_color_redundancy(html, result)
+    # WCAG 1.4.3 对比度（:root 调色板）对所有文档类型生效
+    check_contrast(html, result)
+
     return result
 
 
@@ -184,7 +591,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Validate HTML Preview files.")
     parser.add_argument("target", nargs="?", default="--all", help="Feature name, file path, or --all")
     parser.add_argument("--root", default=".", help="Target project root, defaults to current directory")
-    parser.add_argument("--type", choices=["prd", "decision", "tech-research", "design", "generic"], default=None, help="Document type (auto-detect if not specified)")
+    parser.add_argument("--type", choices=["prd", "decision", "tech-research", "design", "task", "generic"], default=None, help="Document type (auto-detect if not specified)")
     parser.add_argument("--json", action="store_true", help="Print machine-readable JSON")
     args = parser.parse_args()
 

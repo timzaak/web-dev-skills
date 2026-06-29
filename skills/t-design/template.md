@@ -26,7 +26,7 @@
 ## 2. 需求来源
 
 ### 2.1 用户故事
-- `[US-XXX-001]` [标题]，优先级 [P0/P1/P2]，来源 `docs/user-stories/...`
+- `[US-XXX-001]` [标题]，优先级 [P0/P1/P2]，来源 `docs/user-stories/...` 或 `.ai/user-stories/...`
 - 场景概述：[简要摘要]
 - 核心约束：[约束摘要]
 
@@ -44,9 +44,11 @@
 
 ### 2.4 UI 规格
 - `.ai/design-ui/[方案名称]/ui-spec.md`（如存在）
+- `.ai/design-ui/[方案名称]/winner.html`（仅作为已确认视觉参考；不读取历史 variants）
 - 承接状态：[基于已确认 UI 规格 / 未发现 UI 规格 / 不涉及前端]
 - 选定 UI 方向：[摘要]
 - 关键页面与状态：[摘要]
+- 历史探索稿：[不作为设计输入；不得承接 `variants/`、`archive/` 或 `board.html` 中的废弃 UI]
 
 ## 3. 现有实现分析
 
@@ -143,7 +145,7 @@
 
 ### 4.4 前端设计
 
-> 如存在 `.ai/design-ui/[方案名称]/ui-spec.md`，本节必须标记"基于已确认 UI 规格"，并承接其页面结构、组件映射和关键状态。
+> 如存在 `.ai/design-ui/[方案名称]/ui-spec.md`，本节必须标记"基于已确认 UI 规格"，并承接其页面结构、组件映射和关键状态。`winner.html` 仅用于视觉核对；不得从 `variants/`、`archive/` 或 `board.html` 承接废弃 UI。
 
 #### 4.4.1 页面/组件清单
 - `[route or page]` - [用途]

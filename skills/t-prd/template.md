@@ -7,10 +7,10 @@
 
 ## 1. 相关用户故事
 
-> 详细故事与验收标准请查看 `docs/user-stories/` 中对应文档。
+> 详细故事与验收标准请查看 `docs/user-stories/` 或 `.ai/user-stories/` 中对应文档。`.ai/user-stories` 为发布前候选来源。
 
 ### 1.1 相关故事
-- `[US-XXX-001]` [标题]，优先级 [P0/P1/P2]，来源 `docs/user-stories/...`
+- `[US-XXX-001]` [标题]，优先级 [P0/P1/P2]，来源 `docs/user-stories/...` 或 `.ai/user-stories/...`
 - 角色：[角色]
 - 摘要：[简要摘要]
 
@@ -89,5 +89,5 @@
 ---
 
 ## 9. 参考资料
-- 用户故事：`docs/user-stories/...`
+- 用户故事：`docs/user-stories/...` 或 `.ai/user-stories/...`
 - 相关 PRD：`docs/prd/...`

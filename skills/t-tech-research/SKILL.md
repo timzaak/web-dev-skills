@@ -21,7 +21,7 @@ description: Assess technical feasibility for a feature. Scans codebase, checks 
 - `.ai/decision/<file-name>.md`（可选但推荐，来自 `/t-decision`）
 - 用户原始需求描述（参数、当前对话或补问获取）
 - 现有代码库
-- 可选：`docs/prd/00-index.md`、`docs/user-stories/00-index.md`、`.ai/design/**/*.md`
+- 可选：`docs/prd/00-index.md`、`docs/user-stories/00-index.md`、`.ai/user-stories/**/*.md`、`.ai/design/**/*.md`
 
 输出报告必须包含：
 - 需求理解与技术需求提取
@@ -86,6 +86,7 @@ description: Assess technical feasibility for a feature. Scans codebase, checks 
 - `package-lock.json`
 - `docs/prd/00-index.md`
 - `docs/user-stories/00-index.md`
+- `.ai/user-stories/**/*.md`
 - `.ai/design/**/*.md`
 
 扫描真实代码目录，重点关注：

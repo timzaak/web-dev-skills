@@ -16,11 +16,12 @@ tools:
 # Demo Accept（流程入口）
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
 
 ## 输入契约
 
 - 目标测试文件、角色或 `all`
-- 相关用户故事路径
+- 相关用户故事路径（`.ai/user-stories/...` draft 或 `docs/user-stories/...` 已发布文档）
 - 相关日志和测试结果目录
 
 ## 输出契约
@@ -35,6 +36,7 @@ tools:
 
 ### 阶段 1：用户故事一致性检查（MANDATORY）
 - 识别测试文件对应用户故事
+- 校验用户故事路径存在，允许 `.ai/user-stories` draft 和 `docs/user-stories` published 两类来源
 - 校验场景、角色、断言匹配
 
 ### 阶段 2：编译验证（MANDATORY）

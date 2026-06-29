@@ -37,7 +37,7 @@ Minimal end-to-end example:
 # Run technical feasibility research when dependencies, cost, or risk affect scope
 /t-tools:t-tech-research user-management
 
-# Create or update the .ai/prd draft, then open HTML for review
+# Create or update .ai/prd and .ai/user-stories drafts, then open HTML for review
 /t-tools:t-prd user-management
 
 # Quality gate: prevent upstream issues from entering the design stage
@@ -70,7 +70,7 @@ Minimal end-to-end example:
 # Final acceptance: verify story mapping, compilation, execution, and quality requirements
 /t-tools:t-demo-accept super-admin
 
-# After implementation and acceptance, summarize the draft and revise the formal PRD
+# After implementation and acceptance, summarize drafts and revise the formal PRD / user stories
 /t-tools:t-prd-publish user-management
 ```
 
@@ -81,7 +81,8 @@ Additional notes:
 - This README consistently uses `/t-tools:t-*` as the standard invocation format.
 - All `t-*` skills in this plugin are manual command entries and must not be invoked automatically by the model.
 - `t-decision` is the product decision gate before PRD. It writes `.ai/decision/<feature>.md` and `.ai/preview/decision/<feature>.html`; continue to tech research or PRD only after a `Proceed` or `Research First` verdict. Its interaction model is inspired by Garry Tan's [gstack](https://github.com/garrytan/gstack), especially `office-hours` and `plan-ceo-review`, but it is translated into a t-tools stage gate and does not vendor the gstack runtime.
-- `t-ui-design` is an optional frontend UI exploration stage after PRD Check and before technical design. It generates multiple single-file HTML mockup variants, a comparison board, and `.ai/design-ui/<feature>/ui-spec.md` without image generation, Figma, or external AI UI tools.
+- `t-ui-design` is an optional frontend UI exploration stage after PRD Check and before technical design. It generates multiple single-file HTML mockup variants, a comparison board, and `.ai/design-ui/<feature>/ui-spec.md`; after winner confirmation it archives discarded variants so `t-design` consumes only the confirmed UI spec, without image generation, Figma, or external AI UI tools.
+- `t-prd` only writes candidate requirements under `.ai/prd` and `.ai/user-stories`; it does not write directly into `docs/prd` or `docs/user-stories`. `t-prd-publish` is responsible for merging still-valid long-term product facts back into `docs/`.
 - `t-doc` is for project documentation, onboarding tutorials, API references, configuration, and deployment notes. It is not for PRDs, technical designs, or small document edits.
 - `t-dream` defaults to a read-only audit that reorganizes PRDs, user stories, design/task docs, implementation facts, and project structure, reducing stale, duplicated, conflicting, or misleading context; use `--govern-prd` explicitly when PRD governance should write changes.
 - `t-backend-test-run` is an internal execution skill reused by flows such as `backend-test`; it is not recommended as a manual entry point.
@@ -142,10 +143,10 @@ flowchart TD
 
 Key behaviors:
 
-- `t-prd` generates a temporary `.ai/prd` draft and Preview. It does not write directly into formal `docs/prd`.
-- `t-prd-check` is the quality gate for PRDs, HTML Previews, and user stories. After it passes, continue to `t-design`, or run optional `t-ui-design` first for significant frontend UI; after fixes, run `t-prd-check` again.
-- `t-ui-design` generates HTML-only UI variants and a confirmed `.ai/design-ui/<feature>/ui-spec.md` for `t-design` to consume.
-- `t-prd-publish` runs after implementation, testing, and Demo acceptance. It summarizes the draft against the existing formal PRD and post-implementation evidence, fixes missing, stale, or conflicting content in `docs/prd`, then deletes the matching `.ai/prd` draft.
+- `t-prd` generates temporary `.ai/prd` and `.ai/user-stories` drafts plus a Preview. It does not write directly into formal `docs/prd` or `docs/user-stories`.
+- `t-prd-check` is the quality gate for PRDs, HTML Previews, draft user stories, and published user stories. After it passes, continue to `t-design`, or run optional `t-ui-design` first for significant frontend UI; after fixes, run `t-prd-check` again.
+- `t-ui-design` generates HTML-only UI variants and a confirmed `.ai/design-ui/<feature>/ui-spec.md` for `t-design` to consume; discarded variants are archived after winner confirmation.
+- `t-prd-publish` runs after implementation, testing, and Demo acceptance. It summarizes drafts against the existing formal PRD / user stories and post-implementation evidence, fixes missing, stale, or conflicting content in `docs/`, then deletes the matching `.ai/prd` and `.ai/user-stories` drafts.
 - `t-task-check` is the gate for task breakdown, DAG validity, and item executability. It verifies that task documents are ready for implementation.
 - `t-demo-accept` is the demo-stage acceptance gate. It verifies test coverage, runnability, and delivery quality.
 
@@ -154,13 +155,13 @@ Helper commands:
 - `t-init <project-name>`: initializes a full-stack project scaffold for Java Spring Boot + React TanStack, including backend, frontend, E2E tests, development scripts, and the complete directory structure
 - `t-decision <feature>`: evaluates whether a feature should enter the workflow before tech research or PRD, writes `.ai/decision/<feature>.md`, generates `.ai/preview/decision/<feature>.html`, and recommends `t-tech-research`, `t-prd`, or stopping
 - `t-tech-research`: evaluates technical feasibility before writing the PRD, including dependency gap analysis, library research, impact analysis, and feasibility judgment; for pure technical designs that do not change business logic, it may be the direct upstream input to `t-design`
-- `t-ui-design <feature>`: optional frontend UI exploration after PRD Check; writes `.ai/design-ui/<feature>/` with HTML mockup variants, a comparison board, feedback history, winner mockup, and `ui-spec.md` for `t-design`
-- `t-prd-publish <feature>`: after implementation and acceptance, reviews `.ai/prd/<domain>/<feature>.md`, the existing formal PRD, and post-implementation evidence, presents a publish summary, then fixes missing, stale, or conflicting content in `docs/prd/<domain>/<feature>.md` and deletes the draft
+- `t-ui-design <feature>`: optional frontend UI exploration after PRD Check; writes `.ai/design-ui/<feature>/` with HTML mockup variants, a comparison board, feedback history, winner mockup, archived discarded variants, and `ui-spec.md` for `t-design`
+- `t-prd-publish <feature>`: after implementation and acceptance, reviews `.ai/prd/<domain>/<feature>.md`, `.ai/user-stories/<domain>/<feature>.md`, the existing formal PRD / user stories, and post-implementation evidence, presents a publish summary, then fixes missing, stale, or conflicting content in `docs/` and deletes the drafts
 - `t-doc <project-or-module-name>`: scans the target project codebase and generates newcomer-oriented tutorial documentation under `docs/tutorials/<name>/` by default
 - `t-html-show <feature | path>`: generates or updates HTML Preview for quick human review. Supports PRDs (pass feature name) and any Markdown document (pass file path). Usually triggered automatically by `t-prd`, but can also be run independently
 - `t-dream [feature|--all] [--deep|--backend-only|--govern-prd]`: by default, read-only audits PRDs, user stories, design/task docs, code structure, tests/Demo, and implementation facts to find stale context, structure drift, traceability gaps, and description/implementation conflicts, then writes `.ai/quality/dream-check-[YYYYMMDD-HHMMSS].md`; only `--govern-prd` may rewrite PRDs, indexes, and references
 - `t-demo-run-all`: runs demo tests in batch
-- `t-push`: has the AI summarize the commit message from `git diff`, then calls `${CLAUDE_PLUGIN_ROOT}/scripts/push.py --message "<message>"` to detect backend, frontend, and demo changes, run affected local CI checks in parallel, and run `git commit` plus `git push` after CI passes
+- `t-push`: has the AI clean clearly low-value code comments from the current diff, summarize the commit message from the cleaned `git diff`, then calls `${CLAUDE_PLUGIN_ROOT}/scripts/push.py --message "<message>"` to detect backend, frontend, and demo changes, run affected local CI checks in parallel, and run `git commit` plus `git push` after CI passes
 - `t-release [version]`: releases a version by updating project versions, creating a git commit and tag, and pushing to the remote. Version files use semantic versioning, such as `0.2.0`, while the final git tag always uses a `v` prefix, such as `v0.2.0`. If omitted, the command recommends one based on the latest semver tag. It only runs on a clean `main` branch, updates `backend/pom.xml`, `frontend/package.json`, and `demo/package.json`, then commits and pushes after compilation checks pass.
 
 ## Installation
@@ -181,4 +182,8 @@ Prerequisites:
 
 ## Projects Using This Plugin
 
-- Java Spring Boot + React target projects can load this plugin and use the `t-*` workflow for requirements, design, tasks, implementation, acceptance, and demo delivery.
+- [Herald](https://github.com/timzaak/herald) — A multi-tenant authentication and authorization system, providing auth services for both single-tenant and multi-tenant scenarios
+- [RMQTT-Things](https://github.com/timzaak/rmqtt-things) — An IoT thing-model management platform built on RMQTT, with device management, command delivery, OTA firmware updates, and TLS certificate issuance
+- [RWiki](https://github.com/timzaak/rwiki) — An AI-enhanced knowledge base built on Wiki.js data, with wiki content sync, semantic search, and intelligent Q&A
+
+> For Java backend support, see the `java` branch.

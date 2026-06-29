@@ -13,6 +13,7 @@ allowed-tools:
 # 技术设计质量检查
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
 
 ## 目标
 - 评估技术设计文档的可实施性、完整性与一致性。
@@ -33,7 +34,7 @@ allowed-tools:
 
 ## 输入范围
 - 设计文档：`.ai/design/[feature].md`
-- 需求来源：`docs/user-stories/**/*.md`、`docs/prd/**/*.md`、`.ai/tech-research/**/*.md`
+- 需求来源：`.ai/user-stories/**/*.md`、`docs/user-stories/**/*.md`、`.ai/prd/**/*.md`、`docs/prd/**/*.md`、`.ai/tech-research/**/*.md`
 - 规范来源：
   - `${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md`
   - `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md`
@@ -45,6 +46,7 @@ allowed-tools:
 - 校验设计文档是否存在。
 - 从设计文档提取引用的用户故事、PRD、技术预研、接口、数据库变更、前端范围、测试策略。
 - 核对设计文档与需求来源的一致性。
+- 若设计引用 `.ai/user-stories`，确认其为 draft 候选来源且路径存在；若同时存在相关 `docs/user-stories`，检查是否存在未说明冲突。
 - 如果设计文档声明为纯技术方案且不涉及业务逻辑变动，可接受 `.ai/tech-research/[feature].md` 作为唯一需求来源；此时不得因缺少 PRD/用户故事扣 P0，但需要核对技术目标、约束、影响范围和风险是否一致。
 - 核对设计文档与项目规范的一致性。
 - 按 `${CLAUDE_PLUGIN_ROOT}/protocols/design-check-rubric.md` 检查 API、数据库、前端与测试策略。

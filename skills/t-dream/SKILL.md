@@ -13,7 +13,7 @@ allowed-tools:
 
 # 上下文整理与工程事实重组
 
-运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`。候选问题、评分和报告结构统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md`。
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`。需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`。候选问题、评分和报告结构统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md`。
 
 ## 目标
 - 把 PRD、用户故事、设计、任务、Demo 注释、实现事实和项目结构重新收敛成当前可信上下文。
@@ -57,7 +57,8 @@ PRD 治理模式只保留当前产品规则、用户可见契约、范围边界�
 
 ## 输入范围
 - PRD：`docs/prd/**/*.md`（排除模板、索引和说明文件）
-- 用户故事：`docs/user-stories/**/*.md`
+- 用户故事：`docs/user-stories/**/*.md`、`.ai/user-stories/**/*.md`
+- PRD 草稿：`.ai/prd/**/*.md`
 - 设计与任务：`.ai/design/**/*.md`、`.ai/task/**`
 - Demo 测试：`demo/e2e/**/*.e2e.ts`
 - 实现代码：按目标项目真实结构定位 backend、frontend、demo 相关实现
@@ -83,7 +84,7 @@ PRD 治理模式只保留当前产品规则、用户可见契约、范围边界�
 - `deep`：在 audit 的基础上，对选中模块额外调用 `backend-consistency` 做后端深度检查。
 
 `--all` 预算策略：
-- 默认先做索引级健康扫描：PRD 文件、标题、索引引用、用户故事引用、设计/任务入口、明显重复/过期关键词和结构入口。
+- 默认先做索引级健康扫描：PRD 文件、标题、索引引用、用户故事引用、draft story 引用、设计/任务入口、明显重复/过期关键词和结构入口。
 - 只对高风险模块深挖。高风险信号包括：索引缺失、同名/近义 PRD 重复、用户故事或 Demo 指向旧 PRD、PRD 声明和代码关键词明显错位、权限/租户/状态规则冲突信号。
 - 若用户要求全量深挖，必须显式使用 `--all --deep`。
 
@@ -91,7 +92,7 @@ PRD 治理模式只保留当前产品规则、用户可见契约、范围边界�
 
 当用户要求整理 PRD 时，目标是让 `docs/prd/**` 成为当前权威需求源。执行时遵守以下原则：
 
-- 先读后写：先读取目标目录的所有 PRD、`docs/prd/00-index.md`、总览/领域模型、相关用户故事和明显相关实现事实。
+- 先读后写：先读取目标目录的所有 PRD、`docs/prd/00-index.md`、总览/领域模型、相关已发布用户故事、相关 draft 用户故事和明显相关实现事实。
 - 合并按稳定能力命名。例如 document 可收敛为 lifecycle / ingestion / retrieval-and-citations；infrastructure 可收敛为 storage / model-providers / observability / auth。
 - 权威 PRD 只写当前规则：用户价值、范围、业务规则、状态、API 用户可见约束、验收目标、参考资料。
 - 删除或压缩过程性内容：技术迁移步骤、依赖升级过程、旧实现替换流水账、已落地的临时方案、代码文件清单、数据库建表细节。
@@ -99,6 +100,7 @@ PRD 治理模式只保留当前产品规则、用户可见契约、范围边界�
 - 代码现状只用于校验当前事实；产品规则仍以当前需求判断表达。
 - 冲突规则按更具体、更新、已实现或已被索引标为权威的来源裁决，并在新 PRD 中只保留裁决后的规则。
 - 保持链接可达：更新 `docs/prd/00-index.md`、总览、领域模型、聊天 PRD、用户故事引用和相关 PRD 参考。
+- 写入治理时先区分 `.ai/user-stories` 候选来源与 `docs/user-stories` 已发布基线；不得把 draft story 静默当成已发布事实。
 
 ### PRD 治理流程
 

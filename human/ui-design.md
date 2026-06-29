@@ -26,7 +26,7 @@
 gstack 的 `/design-shotgun` 用 GPT Image 生成图片 mockup，再用 `/design-html` 把选中的图片转成可上线 HTML。直接照搬会和本项目冲突：
 
 - **目标栈不同**：本项目是 React + TanStack + Tailwind + Radix UI，不是 gstack 的裸 HTML / Pretext。图片 mockup 离真实组件远，转译成本高。
-- **约定不同**：本项目约定"单文件 HTML、内联 CSS/JS、无外部依赖"，且不假设有图像生成 API 或密钥。引入 GPT Image 会破坏这条边界。
+- **约定不同**：本项目的 Preview 产物写入 `.ai/preview/` 并服务于审阅闭环，不假设有图像生成 API 或密钥。引入 GPT Image 会改变产物来源和验收方式。
 
 因此变体应该用 **HTML/CSS mockup**（单文件 HTML，可用 Tailwind 风格的 class），而不是图片。这反而是一个优势：HTML mockup 离真实 React 实现最近，winner 选定后几乎能直接映射成组件结构，比图片 mockup 更能指导开发，也不需要任何外部 API。
 
@@ -59,7 +59,7 @@ gstack 的 `/design-shotgun` 用 GPT Image 生成图片 mockup，再用 `/design
 
 1. **读上游**：`.ai/decision`、`.ai/prd`、`docs/prd`、`.ai/design` 的前端章节、`guides/frontend/` 的开发与设计模式规范。
 2. **生成变体**：产出 4-6 个**不同设计方向**的单文件 HTML mockup（不是同一布局的微调，而是密度、信息层级、视觉风格有实质差异的方案）。每个变体在 `variants/` 下独立成文件，并标注它的设计方向（如"高密度表格优先""卡片流""向导式分步"）。
-3. **组成看板**：把所有变体并排组装成 `board.html`（沿用 `html-show` 的单文件 HTML 约定）。默认不自动打开，需打开时用 `html-show` 契约 `Opening the Preview` 的命令。
+3. **组成看板**：把所有变体并排组装成 `board.html`。默认不自动打开，需打开时用 `html-show` 契约 `Opening the Preview` 的命令或产物声明的运行命令。
 4. **收集反馈**：用 `AskUserQuestion` 收集偏好和修改意见（"留白更多""标题更大""去掉渐变""A 和 B 的头部结合"）。反馈写入 `feedback.md`。
 5. **迭代**：基于反馈生成下一轮——标记 winner、对 winner 生成变体、淘汰劣势方案。重复直到用户锁定。
 6. **收敛**：把 winner 复制为 `winner.html`，并写 `ui-spec.md`（含组件映射）。
@@ -67,7 +67,7 @@ gstack 的 `/design-shotgun` 用 GPT Image 生成图片 mockup，再用 `/design
 
 ## 如何复用现有基础设施
 
-- **HTML 渲染约定**：沿用 `html-show` subagent 的单文件 HTML、内联 CSS/JS、无外部依赖约定，以及 `templates/preview-template.html` 的组件思路。
+- **HTML 渲染约定**：沿用 `html-show` subagent 的 Preview 输出、依赖声明和打开方式约定，以及 `templates/preview-template.html` 的组件思路。
 - **打开方式**：默认不自动打开（可选）；需打开时沿用 `html-show` 契约 `Opening the Preview` 的命令（提交 `32357eb` 已移除专用脚本）。
 - **运行时边界**：沿用 `.ai/` 作为目标项目运行时产物根，不进版本控制（见 `protocols/runtime-boundaries.md`）。
 - **前端规范**：变体生成时遵循 `guides/frontend/development.md` 的技术基线和 `guides/frontend/patterns.md` 的设计模式，保证 winner 能落地到真实组件。

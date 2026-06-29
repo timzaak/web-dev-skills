@@ -209,7 +209,7 @@ The purpose of the HTML Preview is to turn the AI's understanding of the require
 
 So `t-prd` is closer to a "product-understanding visualization" stage. Markdown remains the formal contract, but the Preview becomes the human entry point for reviewing that contract. It turns product semantics buried in a long document into a scannable, discussable, feedback-friendly interface, so humans can catch AI misunderstandings earlier instead of finding them after technical design or code implementation.
 
-This also changes what `t-prd-check` means. PRD Check is not just a document-format check. It verifies that "the product understanding written by the AI" and "the product understanding humans see through the Preview" are aligned. `t-prd` first writes frequent changes into a temporary `.ai/prd` draft; after the draft passes checks, it can enter `t-design`. If the draft is fixed after checking, `t-prd-check` should be run again. `t-prd-publish` is no longer a design prerequisite; after implementation, testing, and Demo acceptance are complete, it summarizes the draft against the existing formal PRD and post-implementation evidence, then fixes missing, stale, or conflicting content in `docs/prd`.
+This also changes what `t-prd-check` means. PRD Check is not just a document-format check. It verifies that "the product understanding written by the AI" and "the product understanding humans see through the Preview" are aligned. `t-prd` first writes frequent changes into temporary `.ai/prd` and `.ai/user-stories` drafts; after the drafts pass checks, they can enter `t-design`. If the drafts are fixed after checking, `t-prd-check` should be run again. `t-prd-publish` is no longer a design prerequisite; after implementation, testing, and Demo acceptance are complete, it summarizes the drafts against the existing formal PRD / user stories and post-implementation evidence, then fixes missing, stale, or conflicting content in `docs/prd` and `docs/user-stories`.
 
 `t-html-show` has been extracted from `t-prd` into a standalone skill and generalized to support visualization of any Markdown document. `t-prd` triggers it automatically during its workflow, but it can also be invoked independently. Preview output goes to `.ai/preview/`, outside version control.
 
@@ -284,8 +284,8 @@ For long-running projects, this determinism is more important than one-shot para
 
 T-Tools makes quality control explicit:
 
-- `t-prd-check` checks the PRD draft/formal PRD, Preview, and user stories.
-- `t-prd-publish` revises the formal PRD from the draft, existing formal PRD, and post-implementation evidence after implementation, testing, and Demo acceptance are complete, then deletes the temporary draft.
+- `t-prd-check` checks the PRD draft/formal PRD, Preview, draft user stories, and published user stories.
+- `t-prd-publish` revises `docs/prd` / `docs/user-stories` from the drafts, existing formal PRD / user stories, and post-implementation evidence after implementation, testing, and Demo acceptance are complete, then deletes the temporary drafts.
 - `t-design-check` checks the technical design.
 - `t-task-check` checks task decomposition, the DAG, and item executability.
 - `backend-accept`, `frontend-accept`, and `demo-accept` produce read-only acceptance reports.
