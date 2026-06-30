@@ -6,6 +6,7 @@ allowed-tools:
   - Read
   - Glob
   - Grep
+  - Bash
   - Task
   - Write
   - Agent
@@ -66,6 +67,12 @@ allowed-tools:
 - 若指定 `--phase`，仅检查该阶段；否则检查当前阶段。指定阶段必须存在于 `.state.json.phases` 的 active phases 中。
 - 校验阶段依赖正确性。
 - 读取阶段目录下的 `index.md`、slot manifest，并建立 item 文件清单。
+- 在目标项目根目录运行确定性 DAG 校验脚本（若存在）：
+   - 命令：`python scripts/check-task-dag.py .ai/task/[feature]/[phase]`
+   - 只检查当前 feature + phase，不默认扫描全量 `.ai/task`。
+   - 该脚本结果是 item DAG 成环/无环的首要仓库证据；输出必须写入报告的 "Item DAG 验证结果"。
+   - 若脚本返回非 0，按 `ITEM_DAG_INVALID` 处理，记 confirmed P0，停止准入 `/t-run`。
+   - 若 `scripts/check-task-dag.py` 不存在，回退到抽取 `depends_on` 的内置校验，并在报告中标注"未找到项目脚本，使用内置校验"；不得临时创建 Python/JS 脚本。
 - 校验 item 时按以下顺序读取：
    - 从 `.state.json`、slot manifest 和 item 文件头/关键字段抽取 `id/title/agent/scope/expected_files/validation/depends_on/test_item_type/uses_skill/handoff_summary/completion_criteria`。
    - 用抽取结果完成 item 存在性、路径一致性、manifest 覆盖、DAG、agent/slot 匹配和 backend test authoring/集中 runner 覆盖校验。
@@ -127,7 +134,7 @@ agent finding 不直接作为最终裁决；主流程必须按 rubric 完成证�
 | `PHASE_INVALID` | `--phase` 不是 `backend|frontend|miniapp|demo` | 非法阶段，仅支持 backend/frontend/miniapp/demo | 使用合法参数后重试 |
 | `PHASE_NOT_ACTIVE` | `--phase` 不在当前任务 active phases 中 | 当前项目未启用该阶段 | 使用 `.state.json.phases` 中存在的阶段，或重新运行 `/t-task` 生成该阶段 |
 | `PHASE_DIR_MISSING` | 阶段目录不存在 | 找不到阶段目录 | 运行 `/t-task [feature] --phase [phase]` 生成 |
-| `ITEM_DAG_INVALID` | item 依赖缺失或成环 | 子任务依赖非法 | 修复或重新生成该阶段 |
+| `ITEM_DAG_INVALID` | item 依赖缺失、成环，或 `scripts/check-task-dag.py .ai/task/[feature]/[phase]` 返回非 0 | 子任务依赖非法 | 修复或重新生成该阶段 |
 | `REPORT_INCONSISTENT` | 报告中的严重度、总分、准入结论或问题数量互相冲突 | 报告自检失败 | 重新聚合证据并重生成报告 |
 
 信息提示（不阻断）：
@@ -144,7 +151,7 @@ agent finding 不直接作为最终裁决；主流程必须按 rubric 完成证�
 总分: 92/100 (优秀，可进入实施)
 
 状态文件验证: 通过
-Item DAG 验证: 通过
+Item DAG 验证: 通过（python scripts/check-task-dag.py .ai/task/sample-feature/backend）
 
 状态文件结构: 15/15
 文档完整性: 14/15
