@@ -41,7 +41,6 @@ A skill is an imperative workflow entry point, organized by workflow stage:
 
 - `t-run`: drives implementation and testing by phase.
 - `code-review`: code review (shared across frontend, backend, and demo).
-- `t-backend-finalize`: backend closure review (backend only).
 - `t-backend-test-run`: internal execution skill, reused by workflows.
 
 **Demo:**
@@ -169,7 +168,6 @@ flowchart TD
 
     subgraph Dev["Development"]
         E1["t-run"] --> E2["code-review"]
-        E2 --> E3["t-backend-finalize (backend only)"]
     end
 
     subgraph Demo["Demo"]
@@ -185,7 +183,7 @@ flowchart TD
     B2 -->|pass| C1
     C2 -->|pass| D1
     D2 -->|pass| E1
-    E3 --> F1
+    E2 --> F1
     F2 -->|pass| G1
 ```
 

@@ -34,7 +34,6 @@
 - demo 含 `dev/accept`
 - 每个 slot 含 `status/manifest/items`
 - 每个 item 含 `status/file/agent/depends_on`
-- backend 含 `tasks.backend.finalize.file` 和 `tasks.backend.finalize.status`
 
 缺失或非法 => `TASK_SCHEMA_INVALID`
 
@@ -110,7 +109,7 @@ agent 评审边界：
 | 维度 | 分值 | 说明 |
 |---|---:|---|
 | 状态文件结构 | 15 | `.state.json` 的 `phase/phases/tasks/slot/items` 结构完整性 |
-| 文档完整性 | 15 | `index.md`、slot manifest、item 文件和 backend `finalize.md` |
+| 文档完整性 | 15 | `index.md`、slot manifest 和 item 文件 |
 | Item 可执行性 | 20 | item 足够小、步骤明确、验证命令明确、边界清晰 |
 | 内容一致性 | 20 | 与设计文档、PRD、用户故事、技术预研、仓库路径和术语一致 |
 | 依赖与恢复 | 15 | item DAG 合法、handoff 可追溯、失败可恢复 |
@@ -122,7 +121,7 @@ agent 评审边界：
 ### P0
 
 - `.state.json` 缺失或格式错误
-- 缺少核心 phase/slot/item/finalize 结构
+- 缺少核心 phase/slot/item 结构
 - 阶段目录、manifest、item 文件缺失
 - item 依赖不存在或成环
 - manifest 未覆盖全部 items
@@ -147,8 +146,6 @@ agent 评审边界：
 - 大范围重构缺少旧代码清理清单，清单没有说明删除边界与残留搜索方式，或未按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的“先删除旧实现再改写新结构”顺序组织
 - 没有真实兼容约束（按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的兼容性来源判定：PRD、设计文档、外部 API 契约、数据保留、跨版本部署或用户显式要求均不成立）时，任务计划仍以兼容层、adapter、bridge、fallback、双路径分支或“以后再删”作为主路径
 - 下游 item 缺少 handoff 追溯
-- backend 缺少 `awaiting_finalize` 收口语义
-- `finalize.md` 缺少必要收口/重试说明
 - 设计文档与任务文档严重不一致但暂不直接阻塞执行
 
 ### P2
@@ -160,18 +157,13 @@ agent 评审边界：
 
 ## Report Requirements
 
-报告必须包含：
+报告只保留：
 
 - 总分、等级、是否可进入 `/t-run`
-- 状态文件验证结果
-- 阶段依赖验证结果
-- item DAG 验证结果
-- 每个维度得分与扣分证据
-- 实际调用的 agent 集合
-- `confirmed / disputed / assumption` 分类摘要
-- P0/P1/P2 问题列表
-- 明确修复步骤
-- 已排除的误报/争议项（如有）
+- 门禁摘要：状态文件、阶段依赖、item DAG、manifest/items、agent 集合
+- 扣分维度摘要
+- P0/P1/P2 单行清单：`级别 | 文件 | 问题 | 修复`
+- 证据路径或命令摘要；不得复制完整 agent 输出或命令日志
 
 等级建议：
 

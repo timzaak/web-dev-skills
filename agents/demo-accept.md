@@ -29,7 +29,8 @@ tools:
 - 单文件报告：`.ai/quality/demo-accept-[feature]-[YYYYMMDD-HHMMSS].md`
 - 批量汇总：`.ai/quality/demo-accept-summary-[YYYYMMDD-HHMMSS].md`
 - 验收结论：`ACCEPTED` / `REJECTED` / `ACCEPTED_WITH_IMPROVEMENTS`
-- 重复代码检查结果：必须写入单文件报告和批量汇总报告，包含执行命令、重复率/重复块数量、关键文件位置；未执行时必须说明原因
+- 短报告：门禁摘要、P0/P1/P2 单行清单、日志路径
+- 重复代码检查：1 行摘要；未执行时说明原因
 - 每条问题必须附带文件、日志或命令证据
 
 ## 执行流程

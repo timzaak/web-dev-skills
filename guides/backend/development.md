@@ -110,8 +110,8 @@ cargo fmt --all
 ```
 
 说明：
-- 上述顺序用于 backend `accept` 通过后的统一收口。
+- 上述顺序用于 backend 代码质量收口。
 - 后端测试执行与补测证据属于 backend/test、backend-accept 或显式测试命令。
-- 在任务流中，这一步由 `/t-backend-finalize [feature]` 负责，默认从失败步骤恢复。
+- OpenAPI 导出与前端 API 生成验收属于 backend-accept。
 
 如需更完整门禁、环境启动和 OpenAPI 一致性检查，按 `${CLAUDE_PLUGIN_ROOT}/guides/backend/validation.md` 与 `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md` 执行。

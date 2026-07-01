@@ -27,7 +27,7 @@ cd backend && cargo check --package <api-package>
 - 这是任务完成的**必要条件**，不是可选步骤
 - `<api-package>` 应替换为目标仓库实际对外 API crate/package 名称；优先从 `backend/` 下的 `Cargo.toml` 或现有脚本确认
 
-### 2. 最终收口（backend accept 后必须执行）
+### 2. 代码质量收口（推荐）
 
 ```bash
 /code-review
@@ -36,9 +36,8 @@ cd backend && cargo fmt --all
 ```
 
 规则：
-- 这一步对应 `/t-backend-finalize [feature]`。
 - 后端测试执行与补测证据属于 backend/test、backend-accept 或显式测试命令。
-- 同一 feature 再次执行时，默认从失败步骤恢复，无需额外参数。
+- OpenAPI 导出与前端 API 生成验收属于 backend-accept。
 
 ### 3. 格式化检查（可选但推荐）
 

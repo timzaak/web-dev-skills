@@ -44,13 +44,11 @@ allowed-tools:
 - `.ai/task/[feature]/<phase>/<slot>.md` — Slot manifest（导航与依赖）
 - `.ai/task/[feature]/<phase>/<slot>/<ITEM-ID>-*.md` — 可执行的 item 文件
   - 每个 item 包含：id, title, agent, scope, inputs, steps, expected_files, validation, depends_on, handoff_summary, completion_criteria
-- `.ai/task/[feature]/backend/finalize.md` — backend 阶段收口流程（仅 backend）
 
 ## Purpose
 - 从 `.ai/design/[feature].md` 生成 `.ai/task/[feature]/` 任务目录和 `.state.json`。
 - 固定使用 `phase -> slot -> item` 模型。
 - 生成串行执行的 item 文件，而不是把 manifest 当执行输入。
-- backend 阶段额外生成 `finalize.md`，由 `/t-backend-finalize` 独立执行。
 
 ## Args
 | 参数 | 说明 |
@@ -82,7 +80,6 @@ backend 阶段：
 ├── accept/
 │   ├── BE-A01-*.md
 │   └── ...
-└── finalize.md
 ```
 
 frontend 阶段：
@@ -139,13 +136,14 @@ demo 阶段：
    - prompt 必须引用 `${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md`，要求 agent 在返回前自检 P0/P1 规则。
    - prompt 必须引用 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`，要求 item 字段、拆分原则、测试集中执行和 backend/test item 类型符合该协议。
    - backend/test slot prompt 必须额外要求读取 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`。
+   - backend/accept slot prompt 必须额外要求覆盖 OpenAPI 导出、`frontend/api.json` 校验和前端 API 客户端生成验收。
 - 每个 slot agent 必须返回：
    - slot manifest 正文
    - item 文件集合
    - item DAG
    - slot completion criteria
    - handoff summary
-   - self_check：对必填字段、DAG、拆分阈值、backend test item 类型和 finalize 规则的自检结果
+   - self_check：对必填字段、DAG、拆分阈值和 backend test item 类型的自检结果
 - 主流程在每个 slot 返回后先执行写入前硬校验：
    - item 必填字段齐备
    - item ID 唯一，依赖存在且无环
@@ -212,23 +210,13 @@ item 字段、backend/test item 类型、测试集中执行规则、拆分原则
 
 本 skill 只负责把 agent 返回结果校验并写入 `.ai/task/[feature]/`，不在这里维护第二套 item 结构或拆分阈值。
 
-## Backend Finalize
-- backend 阶段必须额外生成 `<phase>/finalize.md`。
-- `finalize.md` 必须明确：
-  - `/code-review` 目标范围
-  - `cargo clippy --fix --allow-dirty --allow-staged --all-targets --all-features`
-  - `cargo fmt --all`
-  - OpenAPI 导出与前端 API 生成
-  - 失败后从失败步骤恢复
-- `finalize.md` 不拆 item，不由 `/t-run` 执行。
-
 ## Forbidden
 - 生成或依赖 `agents` 根字段。
 - 把 `dev.md`、`test.md`、`accept.md` 当作 `/t-run` 的直接执行输入。
 - 在单个 item 中塞入跨多模块、多天或不可恢复的大任务。
 - 当前阶段 slot 并行生成；slot 必须按依赖串行。
 - 未写入上游 manifest 和 item 文件就调用下游 slot agent。
-- backend 阶段遗漏 `finalize.md`。
+- backend 阶段生成独立收口文件或依赖已移除的后端收口命令。
 - 生成缺少 `test_item_type: authoring|runner` 的 backend/test item。
 - 生成 `agent: backend-test-run` 的 item。
 
@@ -255,7 +243,6 @@ item 字段、backend/test item 类型、测试集中执行规则、拆分原则
 - dev.md + dev/*.md
 - test.md + test/*.md
 - accept.md + accept/*.md
-- finalize.md
 
 状态已更新：phase=backend, phases.backend.generated_at=<timestamp>
 下一步: /t-task-check <feature> --phase backend

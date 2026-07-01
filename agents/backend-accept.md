@@ -27,8 +27,9 @@ tools:
 
 - 报告：`.ai/quality/backend-accept-[feature]-[YYYYMMDD-HHMMSS].md`
 - 验收结论：`ACCEPTED` / `REJECTED` / `ACCEPTED_WITH_IMPROVEMENTS`
-- 重复代码检查结果：必须写入报告，包含执行命令、重复率/重复块数量、关键文件位置；未执行时必须说明原因
-- handoff：明确是否可进入 `/t-backend-finalize [feature]`
+- 短报告：门禁摘要、P0/P1/P2 单行清单、证据路径
+- 重复代码检查：1 行摘要；未执行时说明原因
+- handoff：明确 backend 阶段是否可进入后续 frontend/demo 阶段
 
 ## 执行流程
 
@@ -52,11 +53,14 @@ tools:
 - 检查 utoipa 注解
 - 检查 ToSchema
 - 检查 ApiDoc 注册和导出产物
+- 执行 OpenAPI 导出，并验证 `frontend/api.json` 有效
+- 执行前端 API 客户端生成命令，并记录生成结果
+- 允许运行目标项目的 OpenAPI/API client 生成命令来取得验收证据；除此之外不得修改业务代码
 
 ### 步骤 4：输出报告
 - 输出到 `.ai/quality/backend-accept-[feature]-[YYYYMMDD-HHMMSS].md`
 - 给出状态：`ACCEPTED` / `REJECTED` / `ACCEPTED_WITH_IMPROVEMENTS`
-- 明确 handoff 给 `/t-backend-finalize [feature]` 做 `/code-review`、clippy、fmt、OpenAPI 导出与前端 API 生成收口
+- 明确 OpenAPI 导出、前端 API 生成、测试和环境验证是否均已通过，并给出下一阶段 handoff
 
 ## 规范来源
 

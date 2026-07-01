@@ -31,7 +31,7 @@
 
 ## Slot Order
 
-- backend: `dev -> test -> accept`，随后由用户显式运行 `/t-backend-finalize [feature]`
+- backend: `dev -> test -> accept`
 - frontend: `dev -> test -> accept`
 - miniapp: `dev -> test -> accept`
 - demo: `dev -> accept`
@@ -58,9 +58,6 @@
 - `dev.md`
 - `test.md`
 - `accept.md`
-- `finalize.md`
-
-backend 的 `finalize.md` 只作为 `/t-backend-finalize` 输入，不得由 `/t-run` 自动执行。
 
 ## Item Selection Rules
 

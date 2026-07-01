@@ -51,7 +51,6 @@ allowed-tools:
 - item 文件：
   - backend/frontend/miniapp: `dev/*.md`、`test/*.md`、`accept/*.md`
   - demo: `dev/*.md`、`accept/*.md`
-- backend 额外文件：`finalize.md`
 
 ## Schema 校验
 `.state.json` 的 schema 要求统一参考：

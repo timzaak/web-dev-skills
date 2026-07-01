@@ -63,9 +63,6 @@
 # 代码审查
 /code-review
 
-# 后端验收后执行收口
-/t-tools:t-backend-finalize user-management
-
 # 运行该角色的 Demo/E2E 测试
 /t-tools:t-demo-run super-admin
 

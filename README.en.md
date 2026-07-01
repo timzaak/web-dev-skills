@@ -61,9 +61,6 @@ Minimal end-to-end example:
 # Code review
 /code-review
 
-# Finalize backend after backend acceptance
-/t-tools:t-backend-finalize user-management
-
 # Run Demo/E2E tests for the role
 /t-tools:t-demo-run super-admin
 
@@ -118,7 +115,6 @@ flowchart TD
 
     subgraph Dev["Development"]
         E1["t-run"] --> E2["code-review"]
-        E2 --> E3["t-backend-finalize (backend only)"]
     end
 
     subgraph Demo["Demo"]
@@ -137,7 +133,7 @@ flowchart TD
     U1 -.-> C1
     C2 -->|pass| D1
     D2 -->|pass| E1
-    E3 --> F1
+    E2 --> F1
     F2 -->|pass| G1
 ```
 

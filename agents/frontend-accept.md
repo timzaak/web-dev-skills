@@ -27,7 +27,8 @@ tools:
 
 - 质量报告：`.ai/quality/frontend-accept-[feature]-[YYYYMMDD-HHMMSS].md`
 - 验收结论：`ACCEPTED` / `REJECTED` / `ACCEPTED_WITH_IMPROVEMENTS`
-- 重复代码检查结果：必须写入报告，包含执行命令、重复率/重复块数量、关键文件位置；未执行时必须说明原因
+- 短报告：门禁摘要、P0/P1/P2 单行清单、证据路径
+- 重复代码检查：1 行摘要；未执行时说明原因
 - 每条结论都必须包含证据文件或命令输出来源
 
 ## 执行流程
