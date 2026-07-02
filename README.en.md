@@ -176,6 +176,8 @@ Prerequisites:
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI is installed and logged in
 - MCP Server [`context7`](https://github.com/upstash/context7) is configured for third-party library documentation lookup
 
+For tools that do not support `claude --plugin-dir` (Codex, ZCode, etc.), see [Using t-tools in Other AI Coding Tools](human/use-in-other-agents.en.md): place a dispatcher skill under `~/.agents/skills/` that routes `/t-tool <skill>` to the cloned repository directory.
+
 ## Projects Using This Plugin
 
 - [Herald](https://github.com/timzaak/herald) — A multi-tenant authentication and authorization system, providing auth services for both single-tenant and multi-tenant scenarios

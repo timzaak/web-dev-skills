@@ -103,6 +103,8 @@ claude --plugin-dir /path/to/skills
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI 能正常使用
 - MCP Server [`context7`](https://github.com/upstash/context7) 已配置（用于查询第三方库文档）
 
+使用 Codex、ZCode 等不支持 `claude --plugin-dir` 的工具时，见 [在其它 AI 编程工具中使用 t-tools](human/use-in-other-agents.md)：通过在 `~/.agents/skills/` 下放置一个路由 skill，把 `/t-tool <skill>` 指向 `git clone` 后的仓库目录。
+
 ## 使用本插件的项目
 
 - [Herald](https://github.com/timzaak/herald) — 多租户认证与授权系统，支持单租户与多租户场景的认证服务
