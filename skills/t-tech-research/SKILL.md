@@ -1,13 +1,29 @@
 ---
 name: t-tech-research
 description: Assess technical feasibility for a feature. Scans codebase, checks dependencies, researches libraries, and writes a structured report under .ai/tech-research/.
+allowed-tools:
+  - AskUserQuestion
+  - Read
+  - Glob
+  - Grep
+  - Task
+  - Write
+  - Bash
+  - WebSearch
+  - mcp__context7__resolve-library-id
+  - mcp__context7__query-docs
 ---
 
 # 需求技术预研
 
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
+
 ## 目标
 
 基于 Decision Brief、用户需求和现有代码库，评估技术可行性、依赖缺口、代码影响范围和关键风险，生成报告供后续 `/t-prd` 或纯技术方案 `/t-design` 参考。
+
+会影响技术路线、依赖选择、范围边界、兼容性、成本/风险结论、PRD 建议或后续 `/t-design` 输入的问题，必须通过 `AskUserQuestion` 解决；不得只写成 P0/P1 风险、显式假设或"需要更多信息"后继续收敛。
 
 输出文件：
 - `.ai/tech-research/<file-name>.md`（file-name 取自 `$ARGUMENTS` 第一个空格前的部分）
@@ -60,7 +76,7 @@ description: Assess technical feasibility for a feature. Scans codebase, checks 
 - 讨论时可多方案；最终报告必须收敛为单一、明确、可执行的技术路线
 - 最终报告不得保留方案对比、候选排序或"可选/视情况"等开放式描述
 - 被排除方向只写成确定约束或风险，不展开对比
-- 缺失信息必须写成显式假设
+- 显式假设只允许用于不影响技术路线、依赖选择、范围边界、兼容性、成本/风险结论和后续交付判断的非阻塞缺口
 
 ## 工作流程
 
@@ -68,13 +84,15 @@ description: Assess technical feasibility for a feature. Scans codebase, checks 
 
 如果当前对话中已有足够需求背景，不要重复提问。
 
-仅在需求目标、约束、技术偏好或排除项不足以支撑可行性判断时，补问最少问题：
+仅在需求目标、约束、技术偏好或排除项不足以支撑可行性判断时，使用 `AskUserQuestion` 补问最少问题：
 - 需求目标或问题陈述
 - 期望的技术能力或效果
 - 特定库或技术方向偏好
 - 已知约束或排除项
 
-补问后，无论用户是否全部回答，都必须在写报告前将未回答项转为显式假设并写入报告 6.2 节。不得在报告中留下"待确认"/"需确认"/"待定"/"TBD"等未决项。
+如果缺失或冲突会影响技术路线、依赖选择、兼容性、影响范围、风险等级、是否进入 PRD 或是否可直接进入 `/t-design`，必须等待用户回答；回答前不得写入报告或给出收敛结论。
+
+只有非阻塞缺口才可在写报告前转为 §6.2 显式假设。报告中不得留下"待确认"/"需确认"/"待定"/"TBD"等未决项。
 
 ### 2. 建立本地上下文
 
@@ -126,7 +144,8 @@ description: Assess technical feasibility for a feature. Scans codebase, checks 
 收敛规则：
 - 只把最终选定的依赖、集成方式、影响范围和风险写入报告
 - 不保留候选比较、备选路线或"可二选一"表达
-- 无法收敛时，结论写"需要更多信息"，并列出阻塞问题
+- 因技术事实不足无法收敛时，结论可写"需要更多信息"，并列出需要继续调研的技术证据
+- 因用户决策不足无法收敛时，必须使用 `AskUserQuestion` 提问；回答前不得把结论写成"需要更多信息"并继续交付
 - 已排除方向只作为确定约束或风险写入
 
 ### 6. 生成影响分析
@@ -161,7 +180,7 @@ description: Assess technical feasibility for a feature. Scans codebase, checks 
 - 外部库调研是否覆盖核心 API、集成方式和已知限制
 - 是否已收敛为单一明确技术路线
 - 是否移除了方案对比、候选排序和开放式选择
-- 报告是否不含任何"待确认"/"需确认"/"待定"/"TBD"等未决项；未确认信息是否已全部转为显式假设
+- 报告是否不含任何"待确认"/"需确认"/"待定"/"TBD"等未决项；阻塞性未确认信息是否已通过 `AskUserQuestion` 解决，非阻塞缺口是否已转为显式假设
 - PRD 编写建议是否明确可执行；如不涉及业务逻辑变动，是否说明可直接进入 `/t-design`
 - 如存在 Decision Brief，是否没有偏离其目标用户、范围方向和已确认产品决策
 - 影响分析中的路径是否真实存在
@@ -175,7 +194,7 @@ description: Assess technical feasibility for a feature. Scans codebase, checks 
 - Decision Brief 明确 `Reject` / `Park` 且用户未要求继续探索：终止并提示先回到 `/t-decision`
 - 文件名非法：终止并说明允许字符范围
 - 无法创建输出目录或写文件：终止并报告
-- 需求描述不足：先补问；仍不足则继续，但在报告中写出缺口
+- 需求描述不足：若影响可行性或路线判断，使用 `AskUserQuestion` 补齐，回答前不写报告；若不影响，只在报告中写入显式假设
 - 既无代码库也无依赖文件：继续，但标记"无法评估现有实现，仅基于需求分析"
 - Context7 查询无结果：降级到 WebSearch，在报告中标注信息来源
 - WebSearch 也无结果：在报告中标记"外部信息不可用，依赖本地分析"

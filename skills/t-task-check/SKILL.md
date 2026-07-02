@@ -3,6 +3,7 @@ name: t-task-check
 description: Validate task plan executability and consistency with a 100-point score and P0/P1/P2 fix list.
 argument-hint: "[任务名称] [--phase <backend|frontend|miniapp|demo>]"
 allowed-tools:
+  - AskUserQuestion
   - Read
   - Glob
   - Grep
@@ -23,6 +24,7 @@ allowed-tools:
 - 给出可复查的 100 分量化结果。
 - 输出 P0/P1/P2 修复清单。
 - 必须按当前阶段调度对应 sub agent 做专业校验，再由主流程聚合结论。
+- 发现必须由用户裁决的规划问题时，使用 `AskUserQuestion` 阻塞式提问，不得只写入 P0/P1/P2 后继续准入。
 
 评分、阻塞条件、报告要求、跨轮收敛和 agent 评审边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md`
 
@@ -107,6 +109,7 @@ allowed-tools:
    - miniapp: subagent_type="miniapp-dev", "miniapp-test", "miniapp-accept"
    - demo: subagent_type="demo-dev", "demo-accept"
 - 聚合 agent 结果并进行主流程复核：同类问题合并，P0/P1 必须补齐任务文档证据和真源证据。
+- 若复核后存在 `${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md` 定义的 `needs_user_answer`，立即使用 `AskUserQuestion` 向用户提问；回答前不得给出可进入 `/t-run` 的结论，回答后先要求/执行任务或设计文档修正，再继续评分。
 - 按评分体系生成评分与问题清单。
 - 执行报告一致性自检。
 - 写入报告：`.ai/quality/task-check-[feature]-[YYYYMMDD-HHMMSS].md`。
