@@ -27,7 +27,7 @@ allowed-tools:
 
 上游输入（来自 `/t-task` 产出）：
 - `.ai/task/[feature]/.state.json` — 任务状态文件（必须存在且可解析）
-  - 目标阶段必须已生成（`phases[phase].generated_at` 非空）
+  - 目标阶段必须已规划（`phases[phase]`、`tasks[phase]` 和对应阶段目录存在）
 - `.ai/task/[feature]/<phase>/index.md` — 阶段总览
 - `.ai/task/[feature]/<phase>/<slot>.md` — Slot manifest
 - `.ai/task/[feature]/<phase>/<slot>/<ITEM-ID>-*.md` — Item 文件
@@ -41,7 +41,7 @@ allowed-tools:
 
 下游产出：
 - 更新的 `.state.json` — item/slot/phase 状态变更
-  - item 完成后写入 `completed_at` 和 `handoff_summary`
+  - item 完成后写入 `handoff_summary`
   - item 失败后写入 `last_error`
 - item agent 执行产生的代码文件变更（由各 agent 自行产出）
 
@@ -61,7 +61,7 @@ allowed-tools:
 ## Preconditions
 - `.ai/task/[feature]/.state.json` 必须存在且可解析。
 - 目标阶段必须是 supported phase，且存在于当前任务 active phases 中；未启用 miniapp 的项目不得执行 `--phase miniapp`。
-- 目标阶段必须已生成，且 `phases[phase].generated_at` 非空。
+- 目标阶段必须已规划，且 `phases[phase]`、`tasks[phase]` 和当前阶段目录存在。
 - 前置阶段依赖统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`。
 - 当前阶段目录必须存在。
 - 当前阶段必须包含：
@@ -113,12 +113,10 @@ backend/test 特例：
    - 提示先确认该 item 的真实执行结果，并恢复或修正 `.state.json` 后再重试。
 - 执行 item 前写入：
    - `tasks[phase][slot].items[item_id].status = running`
-   - `tasks[phase][slot].items[item_id].started_at = <timestamp>`
    - `tasks[phase][slot].status = running`
    - `phases[phase].status = running`
 - item 成功后写入：
    - `tasks[phase][slot].items[item_id].status = completed`
-   - `tasks[phase][slot].items[item_id].completed_at = <timestamp>`
    - `tasks[phase][slot].items[item_id].handoff_summary = <summary>`
 - item 失败后写入：
    - `tasks[phase][slot].items[item_id].status = failed`

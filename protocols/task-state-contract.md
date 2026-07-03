@@ -9,10 +9,10 @@
   "feature": "sample-feature",
   "phase": "backend",
   "phases": {
-    "backend": {"status": "pending", "generated_at": null},
-    "frontend": {"status": "pending", "generated_at": null},
-    "miniapp": {"status": "pending", "generated_at": null},
-    "demo": {"status": "pending", "generated_at": null}
+    "backend": {"status": "pending"},
+    "frontend": {"status": "pending"},
+    "miniapp": {"status": "pending"},
+    "demo": {"status": "pending"}
   },
   "tasks": {
     "backend": {
@@ -34,9 +34,7 @@
     }
   },
   "metadata": {
-    "design_document": ".ai/design/sample-feature.md",
-    "created_at": "<timestamp>",
-    "updated_at": "<timestamp>"
+    "design_document": ".ai/design/sample-feature.md"
   }
 }
 ```
@@ -52,8 +50,10 @@
 
 按执行结果补充：
 
-- 成功时：`started_at`, `completed_at`, `handoff_summary`
-- 失败时：`started_at`, `last_error`
+- 成功时：`handoff_summary`
+- 失败时：`last_error`
+
+`.state.json` 不记录时间类元数据。不要写入 `generated_at`、`created_at`、`updated_at`、`started_at` 或 `completed_at`；是否已规划、执行中或完成只由 `status`、任务目录和 manifest/item 文件存在性表达。
 
 ## Compatibility Rules
 

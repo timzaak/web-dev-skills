@@ -196,6 +196,6 @@ item 字段、backend/test item 类型、测试集中执行规则、拆分原则
 - test.md + test/*.md
 - accept.md + accept/*.md
 
-状态已更新：phase=backend, phases.backend.generated_at=<timestamp>
+状态已更新：phase=backend, phases.backend.status=generated
 下一步: /t-task-check <feature> --phase backend
 ```
