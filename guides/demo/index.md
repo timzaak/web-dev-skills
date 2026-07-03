@@ -20,5 +20,5 @@ Demo 规范入口，按“先确认测试基线，再按失败类型进入对应
 
 - `e2e-testing.md` 是 Demo 测试基线入口；先看这里，再按失败类型进入细页。
 - `test-maintenance.md` 负责分流到 `selector-repair.md`、`pom-update.md`、`common-failures.md`，不要在 agent 文档里复制这套路由。
-- `diagnose-guide.md` 只描述诊断流程；诊断报告结构以 `${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-v3-minimal.md` 为准。
+- `diagnose-guide.md` 只描述诊断流程；诊断报告结构以 `${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-contract.md` 为准。
 - `quality.md` 只定义验收门禁和评分，不替代测试实现规范。

@@ -17,7 +17,7 @@
 | PRD HTML Preview PRD 专用契约 | [prd-preview-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md) |
 | t-dream 候选问题、评分和报告契约 | [dream-report-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md) |
 | 任务检查评分与阻塞规则 | [task-check-rubric.md](${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md) |
-| Demo 诊断报告结构与分类映射 | [diagnostic-report-v3-minimal.md](${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-v3-minimal.md) |
+| Demo 诊断报告结构与分类映射 | [diagnostic-report-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-contract.md) |
 
 ## 使用规则
 
