@@ -70,13 +70,17 @@
 - `depends_on`
 - `handoff_summary`
 - `completion_criteria`
+- `failure_boundary`: 说明该 item 失败时应定位到哪类问题、由哪个 agent/slot 继续处理。
 
 backend/test item 还必须符合 [Backend Test Item Types](#backend-test-item-types)。
 
 规划原则：
 
 - 单个 item 应能由一个 agent 在一次可恢复执行中完成。
-- 不合并可独立交付、独立验证的主交付物。
+- 可恢复性由三项共同判定：执行边界清楚、失败原因可定位、验证闭环明确。
+- item 默认承载一个可独立交付的责任闭环；同一业务能力、接口能力、页面主流程、组件族或测试资产闭环内的强耦合改动应优先合并。
+- 技术层、文件类型或实现步骤只能作为辅助线索；拆分必须让每个 item 都能独立验证、独立恢复，并降低失败归因成本。
+- 不合并弱相关、验证命令不同或失败归因会互相污染的主交付物。
 - 测试代码编写与测试运行/修复闭环必须拆开。
 - 不把大范围跨模块重构、多个页面域或多个完整用户故事塞进同一 item。
 - validation 必须来自目标项目实际脚本、package 名或配置。
@@ -102,8 +106,15 @@ backend/test item 还必须符合 [Backend Test Item Types](#backend-test-item-t
 按复杂度增加流程重量：
 
 - 简单任务保持轻量：单一领域、单一交付物、少量文件、验证明确时可合并。
-- 中等任务按可独立验证的交付物拆分，降低恢复、review 和上下文成本。
+- 中等任务按责任闭环拆分；强耦合且同一验证命令覆盖的实现动作优先放在同一 item，降低 handoff 和上下文切换成本。
 - 复杂任务必须拆细，尤其是跨领域、跨用户故事、跨测试闭环、跨外部契约或失败后难恢复的任务。
+
+优先合并的情况：
+
+- 同一资源或业务操作的 DTO、domain、repository、service/use case、HTTP/OpenAPI 改动强耦合，并由同一组定向检查或场景测试覆盖。
+- 同一页面域的 API/type 适配、状态管理、主流程、错误态、权限态由同一页面验证闭环覆盖。
+- 同一测试场景下的 fixture、helper、mock、测试文件注册需要一起变更，且单独拆开不能独立验收。
+- 多个步骤失败时都会回到同一 agent、同一文件集和同一验证命令，拆开只会增加 handoff。
 
 任一条件成立时必须拆分：
 
@@ -112,18 +123,18 @@ backend/test item 还必须符合 [Backend Test Item Types](#backend-test-item-t
 - 跨越超过 3 个领域模块或页面域。
 - 超过 14 个主要步骤。
 - 单个 item 文件预计超过 30KB，且不是验收清单。
-- scope 包含两个可独立交付、独立验证的主交付物。
-- 单个 HTTP/API item 覆盖超过 10 个 endpoint，或混合不同资源域、读写操作、状态操作、配置类接口。
-- 单个 demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流。
+- scope 包含两个弱相关、可独立交付、独立验证的主交付物。
+- 单个 HTTP/API item 覆盖超过 10 个 endpoint，或混合不同资源域、读写操作、状态操作、配置类接口，导致验证命令、失败归因或 review 边界不清。
+- 单个 demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流，导致失败时无法区分测试基础设施问题和故事流程问题。
 
 推荐拆分维度：
 
-- backend dev：数据库/实体、domain、repository、service/use case、HTTP/OpenAPI、外部集成、SDK/API 影响点。
-- backend HTTP/API：DTO 与路由骨架、读模型、写操作、状态操作、配置类接口；每个 item 必须能用定向 `cargo check` 或场景测试验证。
+- backend dev：按资源能力、业务操作、外部集成或 SDK/API 影响闭环拆分；不要仅因数据库、domain、repository、service、HTTP/OpenAPI 分层不同而拆。
+- backend HTTP/API：读模型、写操作、状态操作、配置类接口可作为拆分线；同一资源的少量强耦合端点可合并，前提是能用定向 `cargo check` 或场景测试验证。
 - backend unit test：低价值单测不单独规划；必要的高价值单测归入对应 backend/dev item。
-- frontend dev：API/type 适配、schema/query/store、页面主流程、状态与错误处理、权限与空态；默认一个 item 只交付一个页面域或可复用组件族。
-- miniapp dev：页面注册、组件主流程、主题接线、token/icon 集成、平台差异处理。
-- demo dev：先拆 fixtures/helpers，再拆主流程、异常/校验场景、权限场景。
+- frontend dev：按页面域、用户流程、可复用组件族或数据闭环拆分；同一页面闭环内的 API/type、schema/query/store、主流程、状态与错误处理、权限与空态可合并。
+- miniapp dev：按页面域、平台能力或模板/主题闭环拆分；页面注册、组件主流程、主题接线、token/icon 集成在同一闭环内可合并。
+- demo dev：按用户故事、业务状态流或测试基础设施闭环拆分；同一故事内强相关的 fixture/helper/Page Object authoring 可合并。
 - accept：design consistency、public API contract、business rules、permission/security、test evidence、demo readiness；纯技术方案聚焦技术目标、兼容性、公共契约、迁移/配置影响、测试证据和回归风险。
 
 backend/test、frontend/test、miniapp/test、demo/dev 的测试拆分与执行见 [Test Execution Consolidation](#test-execution-consolidation) 与 [Backend Test Item Types](#backend-test-item-types)。

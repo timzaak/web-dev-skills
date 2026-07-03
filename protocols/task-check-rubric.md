@@ -71,6 +71,7 @@
 - 若当前阶段为 backend，backend/accept item 依赖 runner item，不只依赖 authoring item
 - 若当前阶段为 frontend/miniapp/demo，涉及测试代码 authoring 时必须有集中定向执行 item，且不得默认规划全量测试
 - 大范围重构、旧架构替换或旧模块迁移任务包含旧代码清理清单，并按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 先删除旧实现再改写新结构
+- 检查是否存在过度拆分：同一责任闭环被拆成多个无法独立验收的 item，或多个 item 只是在技术层之间传递 handoff
 - 设计文档与任务文档一致
 - 调用当前阶段对应 agents 做专业校验
 - 主流程复核后生成最终结论
@@ -84,7 +85,7 @@
 - DAG、manifest 覆盖、agent/slot 匹配、backend test authoring/集中 runner 覆盖等结构检查优先基于轻量 item 表完成。
 - 只有以下情况才读取 item 全文：
   - 关键字段缺失或冲突，需要定位具体证据。
-  - 拆分阈值、职责混杂、设计一致性存在疑点。
+  - 拆分阈值、过度拆分、职责混杂、设计一致性存在疑点。
   - subagent finding 需要主流程复核。
   - P0/P1 需要补齐任务文档证据。
 
@@ -125,7 +126,7 @@ agent 评审边界：
 |---|---:|---|
 | 状态文件结构 | 15 | `.state.json` 的 `phase/phases/tasks/slot/items` 结构完整性 |
 | 文档完整性 | 15 | `index.md`、slot manifest 和 item 文件 |
-| Item 可执行性 | 20 | item 足够小、步骤明确、验证命令明确、边界清晰 |
+| Item 可执行性 | 20 | item 责任闭环清楚、步骤明确、验证命令明确、失败可定位 |
 | 内容一致性 | 20 | 与设计文档、PRD、用户故事、技术预研、仓库路径和术语一致 |
 | 依赖与恢复 | 15 | item DAG 合法、handoff 可追溯、失败可恢复 |
 | 文档规范 | 10 | Markdown 结构和格式规范 |
@@ -154,9 +155,10 @@ agent 评审边界：
 - item 缺少关键章节
 - item 超过拆分阈值，或职责、验证、恢复边界可疑且无合理说明
 - item 职责混杂，单次 agent 调用高概率无法完成
-- item 合并多个可独立交付、独立验证的主交付物
+- item 合并多个弱相关、可独立交付、独立验证的主交付物
+- item 过度拆分：同一责任闭环被拆成多个无法独立验收的 item，多个 item 修改同一小文件集并重复相同验证命令，或依赖链只是在 DTO/domain/repository/service/route、API/store/page/error/permission 等技术层之间传递 handoff
 - HTTP/API item 覆盖超过 10 个 endpoint，或混合不同资源域、读写操作、状态操作、配置类接口，导致单次执行或验证闭环不可恢复
-- item 略大但 scope 单一、验证定向、依赖清晰、handoff 可恢复时不应仅因规模记 P1
+- item 略大但责任闭环单一、验证定向、失败可定位、依赖清晰、handoff 可恢复时不应仅因规模、步骤数或文件数记 P1
 - demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流
 - 大范围重构缺少旧代码清理清单，清单没有说明删除边界与残留搜索方式，或未按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的“先删除旧实现再改写新结构”顺序组织
 - 没有真实兼容约束（按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的兼容性来源判定：PRD、设计文档、外部 API 契约、数据保留、跨版本部署或用户显式要求均不成立）时，任务计划仍以兼容层、adapter、bridge、fallback、双路径分支或“以后再删”作为主路径

@@ -73,6 +73,7 @@ cd miniapp && npm run starter:ci-gate -- --target taro-react-taroify-tailwind
 ### t-task 规划约束
 
 - 涉及测试、验证资产或专项 gate 变更时，先规划 authoring item。
+- 同一小程序验证闭环下强相关的测试资产、配置和专项 gate 调整应优先合并为一个 authoring item；只有验证范围、文件责任或失败归因明显不同才拆开。
 - 集中定向执行 item 汇总本轮相关 authoring item。
 - 执行 item 依赖全部相关 authoring item，优先选择受影响范围的 `typecheck`、`build:weapp`、`build:h5` 或专项 gate。
 - 执行范围从覆盖来源推导；全部构建/gate 仅用于定向范围不可靠或门禁要求。

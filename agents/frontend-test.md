@@ -102,6 +102,7 @@ cd frontend && npm run lint
 ### t-task 规划约束
 
 - 涉及新增或修改测试代码时，先规划测试 authoring item。
+- 同一前端场景下强相关的测试文件、MSW handler、fixture 和测试 helper 应优先合并为一个 authoring item；只有验证范围、文件责任或失败归因明显不同才拆开。
 - 集中定向执行 item 汇总本轮相关 Vitest/MSW/helper authoring item。
 - 执行 item 依赖全部相关 authoring item，优先运行 `npm run test:run -- [pattern]`，按需加 `type-check`。
 - 执行范围从覆盖来源推导；全量 `npm run test:run` 仅用于定向范围不可靠或门禁要求。

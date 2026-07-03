@@ -105,6 +105,7 @@ Runtime Dependencies：
 ## t-task 规划约束
 
 - 涉及新增或修改 Demo/E2E 测试、fixture、helper 或 Page Object 时，先规划 authoring item。
+- 同一用户故事或业务状态流下强相关的 fixture、helper、Page Object 和测试文件 authoring 应优先合并为一个 item；只有测试基础设施与故事流程会互相污染失败归因时才拆开。
 - 集中定向执行 item 汇总本轮相关测试代码 item。
 - 执行 item 依赖全部相关 authoring item，优先运行相关 `demo-test-runner.py [test-file] --grep [pattern]` 或少量相关文件。
 - 执行范围从覆盖来源推导；全部 Demo 测试仅用于定向范围不可靠或门禁要求。
