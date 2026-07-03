@@ -3,9 +3,11 @@ name: t-task-check
 description: Validate task plan executability and consistency with a 100-point score and P0/P1/P2 fix list.
 argument-hint: "[任务名称] [--phase <backend|frontend|miniapp|demo>]"
 allowed-tools:
+  - AskUserQuestion
   - Read
   - Glob
   - Grep
+  - Bash
   - Task
   - Write
   - Agent
@@ -22,6 +24,7 @@ allowed-tools:
 - 给出可复查的 100 分量化结果。
 - 输出 P0/P1/P2 修复清单。
 - 必须按当前阶段调度对应 sub agent 做专业校验，再由主流程聚合结论。
+- 发现必须由用户裁决的规划问题时，使用 `AskUserQuestion` 阻塞式提问，不得只写入 P0/P1/P2 后继续准入。
 
 评分、阻塞条件、报告要求、跨轮收敛和 agent 评审边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md`
 
@@ -50,7 +53,6 @@ allowed-tools:
 - item 文件：
   - backend/frontend/miniapp: `dev/*.md`、`test/*.md`、`accept/*.md`
   - demo: `dev/*.md`、`accept/*.md`
-- backend 额外文件：`finalize.md`
 
 ## Schema 校验
 `.state.json` 的 schema 要求统一参考：
@@ -66,14 +68,20 @@ allowed-tools:
 - 若指定 `--phase`，仅检查该阶段；否则检查当前阶段。指定阶段必须存在于 `.state.json.phases` 的 active phases 中。
 - 校验阶段依赖正确性。
 - 读取阶段目录下的 `index.md`、slot manifest，并建立 item 文件清单。
+- 在目标项目根目录运行确定性 DAG 校验脚本（若存在）：
+   - 命令：`python scripts/check-task-dag.py .ai/task/[feature]/[phase]`
+   - 只检查当前 feature + phase，不默认扫描全量 `.ai/task`。
+   - 该脚本结果是 item DAG 成环/无环的首要仓库证据；输出必须写入报告的 "Item DAG 验证结果"。
+   - 若脚本返回非 0，按 `ITEM_DAG_INVALID` 处理，记 confirmed P0，停止准入 `/t-run`。
+   - 若 `scripts/check-task-dag.py` 不存在，回退到抽取 `depends_on` 的内置校验，并在报告中标注"未找到项目脚本，使用内置校验"；不得临时创建 Python/JS 脚本。
 - 校验 item 时按以下顺序读取：
-   - 从 `.state.json`、slot manifest 和 item 文件头/关键字段抽取 `id/title/agent/scope/expected_files/validation/depends_on/test_item_type/uses_skill/handoff_summary/completion_criteria`。
+   - 从 `.state.json`、slot manifest 和 item 文件头/关键字段抽取 `id/title/agent/scope/expected_files/validation/depends_on/test_item_type/uses_skill/handoff_summary/completion_criteria/failure_boundary`。
    - 用抽取结果完成 item 存在性、路径一致性、manifest 覆盖、DAG、agent/slot 匹配和 backend test authoring/集中 runner 覆盖校验。
-   - 发现字段缺失、DAG/manifest 不一致、拆分阈值可疑、设计一致性可疑或需要为 P0/P1 补证时，读取对应 item 全文。
+   - 发现字段缺失、DAG/manifest 不一致、拆分阈值可疑、过度拆分可疑、设计一致性可疑或需要为 P0/P1 补证时，读取对应 item 全文。
    - 大型 phase 先用 `Grep`、路径清单或 manifest 定位目标 item，再读取命中的 item 文件。
 - 按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md` 校验 item DAG 与 manifest 覆盖关系。
 - 验证 item 文件结构与内容：
-   - 必须包含 `id/title/agent/scope/inputs/steps/expected_files/validation/depends_on/handoff_summary/completion_criteria`
+   - 必须包含 `id/title/agent/scope/inputs/steps/expected_files/validation/depends_on/handoff_summary/completion_criteria/failure_boundary`
    - backend/test item 必须声明 `test_item_type: authoring|runner`
    - backend/test runner item 必须声明 `uses_skill: skills/t-backend-test-run/SKILL.md`
    - backend/test 必须有 runner item 覆盖全部相关 authoring item，且 runner 依赖这些 authoring item
@@ -86,7 +94,7 @@ allowed-tools:
    - 不得把完整 slot 内容塞进一个 item
    - 超过拆分阈值，或职责、验证、恢复边界可疑时，必须有合理说明，否则记 P1
    - scope 中包含两个可独立交付、独立验证的主交付物时，必须拆分，否则记 P1
-   - 单个 HTTP/API item 覆盖超过 7 个 endpoint，或混合不同资源域、读写操作、状态操作、配置类接口时，必须拆分，否则记 P1
+   - 单个 HTTP/API item 覆盖超过 10 个 endpoint，或混合不同资源域、读写操作、状态操作、配置类接口时，必须拆分，否则记 P1
    - 单个 demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流时，必须拆分，否则记 P1
 - 核对设计文档与任务文档的一致性；纯技术方案任务可只追溯设计文档中的技术预研来源，不得因缺少 PRD/用户故事扣 P0。
 - 若任务或设计引用 `.ai/user-stories`，确认其为 draft 候选来源且路径存在；不得要求先发布到 `docs/user-stories` 才能进入 `/t-run`。
@@ -101,12 +109,13 @@ allowed-tools:
    - miniapp: subagent_type="miniapp-dev", "miniapp-test", "miniapp-accept"
    - demo: subagent_type="demo-dev", "demo-accept"
 - 聚合 agent 结果并进行主流程复核：同类问题合并，P0/P1 必须补齐任务文档证据和真源证据。
+- 若复核后存在 `${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md` 定义的 `needs_user_answer`，立即使用 `AskUserQuestion` 向用户提问；回答前不得给出可进入 `/t-run` 的结论，回答后先要求/执行任务或设计文档修正，再继续评分。
 - 按评分体系生成评分与问题清单。
 - 执行报告一致性自检。
 - 写入报告：`.ai/quality/task-check-[feature]-[YYYYMMDD-HHMMSS].md`。
 
 ## Agent Review Contract
-调度方式：通过 `Agent(subagent_type="<agent-name>")` 启动。主流程收集所有 subagent 返回后进行交叉验证（证据优先级：仓库证据 > subagent 发现 > 假设）。
+调度方式：按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 通过 `Agent(subagent_type="<agent-name>")` 启动。主流程收集所有 subagent 返回后进行交叉验证（证据优先级：仓库证据 > subagent 发现 > 假设）。
 
 当前阶段 agent 输出字段和主流程补证要求统一参考：
 
@@ -127,7 +136,7 @@ agent finding 不直接作为最终裁决；主流程必须按 rubric 完成证�
 | `PHASE_INVALID` | `--phase` 不是 `backend|frontend|miniapp|demo` | 非法阶段，仅支持 backend/frontend/miniapp/demo | 使用合法参数后重试 |
 | `PHASE_NOT_ACTIVE` | `--phase` 不在当前任务 active phases 中 | 当前项目未启用该阶段 | 使用 `.state.json.phases` 中存在的阶段，或重新运行 `/t-task` 生成该阶段 |
 | `PHASE_DIR_MISSING` | 阶段目录不存在 | 找不到阶段目录 | 运行 `/t-task [feature] --phase [phase]` 生成 |
-| `ITEM_DAG_INVALID` | item 依赖缺失或成环 | 子任务依赖非法 | 修复或重新生成该阶段 |
+| `ITEM_DAG_INVALID` | item 依赖缺失、成环，或 `scripts/check-task-dag.py .ai/task/[feature]/[phase]` 返回非 0 | 子任务依赖非法 | 修复或重新生成该阶段 |
 | `REPORT_INCONSISTENT` | 报告中的严重度、总分、准入结论或问题数量互相冲突 | 报告自检失败 | 重新聚合证据并重生成报告 |
 
 信息提示（不阻断）：
@@ -144,7 +153,7 @@ agent finding 不直接作为最终裁决；主流程必须按 rubric 完成证�
 总分: 92/100 (优秀，可进入实施)
 
 状态文件验证: 通过
-Item DAG 验证: 通过
+Item DAG 验证: 通过（python scripts/check-task-dag.py .ai/task/sample-feature/backend）
 
 状态文件结构: 15/15
 文档完整性: 14/15

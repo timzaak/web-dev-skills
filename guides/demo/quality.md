@@ -97,16 +97,15 @@ npx jscpd --pattern "**/*.ts" --reporters console demo/e2e
 输出文件：`.ai/quality/demo-accept-[feature]-[date].md`
 
 最小字段：
-- 用户故事映射与场景覆盖
-- 执行结果（总数/通过/失败/超时）
-- 质量检查（隔离、日志、延迟、选择器、复杂度、重复代码检查结果）
-- 重复代码检查结果需包含命令、重复率/重复块数量、关键文件位置；未执行时必须说明原因
-- 验收结论与修复项
+- 结论
+- 门禁摘要
+- P0/P1/P2 单行清单
+- 日志路径
 
 批量验收需额外输出汇总报告：
 - 总测试数
 - ACCEPTED / ACCEPTED_WITH_IMPROVEMENTS / REJECTED 统计
-- 失败测试与修复建议
+- 失败测试单行清单
 
 ## 6. 禁止行为
 

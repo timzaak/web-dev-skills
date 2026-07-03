@@ -1,11 +1,11 @@
-# 诊断报告: {{TEST_NAME}} - {{TIMESTAMP}}
+# [{{PROBLEM_CODE}}/{{SEVERITY}}] {{TEST_NAME}} - {{ONE_LINE_ROOT_CAUSE}}
 
 - `problem_code`: `{{PROBLEM_CODE}}`
 - `severity`: `{{SEVERITY}}`
 - `recommended_agent`: `{{RECOMMENDED_AGENT}}`
 - `confidence`: `{{CONFIDENCE}}`
 
-## 失败上下文
+## 失败事实: {{FAILED_ACTION_OR_SURFACE}} -> {{VISIBLE_FAILURE}}
 
 **错误信息**:
 ```
@@ -29,7 +29,7 @@
 
 ---
 
-## 问题分类
+## 归因结论: {{PROBLEM_CODE}} -> {{RECOMMENDED_AGENT}}
 
 - **主分类**: `{{PROBLEM_CODE}}`
 - **严重级别**: `{{SEVERITY}}`
@@ -39,7 +39,7 @@
 
 ---
 
-## 根本原因分析
+## 证据链: {{STRONGEST_EVIDENCE_SOURCE}}
 
 **直接原因**: {{THE_IMMEDIATE_CAUSE}}
 
@@ -57,7 +57,7 @@
 
 ---
 
-## 修复建议
+## 修复入口: {{MINIMAL_CHANGE_TARGET}}
 
 **推荐方案**: {{RECOMMENDED_FIX}}
 
@@ -71,7 +71,7 @@
 
 ---
 
-## 相关文件
+## 影响文件: {{FILE_IMPACT_SUMMARY}}
 
 | 类型 | 文件路径 | 行号 | 角色 |
 |---|---|---|---|
@@ -81,7 +81,7 @@
 
 ---
 
-## API复现命令（来自 network.json）
+## API复现: {{METHOD_PATH_STATUS_OR_ERROR}}
 
 仅在 API 类问题时保留本节；否则删除整节。
 
@@ -109,7 +109,7 @@
 
 ---
 
-## 快速验证命令
+## 验证闭环: 重跑 {{TEST_CASE}}
 
 ```bash
 # 重跑当前失败测试

@@ -131,7 +131,7 @@ docs/tutorials/
 - `configuration.md`（如果需要）
 - `deployment.md`（如果需要）
 
-可以用 subagent 分章写。每个 subagent 必须拿到：
+可以用 subagent 分章写；具体调用按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 执行。每个 subagent 必须拿到：
 
 - 扫描阶段得到的项目上下文，不要让它重新猜。
 - 本章目标、输出文件和需要读取的源文件路径。

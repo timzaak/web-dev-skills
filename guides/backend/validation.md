@@ -30,7 +30,7 @@ uv run scripts/backend-test.py --
 - 这是任务完成的**必要条件**，不是可选步骤
 - 需要收敛到更窄范围时，用 `--module <module>` 或 `--tests '*<TestClass>'`；模块名取自 `backend/<dir>/pom.xml` 的 `<artifactId>`
 
-### 2. 最终收口（backend accept 后必须执行）
+### 2. 代码质量收口（推荐）
 
 ```bash
 /code-review
@@ -39,11 +39,10 @@ cd backend && mvn verify
 ```
 
 规则：
-- 这一步对应 `/t-backend-finalize [feature]`。
 - 后端静态质量检查使用 Java/Spring 项目的 Maven 命令；非 Java 后端工具链命令不适用于本插件后端。
 - 若项目在 `pom.xml` 中定义了格式化或静态检查插件，按项目已有 Maven goal 执行；本插件不要求新增这些依赖。
 - 后端测试执行与补测证据属于 backend/test、backend-accept 或显式测试命令。
-- 同一 feature 再次执行时，默认从失败步骤恢复，无需额外参数。
+- OpenAPI 导出与前端 API 生成验收属于 backend-accept。
 
 ### 3. 格式化检查（可选但推荐）
 

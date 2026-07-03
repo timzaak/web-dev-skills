@@ -91,7 +91,7 @@ allowed-tools:
 
 ### Step 3: 生成后端（backend-dev subagent）
 
-使用 Agent 工具调度 `t-tools:backend-dev` subagent。
+按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 使用 Agent 工具调度 `t-tools:backend-dev` subagent。后续 `frontend-dev` / `demo-dev` 调用同理。
 
 Subagent prompt 必须要求：
 - 读取后端模板文件 `${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/backend-template.md`

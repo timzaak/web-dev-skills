@@ -57,7 +57,7 @@ runner 不得修改：
 
 ## 委派契约
 
-委派给 `backend-dev` 时，使用 `Agent(subagent_type="backend-dev")`，并在 prompt 中包含：
+委派给 `backend-dev` 时，按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 调用 `Agent(subagent_type="backend-dev")`。prompt 中包含：
 
 ```markdown
 任务：在生产代码中修复这个后端测试失败。

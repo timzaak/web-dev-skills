@@ -27,7 +27,7 @@ allowed-tools:
 
 上游输入（来自 `/t-task` 产出）：
 - `.ai/task/[feature]/.state.json` — 任务状态文件（必须存在且可解析）
-  - 目标阶段必须已生成（`phases[phase].generated_at` 非空）
+  - 目标阶段必须已规划（`phases[phase]`、`tasks[phase]` 和对应阶段目录存在）
 - `.ai/task/[feature]/<phase>/index.md` — 阶段总览
 - `.ai/task/[feature]/<phase>/<slot>.md` — Slot manifest
 - `.ai/task/[feature]/<phase>/<slot>/<ITEM-ID>-*.md` — Item 文件
@@ -41,7 +41,7 @@ allowed-tools:
 
 下游产出：
 - 更新的 `.state.json` — item/slot/phase 状态变更
-  - item 完成后写入 `completed_at` 和 `handoff_summary`
+  - item 完成后写入 `handoff_summary`
   - item 失败后写入 `last_error`
 - item agent 执行产生的代码文件变更（由各 agent 自行产出）
 
@@ -50,8 +50,7 @@ allowed-tools:
 - 按当前 phase 的 item DAG 选择可执行 item，但始终串行调度单个 sub agent。
 - `/t-run` 的执行单元、slot 顺序、失败处理、所需上下文统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`。
 - `index.md` 和 slot manifest 只作为上下文和导航，不作为直接执行输入。
-- backend 的 `finalize.md` 不由 `/t-run` 执行。
-- backend `accept` slot 完成后，`/t-run` 必须停止并提示执行 `/t-backend-finalize [feature]`；不得自动执行 `finalize.md`。
+- backend 的 OpenAPI 导出与前端 API 生成验收由 `backend-accept` 负责。
 
 ## Args
 | 参数 | 说明 |
@@ -62,14 +61,13 @@ allowed-tools:
 ## Preconditions
 - `.ai/task/[feature]/.state.json` 必须存在且可解析。
 - 目标阶段必须是 supported phase，且存在于当前任务 active phases 中；未启用 miniapp 的项目不得执行 `--phase miniapp`。
-- 目标阶段必须已生成，且 `phases[phase].generated_at` 非空。
+- 目标阶段必须已规划，且 `phases[phase]`、`tasks[phase]` 和当前阶段目录存在。
 - 前置阶段依赖统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`。
 - 当前阶段目录必须存在。
 - 当前阶段必须包含：
   - `index.md`
   - 对应 slot manifest：backend/frontend/miniapp 为 `dev.md`, `test.md`, `accept.md`；demo 为 `dev.md`, `accept.md`
   - 对应 item 目录和 item 文件
-  - backend 阶段额外要求 `finalize.md`
 
 ## Shared Contracts
 
@@ -85,7 +83,7 @@ allowed-tools:
 - 若 DAG 成环、依赖缺失或 item 文件缺失，立即终止并提示重新运行 `/t-task-check`
 
 ## Sub Agent Context Contract
-每个 item 必须通过 `Agent` tool 启动，`subagent_type` 为 item 文件中的 `agent` 字段值。传入 prompt 必须包含最小上下文（见下方），agent 规范文件路径作为指令引用。
+每个 item 必须按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 通过 `Agent` tool 启动，`subagent_type` 为 item 文件中的 `agent` 字段值。传入 prompt 必须包含最小上下文（见下方）。
 
 最小上下文、可选增强上下文以及 backend-test 额外要求统一参考：
 
@@ -115,12 +113,10 @@ backend/test 特例：
    - 提示先确认该 item 的真实执行结果，并恢复或修正 `.state.json` 后再重试。
 - 执行 item 前写入：
    - `tasks[phase][slot].items[item_id].status = running`
-   - `tasks[phase][slot].items[item_id].started_at = <timestamp>`
    - `tasks[phase][slot].status = running`
    - `phases[phase].status = running`
 - item 成功后写入：
    - `tasks[phase][slot].items[item_id].status = completed`
-   - `tasks[phase][slot].items[item_id].completed_at = <timestamp>`
    - `tasks[phase][slot].items[item_id].handoff_summary = <summary>`
 - item 失败后写入：
    - `tasks[phase][slot].items[item_id].status = failed`
@@ -130,7 +126,7 @@ backend/test 特例：
    - 停止依赖该 item 的后续执行
 - 每个 item 完成或失败后重新聚合 slot 和 phase 状态。
 - 若当前 item 成功且仍有可执行 item，则返回 Item Selection，继续串行选择下一个 item。
-- backend 阶段在 `accept` slot 全部 completed 后停止，并提示执行 `/t-backend-finalize [feature]`。
+- backend 阶段在 `accept` slot 全部 completed 后聚合为 completed。
 
 ## Forbidden
 - 直接执行 `dev.md`、`test.md`、`accept.md`。
@@ -141,7 +137,6 @@ backend/test 特例：
 - 一次启动多个 sub agents 或批量下发多个 item。
 - 当前 item 未完成并写回状态时，预取、提前执行或跨 slot 执行其他 item。
 - 对 `backend-test` 直接下发"先跑全量 `uv run scripts/backend-test.py --`"而不做变更分析。
-- backend `accept` 完成后，不得自动执行 `finalize.md`。
 
 ## Failure
 - 状态文件缺失/损坏：终止并提示先运行 `/t-task [feature] --phase [phase]`。
@@ -165,6 +160,7 @@ phase: backend
 slot: dev
 item_id: BE-D02
 agent: backend-dev
+agent_spec: ${CLAUDE_PLUGIN_ROOT}/agents/backend-dev.md
 item_file: .ai/task/sample-feature/backend/dev/BE-D02-domain-models.md
 slot_manifest: .ai/task/sample-feature/backend/dev.md
 phase_index: .ai/task/sample-feature/backend/index.md

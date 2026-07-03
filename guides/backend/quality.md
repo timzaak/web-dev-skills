@@ -22,7 +22,9 @@
 - 受影响测试通过（0 failed）
 - 环境可启动
 - 健康检查通过（优先使用 Actuator `/actuator/health`，或以目标项目健康检查契约为准）
-- 若目标项目已有 OpenAPI 工具链，OpenAPI 关键声明完整（无阻塞缺失）
+- OpenAPI 关键声明完整（无阻塞缺失）
+- OpenAPI 可成功导出，`frontend/api.json` 为有效 JSON
+- 前端 API 客户端可成功生成
 
 ### P1（应通过）
 - 静态检查无严重警告
@@ -46,9 +48,8 @@ npx jscpd --pattern "**/*.java" --reporters console backend
 规则：
 - `backend-accept` 默认先做改动分析，再执行定向 `uv run scripts/backend-test.py -- <targeted filter>`；不得默认直接跑全量 `uv run scripts/backend-test.py --`。
 - 只有在用户明确要求全量测试，或影响范围无法可靠收敛时，`backend-accept` 才允许升级到全量测试；一旦升级，则全量结果也必须通过。
-- `backend-accept` 完成后，必须继续执行 backend finalize 收口。
-- 收口入口固定为 `/t-backend-finalize [feature]`，负责 `/code-review -> Java 质量任务 -> OpenAPI 导出 -> 前端 API 生成`。
-- 若 OpenAPI 导出或前端 API 生成在收口阶段失败，修复后至少重新执行质量任务、OpenAPI 导出与前端 API 生成。
+- OpenAPI 导出与前端 API 生成属于 `backend-accept` 的 P0 验收项；失败时拒绝验收。
+- 若 OpenAPI 导出或前端 API 生成失败，修复后至少重新执行受影响测试、OpenAPI 导出与前端 API 生成。
 
 ## 5. 环境验证（MANDATORY）
 
@@ -113,12 +114,11 @@ cd frontend && npm run generate-api
 - 只有 P0 失败才能触发 `REJECTED`。
 
 ### 报告最小字段
-- 测试结果（总数/通过/失败）
-- 构建与静态检查结果
-- 重复代码检查结果（命令、重复率/重复块数量、关键文件位置；未执行时必须说明原因）
-- 环境验证结果
-- OpenAPI 检查结果
-- 阻塞问题与修复建议
+- 结论
+- 门禁摘要
+- P0/P1/P2 单行清单
+- 证据路径
+- Handoff
 
 ## 8. 禁止行为
 

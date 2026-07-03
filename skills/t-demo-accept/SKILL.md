@@ -65,15 +65,15 @@ wc -l [测试文件路径]
 - 生成报告。
 - 单文件：`.ai/quality/demo-accept-[name]-[YYYYMMDD-HHMMSS].md`
 - 批量：同时生成汇总 `.ai/quality/demo-accept-summary-[YYYYMMDD-HHMMSS].md`
-- 报告必须包含重复代码检查结果：执行命令、重复率/重复块数量、关键文件位置；未执行时必须说明原因。
+- 短报告：结论、门禁摘要、P0/P1/P2 单行清单、日志路径。
 
 ## 输出格式
 每个文件产出：
 - 状态：`ACCEPTED` / `ACCEPTED_WITH_IMPROVEMENTS` / `REJECTED`
 - 分数：0-100
-- 问题清单：P0 / P1 / P2
-- 证据：失败命令、日志路径、相关代码位置
-- 重复代码检查结果：命令、重复率/重复块数量、关键文件位置或未执行原因
+- 门禁摘要：用户故事映射、编译、执行、隔离/日志、重复代码
+- 问题清单：P0 / P1 / P2，每条单行
+- 证据路径
 
 日志路径统一使用仓库相对路径：
 - `log/backend-demo.log`

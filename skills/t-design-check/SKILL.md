@@ -3,6 +3,7 @@ name: t-design-check
 description: Evaluate technical design documents for implementability, completeness, and consistency with a quantitative 100-point score.
 argument-hint: "[方案名称]"
 allowed-tools:
+  - AskUserQuestion
   - Read
   - Glob
   - Grep
@@ -20,6 +21,7 @@ allowed-tools:
 - 给出可复查的 100 分量化结果。
 - 输出 P0/P1/P2 修复清单。
 - 给出明确的设计质量门禁结论。
+- 发现必须由用户裁决的设计问题时，使用 `AskUserQuestion` 阻塞式提问，不得只写入问题清单后继续。
 
 评分维度、严重级别和报告要求统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-check-rubric.md`
 
@@ -50,6 +52,7 @@ allowed-tools:
 - 如果设计文档声明为纯技术方案且不涉及业务逻辑变动，可接受 `.ai/tech-research/[feature].md` 作为唯一需求来源；此时不得因缺少 PRD/用户故事扣 P0，但需要核对技术目标、约束、影响范围和风险是否一致。
 - 核对设计文档与项目规范的一致性。
 - 按 `${CLAUDE_PLUGIN_ROOT}/protocols/design-check-rubric.md` 检查 API、数据库、前端与测试策略。
+- 若发现 `${CLAUDE_PLUGIN_ROOT}/protocols/design-check-rubric.md` 定义的 `needs_user_answer`，立即使用 `AskUserQuestion` 向用户提问；回答前不生成通过结论，回答后先要求/执行设计文档修正，再继续评分。
 - 生成评分与问题清单。
 - 写入报告：`.ai/quality/design-check-[feature]-[YYYYMMDD-HHMMSS].md`。
 

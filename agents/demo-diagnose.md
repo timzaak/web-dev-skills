@@ -38,7 +38,7 @@ tools:
 
 必须输出 `.ai/diagnose/[测试文件简名]-[YYYY-MM-DD-HH-mm].md`。
 
-报告结构、字段、章节顺序和问题类型一律以 `${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-v3-minimal.md` 为准，不要在本文件中另起一套格式。置信度只使用 `high | medium | low`，且必须由已读取证据支撑。
+报告结构、字段、章节顺序和问题类型一律以 `${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-contract.md` 为准，不要在本文件中另起一套格式。报告标题和章节标题必须携带本次诊断的具体结论，不得只写空泛容器名。置信度只使用 `high | medium | low`，且必须由已读取证据支撑。
 
 ## 工作流程
 
@@ -79,14 +79,14 @@ tools:
 - 后端 API 或查询问题
 - 环境问题
 
-具体分类值与推荐处理方映射见 `${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-v3-minimal.md`。
+具体分类值与推荐处理方映射见 `${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-contract.md`。
 
 ### 4. 仅在 API 类失败时生成复现信息
 
 当 unified network log 中存在失败请求时：
 - 从 `*-network.json` 提取 `method`、`url`、`requestHeaders`、`requestBody`、`pageCookies`、`status`
 - 必要时构造可复现的 curl 命令
-- 将结果写入报告的 `API复现命令` 章节
+- 将结果写入报告的 `API复现` 章节
 
 仅当问题与 API 调用直接相关时输出这一章节；不要对纯 UI 或纯测试问题强行生成。
 
@@ -105,7 +105,7 @@ URL 归一化规则（前端 dev server :3000 代理 API 到后端 :8080，curl 
 
 ## 推荐处理方映射
 
-推荐处理方映射以 `${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-v3-minimal.md` 为准。
+推荐处理方映射以 `${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-contract.md` 为准。
 
 ## 诊断要求
 
@@ -125,8 +125,8 @@ URL 归一化规则（前端 dev server :3000 代理 API 到后端 :8080，curl 
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/selector-repair.md`
 
 Runtime Dependencies：
-- `${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-v3-minimal.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-contract.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/diagnose-guide.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/demo/e2e-testing.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/demo/templates/diagnose-report-template-v3-minimal.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/demo/templates/diagnose-report-template.md`
 - `demo/e2e/selectors.ts`

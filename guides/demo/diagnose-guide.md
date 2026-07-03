@@ -1,6 +1,6 @@
 # Demo-Diagnose Guide
 
-本文档只描述诊断流程。诊断报告的字段、章节和必填项一律以 `${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-v3-minimal.md` 为准。
+本文档只描述诊断流程。诊断报告的字段、章节和必填项一律以 `${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-contract.md` 为准。
 
 ## Workflow
 
@@ -30,11 +30,11 @@
 - **API 失败时生成复现命令**
    - 从 `*-network.json` 提取请求信息
    - 必要时生成 curl 命令
-   - 写入报告的 `API复现命令` 章节
+   - 写入报告的 `API复现` 章节
 
 - **输出诊断报告**
    - 写入 `.ai/diagnose/`
-   - 严格遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-v3-minimal.md`
+   - 严格遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-contract.md`
 
 ## Classification Rules
 
@@ -105,13 +105,13 @@
 - 先验证测试代码，再判断是不是运行时问题。
 - 每个结论都必须能回指到日志、代码或请求证据。
 - 只输出一个主问题类型，避免模糊归因。
-- API 复现命令只在 API 类问题时输出，字段名与章节顺序不要在本文档里另起一套。
+- `API复现` 只在 API 类问题时输出，字段名与章节顺序不要在本文档里另起一套。
 - 用离散等级表达结论强度：`high`、`medium`、`low`。
 - 如果证据不足以得出稳定结论，降低 `confidence`，不要虚构细节。
 
 ## Related Documentation
 
-- 诊断协议：[diagnostic-report-v3-minimal.md](${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-v3-minimal.md)
+- 诊断协议：[diagnostic-report-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-contract.md)
 - Demo E2E Testing Guide：`e2e-testing.md`
 - Environment and Testing Guide：`${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md`
-- Diagnostic Report Template：[diagnose-report-template-v3-minimal.md](${CLAUDE_PLUGIN_ROOT}/guides/demo/templates/diagnose-report-template-v3-minimal.md)
+- Diagnostic Report Template：[diagnose-report-template.md](${CLAUDE_PLUGIN_ROOT}/guides/demo/templates/diagnose-report-template.md)

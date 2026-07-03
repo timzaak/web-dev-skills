@@ -238,7 +238,7 @@ Markdown 使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-decision/template.m
 3. 跑六问诘问主线，只追问阻塞决策的问题。
 4. 形成至少两个选项：`Minimal` 和 `Recommended`；若六问识别出致命假设，加 `Wedge`；确有价值时加 `Ambitious`。
 5. 写入 `.ai/decision/<feature>.md`。
-6. 委派 `html-show`：
+6. 按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 委派 `html-show`：
 
 ```text
 使用 html-show 生成 HTML Preview。

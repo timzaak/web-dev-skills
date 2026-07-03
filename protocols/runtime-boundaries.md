@@ -52,6 +52,7 @@
 - 插件 `guides/` 提供默认开发规范和质量门禁；如果目标项目 `AGENTS.md`、代码事实或正式文档给出更具体约束，优先采用目标项目约束并记录差异。
 - 跨 skill 或 agent 的结构化字段、状态结构、报告格式优先来自 `protocols/`。
 - `SKILL.md` 和 agent 文档只定义如何编排、何时读取、需要返回什么，不重写 guide/protocol 中已有规则。
+- `agents/*.md` 定义 subagent 角色边界与执行职责；非 Claude 运行时不保证自动加载。所有 skill 调用子 agent 前统一按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 显式注入角色规范。
 
 ## Script Entry Rules
 

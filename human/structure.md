@@ -41,7 +41,6 @@ Skill 是命令式工作流入口，按工作流阶段组织如下：
 
 - `t-run`：按阶段驱动实现与测试。
 - `code-review`：代码审查（前端、后端、Demo 通用）。
-- `t-backend-finalize`：后端收口审查（仅后端）。
 - `t-backend-test-run`：内部执行型 skill，供流程复用。
 
 **Demo：**

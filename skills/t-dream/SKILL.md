@@ -185,6 +185,7 @@ PRD 治理模式只保留当前产品规则、用户可见契约、范围边界�
 
 ### subagent 调用要求
 - 使用 `Task` 或 `Agent` 启动 `subagent_type="context-curator"`、`subagent_type="structure-review"`、`subagent_type="general_agent"`。
+- subagent 调用按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 执行；`general_agent` 为内置 agent，按协议跳过注入。
 - 可并发/后台执行时，同时启动各维度 subagent。
 - 各 subagent 必须只读检查，不修改代码或文档。
 - 各 subagent 必须接收同一份共享上下文包，保持检查范围一致。
@@ -308,7 +309,7 @@ PRD 治理模式只保留当前产品规则、用户可见契约、范围边界�
 ### 8. 后端深度一致性
 默认后端维度由 `general_agent` 完成证据提取和对比；在 `--deep` 或 `--backend-only` 时，对每个后端模块额外调用 `backend-consistency`。
 
-通过 `Agent(subagent_type="backend-consistency")` 启动，prompt 必须包含：
+按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 通过 `Agent(subagent_type="backend-consistency")` 启动，prompt 必须包含：
 - 模块名。
 - PRD 路径；路径来自 `docs/prd/**/*.md` 的实际匹配结果。
 - 当前检查范围。

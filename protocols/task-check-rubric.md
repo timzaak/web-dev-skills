@@ -19,7 +19,20 @@
 
 - sub agent 只能提供候选问题，不能直接充当最终裁决
 - 可从仓库发现的事实必须由主流程再次核验
-- 规范冲突应标记为“规范冲突/待澄清”，不得直接记为 P0
+- 规范冲突若能从真源或仓库事实裁决，按裁决结果记录；若必须由用户决策，进入 [Clarification Gate](#clarification-gate)，不得只记为 P0/P1/P2
+
+## Clarification Gate
+
+设计、规划或检查过程中，凡问题会影响任务是否可执行、拆分方向、交付范围、权限/安全边界、数据模型、兼容性策略、验收标准或测试闭环，且无法从真源文档、仓库事实或用户已给上下文裁决时，必须停止当前阶段并使用 `AskUserQuestion` 向用户提问。
+
+要求：
+
+- 不得把这类问题仅写入 P0/P1/P2 清单、风险表或假设列表后继续推进。
+- 问题必须具体、可回答，包含冲突证据、需要用户选择或补充的决策点，以及不回答会阻塞的后续动作。
+- 用户回答后，先把结论落实到对应设计或任务文档，再继续评分、生成任务或准入 `/t-run`。
+- 未得到用户回答前，不得生成“可进入下一阶段”的结论。
+
+可继续记录为 P0/P1/P2 的是已经有证据确认的问题；需要用户裁决的问题状态为 `needs_user_answer`，不参与分数扣减或 P0 计数。
 
 ## Schema Checks
 
@@ -34,7 +47,6 @@
 - demo 含 `dev/accept`
 - 每个 slot 含 `status/manifest/items`
 - 每个 item 含 `status/file/agent/depends_on`
-- backend 含 `tasks.backend.finalize.file` 和 `tasks.backend.finalize.status`
 
 缺失或非法 => `TASK_SCHEMA_INVALID`
 
@@ -59,6 +71,7 @@
 - 若当前阶段为 backend，backend/accept item 依赖 runner item，不只依赖 authoring item
 - 若当前阶段为 frontend/miniapp/demo，涉及测试代码 authoring 时必须有集中定向执行 item，且不得默认规划全量测试
 - 大范围重构、旧架构替换或旧模块迁移任务包含旧代码清理清单，并按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 先删除旧实现再改写新结构
+- 检查是否存在过度拆分：同一责任闭环被拆成多个无法独立验收的 item，或多个 item 只是在技术层之间传递 handoff
 - 设计文档与任务文档一致
 - 调用当前阶段对应 agents 做专业校验
 - 主流程复核后生成最终结论
@@ -72,7 +85,7 @@
 - DAG、manifest 覆盖、agent/slot 匹配、backend test authoring/集中 runner 覆盖等结构检查优先基于轻量 item 表完成。
 - 只有以下情况才读取 item 全文：
   - 关键字段缺失或冲突，需要定位具体证据。
-  - 拆分阈值、职责混杂、设计一致性存在疑点。
+  - 拆分阈值、过度拆分、职责混杂、设计一致性存在疑点。
   - subagent finding 需要主流程复核。
   - P0/P1 需要补齐任务文档证据。
 
@@ -103,6 +116,8 @@ agent 评审边界：
 - `why_blocking`
 - `fix`
 
+若 finding 需要用户裁决，`status` 必须为 `needs_user_answer`，并触发 [Clarification Gate](#clarification-gate)，不得降级为 `assumption` 后继续。
+
 ## Scoring
 
 总分 100：
@@ -110,8 +125,8 @@ agent 评审边界：
 | 维度 | 分值 | 说明 |
 |---|---:|---|
 | 状态文件结构 | 15 | `.state.json` 的 `phase/phases/tasks/slot/items` 结构完整性 |
-| 文档完整性 | 15 | `index.md`、slot manifest、item 文件和 backend `finalize.md` |
-| Item 可执行性 | 20 | item 足够小、步骤明确、验证命令明确、边界清晰 |
+| 文档完整性 | 15 | `index.md`、slot manifest 和 item 文件 |
+| Item 可执行性 | 20 | item 责任闭环清楚、步骤明确、验证命令明确、失败可定位 |
 | 内容一致性 | 20 | 与设计文档、PRD、用户故事、技术预研、仓库路径和术语一致 |
 | 依赖与恢复 | 15 | item DAG 合法、handoff 可追溯、失败可恢复 |
 | 文档规范 | 10 | Markdown 结构和格式规范 |
@@ -122,7 +137,7 @@ agent 评审边界：
 ### P0
 
 - `.state.json` 缺失或格式错误
-- 缺少核心 phase/slot/item/finalize 结构
+- 缺少核心 phase/slot/item 结构
 - 阶段目录、manifest、item 文件缺失
 - item 依赖不存在或成环
 - manifest 未覆盖全部 items
@@ -140,15 +155,14 @@ agent 评审边界：
 - item 缺少关键章节
 - item 超过拆分阈值，或职责、验证、恢复边界可疑且无合理说明
 - item 职责混杂，单次 agent 调用高概率无法完成
-- item 合并多个可独立交付、独立验证的主交付物
-- HTTP/API item 覆盖超过 7 个 endpoint，或混合不同资源域、读写操作、状态操作、配置类接口，导致单次执行或验证闭环不可恢复
-- item 略大但 scope 单一、验证定向、依赖清晰、handoff 可恢复时不应仅因规模记 P1
+- item 合并多个弱相关、可独立交付、独立验证的主交付物
+- item 过度拆分：同一责任闭环被拆成多个无法独立验收的 item，多个 item 修改同一小文件集并重复相同验证命令，或依赖链只是在 DTO/domain/repository/service/route、API/store/page/error/permission 等技术层之间传递 handoff
+- HTTP/API item 覆盖超过 10 个 endpoint，或混合不同资源域、读写操作、状态操作、配置类接口，导致单次执行或验证闭环不可恢复
+- item 略大但责任闭环单一、验证定向、失败可定位、依赖清晰、handoff 可恢复时不应仅因规模、步骤数或文件数记 P1
 - demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流
 - 大范围重构缺少旧代码清理清单，清单没有说明删除边界与残留搜索方式，或未按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的“先删除旧实现再改写新结构”顺序组织
 - 没有真实兼容约束（按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的兼容性来源判定：PRD、设计文档、外部 API 契约、数据保留、跨版本部署或用户显式要求均不成立）时，任务计划仍以兼容层、adapter、bridge、fallback、双路径分支或“以后再删”作为主路径
 - 下游 item 缺少 handoff 追溯
-- backend 缺少 `awaiting_finalize` 收口语义
-- `finalize.md` 缺少必要收口/重试说明
 - 设计文档与任务文档严重不一致但暂不直接阻塞执行
 
 ### P2
@@ -160,18 +174,15 @@ agent 评审边界：
 
 ## Report Requirements
 
-报告必须包含：
+报告只保留：
 
 - 总分、等级、是否可进入 `/t-run`
-- 状态文件验证结果
-- 阶段依赖验证结果
-- item DAG 验证结果
-- 每个维度得分与扣分证据
-- 实际调用的 agent 集合
-- `confirmed / disputed / assumption` 分类摘要
-- P0/P1/P2 问题列表
-- 明确修复步骤
-- 已排除的误报/争议项（如有）
+- 用户澄清状态：无阻塞澄清 / 已通过 `AskUserQuestion` 解决 / 等待用户回答
+- 门禁摘要：状态文件、阶段依赖、item DAG、manifest/items、agent 集合
+- 扣分维度摘要
+- P0/P1/P2 单行清单：`级别 | 文件 | 问题 | 修复`
+- 需用户回答的问题清单：`问题 | 证据 | 需要用户决定什么 | 阻塞的后续动作`
+- 证据路径或命令摘要；不得复制完整 agent 输出或命令日志
 
 等级建议：
 
@@ -187,4 +198,5 @@ agent 评审边界：
 - 每个 P0/P1 必须同时有任务文档证据和真源证据
 - `confirmed P0 > 0` 时，不得进入 `/t-run`
 - `disputed` 或 `assumption` 不得计入 P0
+- 存在 `needs_user_answer` 时，不得进入 `/t-run`，且必须先用 `AskUserQuestion` 获取答案
 - P2 不阻塞 `/t-run`

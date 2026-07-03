@@ -65,6 +65,7 @@ tools:
 通过 `t-task` 生成 backend/test slot 时：
 
 - authoring item 由本 agent 规划或执行。
+- 同一后端场景下强相关的测试文件、helper 和模块注册应优先合并为一个 authoring item；只有验证范围、文件责任或失败归因明显不同才拆开。
 - runner item、覆盖来源、`uses_skill`、`Expected Test Manifest` 和禁止项统一以 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 为准。
 - 本 agent 不维护 backend/test 的第二套 runner 规则。
 
