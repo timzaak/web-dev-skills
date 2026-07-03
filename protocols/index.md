@@ -15,7 +15,6 @@
 | PRD / user story 检查评分标准 | [prd-check-rubric.md](${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md) |
 | HTML Preview 通用契约 | [html-show-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md) |
 | PRD HTML Preview PRD 专用契约 | [prd-preview-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md) |
-| UI 方案探索产物与交接契约 | [ui-design-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/ui-design-contract.md) |
 | t-dream 候选问题、评分和报告契约 | [dream-report-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md) |
 | 任务检查评分与阻塞规则 | [task-check-rubric.md](${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md) |
 | Demo 诊断报告结构与分类映射 | [diagnostic-report-v3-minimal.md](${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-v3-minimal.md) |
