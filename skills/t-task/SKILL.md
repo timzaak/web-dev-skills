@@ -79,7 +79,7 @@ allowed-tools:
 - 按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 校验阶段前置和 slot 顺序；未启用的 phase 不参与校验或生成。
 - 若设计文档存在会影响任务拆分、交付范围、权限/安全边界、数据模型、兼容性策略、验收标准或测试闭环的未决问题，先使用 `AskUserQuestion` 获取用户答案；回答前不得生成或更新 `.ai/task/[feature]/`。
 - 按当前 phase 提取设计文档最小相关上下文；未命中相关章节时记录警告，但不得编造设计事实。
-- 按当前阶段 slot 串行调度相应 agent。每个 slot agent 必须通过 `Agent` tool 启动，`subagent_type` 按 Agent Dispatch Mapping 映射。
+- 按当前阶段 slot 串行调度相应 agent。每个 slot agent 必须按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 通过 `Agent` tool 启动，`subagent_type` 按 Agent Dispatch Mapping 映射。
 - 传入 agent prompt 的内容保持精简：阶段设计摘要、上游 handoff、目标 guide/protocol 路径、输出字段要求、`needs_user_answer` 规则；不得复制 guide、protocol 或 agent 文档中的长篇规则。
 - slot agent 返回结构统一参考 [Agent Output Contract](#agent-output-contract)。
 - 主流程在每个 slot 返回后先执行写入前硬校验：

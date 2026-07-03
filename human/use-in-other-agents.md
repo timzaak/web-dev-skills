@@ -82,6 +82,12 @@ dispatcher skill 不改变本插件对目标项目的运行时约定。在**目�
 
 这些路径由 skill 体内的 protocol 约定,与具体 AI 工具无关。
 
+## Sub-Agent 在 ZCode/Codex 中的加载
+
+ZCode / Codex 等非 Claude 工具通常不会像 `claude --plugin-dir` 那样自动注册 `agents/*.md`。本插件不要求用户额外配置 agent 注册；调用子 agent 的 skill 会按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 显式注入角色规范。
+
+只要 dispatcher 注入的 `${CLAUDE_PLUGIN_ROOT}` 指向本仓库克隆位置，且仓库内 `agents/` 目录存在，支持 `~/.agents/skills/` 与子 agent/任务委派能力的工具即可按同一规则运行。
+
 ## 安装 Context7
 
 Context7 提供第三方库的最新版本文档,在 `t-design`、`t-run` 等阶段会被查询。它是一个基于 Streamable HTTP 的 MCP server,通用配置要素:

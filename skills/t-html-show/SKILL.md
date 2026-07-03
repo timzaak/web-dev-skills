@@ -128,7 +128,7 @@ PRD 模式额外读取：
 
 ### 4. 生成 HTML Preview
 
-通过 Agent tool 委派 `html-show` subagent 生成或更新 Preview。
+按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 委派 `html-show` subagent 生成或更新 Preview。
 
 委派 prompt 必须包含：
 - 源文档路径

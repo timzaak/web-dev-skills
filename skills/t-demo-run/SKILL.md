@@ -62,6 +62,7 @@ uv run scripts/demo-test-runner.py "[测试文件]" --run-id [RUN_ID] --grep "[�
 - 单用例失败修复循环（最多 6 次）。
 - 先通过 `Agent(subagent_type="demo-diagnose")` 启动诊断 subagent，传入 testFile、runId、testCaseTitle，生成结构化诊断。
 - 按诊断结果通过 `Agent` tool 分发到对应修复 subagent：`Agent(subagent_type="demo-dev")` / `Agent(subagent_type="frontend-dev")` / `Agent(subagent_type="backend-dev")` / `Agent(subagent_type="miniapp-dev")`。
+- 上述每次 `Agent` 调用均按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 执行。
 - 读取修复 agent 返回的 `tests_to_run`（必填）并校验字段：
   - `layer`: `backend|frontend|miniapp|demo`
   - `command`: 可直接执行命令

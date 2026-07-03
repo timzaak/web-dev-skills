@@ -249,7 +249,7 @@ create 路径使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-prd/template.md
 
 ### 8. 生成 HTML Preview
 
-通过 Agent tool 委派 `html-show` subagent 自动生成或更新 HTML Preview。
+按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 委派 `html-show` subagent 自动生成或更新 HTML Preview。
 
 委派 prompt 包含：
 - 源文档路径（agent 自动推断输出路径、类型和模式）

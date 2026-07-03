@@ -47,7 +47,7 @@
 
 启动 item agent 时至少提供：
 
-- agent 规范文件
+- agent 规范文件（调用规则见 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md`）
 - `feature`, `phase`, `slot`, `item_id`
 - 当前 item 文件全文
 - 当前阶段 `index.md`

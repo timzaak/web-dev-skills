@@ -82,6 +82,12 @@ The dispatcher skill does not change the plugin's runtime conventions for target
 
 These paths are defined by protocols inside the skills and are independent of the AI tool.
 
+## How Sub-Agents Load in ZCode/Codex
+
+ZCode / Codex and other non-Claude tools usually do not auto-register `agents/*.md` the way `claude --plugin-dir` does. This plugin does not require users to configure extra agent registration; skills that invoke sub-agents explicitly inject the role spec according to `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md`.
+
+As long as the dispatcher-injected `${CLAUDE_PLUGIN_ROOT}` points at this repo clone and the repo still contains `agents/`, tools that support `~/.agents/skills/` plus sub-agent/task delegation can run with the same rule.
+
 ## Install Context7
 
 Context7 serves up-to-date, version-specific documentation for third-party libraries; it is queried during stages like `t-design` and `t-run`. It is a Streamable-HTTP MCP server. The universal configuration elements are:
