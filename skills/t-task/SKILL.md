@@ -137,7 +137,6 @@ slot agent 输出必须至少包含：
 - `manifest_content`
 - `items`: item 对象列表，每个 item 包含 `id/file/agent/depends_on/content`
 - `item_dag`
-- `handoff_summary`
 - `self_check`: 必填字段、DAG、责任闭环拆分、过度拆分、阶段执行规则和 P0/P1 风险自检结果
 
 主流程必须：

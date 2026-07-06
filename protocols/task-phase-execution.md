@@ -41,7 +41,8 @@
 - 多个 item 同时可执行时，优先 slot manifest 顺序；缺失时按 item ID 字典序。
 - 仅执行 `pending` 或 `failed` item；重试 `failed` 前依赖必须全部 `completed`。
 - 依赖未满足时不得跳过下游 item。
-- 任意时刻最多一个 item 为 `running`。
+- `/t-run` 串行调度 item，但执行前不写入 `running` 状态；中断恢复时重新选择仍为 `pending` 或 `failed` 的 item。
+- `running` 只作为旧状态兼容值；若状态文件中残留 `running` item，执行应终止并要求按真实结果修正状态。
 
 ## Agent Context
 
@@ -51,7 +52,7 @@
 - `feature`, `phase`, `slot`, `item_id`
 - 当前 item 文件全文
 - 当前阶段 `index.md`
-- 直接依赖 item 的 handoff 摘要与文件路径
+- 直接依赖 item 的状态、文件路径与必要片段
 
 可选提供当前 slot manifest、阶段设计摘要、最小状态切片、completion criteria / validation。
 
@@ -183,4 +184,4 @@ backend/test slot 必须显式规划测试执行闭环：
 - 状态文件缺失或损坏：终止并提示先运行 `/t-task`
 - DAG 成环、依赖缺失、item 文件缺失：终止并提示运行 `/t-task-check`
 - item 执行失败：写回 `last_error`，阻断依赖该 item 的后续执行
-- 已有 `running` item：终止，不启动新 agent
+- 旧状态残留 `running` item：终止，不启动新 agent，提示按真实执行结果修正状态

@@ -90,7 +90,7 @@
   - subagent finding 需要主流程复核。
   - P0/P1 需要补齐任务文档证据。
 
-subagent 上下文必须按 agent/slot 裁剪。不得默认向每个 subagent 传入当前 phase 的全部 item 全文；应传入相关 item 路径、关键字段摘要、必要片段和直接依赖 handoff 摘要。
+subagent 上下文必须按 agent/slot 裁剪。不得默认向每个 subagent 传入当前 phase 的全部 item 全文；应传入相关 item 路径、关键字段摘要、必要片段和直接依赖 item 文件路径。
 
 ## Agent Review Contract
 

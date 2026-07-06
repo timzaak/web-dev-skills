@@ -50,7 +50,6 @@
 
 按执行结果补充：
 
-- 成功时：`handoff_summary`
 - 失败时：`last_error`
 
 `.state.json` 不记录时间类元数据。不要写入 `generated_at`、`created_at`、`updated_at`、`started_at` 或 `completed_at`；是否已规划、执行中或完成只由 `status`、任务目录和 manifest/item 文件存在性表达。
@@ -61,6 +60,7 @@
 - `phases` / `tasks` 只要求包含当前任务的 `active_phases`；未启用 miniapp 的项目不得强制要求存在 `phases.miniapp` 或 `tasks.miniapp`。
 - `miniapp` 启用规则统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`。
 - `status` 只允许 `pending | running | failed | completed | skipped | generated`。
+  - `running`：兼容旧流程的执行中状态；新 `/t-run` 不主动写入
   - `skipped`：阶段不适用于当前任务（如 backend 已实现，无需变更）
   - `generated`：任务规划已生成，尚未开始执行
 

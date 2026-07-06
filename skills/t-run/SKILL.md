@@ -41,7 +41,6 @@ allowed-tools:
 
 下游产出：
 - 更新的 `.state.json` — item/slot/phase 状态变更
-  - item 完成后写入 `handoff_summary`
   - item 失败后写入 `last_error`
 - item agent 执行产生的代码文件变更（由各 agent 自行产出）
 
@@ -101,16 +100,10 @@ backend/test 特例：
 ## State Transition
 - 读取状态并确定执行范围。
 - 依据 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 校验状态与 DAG。
-- 执行 item 前检查当前 phase 是否已有任何 item 为 `running`：
-   - 若存在，立即终止，不启动新 agent。
-   - 提示先确认该 item 的真实执行结果，并恢复或修正 `.state.json` 后再重试。
-- 执行 item 前写入：
-   - `tasks[phase][slot].items[item_id].status = running`
-   - `tasks[phase][slot].status = running`
-   - `phases[phase].status = running`
+- 执行 item 前不写入 `running` 状态；中断恢复时，重新选择仍为 `pending` 或 `failed` 且依赖满足的 item。
+- 新流程不主动写入 `running`；若遇到旧状态中残留的 `running` item，应提示确认真实执行结果，并按实际结果修正为 `pending`、`failed` 或 `completed` 后重试。
 - item 成功后写入：
    - `tasks[phase][slot].items[item_id].status = completed`
-   - `tasks[phase][slot].items[item_id].handoff_summary = <summary>`
 - item 失败后写入：
    - `tasks[phase][slot].items[item_id].status = failed`
    - `tasks[phase][slot].items[item_id].last_error = <summary>`
@@ -128,7 +121,7 @@ backend/test 特例：
 - 依赖未完成时执行下游 item。
 - 同一 DAG 层并发执行多个 item。
 - 一次启动多个 sub agents 或批量下发多个 item。
-- 当前 item 未完成并写回状态时，预取、提前执行或跨 slot 执行其他 item。
+- 当前 item 未完成时，预取、提前执行或跨 slot 执行其他 item。
 - 对 `backend-test` 直接下发"先跑全量 `uv run scripts/backend-test.py --`"而不做变更分析。
 
 ## Failure
@@ -160,5 +153,5 @@ item_file: .ai/task/sample-feature/backend/dev/BE-D02-domain-models.md
 slot_manifest: .ai/task/sample-feature/backend/dev.md
 phase_index: .ai/task/sample-feature/backend/index.md
 dependencies:
-  BE-D01: completed, handoff=<summary>
+  BE-D01: completed, file=.ai/task/sample-feature/backend/dev/BE-D01-domain-models.md
 ```
