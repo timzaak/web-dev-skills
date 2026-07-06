@@ -62,15 +62,15 @@
 - `id`: 稳定 ID，例如 `BE-D01`, `FE-T02`, `MA-A01`, `DE-A01`
 - `title`
 - `agent`
-- `scope`
-- `inputs`
-- `steps`
-- `expected_files`
-- `validation`
 - `depends_on`
-- `handoff_summary`
-- `completion_criteria`
-- `failure_boundary`: 说明该 item 失败时应定位到哪类问题、由哪个 agent/slot 继续处理。
+
+item 正文只使用以下章节：
+
+- `## Goal`：当前 item 的交付目标、边界和失败归因。
+- `## Work`：当前 agent 需要执行的具体动作。
+- `## Files`：预计新增、修改或重点检查的目标项目路径。
+- `## Validation`：目标项目真实命令、脚本或验收证据。
+- `## Handoff`：给下游 item 或 slot 的必要交接信息；没有下游依赖时写 `None`。
 
 backend/test item 还必须符合 [Backend Test Item Types](#backend-test-item-types)。
 
@@ -92,7 +92,7 @@ backend/test item 还必须符合 [Backend Test Item Types](#backend-test-item-t
 
 真实兼容约束只来自 PRD、设计文档、外部 API 契约、数据保留、跨版本部署或用户显式要求；“先共存以后再删”不是兼容理由。
 
-此类任务至少包含一张旧代码清理清单，作为独立 item 或写入相关 item 的 `handoff_summary`。清单必须覆盖：
+此类任务至少包含一张旧代码清理清单，作为独立 item 或写入相关 item 的 `## Handoff`。清单必须覆盖：
 
 - 待迁移或删除的旧代码、入口、配置、测试、文档引用和数据结构。
 - 删除边界：必须删除项，以及因真实兼容约束暂时保留项。
@@ -123,7 +123,7 @@ backend/test item 还必须符合 [Backend Test Item Types](#backend-test-item-t
 - 跨越超过 3 个领域模块或页面域。
 - 超过 14 个主要步骤。
 - 单个 item 文件预计超过 30KB，且不是验收清单。
-- scope 包含两个弱相关、可独立交付、独立验证的主交付物。
+- `Goal` 或 `Work` 包含两个弱相关、可独立交付、独立验证的主交付物。
 - 单个 HTTP/API item 覆盖超过 10 个 endpoint，或混合不同资源域、读写操作、状态操作、配置类接口，导致验证命令、失败归因或 review 边界不清。
 - 单个 demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流，导致失败时无法区分测试基础设施问题和故事流程问题。
 

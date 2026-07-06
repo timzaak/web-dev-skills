@@ -96,14 +96,7 @@ backend/test 特例：
 - `authoring`：不加载 `t-backend-test-run`，只编写或调整场景测试并做编译验证。
 - `runner`：加载 `${CLAUDE_PLUGIN_ROOT}/skills/t-backend-test-run/SKILL.md`，在全部相关 authoring item 完成后集中执行定向测试、失败分类、生产代码修复委派和重测。
 - 同一 item 同时包含“写新场景测试”和“修复生产代码直到通过”时拒绝执行。
-
-## Recovery Protocol
-
-- 状态写入失败：重试写入 2 次，仍失败则终止
-- agent 超时：标记 item 为 `failed`，下次 `/t-run` 重试
-- 编译级联错误：标记 `failed` 并注明 `compilation cascade`
-- 连续 3 次同一 item 失败、DAG 环路、scope 明显不匹配时转人工介入
-- 若上游 item 无 `handoff_summary`，可降级启动，但必须显式标注 handoff 缺失
+- item 正文使用 `Goal / Work / Files / Validation / Handoff` 五个章节；执行 agent 以这些章节作为目标、动作、路径、验证和交接依据。
 
 ## State Transition
 - 读取状态并确定执行范围。
@@ -142,10 +135,12 @@ backend/test 特例：
 - 状态文件缺失/损坏：终止并提示先运行 `/t-task [feature] --phase [phase]`。
 - 依赖不满足：阻塞后续依赖 item。
 - 状态写入失败：重试一次，失败则终止。
+- agent 超时或编译级联错误：标记 item 为 `failed`，写入 `last_error`。
 - 阶段校验失败：提示先完成前置阶段。
 - 阶段未启用：提示当前项目未启用该阶段，并展示 `.state.json.phases` 中的 active phases。
 - 阶段未生成：提示先运行 `/t-task [feature] --phase [phase]`。
 - item 文件缺失或 DAG 非法：提示重建该阶段任务目录。
+- item 缺少 `Goal/Work/Files/Validation/Handoff` 五章节：提示重新运行 `/t-task-check`；若确认为旧格式任务，重新运行 `/t-task [feature] --phase [phase]` 生成。
 
 ## Examples
 ```bash

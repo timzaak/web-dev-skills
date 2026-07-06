@@ -67,6 +67,7 @@
    - item 文件路径与 state 一致
    - manifest 覆盖全部 items
 - item 文件包含必填字段
+- item 文件包含 `id/title/agent/depends_on` 和 `Goal/Work/Files/Validation/Handoff` 五个章节
 - 若当前阶段为 backend，backend/test slot 符合 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 authoring/集中 runner 覆盖与 `uses_skill` 要求
 - 若当前阶段为 backend，backend/accept item 依赖 runner item，不只依赖 authoring item
 - 若当前阶段为 frontend/miniapp/demo，涉及测试代码 authoring 时必须有集中定向执行 item，且不得默认规划全量测试
@@ -162,7 +163,7 @@ agent 评审边界：
 - demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流
 - 大范围重构缺少旧代码清理清单，清单没有说明删除边界与残留搜索方式，或未按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的“先删除旧实现再改写新结构”顺序组织
 - 没有真实兼容约束（按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的兼容性来源判定：PRD、设计文档、外部 API 契约、数据保留、跨版本部署或用户显式要求均不成立）时，任务计划仍以兼容层、adapter、bridge、fallback、双路径分支或“以后再删”作为主路径
-- 下游 item 缺少 handoff 追溯
+- 下游 item 缺少 `Handoff` 追溯
 - 设计文档与任务文档严重不一致但暂不直接阻塞执行
 
 ### P2

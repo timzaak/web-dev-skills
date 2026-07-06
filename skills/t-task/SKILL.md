@@ -113,12 +113,8 @@ allowed-tools:
 ## Slot Manifest Contract
 每个 slot manifest 必须包含：
 - slot 目标和边界
-- item 表格：`id | title | agent | file | depends_on | status`
-- item DAG 或执行顺序
-- 上游输入和下游 handoff
-- item 合并/拆分理由摘要，说明每个 item 对应的责任闭环
-- slot 级完成标准
-- 测试或验收策略摘要
+- item 表格：`id | title | agent | file | depends_on`
+- 必要的上游输入和下游 handoff 摘要
 
 manifest 不得包含完整实现步骤；完整步骤必须写入 item 文件。
 
@@ -128,10 +124,11 @@ manifest 不得包含完整实现步骤；完整步骤必须写入 item 文件�
 
 - 只写当前 feature、phase、slot、item 的可执行事实。
 - 引用 guide、protocol、agent 文档路径，不复制其中的长篇规则。
-- item 的 `steps` 写具体动作，不写通用工程原则。
-- `validation` 写目标项目真实命令、脚本或验收证据，不写抽象测试建议。
+- item 正文只使用 `Goal / Work / Files / Validation / Handoff` 五个章节。
+- `Work` 写具体动作，不写通用工程原则。
+- `Validation` 写目标项目真实命令、脚本或验收证据，不写抽象测试建议。
 - item 应写明失败边界：失败时定位到哪类问题、由哪个 agent/slot 继续处理。
-- `handoff_summary` 只保留给下游 slot/agent 必需的信息。
+- `Handoff` 只保留给下游 slot/agent 必需的信息；没有下游依赖时写 `None`。
 
 ## Agent Output Contract
 slot agent 输出必须至少包含：
@@ -140,7 +137,6 @@ slot agent 输出必须至少包含：
 - `manifest_content`
 - `items`: item 对象列表，每个 item 包含 `id/file/agent/depends_on/content`
 - `item_dag`
-- `completion_criteria`
 - `handoff_summary`
 - `self_check`: 必填字段、DAG、责任闭环拆分、过度拆分、阶段执行规则和 P0/P1 风险自检结果
 
@@ -148,6 +144,7 @@ slot agent 输出必须至少包含：
 - 校验 `slot` 与被调度 agent 是否匹配。
 - 校验 item 依赖合法且无环。
 - 校验 manifest、item 文件路径和 `.state.json` 计划一致。
+- 校验 item 使用 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的最小结构。
 - 校验 `self_check` 存在且未声明未解决 P0/P1。
 - 校验 slot agent 已说明 item 的责任闭环；若存在把技术层、文件类型或实现步骤当成唯一拆分依据、重复验证命令或不可独立验收的过度拆分，拒绝写入成功状态。
 - 先写入当前 slot manifest 和 item 文件，再继续调用下游 slot。
