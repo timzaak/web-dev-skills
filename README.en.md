@@ -15,6 +15,7 @@ It is designed for teams and projects that:
 - Fast adoption: follow the `/t-tools:t-*` command sequence directly, without designing a full prompt and collaboration system yourself
 - Stable delivery: key stages include check and acceptance commands to reduce document drift, missed task breakdowns, and non-runnable demos
 - Clear collaboration: skills, agents, guides, and protocols are layered for reuse across teams and long-running projects
+- Human calibration: key artifacts are not generated once and blindly sent downstream; humans continuously calibrate intent, detail preferences, and acceptance criteria through Preview review, spoken feedback, checks, and acceptance
 
 ## Design Overview
 
@@ -40,11 +41,15 @@ Minimal end-to-end example:
 # Create or update .ai/prd and .ai/user-stories drafts, then open HTML for review
 /t-tools:t-prd user-management
 
+# Human first states the PRD they would accept, then reviews the HTML Preview and asks AI to revise against it
+
 # Quality gate: prevent upstream issues from entering the design stage
 /t-tools:t-prd-check user-management
 
 # Produce technical design from the PRD; pure technical designs may also use t-tech-research as input
 /t-tools:t-design user-management
+
+# Human reviews frontend UX from the user's perspective and states the experience choices explicitly
 
 # Convert design into executable tasks
 /t-tools:t-task user-management
@@ -69,6 +74,10 @@ Minimal end-to-end example:
 ```
 
 If you only remember one thing: do not skip check or accept stages. This plugin is not only for generating content. It is also designed to close each stage before problems flow downstream.
+
+Especially after `/t-tools:t-prd`, do not jump straight to `/t-tools:t-prd-check`, and do not immediately inspect the generated HTML Preview. The human should first step away from the generated artifact and state or walk through the PRD they would actually accept: what the feature is really meant to solve, which paths matter most, which boundaries or exceptions must be handled, and which parts do not match expectations. Only then should they open the HTML Preview for comparison and ask the AI to revise the PRD / Preview against that feedback. Otherwise, the generated artifact can pull the human off course; even with HTML, the real priorities may not become obvious quickly. Regardless of model strength, PRDs tend to become random, generic, or average, and detailed intent is easy to miss.
+
+Similarly, after `/t-tools:t-design`, a human must walk through the frontend UX from the user's perspective: where the user enters, what they see at each step, how they know what to do next, which feedback must appear immediately, and which defaults or error states affect trust. Good UX is not an objective answer that the model reliably derives on its own; it is a matter of taste and tradeoff. Tell the AI firmly what counts as good UX, what is unacceptable, and why that interaction choice is being made, then ask it to revise the technical design against those choices.
 
 Additional notes:
 

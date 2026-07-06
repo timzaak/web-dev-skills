@@ -9,6 +9,7 @@ The core idea can be summarized as:
 - `protocols/` handles shared contracts.
 - `guides/` handles engineering standards.
 - `.ai/` and `docs/` handle runtime artifacts and business facts in the target project.
+- Humans state the real intent, make tradeoff decisions, point out detail preferences, and continuously calibrate AI output through Previews, checks, and acceptance.
 
 ## Four-Layer Structure
 
@@ -70,6 +71,10 @@ The responsibility of a skill is not to "write a prompt and let the model improv
 - Provide a recoverable path when failures occur.
 
 In this sense, a skill is closer to a lightweight workflow engine.
+
+But a workflow engine is not an automatic decision-maker. T-Tools structures process, context, and quality gates so humans can intervene at the important judgment points more easily, not so human judgment disappears from the workflow. Especially in PRD, design, and acceptance stages, humans need to state their real thinking, tradeoff reasons, and detail preferences. Only then can the AI revise against that information instead of producing a complete-looking but generic artifact based on its own defaults.
+
+Frontend UX is one of the places where humans must intervene most firmly. AI can organize flows, list states, and fill in boundaries, but it does not have stable taste for what makes an experience good. Good UX often comes from a product owner's choices about users, context, pacing, trust, and business tone. After calling `t-design`, the human needs to walk through the frontend interaction from the user's perspective and explicitly tell the AI which experience judgments are valid and which default options are unacceptable.
 
 ### Agents: Specialized Executors
 
@@ -197,7 +202,7 @@ The core change in `t-prd` is not "generate one more HTML file." It changes how 
 
 In a traditional PRD flow, AI can easily produce a thousand lines of Markdown. That structure may be clear to the model, but it is expensive for humans to read: they have to hunt through a long document for the goal, scope, flow, states, permissions, exceptions, and acceptance criteria, then judge whether those pieces contradict each other. If humans cannot understand or finish reviewing the PRD at this stage, design, task planning, and implementation will amplify the wrong understanding downstream.
 
-The purpose of the HTML Preview is to turn the AI's understanding of the requirement into a form that humans can scan, question, and correct quickly. Instead of reading the entire Markdown first, humans can use the Preview to see:
+The purpose of the HTML Preview is to turn the AI's understanding of the requirement into a form that humans can scan, question, and correct quickly. It is not meant to make humans follow the generated Preview immediately. The human should first have their own acceptable PRD in mind, then use the Preview for faster comparison. Instead of reading the entire Markdown first, humans can use the Preview to check:
 
 - What problem the AI thinks the feature should solve.
 - Which key paths users will go through.
@@ -205,11 +210,32 @@ The purpose of the HTML Preview is to turn the AI's understanding of the require
 - Which parts are still only assumptions.
 - Whether the requirement is clear enough to enter design.
 
+After `t-prd` generates HTML, the human should not open it immediately and read along with the generated structure. The useful order is to step away from the generated artifact first and state or walk through the PRD they would actually accept: what pain the requirement is really solving, which user path matters most, which states, permissions, exceptions, copy, data boundaries, or experience details must not be missed, and which parts sound too generic, too average, or off-tone for the business. Then they should review the Preview, use it to check whether the AI captured the real priorities, and ask the AI to compare that feedback against the PRD, user story, and Preview.
+
+This is the key human participation point in `t-prd`. Without this prior spoken calibration, humans can be pulled off course by the AI's generated narrative; even with HTML lowering the reading cost, the real priorities may not surface quickly. AI also tends to produce a structurally correct PRD that is still random, averaged, and light on specific detail; the freer the model is, the more it fills gaps with generic defaults. Spoken human feedback moves "what I actually mean" out of the person's head and into shared context, giving the next AI revision a concrete target.
+
 So `t-prd` is closer to a "product-understanding visualization" stage. Markdown remains the formal contract, but the Preview becomes the human entry point for reviewing that contract. It turns product semantics buried in a long document into a scannable, discussable, feedback-friendly interface, so humans can catch AI misunderstandings earlier instead of finding them after technical design or code implementation.
 
 This also changes what `t-prd-check` means. PRD Check is not just a document-format check. It verifies that "the product understanding written by the AI" and "the product understanding humans see through the Preview" are aligned. `t-prd` first writes frequent changes into temporary `.ai/prd` and `.ai/user-stories` drafts; after the drafts pass checks, they can enter `t-design`. If the drafts are fixed after checking, `t-prd-check` should be run again. `t-prd-publish` is no longer a design prerequisite; after implementation, testing, and Demo acceptance are complete, it summarizes the drafts against the existing formal PRD / user stories and post-implementation evidence, then fixes missing, stale, or conflicting content in `docs/prd` and `docs/user-stories`.
 
 `t-html-show` has been extracted from `t-prd` into a standalone skill and generalized to support visualization of any Markdown document. `t-prd` triggers it automatically during its workflow, but it can also be invoked independently. Preview output goes to `.ai/preview/`, outside version control.
+
+## t-design UX Calibration: Force Experience Choices from the User's Perspective
+
+`t-design` is not only about translating the PRD into technical modules, APIs, states, and task prerequisites. Whenever a feature involves a frontend interface, it must also include a human-led UX calibration pass.
+
+The reason is simple: AI is good at completing an interaction flow, but it does not reliably know what makes the experience good. It may produce a page where "all functions exist" while the entry rhythm, state feedback, defaults, error messages, information hierarchy, copy tone, and operational safety all feel generic, random, or templated. Good UX is often not a single objectively correct answer. It is a taste choice, and that choice must be stated by a human.
+
+After calling `t-design`, the human should walk through:
+
+- Where the user enters the feature and what they should understand at first glance.
+- Why the user is willing to continue at each step and how the next action is suggested.
+- Which information must be shown early, and which should be delayed or hidden.
+- How loading, empty, error, permission-denied, dangerous-action, and success states should behave.
+- How defaults, batch actions, undo, confirmation, save, and leaving the page affect trust.
+- Which interactions you consider "good," and which are usable but do not match your UX taste.
+
+Then the AI should map those UX choices back into the technical design: component structure, state model, API timing, error handling, frontend tasks, and Demo acceptance all need to adjust accordingly. Otherwise, the design stage easily produces something technically implementable but mediocre for users.
 
 ## Independent Demo Quality Verification
 
@@ -349,6 +375,8 @@ It does not try to make AI "finish everything at once." Instead, it emphasizes:
 - Every item has clear inputs, steps, boundaries, and verification.
 - Every agent has clear responsibilities and output contracts.
 - Every stage has checks or acceptance.
+- Humans explicitly state judgments, feedback, and tradeoffs at key points, and the AI revises against that feedback.
+- Frontend UX is explicitly chosen and calibrated by humans; it must not be left for AI to generate from a generic template.
 
 As a result, T-Tools is closer to engineering rails for AI programming. The model still performs reasoning and implementation, but it must move through documents, state, contracts, and gates.
 
