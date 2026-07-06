@@ -100,8 +100,7 @@ backend/test 特例：
 ## State Transition
 - 读取状态并确定执行范围。
 - 依据 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 校验状态与 DAG。
-- 执行 item 前不写入 `running` 状态；中断恢复时，重新选择仍为 `pending` 或 `failed` 且依赖满足的 item。
-- 新流程不主动写入 `running`；若遇到旧状态中残留的 `running` item，应提示确认真实执行结果，并按实际结果修正为 `pending`、`failed` 或 `completed` 后重试。
+- 执行 item 前不更新状态；中断恢复时，重新选择仍为 `pending` 或 `failed` 且依赖满足的 item。
 - item 成功后写入：
    - `tasks[phase][slot].items[item_id].status = completed`
 - item 失败后写入：
