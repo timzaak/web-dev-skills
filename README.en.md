@@ -61,7 +61,7 @@ Minimal end-to-end example:
 /t-tools:t-run user-management --phase backend
 
 # Code review
-/code-review
+/t-tools:t-code-review
 
 # Run Demo/E2E tests for the role
 /t-tools:t-demo-run super-admin
@@ -115,7 +115,7 @@ flowchart TD
     end
 
     subgraph Dev["Development"]
-        E1["t-run"] --> E2["code-review"]
+        E1["t-run"] --> E2["t-code-review"]
     end
 
     subgraph Demo["Demo"]
@@ -153,6 +153,7 @@ Helper commands:
 - `t-doc <project-or-module-name>`: scans the target project codebase and generates newcomer-oriented tutorial documentation under `docs/tutorials/<name>/` by default
 - `t-html-show <feature | path>`: generates or updates HTML Preview for quick human review. Supports PRDs (pass feature name) and any Markdown document (pass file path). Usually triggered automatically by `t-prd`, but can also be run independently
 - `t-dream [feature|--all] [--deep|--backend-only|--govern-prd]`: by default, read-only audits PRDs, user stories, design/task docs, code structure, tests/Demo, and implementation facts to find stale context, structure drift, traceability gaps, and description/implementation conflicts, then writes `.ai/quality/dream-check-[YYYYMMDD-HHMMSS].md`; only `--govern-prd` may rewrite PRDs, indexes, and references
+- `t-code-review [target|--comment] [--fix]`: mirrors Claude Code's local `/code-review` flow for high-signal diff review. By default it reviews the current branch and working tree, reports correctness bugs and clearly scoped rule violations, and only comments on a GitHub PR when `--comment` is provided
 - `t-demo-run-all`: runs demo tests in batch
 - `t-push`: has the AI clean clearly low-value code comments from the current diff, summarize the commit message from the cleaned `git diff`, then calls `${CLAUDE_PLUGIN_ROOT}/scripts/push.py --message "<message>"` to detect backend, frontend, and demo changes, run affected local CI checks in parallel, and run `git commit` plus `git push` after CI passes
 - `t-release [version]`: releases a version by updating project versions, creating a git commit and tag, and pushing to the remote. Version files use semantic versioning, such as `0.2.0`, while the final git tag always uses a `v` prefix, such as `v0.2.0`. If omitted, the command recommends one based on the latest semver tag. It only runs on a clean `main` branch, updates `backend/Cargo.toml`, `frontend/package.json`, and `demo/package.json`, then commits and pushes after compilation checks pass.

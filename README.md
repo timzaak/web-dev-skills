@@ -63,7 +63,7 @@
 /t-tools:t-run user-management --phase backend
 
 # 代码审查
-/code-review
+/t-tools:t-code-review
 
 # 运行该角色的 Demo/E2E 测试
 /t-tools:t-demo-run super-admin
@@ -89,6 +89,7 @@
 - `t-prd` 只写 `.ai/prd` 和 `.ai/user-stories` 候选需求，不直接写 `docs/prd` 或 `docs/user-stories`；`t-prd-publish` 才负责把仍然成立的长期产品事实合并回 `docs/`
 - `t-doc` 用于项目文档、上手教程、API 参考、配置和部署说明，不用于 PRD、技术设计或只改某个文档片段
 - `t-dream` 默认以只读 audit 方式整理 PRD、用户故事、设计/任务、实现事实与项目结构，减少过期、重复、冲突和误导性上下文累积；需要写入 PRD 治理时显式使用 `--govern-prd`
+- `t-code-review` 参考 Claude Code 官方 `/code-review` 的本地 diff 审查方式，默认审查当前分支和工作区改动，只输出高置信 correctness bug 与明确适用的规则违反；传 `--comment` 时才尝试评论 GitHub PR
 - `t-push` 在提交前由 AI 基于本次 diff 清理明显低价值代码注释，再总结 commit message，并调用 `${CLAUDE_PLUGIN_ROOT}/scripts/push.py` 运行受影响 CI、提交和推送
 - `t-backend-test-run` 是内部执行型 skill，供 `backend-test` 等流程复用，不作为推荐的手动入口
 
