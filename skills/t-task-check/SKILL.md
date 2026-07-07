@@ -77,7 +77,7 @@ allowed-tools:
    - 若脚本返回非 0，按 `ITEM_DAG_INVALID` 处理，记 confirmed P0，停止准入 `/t-run`。
    - 若 `scripts/check-task-dag.py` 不存在，回退到抽取 `depends_on` 的内置校验，并在报告中标注"未找到项目脚本，使用内置校验"；不得临时创建 Python/JS 脚本。
 - 校验 item 时按以下顺序读取：
-   - 从 `.state.json`、slot manifest 和 item 文件头/关键章节抽取 `id/title/agent/depends_on/test_item_type/uses_skill` 以及 `Goal/Work/Files/Validation/Handoff`。
+   - 从 `.state.json`、slot manifest 和 item 文件头/关键章节抽取 `id/title/agent/depends_on/test_item_type` 以及 `Goal/Work/Files/Validation/Handoff`。
    - 用抽取结果完成 item 存在性、路径一致性、manifest 覆盖、DAG、agent/slot 匹配和 backend test authoring/集中 runner 覆盖校验。
    - 发现字段缺失、DAG/manifest 不一致、拆分阈值可疑、过度拆分可疑、设计一致性可疑或需要为 P0/P1 补证时，读取对应 item 全文。
    - 大型 phase 先用 `Grep`、路径清单或 manifest 定位目标 item，再读取命中的 item 文件。
@@ -85,7 +85,7 @@ allowed-tools:
 - 验证 item 文件结构与内容：
    - 必须包含 `id/title/agent/depends_on` 和 `Goal/Work/Files/Validation/Handoff` 五个章节
    - backend/test item 必须声明 `test_item_type: authoring|runner`
-   - backend/test runner item 必须声明 `uses_skill: skills/t-backend-test-run/SKILL.md`
+   - backend/test runner item 必须使用 `agent: general-purpose`，并引用 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md`
    - backend/test 必须有 runner item 覆盖全部相关 authoring item，且 runner 依赖这些 authoring item
    - backend/accept item 必须依赖 runner item，不得只依赖 authoring item
    - frontend/test、miniapp/test 和 demo/dev 涉及测试代码 authoring 时，必须有集中定向执行 item 依赖全部相关测试 authoring item

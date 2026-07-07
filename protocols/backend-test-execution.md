@@ -4,11 +4,13 @@
 
 - 适用于 backend/test `test_item_type: runner`。
 - 不适用于场景测试 authoring；authoring 由 `backend-test` item 完成。
-- `t-backend-test-run` 是 skill，不是 agent；runner item 的 `agent` 必须为 `general-purpose`。
+- runner item 的 `agent` 必须为 `general-purpose`，并直接按本协议执行。
 
 ## Default Principle
 
 先做最窄、可靠的定向验证；全量测试只作为升级路径，不是默认动作。
+
+runner 不得因为“省事”或“保证覆盖”直接执行全量 `uv run scripts/backend-test.py --`。全量只能在定向命令无法稳定选中预期测试、影响范围无法收敛、或发布/验收门禁明确要求时使用，并必须记录升级原因。
 
 ## Workflow
 
@@ -16,6 +18,7 @@
 - 读取 runner item 的 `Expected Test Manifest`，建立预期测试函数清单。
 - 运行 `uv run scripts/check-test-runner-coverage.py <feature> --layer backend`，或等价执行 `cargo nextest list`，确认定向命令会选中全部预期测试。
 - 选择最小可靠测试范围。
+- 若 item validation 只有全量 `uv run scripts/backend-test.py --` 且没有升级原因，先修正为定向命令或返回任务规划缺陷；不得直接执行全量。
 - 运行定向测试，覆盖当前 runner item 汇总的全部相关 authoring item。
 - 解析失败并记录命令、测试名、文件/行、失败类型和关键消息。
 - 判断所有权：机械性测试问题可修测试；生产代码问题委派 `backend-dev`。

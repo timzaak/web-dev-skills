@@ -3,7 +3,7 @@ name: backend-test
 description: >
   后端场景测试编写专家。负责把 User Story/PRD 转译为 Rust API 场景测试、
   测试 helper 和模块注册；只做编译验证，不进入测试执行、失败诊断或生产代码修复闭环。
-  单元测试由 backend-dev 负责；测试执行与修复编排由 t-backend-test-run skill 负责。
+  单元测试由 backend-dev 负责；测试执行与修复编排由 backend/test 集中 runner 负责。
   在 t-task 任务规划中，负责把 backend/test slot 拆为 authoring item 和集中 runner item。
 tools:
   - Read
@@ -34,7 +34,7 @@ tools:
 规则：
 
 - 后端测试入口、场景测试写法、单元测试价值门槛和验证命令以 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md` 为准。
-- backend/test authoring/集中 runner 拆分、`test_item_type` 和 `uses_skill` 以 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 为准。
+- backend/test authoring/集中 runner 拆分和 `test_item_type` 以 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 为准。
 
 ## 职责
 
@@ -58,7 +58,7 @@ tools:
 - 只修改 `*_scenarios.rs`、测试 helper、模块注册等测试拥有的文件。
 - validation 只要求 `cd backend && cargo check --tests` 或建议 runner 命令。
 - completion criteria 不得要求目标测试全部通过。
-- 需要真正执行目标测试时，交给 runner item 使用 `${CLAUDE_PLUGIN_ROOT}/skills/t-backend-test-run/SKILL.md`，runner 命令统一写成 `uv run scripts/backend-test.py -- [filter]`。
+- 需要真正执行目标测试时，交给 runner item 按 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md` 执行，runner 命令统一写成 `uv run scripts/backend-test.py -- [filter]`。
 
 ## Planning Contract
 
@@ -66,7 +66,7 @@ tools:
 
 - authoring item 由本 agent 规划或执行。
 - 同一后端场景下强相关的测试文件、helper 和模块注册应优先合并为一个 authoring item；只有验证范围、文件责任或失败归因明显不同才拆开。
-- runner item、覆盖来源、`uses_skill`、`Expected Test Manifest` 和禁止项统一以 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 为准。
+- runner item、覆盖来源、`Expected Test Manifest` 和禁止项统一以 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 为准。
 - 本 agent 不维护 backend/test 的第二套 runner 规则。
 
 ## 输出

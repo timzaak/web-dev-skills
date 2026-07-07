@@ -18,7 +18,7 @@ def resolve_to_root(source_file: Path, relative_path: str) -> str:
     - docs/prd/billing/shopify-pay.md + ./billing.md -> /docs/prd/billing/billing.md
     - spec/00-index.md + ./core/environment-and-testing-guide.md -> /spec/core/environment-and-testing-guide.md
     - docs/prd/billing/shopify-pay.md + ../../spec/backend/ -> /spec/backend/
-    - skills/t-backend-test-run/README.md + ../../../spec/ -> /spec/
+    - skills/t-task/README.md + ../../spec/ -> /spec/
     """
     # 如果已经是根目录路径（以 / 开头），直接返回
     if relative_path.startswith("/"):

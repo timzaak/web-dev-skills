@@ -92,8 +92,9 @@ allowed-tools:
 backend/test 特例：
 - 必须读取 `test_item_type`，只允许 `authoring` 或 `runner`。
 - 缺少 `test_item_type` 时拒绝执行，提示先运行 `/t-task-check` 或重建/修正 item。
-- `authoring`：不加载 `t-backend-test-run`，只编写或调整场景测试并做编译验证。
-- `runner`：加载 `${CLAUDE_PLUGIN_ROOT}/skills/t-backend-test-run/SKILL.md`，在全部相关 authoring item 完成后集中执行定向测试、失败分类、生产代码修复委派和重测。
+- `authoring`：只编写或调整场景测试并做编译验证。
+- `runner`：按 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md`，在全部相关 authoring item 完成后集中执行定向测试、失败分类、生产代码修复委派和重测。
+- `runner` 执行前必须从 `Expected Test Manifest`、变更文件和 package/module/test name 推导最小可靠定向命令；item 只给出全量 `uv run scripts/backend-test.py --` 且没有升级原因时，拒绝执行并提示重新运行 `/t-task-check` 或修正 item。
 - 同一 item 同时包含“写新场景测试”和“修复生产代码直到通过”时拒绝执行。
 - item 正文使用 `Goal / Work / Files / Validation / Handoff` 五个章节；执行 agent 以这些章节作为目标、动作、路径、验证和交接依据。
 
@@ -122,6 +123,7 @@ backend/test 特例：
 - 一次启动多个 sub agents 或批量下发多个 item。
 - 当前 item 未完成时，预取、提前执行或跨 slot 执行其他 item。
 - 对 `backend-test` 直接下发"先跑全量 `uv run scripts/backend-test.py --`"而不做变更分析。
+- backend/test runner 在未证明定向范围不可靠或门禁要求时执行全量 `uv run scripts/backend-test.py --`。
 
 ## Failure
 - 状态文件缺失/损坏：终止并提示先运行 `/t-task [feature] --phase [phase]`。

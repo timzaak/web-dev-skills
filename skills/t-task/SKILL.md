@@ -82,12 +82,14 @@ allowed-tools:
 - 调度 slot agent 前，先要求其识别当前 slot 的责任闭环：业务能力、接口能力、页面主流程、组件族、测试资产闭环或验收闭环；技术层、文件类型和实现步骤只作为拆分的辅助线索。
 - 按当前阶段 slot 串行调度相应 agent。每个 slot agent 必须按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 通过 `Agent` tool 启动，`subagent_type` 按 Agent Dispatch Mapping 映射。
 - 传入 agent prompt 的内容保持精简：阶段设计摘要、上游 handoff、目标 guide/protocol 路径、责任闭环识别要求、输出字段要求、`needs_user_answer` 规则；不得复制 guide、protocol 或 agent 文档中的长篇规则。
+- 生成 backend/test runner item 时，必须要求 agent 从 `Expected Test Manifest`、变更文件和 package/module/test name 推导最小可靠定向命令；不得把全量 `uv run scripts/backend-test.py --` 作为默认 runner validation。
 - slot agent 返回结构统一参考 [Agent Output Contract](#agent-output-contract)。
 - 主流程在每个 slot 返回后先执行写入前硬校验：
    - item 必填字段齐备
    - item ID 唯一，依赖存在且无环
    - manifest 覆盖全部 items，路径与 item 文件一致
    - 符合 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 和 `${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md` 的 P0/P1 硬门禁
+   - backend/test runner 若使用全量 `uv run scripts/backend-test.py --`，必须在 `Validation` 或 `Handoff` 写明无法可靠定向的具体原因或门禁要求；否则拒绝写入成功状态
 - 硬校验失败时终止当前 slot，不写入成功状态，要求重新生成该 slot。
 - 硬校验通过后写入当前 slot manifest 和 item 文件，再继续调用下游 slot。
 - 当前阶段 slot 齐备后生成 `<phase>/index.md`。
@@ -166,6 +168,7 @@ item 字段、backend/test item 类型、测试集中执行规则、拆分原则
 - 在任务文档中复制 guide/protocol/subagent 的长篇指南。
 - 在 item 中写与当前交付无关的通用实现建议、培训内容或风格偏好。
 - 违反 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的拆分、测试集中执行或 backend/test runner 规则。
+- backend/test runner 默认规划全量 `uv run scripts/backend-test.py --`，却没有证明定向范围无法可靠覆盖或存在明确门禁要求。
 
 ## Failure
 - 设计文档不存在：提示先运行 `/t-design [feature]`。

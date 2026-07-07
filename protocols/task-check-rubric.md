@@ -68,7 +68,8 @@
    - manifest 覆盖全部 items
 - item 文件包含必填字段
 - item 文件包含 `id/title/agent/depends_on` 和 `Goal/Work/Files/Validation/Handoff` 五个章节
-- 若当前阶段为 backend，backend/test slot 符合 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 authoring/集中 runner 覆盖与 `uses_skill` 要求
+- 若当前阶段为 backend，backend/test slot 符合 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 authoring/集中 runner 覆盖与 runner agent/协议引用要求
+- 若当前阶段为 backend，backend/test runner 默认使用定向命令；全量 `uv run scripts/backend-test.py --` 只有在写明无法可靠定向或门禁要求时才允许
 - 若当前阶段为 backend，backend/accept item 依赖 runner item，不只依赖 authoring item
 - 若当前阶段为 frontend/miniapp/demo，涉及测试代码 authoring 时必须有集中定向执行 item，且不得默认规划全量测试
 - 大范围重构、旧架构替换或旧模块迁移任务包含旧代码清理清单，并按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 先删除旧实现再改写新结构
@@ -143,7 +144,8 @@ agent 评审边界：
 - item 依赖不存在或成环
 - manifest 未覆盖全部 items
 - 阶段依赖关系错误
-- backend/test 缺少 runner item、runner 缺少 `uses_skill: skills/t-backend-test-run/SKILL.md`，或存在 authoring item 未被集中 runner 覆盖
+- backend/test 缺少 runner item、runner agent 不是 `general-purpose`、runner 未引用 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md`，或存在 authoring item 未被集中 runner 覆盖
+- backend/test runner 把全量 `uv run scripts/backend-test.py --` 当默认 validation，且未说明定向范围不足或门禁要求
 - backend/accept item 只依赖 backend/test authoring item，未依赖 runner item
 - frontend/miniapp/demo 涉及测试代码 authoring，却缺少依赖全部相关 authoring item 的集中定向执行 item
 - 命令、路径、阶段链路经仓库和规范双重验证后确认会直接导致 `/t-run` 无法执行

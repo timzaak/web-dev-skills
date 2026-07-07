@@ -162,21 +162,21 @@ backend/test、frontend/test、miniapp/test、demo/dev 的测试拆分与执行�
 backend/test item 必须声明 `test_item_type`：
 
 - `authoring`：由 `backend-test` 编写或维护场景测试、helper、模块注册，只做编译验证。
-- `runner`：由 `general-purpose` 加载 `${CLAUDE_PLUGIN_ROOT}/skills/t-backend-test-run/SKILL.md`，汇总 authoring item 后执行定向测试、失败分类、生产代码修复委派和重测。
+- `runner`：由 `general-purpose` 按 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md` 汇总 authoring item 后执行定向测试、失败分类、生产代码修复委派和重测。
 
 backend/test slot 必须显式规划测试执行闭环：
 
 - 每个新增或修改场景测试的 `authoring` item 必须被 runner 覆盖。
 - runner 按验证范围拆分；同一业务场景或 package/module 优先合并。
 - `runner.agent` 必须为 `general-purpose`。
-- `runner.uses_skill` 必须为 `skills/t-backend-test-run/SKILL.md`。
 - runner 必须依赖本轮全部相关 `authoring` item。
+- runner 必须在 `Work` 或 `Validation` 中引用 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md`，并按该协议执行。
 - runner 中每条后端测试命令都必须以 `uv run scripts/backend-test.py --` 开头；没有 filter 时也保留结尾 `--`。
+- runner 默认必须带 filter 或 `-E` 表达式来收敛到 Expected Test Manifest 覆盖范围；只有定向范围无法可靠覆盖风险或存在明确门禁要求时，才允许规划全量 `uv run scripts/backend-test.py --`，并必须写明升级原因。
 - 不得写 `${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py`，不得省略 `--`，目标项目本地脚本失败时不得改用插件脚本绕过。
 - backend/accept item 必须依赖至少一个 runner，不得只依赖 authoring。
-- `t-backend-test-run` 不得作为 item agent。
 
-缺少 `test_item_type`、类型非法、runner 缺少 `uses_skill`、或把 `t-backend-test-run` 当作 agent 时，执行应终止并提示重新运行 `/t-task-check` 或重建任务。
+缺少 `test_item_type`、类型非法、runner 未引用后端测试执行协议、或 runner agent 不是 `general-purpose` 时，执行应终止并提示重新运行 `/t-task-check` 或重建任务。
 
 ## Failure Handling
 

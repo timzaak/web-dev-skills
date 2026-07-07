@@ -1,6 +1,6 @@
 ---
 name: backend-dev
-description: Rust 后端开发专家。负责后端生产代码、通过价值门槛的最小必要测试和来自 t-backend-test-run 的生产代码缺陷修复。
+description: Rust 后端开发专家。负责后端生产代码、通过价值门槛的最小必要测试和来自 backend/test 集中 runner 的生产代码缺陷修复。
 tools:
   - Read
   - Edit
@@ -90,7 +90,7 @@ examples:
 
 - 实现或修复 Rust 后端生产代码。
 - 编写通过价值门槛的最小必要 Domain/Application 单元测试。
-- 修复 `t-backend-test-run` 诊断出的生产代码问题。
+- 修复 backend/test 集中 runner 诊断出的生产代码问题。
 
 不负责：
 

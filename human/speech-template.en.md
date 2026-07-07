@@ -83,16 +83,3 @@ What I have confirmed is: [confirmed decisions].
 Questions that must be asked of me are: [questions that would change PRD, feasibility, or design direction].
 
 What AI can investigate by itself is: [codebase facts, existing docs, dependency versions, official APIs, best practices].
-
-## What AI Should Do After Ingesting This
-
-AI should not directly expand the walkthrough into a long document. First output a “key understanding”:
-
-- The 3 to 5 most important user stories and product boundaries.
-- The highest-priority path, must-preserve capability, and explicit out-of-scope items.
-- Permission, data boundary, and risky operation points that must not be guessed.
-- Technical research focus: third-party APIs, stack compatibility, idempotency, webhooks, data consistency.
-- Executability and feasibility judgment: what can enter PRD, what needs technical research first, and what belongs in design.
-- Gap handling: what AI can verify, and what must be asked of the user.
-
-AI must separate confirmed facts, user preferences, AI inferences, and open questions. Guesses in the spoken walkthrough must not be written as confirmed conclusions.
