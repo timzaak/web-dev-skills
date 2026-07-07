@@ -41,7 +41,6 @@ allowed-tools:
 
 下游产出：
 - 更新的 `.state.json` — item/slot/phase 状态变更
-  - item 完成后写入 `handoff_summary`
   - item 失败后写入 `last_error`
 - item agent 执行产生的代码文件变更（由各 agent 自行产出）
 
@@ -93,31 +92,18 @@ allowed-tools:
 backend/test 特例：
 - 必须读取 `test_item_type`，只允许 `authoring` 或 `runner`。
 - 缺少 `test_item_type` 时拒绝执行，提示先运行 `/t-task-check` 或重建/修正 item。
-- `authoring`：不加载 `t-backend-test-run`，只编写或调整场景测试并做编译验证。
-- `runner`：加载 `${CLAUDE_PLUGIN_ROOT}/skills/t-backend-test-run/SKILL.md`，在全部相关 authoring item 完成后集中执行定向测试、失败分类、生产代码修复委派和重测。
+- `authoring`：只编写或调整场景测试并做编译验证。
+- `runner`：按 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md`，在全部相关 authoring item 完成后集中执行定向测试、失败分类、生产代码修复委派和重测。
+- `runner` 执行前必须从 `Expected Test Manifest`、变更文件和 package/module/test name 推导最小可靠定向命令；item 只给出全量 `uv run scripts/backend-test.py --` 且没有升级原因时，拒绝执行并提示重新运行 `/t-task-check` 或修正 item。
 - 同一 item 同时包含“写新场景测试”和“修复生产代码直到通过”时拒绝执行。
-
-## Recovery Protocol
-
-- 状态写入失败：重试写入 2 次，仍失败则终止
-- agent 超时：标记 item 为 `failed`，下次 `/t-run` 重试
-- 编译级联错误：标记 `failed` 并注明 `compilation cascade`
-- 连续 3 次同一 item 失败、DAG 环路、scope 明显不匹配时转人工介入
-- 若上游 item 无 `handoff_summary`，可降级启动，但必须显式标注 handoff 缺失
+- item 正文使用 `Goal / Work / Files / Validation / Handoff` 五个章节；执行 agent 以这些章节作为目标、动作、路径、验证和交接依据。
 
 ## State Transition
 - 读取状态并确定执行范围。
 - 依据 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 校验状态与 DAG。
-- 执行 item 前检查当前 phase 是否已有任何 item 为 `running`：
-   - 若存在，立即终止，不启动新 agent。
-   - 提示先确认该 item 的真实执行结果，并恢复或修正 `.state.json` 后再重试。
-- 执行 item 前写入：
-   - `tasks[phase][slot].items[item_id].status = running`
-   - `tasks[phase][slot].status = running`
-   - `phases[phase].status = running`
+- 执行 item 前不更新状态；中断恢复时，重新选择仍为 `pending` 或 `failed` 且依赖满足的 item。
 - item 成功后写入：
    - `tasks[phase][slot].items[item_id].status = completed`
-   - `tasks[phase][slot].items[item_id].handoff_summary = <summary>`
 - item 失败后写入：
    - `tasks[phase][slot].items[item_id].status = failed`
    - `tasks[phase][slot].items[item_id].last_error = <summary>`
@@ -135,17 +121,20 @@ backend/test 特例：
 - 依赖未完成时执行下游 item。
 - 同一 DAG 层并发执行多个 item。
 - 一次启动多个 sub agents 或批量下发多个 item。
-- 当前 item 未完成并写回状态时，预取、提前执行或跨 slot 执行其他 item。
+- 当前 item 未完成时，预取、提前执行或跨 slot 执行其他 item。
 - 对 `backend-test` 直接下发"先跑全量 `uv run scripts/backend-test.py --`"而不做变更分析。
+- backend/test runner 在未证明定向范围不可靠或门禁要求时执行全量 `uv run scripts/backend-test.py --`。
 
 ## Failure
 - 状态文件缺失/损坏：终止并提示先运行 `/t-task [feature] --phase [phase]`。
 - 依赖不满足：阻塞后续依赖 item。
 - 状态写入失败：重试一次，失败则终止。
+- agent 超时或编译级联错误：标记 item 为 `failed`，写入 `last_error`。
 - 阶段校验失败：提示先完成前置阶段。
 - 阶段未启用：提示当前项目未启用该阶段，并展示 `.state.json.phases` 中的 active phases。
 - 阶段未生成：提示先运行 `/t-task [feature] --phase [phase]`。
 - item 文件缺失或 DAG 非法：提示重建该阶段任务目录。
+- item 缺少 `Goal/Work/Files/Validation/Handoff` 五章节：提示重新运行 `/t-task-check`；若确认为旧格式任务，重新运行 `/t-task [feature] --phase [phase]` 生成。
 
 ## Examples
 ```bash
@@ -165,5 +154,5 @@ item_file: .ai/task/sample-feature/backend/dev/BE-D02-domain-models.md
 slot_manifest: .ai/task/sample-feature/backend/dev.md
 phase_index: .ai/task/sample-feature/backend/index.md
 dependencies:
-  BE-D01: completed, handoff=<summary>
+  BE-D01: completed, file=.ai/task/sample-feature/backend/dev/BE-D01-domain-models.md
 ```

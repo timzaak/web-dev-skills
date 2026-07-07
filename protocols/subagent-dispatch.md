@@ -23,7 +23,7 @@ Claude Code 经 `--plugin-dir` 自动把 `agents/*.md` 注册为可调用 subage
 
 ## 适用范围
 
-适用于所有调用 `Agent` tool 的 skill，包括但不限于：`t-run`、`t-task`、`t-task-check`、`t-backend-test-run`、`t-demo-run`、`t-init`、`t-dream`、`t-html-show`、`t-prd`、`t-decision`、`t-doc`。
+适用于所有调用 `Agent` tool 的 skill，包括但不限于：`t-run`、`t-task`、`t-task-check`、`t-demo-run`、`t-init`、`t-dream`、`t-html-show`、`t-prd`、`t-decision`、`t-doc`。
 
 `general-purpose` / `general_agent` 等内置通用 agent 无 `agents/*.md` 定义，跳过注入步骤。
 

@@ -41,7 +41,7 @@
 - 多个 item 同时可执行时，优先 slot manifest 顺序；缺失时按 item ID 字典序。
 - 仅执行 `pending` 或 `failed` item；重试 `failed` 前依赖必须全部 `completed`。
 - 依赖未满足时不得跳过下游 item。
-- 任意时刻最多一个 item 为 `running`。
+- `/t-run` 串行调度 item，但执行前不更新状态；中断恢复时重新选择仍为 `pending` 或 `failed` 的 item。
 
 ## Agent Context
 
@@ -51,7 +51,7 @@
 - `feature`, `phase`, `slot`, `item_id`
 - 当前 item 文件全文
 - 当前阶段 `index.md`
-- 直接依赖 item 的 handoff 摘要与文件路径
+- 直接依赖 item 的状态、文件路径与必要片段
 
 可选提供当前 slot manifest、阶段设计摘要、最小状态切片、completion criteria / validation。
 
@@ -62,15 +62,15 @@
 - `id`: 稳定 ID，例如 `BE-D01`, `FE-T02`, `MA-A01`, `DE-A01`
 - `title`
 - `agent`
-- `scope`
-- `inputs`
-- `steps`
-- `expected_files`
-- `validation`
 - `depends_on`
-- `handoff_summary`
-- `completion_criteria`
-- `failure_boundary`: 说明该 item 失败时应定位到哪类问题、由哪个 agent/slot 继续处理。
+
+item 正文只使用以下章节：
+
+- `## Goal`：当前 item 的交付目标、边界和失败归因。
+- `## Work`：当前 agent 需要执行的具体动作。
+- `## Files`：预计新增、修改或重点检查的目标项目路径。
+- `## Validation`：目标项目真实命令、脚本或验收证据。
+- `## Handoff`：给下游 item 或 slot 的必要交接信息；没有下游依赖时写 `None`。
 
 backend/test item 还必须符合 [Backend Test Item Types](#backend-test-item-types)。
 
@@ -91,7 +91,7 @@ backend/test item 还必须符合 [Backend Test Item Types](#backend-test-item-t
 
 真实兼容约束只来自 PRD、设计文档、外部 API 契约、数据保留、跨版本部署或用户显式要求；“先共存以后再删”不是兼容理由。
 
-此类任务至少包含一张旧代码清理清单，作为独立 item 或写入相关 item 的 `handoff_summary`。清单必须覆盖：
+此类任务至少包含一张旧代码清理清单，作为独立 item 或写入相关 item 的 `## Handoff`。清单必须覆盖：
 
 - 待迁移或删除的旧代码、入口、配置、测试、文档引用和数据结构。
 - 删除边界：必须删除项，以及因真实兼容约束暂时保留项。
@@ -122,7 +122,7 @@ backend/test item 还必须符合 [Backend Test Item Types](#backend-test-item-t
 - 跨越超过 3 个领域模块或页面域。
 - 超过 14 个主要步骤。
 - 单个 item 文件预计超过 30KB，且不是验收清单。
-- scope 包含两个弱相关、可独立交付、独立验证的主交付物。
+- `Goal` 或 `Work` 包含两个弱相关、可独立交付、独立验证的主交付物。
 - 单个 HTTP/API item 覆盖超过 10 个 endpoint，或混合不同资源域、读写操作、状态操作、配置类接口，导致验证命令、失败归因或 review 边界不清。
 - 单个 demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流，导致失败时无法区分测试基础设施问题和故事流程问题。
 
@@ -161,25 +161,24 @@ backend/test、frontend/test、miniapp/test、demo/dev 的测试拆分与执行�
 backend/test item 必须声明 `test_item_type`：
 
 - `authoring`：由 `backend-test` 编写或维护场景测试、helper、模块注册，只做编译验证。
-- `runner`：由 `general-purpose` 加载 `${CLAUDE_PLUGIN_ROOT}/skills/t-backend-test-run/SKILL.md`，汇总 authoring item 后执行定向测试、失败分类、生产代码修复委派和重测。
+- `runner`：由 `general-purpose` 按 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md` 汇总 authoring item 后执行定向测试、失败分类、生产代码修复委派和重测。
 
 backend/test slot 必须显式规划测试执行闭环：
 
-- 每个新增或修改场景测试的 `authoring` item 必须被 runner 的覆盖来源显式纳入。
-- runner 的拆分以验证范围为准：同一业务场景或 package/module 优先合并，互不相干且会影响恢复性的范围可拆分。
-- `runner` item 的 `agent` 必须为 `general-purpose`，并声明 `uses_skill: skills/t-backend-test-run/SKILL.md`。
-- `runner` item 必须依赖本轮全部相关 `authoring` item。
-- `runner` item 中出现的每条后端测试命令都必须以 `uv run scripts/backend-test.py --` 开头；没有 filter 时也写成 `uv run scripts/backend-test.py --`。
-- 需要串行执行时，使用 `uv run scripts/backend-test.py -- [filter]`，并写明串行原因。
-- 不得写 `${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py`，也不得省略 `--`；目标项目本地脚本失败时不得改用插件脚本绕过。
-- backend/accept item 必须依赖至少一个 `runner` item，不得只依赖 `authoring` item。
-- `t-backend-test-run` 不得作为 agent 出现在 item 中。
+- 每个新增或修改场景测试的 `authoring` item 必须被 runner 覆盖。
+- runner 按验证范围拆分；同一业务场景或 package/module 优先合并。
+- `runner.agent` 必须为 `general-purpose`。
+- runner 必须依赖本轮全部相关 `authoring` item。
+- runner 必须在 `Work` 或 `Validation` 中引用 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md`，并按该协议执行。
+- runner 中每条后端测试命令都必须以 `uv run scripts/backend-test.py --` 开头；没有 filter 时也保留结尾 `--`。
+- runner 默认必须带 filter 或 `-E` 表达式来收敛到 Expected Test Manifest 覆盖范围；只有定向范围无法可靠覆盖风险或存在明确门禁要求时，才允许规划全量 `uv run scripts/backend-test.py --`，并必须写明升级原因。
+- 不得写 `${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py`，不得省略 `--`，目标项目本地脚本失败时不得改用插件脚本绕过。
+- backend/accept item 必须依赖至少一个 runner，不得只依赖 authoring。
 
-缺少 `test_item_type`、类型非法、runner 缺少 `uses_skill`、或把 `t-backend-test-run` 当作 agent 时，执行应终止并提示重新运行 `/t-task-check` 或重建任务。
+缺少 `test_item_type`、类型非法、runner 未引用后端测试执行协议、或 runner agent 不是 `general-purpose` 时，执行应终止并提示重新运行 `/t-task-check` 或重建任务。
 
 ## Failure Handling
 
 - 状态文件缺失或损坏：终止并提示先运行 `/t-task`
 - DAG 成环、依赖缺失、item 文件缺失：终止并提示运行 `/t-task-check`
 - item 执行失败：写回 `last_error`，阻断依赖该 item 的后续执行
-- 已有 `running` item：终止，不启动新 agent

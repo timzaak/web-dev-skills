@@ -2,151 +2,93 @@
 
 [中文](README.md)
 
-A Claude Code plugin for Java Spring Boot + React projects. It turns `Decision -> Tech Research -> PRD -> Design -> Task -> Development -> Acceptance -> Demo` into a reusable workflow, so teams do not need to repeatedly design prompts, switch context manually, or maintain stage boundaries by hand.
+A Claude Code plugin for Java Spring Boot + React projects. It turns AI programming into an executable, resumable, and acceptable engineering workflow:
 
-It is designed for teams and projects that:
+```text
+Decision -> Tech Research -> PRD -> Design -> Task -> Development -> Acceptance -> Demo -> Release
+```
 
-- Already have a clear delivery chain across product documents, design, task breakdown, development, testing, and demo delivery
-- Want to move Claude Code from ad hoc Q&A to an executable engineering workflow
-- Need subagent collaboration, stage gates, and standardized artifacts instead of one-off freeform execution
+T-Tools is designed for projects that already have a delivery chain across product documents, design, task breakdown, development, testing, and demos. Its focus is not freeform model execution. It uses skills to orchestrate stages, subagents to split work, protocols to keep shared contracts stable, and check / accept stages to close quality gates.
 
-## Why Use It
+Recommended first reading: [human/structure.en.md](human/structure.en.md) to understand how skills, subagents, and protocols work together. Before shaping a requirement, use [human/speech-template.en.md](human/speech-template.en.md) to speak through the real intent first.
 
-- Fast adoption: follow the `/t-tools:t-*` command sequence directly, without designing a full prompt and collaboration system yourself
-- Stable delivery: key stages include check and acceptance commands to reduce document drift, missed task breakdowns, and non-runnable demos
-- Clear collaboration: skills, agents, guides, and protocols are layered for reuse across teams and long-running projects
+![T-Tools knowledge graph](knowledge-graph.png)
 
-## Design Overview
-
-Recommended first reading: [human/structure.en.md](human/structure.en.md) — understand how skills, subagents, and protocols work together to drive AI programming.
-
-## 3-Minute Quick Start
+## Quick Start
 
 Prerequisites:
 
-- The t-tools plugin has been loaded by following the [Installation](#installation) steps
+- The plugin has been loaded by following [Installation](#installation)
 - The target project has runtime directories: `docs/` and `.ai/`
-- [`context7`](https://github.com/upstash/context7) is enabled
+- [`context7`](https://github.com/upstash/context7) is configured
 
-Minimal end-to-end example:
+Minimal end-to-end loop:
 
 ```bash
-# Decide whether this feature should enter the workflow, then open HTML for review
+# Product decision gate
 /t-tools:t-decision user-management
 
-# Run technical feasibility research when dependencies, cost, or risk affect scope
+# Use when feasibility, dependency, or cost risks affect scope
 /t-tools:t-tech-research user-management
 
-# Create or update .ai/prd and .ai/user-stories drafts, then open HTML for review
+# Generate .ai/prd and .ai/user-stories drafts plus HTML Preview
 /t-tools:t-prd user-management
 
-# Quality gate: prevent upstream issues from entering the design stage
+# PRD quality gate
 /t-tools:t-prd-check user-management
 
-# Produce technical design from the PRD; pure technical designs may also use t-tech-research as input
+# Generate technical design
 /t-tools:t-design user-management
 
-# Convert design into executable tasks
-/t-tools:t-task user-management
+# Design quality gate
+/t-tools:t-design-check user-management
+
+# Generate executable backend tasks
+/t-tools:t-task user-management --phase backend
 
 # Check task breakdown, dependencies, and executability
 /t-tools:t-task-check user-management --phase backend
 
-# Drive implementation and testing by phase
+# Implement and test by phase
 /t-tools:t-run user-management --phase backend
 
-# Code review
-/code-review
+# Local diff review
+/t-tools:t-code-review
 
-# Run Demo/E2E tests for the role
+# Run Demo/E2E tests
 /t-tools:t-demo-run super-admin
 
-# Final acceptance: verify story mapping, compilation, execution, and quality requirements
+# Final acceptance
 /t-tools:t-demo-accept super-admin
 
-# After implementation and acceptance, summarize drafts and revise the formal PRD / user stories
+# Publish formal PRD / user stories after implementation and acceptance
 /t-tools:t-prd-publish user-management
 ```
 
-If you only remember one thing: do not skip check or accept stages. This plugin is not only for generating content. It is also designed to close each stage before problems flow downstream.
+If you only remember one rule: do not skip check / accept. This plugin is not only for generating content. It is for stopping problems at each stage before they flow downstream.
 
-Additional notes:
+## Phase Split
+
+`t-task`, `t-task-check`, and `t-run` all progress by phase. The typical order is `backend -> frontend -> demo`; projects with miniapp support may insert `miniapp`.
+
+- `backend`: backend APIs, data models, permissions, business logic, backend tests, and read-only acceptance.
+- `frontend`: React pages, components, state, frontend tests, and read-only acceptance. It depends on backend completion.
+- `demo`: Playwright Demo/E2E based on user stories, with acceptance for real user paths. It depends on the preceding delivery phases.
+
+Each phase starts with `/t-tools:t-task <feature> --phase <phase>`, then `/t-tools:t-task-check <feature> --phase <phase>`, and after passing, `/t-tools:t-run <feature> --phase <phase>` executes items serially. The quick start expands only backend as the first phase example; after backend is complete, repeat the same loop for frontend and demo.
+
+## Key Rules
 
 - This README consistently uses `/t-tools:t-*` as the standard invocation format.
-- All `t-*` skills in this plugin are manual command entries and must not be invoked automatically by the model.
-- `t-decision` is the product decision gate before PRD. It writes `.ai/decision/<feature>.md` and `.ai/preview/decision/<feature>.html`; continue to tech research or PRD only after a `Proceed` or `Research First` verdict. Its interaction model is inspired by Garry Tan's [gstack](https://github.com/garrytan/gstack), especially `office-hours` and `plan-ceo-review`, but it is translated into a t-tools stage gate and does not vendor the gstack runtime.
-- `t-prd` only writes candidate requirements under `.ai/prd` and `.ai/user-stories`; it does not write directly into `docs/prd` or `docs/user-stories`. `t-prd-publish` is responsible for merging still-valid long-term product facts back into `docs/`.
+- All `t-*` skills are manual command entries and must not be invoked automatically by the model.
+- `t-decision` is the product decision gate before PRD. It writes `.ai/decision/<feature>.md` and `.ai/preview/decision/<feature>.html`; continue only after a `Proceed` or `Research First` verdict.
+- `t-prd` only writes candidate requirements under `.ai/prd` and `.ai/user-stories`; `t-prd-publish` merges still-valid long-term product facts back into `docs/`.
 - `t-doc` is for project documentation, onboarding tutorials, API references, configuration, and deployment notes. It is not for PRDs, technical designs, or small document edits.
-- `t-dream` defaults to a read-only audit that reorganizes PRDs, user stories, design/task docs, implementation facts, and project structure, reducing stale, duplicated, conflicting, or misleading context; use `--govern-prd` explicitly when PRD governance should write changes.
-- `t-backend-test-run` is an internal execution skill reused by flows such as `backend-test`; it is not recommended as a manual entry point.
+- `t-dream` defaults to a read-only audit of PRDs, user stories, design/tasks, implementation facts, and project structure; use `--govern-prd` explicitly when PRD governance should write changes.
+- `t-code-review` reviews the current branch and working tree by default, and only reports high-confidence correctness bugs and clearly applicable rule violations; use `--comment` only when GitHub PR comments are desired.
+- `t-push` cleans clearly low-value comments from the current diff, summarizes a commit message, then calls `${CLAUDE_PLUGIN_ROOT}/scripts/push.py` to run affected CI, commit, and push.
 
-## Full Workflow
-
-```mermaid
-%%{init: {'flowchart': {'defaultRenderer': 'elk'}}}%%
-flowchart TD
-    subgraph Init["Init (optional)"]
-        direction LR
-        A1["t-init"] --> A2["t-decision"] --> A3["t-tech-research"]
-    end
-
-    subgraph PRD["PRD"]
-        B1["t-prd"] --> B2{"t-prd-check"}
-        B2 -->|fail| B1
-    end
-
-    subgraph Design["Design"]
-        C1["t-design"] --> C2{"t-design-check"}
-        C2 -->|fail| C1
-    end
-
-    subgraph Task["Task"]
-        D1["t-task"] --> D2{"t-task-check"}
-        D2 -->|fail| D1
-    end
-
-    subgraph Dev["Development"]
-        E1["t-run"] --> E2["code-review"]
-    end
-
-    subgraph Demo["Demo"]
-        F1["t-demo-run"] --> F2{"t-demo-accept"}
-        F2 -->|fail| F1
-    end
-
-    subgraph Post["Post"]
-        G1["t-prd-publish"] --> G2["t-push"] --> G3["t-release"]
-    end
-
-    A2 -.-> B1
-    A3 -.-> B1
-    B2 -->|pass| C1
-    C2 -->|pass| D1
-    D2 -->|pass| E1
-    E2 --> F1
-    F2 -->|pass| G1
-```
-
-Key behaviors:
-
-- `t-prd` generates temporary `.ai/prd` and `.ai/user-stories` drafts plus a Preview. It does not write directly into formal `docs/prd` or `docs/user-stories`.
-- `t-prd-check` is the quality gate for PRDs, HTML Previews, draft user stories, and published user stories. After it passes, continue to `t-design`; after fixes, run `t-prd-check` again.
-- `t-prd-publish` runs after implementation, testing, and Demo acceptance. It summarizes drafts against the existing formal PRD / user stories and post-implementation evidence, fixes missing, stale, or conflicting content in `docs/`, then deletes the matching `.ai/prd` and `.ai/user-stories` drafts.
-- `t-task-check` is the gate for task breakdown, DAG validity, and item executability. It verifies that task documents are ready for implementation.
-- `t-demo-accept` is the demo-stage acceptance gate. It verifies test coverage, runnability, and delivery quality.
-
-Helper commands:
-
-- `t-init <project-name>`: initializes a full-stack project scaffold for Java Spring Boot + React TanStack, including backend, frontend, E2E tests, development scripts, and the complete directory structure
-- `t-decision <feature>`: evaluates whether a feature should enter the workflow before tech research or PRD, writes `.ai/decision/<feature>.md`, generates `.ai/preview/decision/<feature>.html`, and recommends `t-tech-research`, `t-prd`, or stopping
-- `t-tech-research`: evaluates technical feasibility before writing the PRD, including dependency gap analysis, library research, impact analysis, and feasibility judgment; for pure technical designs that do not change business logic, it may be the direct upstream input to `t-design`
-- `t-prd-publish <feature>`: after implementation and acceptance, reviews `.ai/prd/<domain>/<feature>.md`, `.ai/user-stories/<domain>/<feature>.md`, the existing formal PRD / user stories, and post-implementation evidence, presents a publish summary, then fixes missing, stale, or conflicting content in `docs/` and deletes the drafts
-- `t-doc <project-or-module-name>`: scans the target project codebase and generates newcomer-oriented tutorial documentation under `docs/tutorials/<name>/` by default
-- `t-html-show <feature | path>`: generates or updates HTML Preview for quick human review. Supports PRDs (pass feature name) and any Markdown document (pass file path). Usually triggered automatically by `t-prd`, but can also be run independently
-- `t-dream [feature|--all] [--deep|--backend-only|--govern-prd]`: by default, read-only audits PRDs, user stories, design/task docs, code structure, tests/Demo, and implementation facts to find stale context, structure drift, traceability gaps, and description/implementation conflicts, then writes `.ai/quality/dream-check-[YYYYMMDD-HHMMSS].md`; only `--govern-prd` may rewrite PRDs, indexes, and references
-- `t-demo-run-all`: runs demo tests in batch
-- `t-push`: has the AI clean clearly low-value code comments from the current diff, summarize the commit message from the cleaned `git diff`, then calls `${CLAUDE_PLUGIN_ROOT}/scripts/push.py --message "<message>"` to detect backend, frontend, and demo changes, run affected local CI checks in parallel, and run `git commit` plus `git push` after CI passes
-- `t-release [version]`: releases a version by updating project versions, creating a git commit and tag, and pushing to the remote. Version files use semantic versioning, such as `0.2.0`, while the final git tag always uses a `v` prefix, such as `v0.2.0`. If omitted, the command recommends one based on the latest semver tag. It only runs on a clean `main` branch, updates `backend/pom.xml`, `frontend/package.json`, and `demo/package.json`, then commits and pushes after compilation checks pass.
+PRD, technical research, and design stages need explicit human calibration. If you are not sure how to do the spoken walkthrough, open [Do Not Shortcut the Intent](human/speech-template.en.md) and follow its headings: why this really matters, where the user story must not drift, product boundaries and tradeoffs, what the user must understand, permissions/data/risky operations, what technical research must clarify, and the biggest risks and unknowns. After ingesting that walkthrough, AI should first output its key understanding, evaluate executability, feasibility, and missing details, then generate or revise PRD, technical research, and design inputs. After `/t-tools:t-prd`, first step away from the generated artifact and state the PRD you would accept, then review the HTML Preview and ask the AI to revise against it. After `/t-tools:t-design`, review the UX from the user's perspective: entry points, paths, feedback, defaults, and error states, then ask the AI to revise the technical design.
 
 ## Installation
 
@@ -162,14 +104,14 @@ claude --plugin-dir /path/to/skills
 Prerequisites:
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI is installed and logged in
-- MCP Server [`context7`](https://github.com/upstash/context7) is configured for third-party library documentation lookup
+- MCP Server [`context7`](https://github.com/upstash/context7) is configured
 
 For tools that do not support `claude --plugin-dir` (Codex, ZCode, etc.), see [Using t-tools in Other AI Coding Tools](human/use-in-other-agents.en.md): place a dispatcher skill under `~/.agents/skills/` that routes `/t-tool <skill>` to the cloned repository directory.
 
 ## Projects Using This Plugin
 
-- [Herald](https://github.com/timzaak/herald) — A multi-tenant authentication and authorization system, providing auth services for both single-tenant and multi-tenant scenarios
-- [RMQTT-Things](https://github.com/timzaak/rmqtt-things) — An IoT thing-model management platform built on RMQTT, with device management, command delivery, OTA firmware updates, and TLS certificate issuance
-- [RWiki](https://github.com/timzaak/rwiki) — An AI-enhanced knowledge base built on Wiki.js data, with wiki content sync, semantic search, and intelligent Q&A
+- [Herald](https://github.com/timzaak/herald) — A multi-tenant authentication and authorization system
+- [RMQTT-Things](https://github.com/timzaak/rmqtt-things) — An IoT thing-model management platform built on RMQTT
+- [RWiki](https://github.com/timzaak/rwiki) — An AI-enhanced knowledge base built on Wiki.js data
 
-> For Java backend support, see the `java` branch.
+> The current `java` branch provides Java Spring Boot backend support.

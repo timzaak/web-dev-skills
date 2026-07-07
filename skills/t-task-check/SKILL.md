@@ -62,6 +62,8 @@ allowed-tools:
 
 任一项缺失或非法即返回 `TASK_SCHEMA_INVALID`
 
+旧格式 item（缺少 `Goal/Work/Files/Validation/Handoff` 五章节）不做兼容迁移；返回结构问题并提示重新运行 `/t-task [feature] --phase [phase]`。
+
 ## 执行流程
 - 校验设计文档是否存在。
 - 读取 `.state.json` 并验证 schema。
@@ -75,15 +77,15 @@ allowed-tools:
    - 若脚本返回非 0，按 `ITEM_DAG_INVALID` 处理，记 confirmed P0，停止准入 `/t-run`。
    - 若 `scripts/check-task-dag.py` 不存在，回退到抽取 `depends_on` 的内置校验，并在报告中标注"未找到项目脚本，使用内置校验"；不得临时创建 Python/JS 脚本。
 - 校验 item 时按以下顺序读取：
-   - 从 `.state.json`、slot manifest 和 item 文件头/关键字段抽取 `id/title/agent/scope/expected_files/validation/depends_on/test_item_type/uses_skill/handoff_summary/completion_criteria/failure_boundary`。
+   - 从 `.state.json`、slot manifest 和 item 文件头/关键章节抽取 `id/title/agent/depends_on/test_item_type` 以及 `Goal/Work/Files/Validation/Handoff`。
    - 用抽取结果完成 item 存在性、路径一致性、manifest 覆盖、DAG、agent/slot 匹配和 backend test authoring/集中 runner 覆盖校验。
    - 发现字段缺失、DAG/manifest 不一致、拆分阈值可疑、过度拆分可疑、设计一致性可疑或需要为 P0/P1 补证时，读取对应 item 全文。
    - 大型 phase 先用 `Grep`、路径清单或 manifest 定位目标 item，再读取命中的 item 文件。
 - 按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md` 校验 item DAG 与 manifest 覆盖关系。
 - 验证 item 文件结构与内容：
-   - 必须包含 `id/title/agent/scope/inputs/steps/expected_files/validation/depends_on/handoff_summary/completion_criteria/failure_boundary`
+   - 必须包含 `id/title/agent/depends_on` 和 `Goal/Work/Files/Validation/Handoff` 五个章节
    - backend/test item 必须声明 `test_item_type: authoring|runner`
-   - backend/test runner item 必须声明 `uses_skill: skills/t-backend-test-run/SKILL.md`
+   - backend/test runner item 必须使用 `agent: general-purpose`，并引用 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md`
    - backend/test 必须有 runner item 覆盖全部相关 authoring item，且 runner 依赖这些 authoring item
    - backend/accept item 必须依赖 runner item，不得只依赖 authoring item
    - frontend/test、miniapp/test 和 demo/dev 涉及测试代码 authoring 时，必须有集中定向执行 item 依赖全部相关测试 authoring item
@@ -93,7 +95,7 @@ allowed-tools:
    - 后端测试命令必须使用目标项目内脚本入口 `uv run scripts/backend-test.py -- [filter]`；即使没有 filter，也必须写为 `uv run scripts/backend-test.py --`。不得写成 `${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py` 或省略 `--`。需要串行执行时使用 `uv run scripts/backend-test.py -- [filter]` 并说明串行原因。若测试 item 使用 `mvn spring-boot:run`、裸 `mvn test`、插件根路径或省略 `--` 的后端测试命令，记 P1，并改为统一入口。
    - 不得把完整 slot 内容塞进一个 item
    - 超过拆分阈值，或职责、验证、恢复边界可疑时，必须有合理说明，否则记 P1
-   - scope 中包含两个可独立交付、独立验证的主交付物时，必须拆分，否则记 P1
+   - `Goal` 或 `Work` 中包含两个可独立交付、独立验证的主交付物时，必须拆分，否则记 P1
    - 单个 HTTP/API item 覆盖超过 10 个 endpoint，或混合不同资源域、读写操作、状态操作、配置类接口时，必须拆分，否则记 P1
    - 单个 demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流时，必须拆分，否则记 P1
 - 核对设计文档与任务文档的一致性；纯技术方案任务可只追溯设计文档中的技术预研来源，不得因缺少 PRD/用户故事扣 P0。
@@ -101,8 +103,8 @@ allowed-tools:
 - 通过 `Agent` tool 调度当前阶段对应 subagent 做专业校验。每个 subagent 独立启动，传入 prompt 包含：该 agent/slot 相关 item 的文件路径、关键字段摘要、必要 item 全文或片段、设计文档相关节、验证范围、`${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md` 中的 agent 评审边界、输出格式要求（score/findings/fixes/summary）。可并行调度同阶段多个 subagent。
    - 不得默认把当前 phase 的全部 item 全文传给每个 subagent。
    - dev agent 默认只接收 dev item 与直接影响实现的跨 slot 摘要。
-   - test agent 默认只接收 test item、相关 dev handoff/expected_files 摘要和集中定向测试执行闭环约束。
-   - accept agent 默认只接收 accept item、直接依赖 runner/dev handoff 摘要和验收闭环约束。
+   - test agent 默认只接收 test item、相关 dev `Handoff/Files` 摘要和集中定向测试执行闭环约束。
+   - accept agent 默认只接收 accept item、直接依赖 runner/dev `Handoff` 摘要和验收闭环约束。
    - demo 阶段按 dev/accept slot 同样做最小分发。
    - backend: subagent_type="backend-dev", "backend-test", "backend-accept"
    - frontend: subagent_type="frontend-dev", "frontend-test", "frontend-accept"
@@ -152,22 +154,12 @@ agent finding 不直接作为最终裁决；主流程必须按 rubric 完成证�
 ```text
 总分: 92/100 (优秀，可进入实施)
 
-状态文件验证: 通过
-Item DAG 验证: 通过（python scripts/check-task-dag.py .ai/task/sample-feature/backend）
-
-状态文件结构: 15/15
-文档完整性: 14/15
-Item 可执行性: 18/20
-内容一致性: 19/20
-依赖与恢复: 15/15
-文档规范: 8/10
-代码示例质量: 3/5
-
+门禁摘要: state=通过, phase=通过, DAG=通过, manifest/items=通过
 Agent 集合: backend-dev, backend-test, backend-accept
 问题分类摘要: confirmed=2, disputed=0, assumption=0
 
 P1 问题:
-- BE-D03 超过拆分阈值，建议拆为 repository trait 与 repository implementation 两个 item
+- backend/dev/BE-D03-repository.md | 职责混杂 | 拆为可独立验证的两个 item
 
 下一步: /t-run sample-feature --phase backend
 ```

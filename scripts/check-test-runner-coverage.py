@@ -80,11 +80,9 @@ def find_runner_files(root: Path, feature: str, layer: str | None) -> list[Path]
             content = read_text(path)
             lowered = content.lower()
             has_runner_type = re.search(r"test_item_type\W*(?:[:|]|\*\*:\s*)\W*runner\b", lowered) is not None
-            has_backend_runner_skill = "skills/t-backend-test-run/skill.md" in lowered
             has_layer_command = COMMAND_MARKERS.get(current_layer, "") in lowered
             if (
                 has_runner_type
-                or has_backend_runner_skill
                 or has_layer_command
                 or "runner" in path.name.lower()
                 or "run-" in path.name.lower()

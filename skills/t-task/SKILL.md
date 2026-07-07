@@ -82,12 +82,14 @@ allowed-tools:
 - 调度 slot agent 前，先要求其识别当前 slot 的责任闭环：业务能力、接口能力、页面主流程、组件族、测试资产闭环或验收闭环；技术层、文件类型和实现步骤只作为拆分的辅助线索。
 - 按当前阶段 slot 串行调度相应 agent。每个 slot agent 必须按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 通过 `Agent` tool 启动，`subagent_type` 按 Agent Dispatch Mapping 映射。
 - 传入 agent prompt 的内容保持精简：阶段设计摘要、上游 handoff、目标 guide/protocol 路径、责任闭环识别要求、输出字段要求、`needs_user_answer` 规则；不得复制 guide、protocol 或 agent 文档中的长篇规则。
+- 生成 backend/test runner item 时，必须要求 agent 从 `Expected Test Manifest`、变更文件和 package/module/test name 推导最小可靠定向命令；不得把全量 `uv run scripts/backend-test.py --` 作为默认 runner validation。
 - slot agent 返回结构统一参考 [Agent Output Contract](#agent-output-contract)。
 - 主流程在每个 slot 返回后先执行写入前硬校验：
    - item 必填字段齐备
    - item ID 唯一，依赖存在且无环
    - manifest 覆盖全部 items，路径与 item 文件一致
    - 符合 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 和 `${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md` 的 P0/P1 硬门禁
+   - backend/test runner 若使用全量 `uv run scripts/backend-test.py --`，必须在 `Validation` 或 `Handoff` 写明无法可靠定向的具体原因或门禁要求；否则拒绝写入成功状态
 - 硬校验失败时终止当前 slot，不写入成功状态，要求重新生成该 slot。
 - 硬校验通过后写入当前 slot manifest 和 item 文件，再继续调用下游 slot。
 - 当前阶段 slot 齐备后生成 `<phase>/index.md`。
@@ -113,12 +115,8 @@ allowed-tools:
 ## Slot Manifest Contract
 每个 slot manifest 必须包含：
 - slot 目标和边界
-- item 表格：`id | title | agent | file | depends_on | status`
-- item DAG 或执行顺序
-- 上游输入和下游 handoff
-- item 合并/拆分理由摘要，说明每个 item 对应的责任闭环
-- slot 级完成标准
-- 测试或验收策略摘要
+- item 表格：`id | title | agent | file | depends_on`
+- 必要的上游输入和下游 handoff 摘要
 
 manifest 不得包含完整实现步骤；完整步骤必须写入 item 文件。
 
@@ -128,10 +126,11 @@ manifest 不得包含完整实现步骤；完整步骤必须写入 item 文件�
 
 - 只写当前 feature、phase、slot、item 的可执行事实。
 - 引用 guide、protocol、agent 文档路径，不复制其中的长篇规则。
-- item 的 `steps` 写具体动作，不写通用工程原则。
-- `validation` 写目标项目真实命令、脚本或验收证据，不写抽象测试建议。
+- item 正文只使用 `Goal / Work / Files / Validation / Handoff` 五个章节。
+- `Work` 写具体动作，不写通用工程原则。
+- `Validation` 写目标项目真实命令、脚本或验收证据，不写抽象测试建议。
 - item 应写明失败边界：失败时定位到哪类问题、由哪个 agent/slot 继续处理。
-- `handoff_summary` 只保留给下游 slot/agent 必需的信息。
+- `Handoff` 只保留给下游 slot/agent 必需的信息；没有下游依赖时写 `None`。
 
 ## Agent Output Contract
 slot agent 输出必须至少包含：
@@ -140,14 +139,13 @@ slot agent 输出必须至少包含：
 - `manifest_content`
 - `items`: item 对象列表，每个 item 包含 `id/file/agent/depends_on/content`
 - `item_dag`
-- `completion_criteria`
-- `handoff_summary`
 - `self_check`: 必填字段、DAG、责任闭环拆分、过度拆分、阶段执行规则和 P0/P1 风险自检结果
 
 主流程必须：
 - 校验 `slot` 与被调度 agent 是否匹配。
 - 校验 item 依赖合法且无环。
 - 校验 manifest、item 文件路径和 `.state.json` 计划一致。
+- 校验 item 使用 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的最小结构。
 - 校验 `self_check` 存在且未声明未解决 P0/P1。
 - 校验 slot agent 已说明 item 的责任闭环；若存在把技术层、文件类型或实现步骤当成唯一拆分依据、重复验证命令或不可独立验收的过度拆分，拒绝写入成功状态。
 - 先写入当前 slot manifest 和 item 文件，再继续调用下游 slot。
@@ -170,6 +168,7 @@ item 字段、backend/test item 类型、测试集中执行规则、拆分原则
 - 在任务文档中复制 guide/protocol/subagent 的长篇指南。
 - 在 item 中写与当前交付无关的通用实现建议、培训内容或风格偏好。
 - 违反 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的拆分、测试集中执行或 backend/test runner 规则。
+- backend/test runner 默认规划全量 `uv run scripts/backend-test.py --`，却没有证明定向范围无法可靠覆盖或存在明确门禁要求。
 
 ## Failure
 - 设计文档不存在：提示先运行 `/t-design [feature]`。
