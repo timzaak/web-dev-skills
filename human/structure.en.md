@@ -11,7 +11,7 @@ Core responsibilities:
 - `.ai/` and `docs/`: runtime artifacts and long-term business facts in the target project.
 - Humans: state real intent, make tradeoff decisions, point out detail preferences, and calibrate AI output through Preview, check, and accept stages.
 
-Before working on a requirement, PRD, or technical research, use [Do Not Shortcut the Intent](speech-template.en.md). It lets humans naturally walk through target users, user paths, page information, permissions, frontend/backend responsibilities, third-party dependencies, and risks; AI then evaluates executability, feasibility, missing details, and open questions.
+Before working on a requirement, PRD, or technical research, use [Do Not Shortcut the Intent](speech-template.en.md). It lets humans naturally walk through the starting goal, user story, UI/UX, third-party integration, third-party library introduction, and closing instruction; AI then evaluates executability, feasibility, missing details, and open questions, and records them in `.ai/future/[feature].md` when needed.
 
 ## Four Layers
 
@@ -84,7 +84,7 @@ Agent documents only say when to read guides, how to execute, and what to return
 
 `t-prd` first writes `.ai/prd` and `.ai/user-stories` drafts, then generates an HTML Preview. Markdown remains the formal contract; Preview is the human entry point for reviewing that contract quickly.
 
-The useful order is not to open the Preview immediately and follow the AI's narrative. First, step away from the generated artifact and use [Do Not Shortcut the Intent](speech-template.en.md) to state the requirement you would accept: what pain it solves, which user path matters most, and which states, permissions, exceptions, copy, data boundaries, or experience details must not be missed. Then review the Preview and ask the AI to revise the PRD, user stories, and Preview against that feedback.
+The useful order is not to open the Preview immediately and follow the AI's narrative. First, step away from the generated artifact and use [Do Not Shortcut the Intent](speech-template.en.md) to state the requirement you would accept: what pain it solves, which user path matters most, what the UI/UX must make clear at first glance, how abnormal states should explain themselves, and whether third-party capabilities or libraries truly fit. Then review the Preview and ask the AI to revise the PRD, user stories, and Preview against that feedback.
 
 `t-prd-check` is not just a format check. It verifies that the AI's written product understanding, the Preview, user stories, and formal documents are aligned. After implementation, testing, and Demo acceptance are complete, `t-prd-publish` merges still-valid long-term facts back into `docs/`.
 

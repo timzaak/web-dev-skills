@@ -6,80 +6,44 @@ Its purpose is not to make you “write requirements.” It is to force the real
 
 Aim for 5 to 10 minutes. You do not need to answer every line. Say the most important, most worrying, and most easily misunderstood parts.
 
-## 1. Why This Really Matters
+-- Getting Started
 
 What I want to build is: [one sentence describing the feature or change].
 
-This is not just another feature; it is meant to solve: [real user pain, business risk, workflow bottleneck, or delivery goal].
-
-If AI remembers only one point, it should be: [the core judgment].
+It needs to solve: [real user pain, business risk, workflow bottleneck, or delivery goal].
 
 After this works, the change I most want users or the business to see is: [observable change].
 
-## 2. The User Story Must Not Drift
+-- User Story Walkthrough
 
-The most important user is: [role], using it in: [scenario].
+The core user story is: [role] uses the feature above in [scenario].
 
 The key path is: enter from [entry point], do [key action], and finally see [result] in [place].
 
 The part that must not be missed is: [entry, decision point, feedback, state, permission, or data result], because: [reason].
 
-AI should not generalize this user story into: [common but wrong generic interpretation or scenario].
+What needs serious thought is: [common but wrong generic interpretation or scenario].
 
-## 3. Product Boundaries and Tradeoffs
 
-This release must include: [a few must-deliver capabilities].
+-- UI/UX Walkthrough
 
-This release explicitly does not include: [scope AI may otherwise expand into].
-
-If time, cost, or complexity conflicts, protect: [highest-priority capability or user path].
-
-Things that can be sacrificed or delayed are: [lower-priority capability, automation, reporting, configuration, batch operations, experience details, etc.].
-
-## 4. What the User Must Understand
-
-At first glance, the user must understand: [conclusion, state, next action, or risk].
-
-The most important information is not “more fields”; it is: [the information that truly affects user judgment].
+In the UI interaction, the user must understand at first glance: [conclusion, state, next action, or risk warning].
 
 When the state is abnormal, failed, permission-denied, or waiting on a third party, the user must know: [what happened, whether retry is possible, whether the result was saved, what to do next].
 
-I do not want the page to become: [AI's common but unacceptable display pattern, such as field dumping, too many cards, unclear flow, or unexplained states].
+For page design, refer heavily to [design standards, existing pages].
 
-## 5. Permissions, Data, and Risky Operations
 
-The most important permission boundary is: [who can view, who can edit, who only maintains, who must not touch it].
+-- Third-Party Integration Walkthrough
 
-The most important data boundary is: [personal, team, tenant, realm, global, third-party account, etc.].
+This work needs to integrate with [third-party platform], which must provide: [...]. Look closely at [local docs, official docs]. If its capabilities do not satisfy the need, tell me clearly. Also check whether it fits the existing tech stack and whether suitable SDKs are available.
 
-Risky operations include: [delete, refund, retry, close, authorize, export, sync, overwrite data, etc.].
+During the integration, pay special attention to [idempotency, duplicate requests, unordered requests, cascade deletion, audit, error recovery].
 
-These operations must have: [confirmation, audit, idempotency, rollback, read-only fallback, permission explanation, or other constraint].
+-- Third-Party Library Introduction
 
-AI must not assume: [roles, permissions, cross-tenant access, billing, compliance, or dangerous operation rules].
+I want to introduce [third-party library], which must provide: [...]. Search online for whether a better library exists. My evaluation standards are: [popular, simple, fits the current tech stack, does not introduce too many additional third parties].
 
-## 6. What Technical Research Must Clarify
+-- Closing
 
-If a third-party API is involved, the capability I really need is: [core capability].
-
-The important question is not just “can we integrate it,” but: [the gap between official capability and our expectation, such as payments vs invoices, subscriptions, refunds, webhooks, rate limits, regions, compliance].
-
-The likely conflict with the current tech stack is: [backend SDK, frontend SDK, version, runtime, auth method, deployment model, license, maintenance status].
-
-The backend issue that needs early thinking is: [data model relationship, state machine, idempotency, duplicate request, concurrency, cascade delete, audit, data retention].
-
-If webhooks or async flows exist, the main concern is: [out-of-order delivery, duplicate delivery, signature verification, retry, timeout, eventual consistency].
-
-## 7. My Biggest Risks and Unknowns
-
-The product risk I worry about most is: [user confusion, too long a path, permission misuse, high-cost wrong action, unexplained state, etc.].
-
-The technical risk I worry about most is: [third-party limits, idempotency, ordering, data consistency, performance, compatibility, deployment complexity, etc.].
-
-If only one risk can be solved first, I would solve: [risk], because: [reason].
-
-What I have confirmed is: [confirmed decisions].
-
-Questions that must be asked of me are: [questions that would change PRD, feasibility, or design direction].
-
-What AI can investigate by itself is: [codebase facts, existing docs, dependency versions, official APIs, best practices].
+Think through the above in detail, search the web for how similar products handle this and what related best practices look like, and ask me if anything remains uncertain. Write the above content and the answers into `.ai/future/[feature].md`.
