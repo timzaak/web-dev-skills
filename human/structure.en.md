@@ -37,7 +37,7 @@ t-decision -> t-tech-research -> t-prd -> t-prd-check
 -> t-prd-publish -> t-push -> t-release
 ```
 
-Not every project needs every optional stage, but check / accept stages are not decorative. They stop upstream problems before those problems move downstream.
+Not every project needs every stage. As AI capability improves, `t-prd-check`, `t-design-check`, and `t-task-check` are optional quality checks: use them for complex, high-risk, or multi-person work to stop upstream problems before they move downstream; simple low-risk changes may continue directly to the next stage. Implementation accept stages still close delivery acceptance.
 
 ### Agents: Specialized Executors
 
@@ -82,11 +82,11 @@ Agent documents only say when to read guides, how to execute, and what to return
 
 ### PRD: Make AI's Product Understanding Visible
 
-`t-prd` first writes `.ai/prd` and `.ai/user-stories` drafts, then generates an HTML Preview. Markdown remains the formal contract; Preview is the human entry point for reviewing that contract quickly.
+`t-prd` first writes `.ai/prd` and `.ai/user-stories` drafts. Markdown is the formal contract and the human entry point for reviewing the AI's product understanding.
 
-The useful order is not to open the Preview immediately and follow the AI's narrative. First, step away from the generated artifact and use [Do Not Shortcut the Intent](speech-template.en.md) to state the requirement you would accept: what pain it solves, which user path matters most, what the UI/UX must make clear at first glance, how abnormal states should explain themselves, and whether third-party capabilities or libraries truly fit. Then review the Preview and ask the AI to revise the PRD, user stories, and Preview against that feedback.
+The useful order is not to follow the AI's generated artifact immediately. First, step away from the generated artifact and use [Do Not Shortcut the Intent](speech-template.en.md) to state the requirement you would accept: what pain it solves, which user path matters most, what the UI/UX must make clear at first glance, how abnormal states should explain themselves, and whether third-party capabilities or libraries truly fit. Then ask the AI to revise the PRD and user stories against that feedback.
 
-`t-prd-check` is not just a format check. It verifies that the AI's written product understanding, the Preview, user stories, and formal documents are aligned. After implementation, testing, and Demo acceptance are complete, `t-prd-publish` merges still-valid long-term facts back into `docs/`.
+`t-prd-check` is an optional quality check, not just a format check. It verifies that the AI's written product understanding, user stories, and formal documents are aligned. When it is skipped, `t-design` still performs its own mixed validation between drafts and published baselines for critical conflicts. After implementation, testing, and Demo acceptance are complete, `t-prd-publish` merges still-valid long-term facts back into `docs/`.
 
 ### Tech Research: Make Feasibility Questions Explicit
 

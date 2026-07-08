@@ -1,6 +1,6 @@
 ---
 name: t-prd-check
-description: Validate draft PRD, HTML Preview, published PRD baseline, and user stories for quality and consistency.
+description: Validate draft PRD, published PRD baseline, and user stories for quality and consistency.
 argument-hint: "[feature-name|--all]"
 allowed-tools:
   - Read
@@ -17,14 +17,13 @@ allowed-tools:
 
 ## 目标
 - 验证 `.ai/prd` PRD 草稿完整性和规范性
-- 检查 PRD HTML Preview 的存在性、可审阅性和 PRD 一致性
 - 评估用户故事质量（INVEST 原则、GWT 格式）
 - 检查 PRD 与用户故事的一致性
 - 检查 PRD 草稿与 `docs/prd` 已发布基线是否存在未说明冲突
 - 检查 `.ai/user-stories` draft 与 `docs/user-stories` 已发布基线是否存在未说明冲突
 - 检查 PRD / 用户故事是否错误混入接口、建表、schema 等实现细节
 - 输出量化评分和修复清单
-- 明确通过后的下一步：进入 `/t-design [feature]`；若有修复，重新运行 `/t-prd-check [feature]`
+- 明确检查结论与风险；通过后建议进入 `/t-design [feature]`，未运行或未通过时用户仍可自行决定是否继续；若有修复，建议重新运行 `/t-prd-check [feature]`
 
 评分、扣分和问题分级统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md`
 
@@ -37,7 +36,6 @@ allowed-tools:
 ## 输入范围
 - PRD 草稿: `.ai/prd/**/*.md`
 - 已发布 PRD 基线: `docs/prd/**/*.md`（排除 `00-index.md`）
-- PRD HTML Preview: `.ai/preview/**/*.html`
 - Draft 用户故事: `.ai/user-stories/**/*.md`
 - 已发布用户故事: `docs/user-stories/**/*.md`
 - 排除文件: `00-index.md`, `_roles.md`, `_README.md`, `client-app-settings.md`, `builtin_protection.md`
@@ -64,21 +62,7 @@ allowed-tools:
 - 如果存在同名正式 PRD，记录草稿与正式 PRD 的关键差异
 - 如果引用 `.ai/user-stories`，确认其为候选来源且路径存在
 
-### 4. HTML Preview 检查
-按 `${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md` 和 `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md` 执行：
-
-- 先运行 `${CLAUDE_PLUGIN_ROOT}/scripts/check-html-show.py [feature-name|--all] --type prd --root . --json` 获取机械检查结果
-- 检查 `.ai/preview/<domain>/<feature>.html` 是否存在
-- 检查 Preview 如使用外部脚本、样式、CDN、npm 包、构建工具或第三方图库，是否声明依赖来源、用途和打开/运行方式
-- 检查 Preview 是否包含来源 PRD 路径和固定审阅区域
-- 对前端/交互功能，检查 Preview 是否聚焦 PRD 定义的目标体验和关键状态，而不是复刻现有代码已经具备的 UI
-- 检查 Preview 是否没有引入 PRD 未声明的新业务规则、权限规则或验收目标
-- 检查 Preview 与 Markdown PRD 在目标、范围、流程、业务状态、规则和验收目标上是否描述一致
-- 检查 Preview 是否没有混入端点、schema、建表、迁移或类型定义
-- 检查示例数据和待确认假设是否显式标注
-- 将脚本发现的问题并入 P0/P1/P2 问题清单；脚本无法判断的 PRD 语义一致性继续人工/模型检查
-
-### 5. 用户故事检查
+### 4. 用户故事检查
 按 `${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md` 执行：
 
 - 故事结构检查
@@ -88,7 +72,7 @@ allowed-tools:
 - 对 `.ai/user-stories` 与 `docs/user-stories` 分别标注 draft / published 来源
 - 若 draft story 与 published story 在角色、权限、目标、业务状态或验收目标上冲突且未说明覆盖关系，按一致性问题分级
 
-### 6. 一致性检查
+### 5. 一致性检查
 - 检查 PRD 中的用户故事链接是否有效
 - 比较 PRD 与用户故事中的优先级是否一致
 - 校验用户故事中的角色是否存在于 `_roles.md`
@@ -96,32 +80,30 @@ allowed-tools:
   - draft story 补充新场景且不冲突 → 记录为 publish 候选
   - draft story 修改已发布故事语义 → 必须能识别差异性质
   - draft story 与已发布故事有未说明冲突 → P1；若冲突会改变核心角色、权限或验收目标 → P0
-- 比较 HTML Preview 与 PRD 的关键规则、流程、状态和验收目标是否一致
 - 比较 `.ai/prd/<domain>/<feature>.md` 与 `docs/prd/<domain>/<feature>.md`：
   - 草稿对应正式 PRD 不存在 → 记录为 create-if-missing 候选
   - 草稿修改已发布 PRD → 必须能识别目标、范围、规则、状态或验收目标的差异
   - 草稿与正式 PRD 有未说明冲突 → P1；若冲突会改变核心业务边界或权限规则 → P0
 
-### 7. 评分计算
+### 6. 评分计算
 按 `${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md` 计算：
 
 - `PRD Score`
 - `User Story Score`
 - `Consistency Score`
-- `Preview Score`
 - `Total Score`
 
-### 8. 问题分级
+### 7. 问题分级
 问题分级统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md`
 
-### 9. 输出要求
+### 8. 输出要求
 - 控制台摘要和报告结构统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md`
 - 详细报告文件：`.ai/quality/prd-check-[YYYYMMDD-HHMMSS].md`
 - 通过时建议下一步为 `/t-design [feature]`
+- 未运行或未通过本检查不阻断 `/t-design`，但报告必须明确继续下游的已知风险
 - 未通过或修复后，建议再次运行 `/t-prd-check [feature]`
 
-### 10. 失败处理
+### 9. 失败处理
 - 未找到 PRD 文档：提示检查功能名称或先运行 `/t-prd [feature]`
 - 文件解析错误：记录错误并继续其他文件
 - 报告目录不存在：使用 `Bash` 创建 `.ai/quality/`
-- Preview 脚本不可执行或 Python 不可用：记录为检查阻塞项，不跳过 HTML Preview 语义检查

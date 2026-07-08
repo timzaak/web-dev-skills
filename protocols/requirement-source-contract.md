@@ -34,7 +34,7 @@
 
 ## Write Rules
 
-- `/t-prd` 只写 `.ai/prd/**/*.md`、`.ai/user-stories/**/*.md` 和 `.ai/preview/**/*.html`。
+- `/t-prd` 只写 `.ai/prd/**/*.md` 和 `.ai/user-stories/**/*.md`。
 - `/t-prd-check` 只写质量报告，不写 `docs/prd` 或 `docs/user-stories`。
 - `/t-design`、`/t-task`、`/t-run` 和 Demo 阶段可以读取 draft sources，不得把 draft user story 发布到 `docs/user-stories`。
 - `/t-prd-publish` 是把仍然成立的 PRD 草稿和 draft user stories 合并进 `docs/` 的标准入口。

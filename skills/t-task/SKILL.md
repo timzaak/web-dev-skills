@@ -60,11 +60,11 @@ allowed-tools:
 | 参数 | 说明 |
 |---|---|
 | `[feature]` | 功能名（必填） |
-| `--phase <backend\|frontend\|miniapp\|demo>` | 指定阶段生成；未指定时自动选择第一未完成阶段 |
+| `--phase <backend\|frontend\|miniapp\|demo>` | 指定阶段生成；未指定时默认选择第一个 active phase |
 
 ## Preconditions
 - `.ai/design/[feature].md` 必须存在。
-- 阶段依赖、active phases、miniapp 启用规则和 slot 顺序统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`
+- active phases、miniapp 启用规则和 slot 顺序统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`
 
 ## Output Layout
 按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 active phases 和 slot order 生成：
@@ -75,8 +75,8 @@ allowed-tools:
 
 ## Generation Flow
 - 校验 `.ai/design/[feature].md` 存在。
-- 解析 `[feature]` 和 `--phase`；根据 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 检测 active phases；未传 `--phase` 时自动选择第一未完成 active phase。
-- 按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 校验阶段前置和 slot 顺序；未启用的 phase 不参与校验或生成。
+- 解析 `[feature]` 和 `--phase`；根据 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 检测 active phases；未传 `--phase` 时选择第一个 active phase。
+- 按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 校验当前 phase 是否启用和 slot 顺序；未启用的 phase 不参与生成。
 - 若设计文档存在会影响任务拆分、交付范围、权限/安全边界、数据模型、兼容性策略、验收标准或测试闭环的未决问题，先使用 `AskUserQuestion` 获取用户答案；回答前不得生成或更新 `.ai/task/[feature]/`。
 - 按当前 phase 提取设计文档最小相关上下文；未命中相关章节时记录警告，但不得编造设计事实。
 - 调度 slot agent 前，先要求其识别当前 slot 的责任闭环：业务能力、接口能力、页面主流程、组件族、测试资产闭环或验收闭环；技术层、文件类型和实现步骤只作为拆分的辅助线索。
@@ -94,7 +94,7 @@ allowed-tools:
 - 硬校验通过后写入当前 slot manifest 和 item 文件，再继续调用下游 slot。
 - 当前阶段 slot 齐备后生成 `<phase>/index.md`。
 - 写入或更新 `.state.json`。
-- 返回下一步建议：`/t-task-check [feature] --phase [phase]`。
+- 返回下一步建议：复杂或高风险任务先运行 `/t-task-check [feature] --phase [phase]`；简单任务可直接运行 `/t-run [feature] --phase [phase]`。
 
 ## Agent Dispatch Mapping
 
@@ -172,7 +172,6 @@ item 字段、backend/test item 类型、测试集中执行规则、拆分原则
 
 ## Failure
 - 设计文档不存在：提示先运行 `/t-design [feature]`。
-- 前置阶段未完成：返回阻塞阶段、当前状态、阻塞 items/slots 和下一步命令；不得修改 `.state.json`。
 - 任一 slot agent 生成失败：终止本次任务生成，不写入该 slot 的成功状态，并返回失败 agent 与失败原因。
 - slot agent 返回 item 缺少必填字段、依赖不存在或形成环：拒绝写入成功状态，要求重新生成该 slot。
 - slot agent 返回缺失 `self_check`、manifest 覆盖不完整、backend/test 类型非法、触发必须拆分规则或明显过度拆分：拒绝写入成功状态，要求重新生成该 slot。
@@ -183,7 +182,7 @@ item 字段、backend/test item 类型、测试集中执行规则、拆分原则
 # 生成 backend 阶段任务
 /t-task <feature> --phase backend
 
-# 未指定 phase 时自动选择第一未完成阶段
+# 未指定 phase 时选择第一个 active phase
 /t-task <feature>
 ```
 
@@ -196,5 +195,5 @@ item 字段、backend/test item 类型、测试集中执行规则、拆分原则
 - accept.md + accept/*.md
 
 状态已更新：phase=backend, phases.backend.status=generated
-下一步: /t-task-check <feature> --phase backend
+下一步: 可选运行 /t-task-check <feature> --phase backend；或直接 /t-run <feature> --phase backend
 ```

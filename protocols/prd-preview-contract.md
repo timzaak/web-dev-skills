@@ -4,13 +4,13 @@
 
 ## File Location
 
-每份 PRD 草稿或正式 PRD 必须在 `.ai/preview/` 下生成对应 HTML Preview（不进入代码仓库）：
+PRD 草稿或正式 PRD 的对应 HTML Preview 写入 `.ai/preview/`（不进入代码仓库）：
 
 - PRD 草稿: `.ai/prd/<domain>/<feature>.md`
 - 正式 PRD: `docs/prd/<domain>/<feature>.md`
 - Preview: `.ai/preview/<domain>/<feature>.html`
 
-Preview 是临时验证产物，不纳入版本控制。每次 `/t-html-show`、`/t-prd`、`/t-prd-check` 修复后或正式 PRD 更新后可重新生成。
+Preview 是临时验证产物，不纳入版本控制。
 
 ## Source of Truth
 
@@ -37,7 +37,7 @@ HTML Preview 不再强制限定为单文件、内联 CSS/JS、无 npm/CDN/构建
 
 `/t-html-show` 在 PRD 模式下生成或更新 Preview 后，默认不自动打开；打开为可选项，规则与命令见 `html-show-contract.md` 的 `Opening the Preview`。
 
-审阅流程遵循 `html-show-contract.md` 中定义的通用 Review Workflow，并增加：运行 `/t-prd-check` 验证 Preview 与 Markdown PRD 描述一致。
+审阅流程遵循 `html-show-contract.md` 中定义的通用 Review Workflow。
 
 ## Content Model
 
@@ -70,7 +70,7 @@ PRD 的审阅任务是**完整性审查**（产品意图、范围、规则、验
 - 成功、失败、空态、加载态或禁用态中的关键状态。
 - 已有代码实现的 UI 只可作为入口或约束说明，不作为 Preview 主体复刻。
 
-纯后端或无用户界面的功能不生成伪 UI，但仍必须生成 Preview：
+纯后端或无用户界面的功能不生成伪 UI：
 
 - 使用流程图、状态图、调用方场景、能力边界矩阵或验收矩阵表达。
 - 不展示无意义的数据页面。
@@ -88,12 +88,12 @@ Preview 使用固定结构：
 
 ## Check Scope
 
-`/t-prd-check` 必须把 HTML Preview 作为检查对象，但检查目标是“可审阅性和一致性”，不是视觉美观。
+检查目标是“可审阅性和一致性”，不是视觉美观。
 
 检查项：
 
 - 可使用 `${CLAUDE_PLUGIN_ROOT}/scripts/check-html-show.py --type prd` 执行机械检查。
-- Preview 文件是否存在且路径为 `.ai/preview/<domain>/<feature>.html`。
+- Preview 文件路径是否为 `.ai/preview/<domain>/<feature>.html`。
 - 如使用外部脚本、样式、CDN、npm 包或构建工具，是否声明依赖来源、用途和打开/运行方式。
 - 是否包含来源 PRD 路径。
 - 是否包含固定区域：`Overview`、`Scope`、`Flow`、`States`、`Rules`、`Acceptance`、`Assumptions`。
@@ -106,7 +106,6 @@ Preview 使用固定结构：
 
 违反 Preview 契约时：
 
-- 缺失 Preview 文件：P1。
 - Preview 引入 PRD 未声明的新业务规则、权限规则或验收目标：P1。
 - Preview 混入端点、schema、建表、迁移、类型定义等禁止内容：P0。
 - Preview 使用外部依赖但未声明来源、用途或打开/运行方式：P1。
