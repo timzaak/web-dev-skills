@@ -39,7 +39,7 @@ allowed-tools:
 
 ## 目标
 
-基于通过 `/t-prd-check` 的用户故事、PRD 草稿、已发布 PRD 基线、技术预研、用户已准备的仓库内资料和现有代码，生成一份可实施、可追踪、可用于 `/t-task` 的技术设计文档。
+基于用户故事、PRD 草稿、已发布 PRD 基线、技术预研、用户已准备的仓库内资料和现有代码，生成一份可实施、可追踪、可用于 `/t-task` 的技术设计文档。`/t-prd-check` 是推荐的可选上游检查；未运行时，本 skill 必须自行完成关键需求来源混合验证。
 
 输出文件：
 - `.ai/design/$ARGUMENTS.md`
@@ -87,10 +87,10 @@ allowed-tools:
 
 ## 核心约束
 
-- 业务功能设计必须混合验证 `.ai/prd` 草稿与 `docs/prd` 正式 PRD：草稿是通过 PRD Check 后进入设计、任务和实现的候选需求，正式 PRD 是已发布基线；两者存在未说明冲突时停止并要求修正草稿后再次运行 `/t-prd-check [feature]`
-- 业务功能设计必须混合验证 `.ai/user-stories` draft 与 `docs/user-stories` 已发布故事：draft story 是通过 PRD Check 后进入设计、任务和实现的候选需求，正式 story 是已发布基线；两者存在未说明冲突时停止并要求修正草稿后再次运行 `/t-prd-check [feature]`
+- 业务功能设计必须混合验证 `.ai/prd` 草稿与 `docs/prd` 正式 PRD：草稿是当前候选需求，正式 PRD 是已发布基线；两者存在未说明冲突时停止并要求修正草稿，必要时运行 `/t-prd-check [feature]`
+- 业务功能设计必须混合验证 `.ai/user-stories` draft 与 `docs/user-stories` 已发布故事：draft story 是当前候选需求，正式 story 是已发布基线；两者存在未说明冲突时停止并要求修正草稿，必要时运行 `/t-prd-check [feature]`
 - 若存在 `.ai/decision/<feature>.md`，设计必须尊重其中目标用户、Scope Direction、D0/D1 产品决策和 Handoff；不得用技术方案静默改变立项结论
-- 若存在 `.ai/prd` 草稿且内容会影响设计，默认基于草稿继续设计，并在设计文档中标记"基于已检查 PRD 草稿"；不得要求先发布到 `docs/prd`
+- 若存在 `.ai/prd` 草稿且内容会影响设计，默认基于草稿继续设计，并在设计文档中标记是否已找到对应 PRD Check 报告；不得要求先发布到 `docs/prd`
 - 若存在 `.ai/user-stories` draft 且内容会影响设计，默认基于 draft story 继续设计，并在设计文档中保留 `.ai/user-stories/...` 来源路径；不得要求先发布到 `docs/user-stories`
 - 若没有 `.ai/prd` 草稿但存在 `docs/prd` 正式 PRD，可基于正式 PRD 继续设计，并在设计文档中标记"未发现 PRD 草稿"
 - 纯技术方案没有 PRD/用户故事时，以 `.ai/tech-research/<feature>.md` 中的技术目标、约束和影响范围为准；执行流程与质量门禁以 `${CLAUDE_PLUGIN_ROOT}/guides/` 为准
@@ -169,11 +169,11 @@ allowed-tools:
 
 如果同时存在草稿和正式 PRD：
 - 草稿与正式 PRD 一致或明确是增量/替换 → 继续设计，并在"需求来源"中同时引用两者和差异摘要
-- 草稿与正式 PRD 在核心业务边界、权限规则或验收目标上冲突，且无法从草稿确认覆盖关系 → 停止并提示修正草稿后再次运行 `/t-prd-check [feature]`
+- 草稿与正式 PRD 在核心业务边界、权限规则或验收目标上冲突，且无法从草稿确认覆盖关系 → 停止并提示修正草稿，必要时运行 `/t-prd-check [feature]`
 
 如果同时存在 draft 用户故事和已发布用户故事：
 - draft story 与已发布 story 一致或明确是增量/替换 → 继续设计，并在"需求来源"中同时引用两者和差异摘要
-- draft story 与已发布 story 在核心角色、权限规则或验收目标上冲突，且无法确认覆盖关系 → 停止并提示修正 draft story 后再次运行 `/t-prd-check [feature]`
+- draft story 与已发布 story 在核心角色、权限规则或验收目标上冲突，且无法确认覆盖关系 → 停止并提示修正 draft story，必要时运行 `/t-prd-check [feature]`
 
 如果没有找到足够的用户故事或 PRD：
 - 优先检查是否存在 `.ai/tech-research/$ARGUMENTS.md`
@@ -272,7 +272,7 @@ allowed-tools:
 - 文档路径
 - 本次设计覆盖的核心范围
 - 关键风险或待确认点
-- 下一步命令：`/t-design-check $ARGUMENTS`
+- 下一步命令：高风险或复杂设计建议运行 `/t-design-check $ARGUMENTS`；简单设计可直接进入 `/t-task $ARGUMENTS`
 - 如文档内容较多或结构复杂，可使用 `/t-html-show .ai/design/$ARGUMENTS.md` 生成 HTML 可视化预览
 
 ## 用户故事引用规则

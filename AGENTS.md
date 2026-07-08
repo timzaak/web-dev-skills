@@ -5,7 +5,7 @@
 ## 工作定位
 
 - 面向目标项目使用时，标准入口是 `/t-tools:t-*` 命令，而不是让模型自由选择流程。
-- 插件主链路是 `PRD Draft -> PRD Check -> Design -> Design Check -> Task -> Task Check -> Run -> Demo Run -> Demo Accept -> PRD Publish -> Release`。
+- 插件主链路是 `PRD Draft -> [PRD Check] -> Design -> [Design Check] -> Task -> [Task Check] -> Run -> Demo Run -> Demo Accept -> PRD Publish -> Release`，方括号内为可选质量检查。
 - 这个 plugin 的核心价值是统筹 AI 编程：把需求、设计、任务、实现、测试、验收和 Demo 交付拆成有边界、有状态、有门禁的阶段。
 - 不要把本仓库当成目标项目来生成业务代码。目标项目运行时事实主要落在目标项目的 `docs/` 和 `.ai/` 中。
 
@@ -26,7 +26,7 @@
 - 如果变更影响插件暴露能力或依赖，同步检查 `.claude-plugin/plugin.json`。
 - 如果变更影响目标项目运行时文件结构，优先检查 `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md` 和 `${CLAUDE_PLUGIN_ROOT}/skills/t-init/` 相关模板。
 - Agent 文档应保持角色边界清晰：dev 可以实现，test 专注测试，accept 默认只读验收并输出证据。
-- Check / accept 阶段不是可选装饰。涉及流程文档时，不要弱化这些门禁。
+- `t-prd-check`、`t-design-check`、`t-task-check` 是可选质量检查；复杂、高风险、多人协作或 AI 输出不稳定时推荐运行。accept 阶段仍是实现后的验收收口，不要弱化验收职责。
 
 ## 质量与验证
 

@@ -24,6 +24,7 @@ allowed-tools:
 - 给出可复查的 100 分量化结果。
 - 输出 P0/P1/P2 修复清单。
 - 必须按当前阶段调度对应 sub agent 做专业校验，再由主流程聚合结论。
+- 本检查为可选，不作为 `/t-run` 的硬性前置；但一旦运行，报告必须严格按 rubric 给出准入风险。
 - 发现必须由用户裁决的规划问题时，使用 `AskUserQuestion` 阻塞式提问，不得只写入 P0/P1/P2 后继续准入。
 
 评分、阻塞条件、报告要求、跨轮收敛和 agent 评审边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md`
@@ -114,6 +115,7 @@ allowed-tools:
 - 若复核后存在 `${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md` 定义的 `needs_user_answer`，立即使用 `AskUserQuestion` 向用户提问；回答前不得给出可进入 `/t-run` 的结论，回答后先要求/执行任务或设计文档修正，再继续评分。
 - 按评分体系生成评分与问题清单。
 - 执行报告一致性自检。
+- 输出下一步建议：通过或风险可接受时进入 `/t-run [feature] --phase [phase]`；修复后可重新运行 `/t-task-check [feature] --phase [phase]`。
 - 写入报告：`.ai/quality/task-check-[feature]-[YYYYMMDD-HHMMSS].md`。
 
 ## Agent Review Contract
@@ -166,3 +168,5 @@ P1 问题:
 
 ## 质量门禁
 硬性门禁统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md`
+
+这些门禁用于本检查的结论与风险分级；未运行 `t-task-check` 不阻止用户直接执行 `/t-run`。`/t-run` 仍会执行自身必要的状态、DAG、item 结构和执行安全校验。

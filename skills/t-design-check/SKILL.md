@@ -20,7 +20,7 @@ allowed-tools:
 - 评估技术设计文档的可实施性、完整性与一致性。
 - 给出可复查的 100 分量化结果。
 - 输出 P0/P1/P2 修复清单。
-- 给出明确的设计质量门禁结论。
+- 给出明确的设计质量检查结论；本检查为可选，不作为 `/t-task` 的硬性前置。
 - 发现必须由用户裁决的设计问题时，使用 `AskUserQuestion` 阻塞式提问，不得只写入问题清单后继续。
 
 评分维度、严重级别和报告要求统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-check-rubric.md`
@@ -54,6 +54,7 @@ allowed-tools:
 - 按 `${CLAUDE_PLUGIN_ROOT}/protocols/design-check-rubric.md` 检查 API、数据库、前端与测试策略。
 - 若发现 `${CLAUDE_PLUGIN_ROOT}/protocols/design-check-rubric.md` 定义的 `needs_user_answer`，立即使用 `AskUserQuestion` 向用户提问；回答前不生成通过结论，回答后先要求/执行设计文档修正，再继续评分。
 - 生成评分与问题清单。
+- 输出下一步建议：通过或风险可接受时进入 `/t-task [feature]`；修复后可重新运行 `/t-design-check [feature]`。
 - 写入报告：`.ai/quality/design-check-[feature]-[YYYYMMDD-HHMMSS].md`。
 
 ## 错误处理
@@ -94,3 +95,4 @@ P1 问题:
 - 分项分值之和必须等于 100。
 - 每个扣分项必须有文件定位。
 - 结论必须可追溯到证据。
+- 质量结论只约束本次检查报告；是否跳过修复继续 `/t-task` 由用户按风险决定。

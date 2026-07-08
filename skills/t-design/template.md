@@ -249,6 +249,6 @@ enum XxxError {
 - [如人类明确要求补充外部依据，再记录来源标题、链接与结论摘要]
 
 ## 10. 下一步
-- 检查技术设计：`/t-design-check [方案名称]`
+- 检查技术设计（可选）：`/t-design-check [方案名称]`
 - 如文档较复杂，生成可视化预览：`/t-html-show .ai/design/[方案名称].md`
-- 通过 `/t-design-check` 后：`/t-task [方案名称]`
+- 下一步：`/t-task [方案名称]`；复杂或高风险设计建议先运行 `/t-design-check`
