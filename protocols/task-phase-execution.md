@@ -11,13 +11,6 @@
 - 无 miniapp：`backend -> frontend -> demo`
 - 有 miniapp：`backend -> frontend -> miniapp -> demo`
 
-阶段依赖：
-
-- `backend` 无前置
-- `frontend` 依赖 `backend == completed`
-- `miniapp` 依赖 `frontend == completed`
-- `demo` 依赖其前一个 active 交付阶段 `completed`
-
 ## Slot Order
 
 - backend: `dev -> test -> accept`

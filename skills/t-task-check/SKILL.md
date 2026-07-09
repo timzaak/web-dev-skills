@@ -69,7 +69,6 @@ allowed-tools:
 - 校验设计文档是否存在。
 - 读取 `.state.json` 并验证 schema。
 - 若指定 `--phase`，仅检查该阶段；否则检查当前阶段。指定阶段必须存在于 `.state.json.phases` 的 active phases 中。
-- 校验阶段依赖正确性。
 - 读取阶段目录下的 `index.md`、slot manifest，并建立 item 文件清单。
 - 在目标项目根目录运行确定性 DAG 校验脚本（若存在）：
    - 命令：`python scripts/check-task-dag.py .ai/task/[feature]/[phase]`

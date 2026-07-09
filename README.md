@@ -72,10 +72,10 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 `t-task`、`t-task-check` 和 `t-run` 都按 phase 推进，其中 `t-task-check` 是可选检查。典型顺序是 `backend -> frontend -> demo`，启用小程序时可插入 `miniapp`。
 
 - `backend`：后端接口、数据模型、权限、业务逻辑、后端测试和只读验收。
-- `frontend`：React 页面、组件、状态、前端测试和只读验收，依赖 backend 完成。
-- `demo`：基于用户故事维护 Playwright Demo/E2E，并验收真实用户路径，依赖前置交付阶段完成。
+- `frontend`：React 页面、组件、状态、前端测试和只读验收。
+- `demo`：基于用户故事维护 Playwright Demo/E2E，并验收真实用户路径。
 
-每个 phase 都先运行 `/t-tools:t-task <feature> --phase <phase>`，随后可按风险选择运行 `/t-tools:t-task-check <feature> --phase <phase>`，再用 `/t-tools:t-run <feature> --phase <phase>` 串行执行 item。README 的快速上手只展开 backend 作为第一阶段示例；backend 完成后，对 frontend 和 demo 重复同样闭环。
+每个 phase 都先运行 `/t-tools:t-task <feature> --phase <phase>`，随后可按风险选择运行 `/t-tools:t-task-check <feature> --phase <phase>`，再用 `/t-tools:t-run <feature> --phase <phase>` 串行执行 item。README 的快速上手只展开 backend 作为示例；frontend 和 demo 重复同样闭环。
 
 ## 关键使用规则
 

@@ -58,7 +58,7 @@
 
 - 设计文档存在
 - `.state.json` schema 有效
-- 阶段依赖正确
+- 当前 phase 存在于 active phases，且阶段目录与状态文件一致
 - `index.md`、slot manifest、item 文件齐备
 - item DAG 合法：
    - item ID 唯一
@@ -143,7 +143,7 @@ agent 评审边界：
 - 阶段目录、manifest、item 文件缺失
 - item 依赖不存在或成环
 - manifest 未覆盖全部 items
-- 阶段依赖关系错误
+- 当前 phase 不在 active phases 中，或阶段目录与状态文件冲突
 - backend/test 缺少 runner item、runner agent 不是 `general-purpose`、runner 未引用 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md`，或存在 authoring item 未被集中 runner 覆盖
 - backend/test runner 把全量 `uv run scripts/backend-test.py --` 当默认 validation，且未说明定向范围不足或门禁要求
 - backend/accept item 只依赖 backend/test authoring item，未依赖 runner item
@@ -181,7 +181,7 @@ agent 评审边界：
 
 - 总分、等级、是否可进入 `/t-run`
 - 用户澄清状态：无阻塞澄清 / 已通过 `AskUserQuestion` 解决 / 等待用户回答
-- 门禁摘要：状态文件、阶段依赖、item DAG、manifest/items、agent 集合
+- 门禁摘要：状态文件、phase 有效性、item DAG、manifest/items、agent 集合
 - 扣分维度摘要
 - P0/P1/P2 单行清单：`级别 | 文件 | 问题 | 修复`
 - 需用户回答的问题清单：`问题 | 证据 | 需要用户决定什么 | 阻塞的后续动作`

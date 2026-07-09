@@ -72,10 +72,10 @@ Minimal end-to-end loop:
 `t-task`, `t-task-check`, and `t-run` all progress by phase, with `t-task-check` as an optional check. The typical order is `backend -> frontend -> demo`; projects with miniapp support may insert `miniapp`.
 
 - `backend`: backend APIs, data models, permissions, business logic, backend tests, and read-only acceptance.
-- `frontend`: React pages, components, state, frontend tests, and read-only acceptance. It depends on backend completion.
-- `demo`: Playwright Demo/E2E based on user stories, with acceptance for real user paths. It depends on the preceding delivery phases.
+- `frontend`: React pages, components, state, frontend tests, and read-only acceptance.
+- `demo`: Playwright Demo/E2E based on user stories, with acceptance for real user paths.
 
-Each phase starts with `/t-tools:t-task <feature> --phase <phase>`, may run `/t-tools:t-task-check <feature> --phase <phase>` depending on risk, and then `/t-tools:t-run <feature> --phase <phase>` executes items serially. The quick start expands only backend as the first phase example; after backend is complete, repeat the same loop for frontend and demo.
+Each phase starts with `/t-tools:t-task <feature> --phase <phase>`, may run `/t-tools:t-task-check <feature> --phase <phase>` depending on risk, and then `/t-tools:t-run <feature> --phase <phase>` executes items serially. The quick start expands backend only as an example; repeat the same loop for frontend and demo.
 
 ## Key Rules
 
