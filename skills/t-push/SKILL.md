@@ -32,10 +32,12 @@ allowed-tools:
 
 清理后重新查看必要的 `git diff`，确认 diff 中剩余注释有实际信息增量，再总结本次变更并生成简洁 commit message。commit message 必须来自 AI 对清理后实际变更的总结，不能由脚本根据目录名自动猜测。
 
-然后使用脚本完成验证、提交和推送：
+然后为本次 `/t-push` 执行生成一个新的 session id（例如 `YYYYMMDD-HHMMSS` 或短 UUID）。同一次执行中，如果 CI 失败、AI 修复后需要重跑脚本，必须复用同一个 session id；新的 `/t-push` 执行必须生成新的 session id，避免被上一次执行的缓存影响。
+
+使用脚本完成验证、提交和推送：
 
 ```bash
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/push.py --message "<AI 生成的 commit message>"
+uv run ${CLAUDE_PLUGIN_ROOT}/scripts/push.py --ci-session "<本次 t-push session id>" --message "<AI 生成的 commit message>"
 ```
 
 脚本负责：
@@ -43,6 +45,7 @@ uv run ${CLAUDE_PLUGIN_ROOT}/scripts/push.py --message "<AI 生成的 commit mes
 - 检查 `git status --short`，无变更时停止。
 - 读取 tracked、staged、unstaged 和 untracked 文件，检测 backend、frontend、demo 变更范围。
 - 为受影响区域并发运行本地 CI；同一区域内部保持顺序执行。
+- 记录该 session 内每个区域通过 CI 时的 diff 指纹；同一次 push 流程中重跑脚本时，已通过且 diff 未变化的区域直接跳过，避免例如 backend 通过后因为修复 frontend 又重复跑 backend。新的 `/t-push` 执行必须使用新的 session，不复用上次结果。
 - 使用 AI 传入的 `--message` 作为 commit message；执行提交时没有 `--message` 则停止。
 - CI 全部通过后执行 `git add -A`、`git commit` 和 `git push`。
 
@@ -53,14 +56,16 @@ uv run ${CLAUDE_PLUGIN_ROOT}/scripts/push.py --message "<AI 生成的 commit mes
 - Demo 变更：执行 `npm run lint` 和 `npm run type-check`。
 - 无 backend/frontend/demo 变更时跳过本地 CI，直接进入 commit/push。
 
-## Useful Script Options
+## Script Commands
 
 ```bash
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/push.py --dry-run
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/push.py --checks-only
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/push.py --message "chore: update workflow docs"
-uv run ${CLAUDE_PLUGIN_ROOT}/scripts/push.py --message "chore: update workflow docs" --no-push
+uv run ${CLAUDE_PLUGIN_ROOT}/scripts/push.py --ci-session "<session>" --message "<message>"
+uv run ${CLAUDE_PLUGIN_ROOT}/scripts/push.py --ci-session "<session>" --message "<message>" --force-checks
 ```
+
+`--ci-session` 只用于同一次 `/t-push` 执行内的失败修复重试；每次新的 `/t-push` 都应使用新的 session id。
+
+`--force-checks` 会忽略当前 session 记录的区域级通过缓存，强制重跑本次 diff 涉及的所有区域 CI。
 
 ## Failure
 
