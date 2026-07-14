@@ -64,20 +64,21 @@ uv run scripts/demo-test-runner.py "[测试文件]" --run-id [RUN_ID] --grep "[�
 - 按诊断结果通过 `Agent` tool 分发到对应修复 subagent：`Agent(subagent_type="demo-dev")` / `Agent(subagent_type="frontend-dev")` / `Agent(subagent_type="backend-dev")` / `Agent(subagent_type="miniapp-dev")`。
 - 上述每次 `Agent` 调用均按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 执行。
 - 读取修复 agent 返回的 `tests_to_run`（必填）并校验字段：
-  - `layer`: `backend|frontend|miniapp|demo`
+  - `layer`: `backend|frontend|miniapp|flutter|demo`
   - `command`: 可直接执行命令
   - `reason`: 关联说明
   - `required`: 是否必须通过（默认 `true`）
-- 执行补测（按层顺序串行）：`backend -> frontend -> miniapp -> demo`。
+- 执行补测（按层顺序串行）：`backend -> frontend -> miniapp -> flutter -> demo`。
 - 补测命令必须来自允许入口：
   - 后端：`uv run scripts/backend-test.py -- [filter]`
   - 前端：`cd frontend && npm run test:run -- [pattern]`
   - 小程序：`cd miniapp && npm run typecheck` 或 `cd miniapp && npm run build:weapp`
   - Demo：`uv run scripts/demo-test-runner.py "[测试文件]" --run-id [RUN_ID] --grep "[测试标题]"`
 - miniapp 补测只在目标项目存在 `miniapp/` 或诊断报告明确归因到小程序交付线时执行；未启用 miniapp 的项目跳过该层。
+- Flutter 补测只在目标项目存在声明 Flutter SDK 的 `pubspec.yaml`，或诊断报告明确归因到 Flutter 交付线时执行；未启用 Flutter 的项目跳过该层。
 - 若 agent 未返回 `tests_to_run`：
   - 记录契约缺失（P1）
-  - 执行最小兜底补测（按改动层至少 1 条 backend/frontend/miniapp 相关测试）
+  - 执行最小兜底补测（按改动层至少 1 条 backend/frontend/miniapp/flutter 相关测试）
 - 重新运行当前用例验证修复（即 `demo` 层验证）。
 
 - 结果输出。

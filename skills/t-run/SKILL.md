@@ -1,7 +1,7 @@
 ---
 name: t-run
-description: Execute phased task plans by dispatching work to specialized sub-agents for backend, frontend, miniapp, or demo phases.
-argument-hint: "[任务名称] [--phase <backend|frontend|miniapp|demo>]"
+description: Execute phased task plans by dispatching work to specialized sub-agents for backend, frontend, miniapp, Flutter, or demo phases.
+argument-hint: "[任务名称] [--phase <backend|frontend|miniapp|flutter|demo>]"
 allowed-tools:
   - AskUserQuestion
   - Read
@@ -50,16 +50,16 @@ allowed-tools:
 | 参数 | 说明 |
 |---|---|
 | `[feature]` | 功能名 |
-| `--phase <backend\|frontend\|miniapp\|demo>` | 仅执行指定阶段；未指定时执行 `.state.json` 的当前阶段 |
+| `--phase <backend\|frontend\|miniapp\|flutter\|demo>` | 仅执行指定阶段；未指定时执行 `.state.json` 的当前阶段 |
 
 ## Preconditions
 - `.ai/task/[feature]/.state.json` 必须存在且可解析。
-- 目标阶段必须是 supported phase，且存在于当前任务 active phases 中；未启用 miniapp 的项目不得执行 `--phase miniapp`。
+- 目标阶段必须是 supported phase，且存在于当前任务 active phases 中；未启用 miniapp/Flutter 的项目不得执行对应 phase。
 - 目标阶段必须已规划，且 `phases[phase]`、`tasks[phase]` 和当前阶段目录存在。
 - 当前阶段目录必须存在。
 - 当前阶段必须包含：
   - `index.md`
-  - 对应 slot manifest：backend/frontend/miniapp 为 `dev.md`, `test.md`, `accept.md`；demo 为 `dev.md`, `accept.md`
+  - 对应 slot manifest：backend/frontend/miniapp/flutter 为 `dev.md`, `test.md`, `accept.md`；demo 为 `dev.md`, `accept.md`
   - 对应 item 目录和 item 文件
 
 ## Shared Contracts

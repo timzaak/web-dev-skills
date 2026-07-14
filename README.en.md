@@ -2,7 +2,7 @@
 
 [中文](README.md)
 
-A Claude Code plugin for Rust + React projects. It turns AI programming into an executable, resumable, and acceptable engineering workflow:
+A Claude Code plugin for Rust, React, miniapp, and Flutter projects. It turns AI programming into an executable, resumable, and acceptable engineering workflow:
 
 ```text
 Decision -> Tech Research -> PRD -> Design -> Task -> Development -> Acceptance -> Demo -> Release
@@ -69,13 +69,15 @@ Minimal end-to-end loop:
 
 ## Phase Split
 
-`t-task`, `t-task-check`, and `t-run` all progress by phase, with `t-task-check` as an optional check. The typical order is `backend -> frontend -> demo`; projects with miniapp support may insert `miniapp`.
+`t-task`, `t-task-check`, and `t-run` all progress by phase, with `t-task-check` as an optional check. A typical web order is `backend -> frontend -> demo`; insert `miniapp` and/or `flutter` when those clients are part of the delivery scope.
 
 - `backend`: backend APIs, data models, permissions, business logic, backend tests, and read-only acceptance.
 - `frontend`: React pages, components, state, frontend tests, and read-only acceptance.
+- `miniapp`: miniapp pages, platform capabilities, build verification, and read-only acceptance.
+- `flutter`: Flutter views, Riverpod state, data layers, unit/widget/integration tests, and read-only acceptance.
 - `demo`: Playwright Demo/E2E based on user stories, with acceptance for real user paths.
 
-Each phase starts with `/t-tools:t-task <feature> --phase <phase>`, may run `/t-tools:t-task-check <feature> --phase <phase>` depending on risk, and then `/t-tools:t-run <feature> --phase <phase>` executes items serially. The quick start expands backend only as an example; repeat the same loop for frontend and demo.
+Each phase starts with `/t-tools:t-task <feature> --phase <phase>`, may run `/t-tools:t-task-check <feature> --phase <phase>` depending on risk, and then `/t-tools:t-run <feature> --phase <phase>` executes items serially. The quick start expands backend only as an example; repeat the same loop for frontend, miniapp, flutter, and demo.
 
 ## Key Rules
 

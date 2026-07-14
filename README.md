@@ -2,7 +2,7 @@
 
 [English](README.en.md)
 
-面向 Rust + React 项目的 Claude Code plugin。它把 AI 编程拆成一条可执行、可恢复、可验收的工程工作流：
+面向 Rust、React、小程序与 Flutter 项目的 Claude Code plugin。它把 AI 编程拆成一条可执行、可恢复、可验收的工程工作流：
 
 ```text
 Decision -> 技术预研 -> PRD -> 设计 -> 任务 -> 开发 -> 验收 -> Demo -> 发布
@@ -69,13 +69,15 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 
 ## 阶段拆分
 
-`t-task`、`t-task-check` 和 `t-run` 都按 phase 推进，其中 `t-task-check` 是可选检查。典型顺序是 `backend -> frontend -> demo`，启用小程序时可插入 `miniapp`。
+`t-task`、`t-task-check` 和 `t-run` 都按 phase 推进，其中 `t-task-check` 是可选检查。典型 Web 顺序是 `backend -> frontend -> demo`；按实际交付端可插入 `miniapp` 和/或 `flutter`。
 
 - `backend`：后端接口、数据模型、权限、业务逻辑、后端测试和只读验收。
 - `frontend`：React 页面、组件、状态、前端测试和只读验收。
+- `miniapp`：小程序页面、平台能力、构建验证和只读验收。
+- `flutter`：Flutter View、Riverpod 状态、数据层、单元/widget/integration 测试和只读验收。
 - `demo`：基于用户故事维护 Playwright Demo/E2E，并验收真实用户路径。
 
-每个 phase 都先运行 `/t-tools:t-task <feature> --phase <phase>`，随后可按风险选择运行 `/t-tools:t-task-check <feature> --phase <phase>`，再用 `/t-tools:t-run <feature> --phase <phase>` 串行执行 item。README 的快速上手只展开 backend 作为示例；frontend 和 demo 重复同样闭环。
+每个 phase 都先运行 `/t-tools:t-task <feature> --phase <phase>`，随后可按风险选择运行 `/t-tools:t-task-check <feature> --phase <phase>`，再用 `/t-tools:t-run <feature> --phase <phase>` 串行执行 item。README 的快速上手只展开 backend 作为示例；frontend、miniapp、flutter 和 demo 重复同样闭环。
 
 ## 关键使用规则
 

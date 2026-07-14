@@ -1,6 +1,6 @@
 {
   "name": "t-tools",
-  "description": "DDD-driven development skills, sub-agents and workflow commands for Rust + React projects",
+  "description": "DDD-driven development skills, sub-agents and workflow commands for Rust, React, miniapp, and Flutter projects",
   "version": "1.0.0",
   "author": {
     "name": "T Team"
@@ -8,7 +8,8 @@
   "targetStack": {
     "backend": "Rust / Axum",
     "frontend": "React / TanStack Router & Query / Tailwind / Radix UI",
-    "testing": "cargo nextest / Vitest / Playwright"
+    "mobile": "Flutter / Riverpod / go_router / integration_test / Patrol",
+    "testing": "cargo nextest / Vitest / Flutter Test / Playwright / Patrol"
   },
   "requiredMcpServers": ["context7"]
 }

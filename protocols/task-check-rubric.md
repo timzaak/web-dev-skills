@@ -39,11 +39,11 @@
 `.state.json` 必须满足：
 
 - `feature` 存在
-- `phase` 为 supported phases：`backend|frontend|miniapp|demo`
-- `phases` 包含当前任务的 active phases；未启用 miniapp 的项目不要求包含 `miniapp`
+- `phase` 为 supported phases：`backend|frontend|miniapp|flutter|demo`
+- `phases` 包含当前任务的 active phases；未启用 miniapp/Flutter 的项目不要求包含对应 phase
 - `phases[*].status` 存在
 - `tasks[phase]` 存在
-- backend/frontend/miniapp 含 `dev/test/accept`
+- backend/frontend/miniapp/flutter 含 `dev/test/accept`
 - demo 含 `dev/accept`
 - 每个 slot 含 `status/manifest/items`
 - 每个 item 含 `status/file/agent/depends_on`
@@ -71,7 +71,7 @@
 - 若当前阶段为 backend，backend/test slot 符合 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 authoring/集中 runner 覆盖与 runner agent/协议引用要求
 - 若当前阶段为 backend，backend/test runner 默认使用定向命令；全量 `uv run scripts/backend-test.py --` 只有在写明无法可靠定向或门禁要求时才允许
 - 若当前阶段为 backend，backend/accept item 依赖 runner item，不只依赖 authoring item
-- 若当前阶段为 frontend/miniapp/demo，涉及测试代码 authoring 时必须有集中定向执行 item，且不得默认规划全量测试
+- 若当前阶段为 frontend/miniapp/flutter/demo，涉及测试代码 authoring 时必须有集中定向执行 item，且不得默认规划全量测试
 - 大范围重构、旧架构替换或旧模块迁移任务包含旧代码清理清单，并按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 先删除旧实现再改写新结构
 - 检查是否存在过度拆分：同一责任闭环被拆成多个无法独立验收的 item，或多个 item 只是在技术层之间传递 handoff
 - 设计文档与任务文档一致
@@ -147,7 +147,7 @@ agent 评审边界：
 - backend/test 缺少 runner item、runner agent 不是 `general-purpose`、runner 未引用 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md`，或存在 authoring item 未被集中 runner 覆盖
 - backend/test runner 把全量 `uv run scripts/backend-test.py --` 当默认 validation，且未说明定向范围不足或门禁要求
 - backend/accept item 只依赖 backend/test authoring item，未依赖 runner item
-- frontend/miniapp/demo 涉及测试代码 authoring，却缺少依赖全部相关 authoring item 的集中定向执行 item
+- frontend/miniapp/flutter/demo 涉及测试代码 authoring，却缺少依赖全部相关 authoring item 的集中定向执行 item
 - 命令、路径、阶段链路经仓库和规范双重验证后确认会直接导致 `/t-run` 无法执行
 
 出现 `confirmed P0` 时，必须拒绝进入 `/t-run`。

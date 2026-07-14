@@ -2,27 +2,28 @@
 
 ## Phases
 
-`supported_phases` 固定为 `backend`, `frontend`, `miniapp`, `demo`。
+`supported_phases` 固定为 `backend`, `frontend`, `miniapp`, `flutter`, `demo`。
 
-`active_phases` 只包含当前 feature 需要生成和执行的阶段。`miniapp` 仅在项目根目录存在 `miniapp/`，或设计文档明确包含小程序交付时启用。
+`active_phases` 只包含当前 feature 需要生成和执行的阶段。`miniapp` 仅在项目根目录存在 `miniapp/`，或设计文档明确包含小程序交付时启用。`flutter` 仅在目标项目/子目录的 `pubspec.yaml` 声明 Flutter SDK，或设计文档明确包含 Flutter 交付时启用。
 
 默认顺序：
 
-- 无 miniapp：`backend -> frontend -> demo`
-- 有 miniapp：`backend -> frontend -> miniapp -> demo`
+- Web 项目：`backend -> frontend -> demo`
+- 多端项目：`backend -> frontend/miniapp/flutter -> demo`，中间阶段只包含实际交付端，固定排序为 `frontend -> miniapp -> flutter`
 
 ## Slot Order
 
 - backend: `dev -> test -> accept`
 - frontend: `dev -> test -> accept`
 - miniapp: `dev -> test -> accept`
+- flutter: `dev -> test -> accept`
 - demo: `dev -> accept`
 
 ## Execution Unit
 
 `/t-run` 只执行以下 item 文件：
 
-- `{backend,frontend,miniapp}/{dev,test,accept}/*.md`
+- `{backend,frontend,miniapp,flutter}/{dev,test,accept}/*.md`
 - `demo/{dev,accept}/*.md`
 
 不直接执行 `index.md`, `dev.md`, `test.md`, `accept.md`。
@@ -52,7 +53,7 @@
 
 每个 item 必须能让 `/t-run` 单独恢复执行，并包含：
 
-- `id`: 稳定 ID，例如 `BE-D01`, `FE-T02`, `MA-A01`, `DE-A01`
+- `id`: 稳定 ID，例如 `BE-D01`, `FE-T02`, `MA-A01`, `FL-T01`, `DE-A01`
 - `title`
 - `agent`
 - `depends_on`
@@ -127,10 +128,11 @@ backend/test item 还必须符合 [Backend Test Item Types](#backend-test-item-t
 - backend unit test：低价值单测不单独规划；必要的高价值单测归入对应 backend/dev item。
 - frontend dev：按页面域、用户流程、可复用组件族或数据闭环拆分；同一页面闭环内的 API/type、schema/query/store、主流程、状态与错误处理、权限与空态可合并。
 - miniapp dev：按页面域、平台能力或模板/主题闭环拆分；页面注册、组件主流程、主题接线、token/icon 集成在同一闭环内可合并。
+- flutter dev：按 feature、用户流程、平台能力或数据闭环拆分；同一 feature 内的 View、Notifier、Repository 适配与关键状态可合并。
 - demo dev：按用户故事、业务状态流或测试基础设施闭环拆分；同一故事内强相关的 fixture/helper/Page Object authoring 可合并。
 - accept：design consistency、public API contract、business rules、permission/security、test evidence、demo readiness；纯技术方案聚焦技术目标、兼容性、公共契约、迁移/配置影响、测试证据和回归风险。
 
-backend/test、frontend/test、miniapp/test、demo/dev 的测试拆分与执行见 [Test Execution Consolidation](#test-execution-consolidation) 与 [Backend Test Item Types](#backend-test-item-types)。
+backend/test、frontend/test、miniapp/test、flutter/test、demo/dev 的测试拆分与执行见 [Test Execution Consolidation](#test-execution-consolidation) 与 [Backend Test Item Types](#backend-test-item-types)。
 
 ## Test Execution Consolidation
 
@@ -141,13 +143,14 @@ backend/test、frontend/test、miniapp/test、demo/dev 的测试拆分与执行�
 - runner 必须包含 `Expected Test Manifest`：测试文件、测试函数/用例标题、来源 authoring item、预期 runner 命令。
 - runner 只运行覆盖来源所需的最小可靠定向测试、类型检查或构建命令；全量测试只在定向范围无法覆盖风险，或发布/验收门禁要求时使用，并说明原因。
 - 编译、预构建、项目启动等等待成本允许存在，但 item 必须记录实际命令和失败/耗时证据。
-- 可用 `uv run scripts/check-test-runner-coverage.py <feature> --layer <backend|frontend|miniapp|demo>` 校验 runner 覆盖关系。
+- 可用 `uv run scripts/check-test-runner-coverage.py <feature> --layer <backend|frontend|miniapp|flutter|demo>` 校验 runner 覆盖关系。
 
 适用阶段：
 
 - backend/test：集中 runner 执行定向后端测试。
 - frontend/test：全部 Vitest/MSW authoring 后执行定向 `npm run test:run -- [pattern]`，按需加 `type-check`。
 - miniapp/test：测试或验证资产完成后执行相关 `typecheck`、构建或专项 gate。
+- flutter/test：单元/widget 测试资产完成后执行相关定向 `flutter test`；按改动范围执行 integration_test、Patrol、analyze 或构建门禁。
 - demo/dev：Demo/E2E、fixture、Page Object 完成后执行相关 `demo-test-runner.py [test-file] --grep [pattern]` 或少量相关文件。
 
 ## Backend Test Item Types

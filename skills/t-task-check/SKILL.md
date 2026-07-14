@@ -1,7 +1,7 @@
 ---
 name: t-task-check
 description: Validate task plan executability and consistency with a 100-point score and P0/P1/P2 fix list.
-argument-hint: "[任务名称] [--phase <backend|frontend|miniapp|demo>]"
+argument-hint: "[任务名称] [--phase <backend|frontend|miniapp|flutter|demo>]"
 allowed-tools:
   - AskUserQuestion
   - Read
@@ -34,7 +34,7 @@ allowed-tools:
 
 ## 使用方式
 ```bash
-/t-task-check [feature] [--phase <backend|frontend|miniapp|demo>]
+/t-task-check [feature] [--phase <backend|frontend|miniapp|flutter|demo>]
 ```
 
 | 参数 | 说明 |
@@ -49,10 +49,10 @@ allowed-tools:
 - 阶段目录：`.ai/task/[feature]/[phase]/`
 - 阶段索引：`index.md`
 - slot manifest：
-  - backend/frontend/miniapp: `dev.md`、`test.md`、`accept.md`
+  - backend/frontend/miniapp/flutter: `dev.md`、`test.md`、`accept.md`
   - demo: `dev.md`、`accept.md`
 - item 文件：
-  - backend/frontend/miniapp: `dev/*.md`、`test/*.md`、`accept/*.md`
+  - backend/frontend/miniapp/flutter: `dev/*.md`、`test/*.md`、`accept/*.md`
   - demo: `dev/*.md`、`accept/*.md`
 
 ## Schema 校验
@@ -88,10 +88,10 @@ allowed-tools:
    - backend/test runner item 必须使用 `agent: general-purpose`，并引用 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md`
    - backend/test 必须有 runner item 覆盖全部相关 authoring item，且 runner 依赖这些 authoring item
    - backend/accept item 必须依赖 runner item，不得只依赖 authoring item
-   - frontend/test、miniapp/test 和 demo/dev 涉及测试代码 authoring 时，必须有集中定向执行 item 依赖全部相关测试 authoring item
+   - frontend/test、miniapp/test、flutter/test 和 demo/dev 涉及测试代码 authoring 时，必须有集中定向执行 item 依赖全部相关测试 authoring item
    - 集中测试执行 item 必须包含 `Expected Test Manifest`，逐项列出测试文件、测试函数/用例标题、来源 authoring item 和 runner 命令
    - 测试执行 item 必须从覆盖来源推导定向命令；如升级全量，必须说明定向范围不足或门禁要求
-   - 对 backend/frontend/miniapp/demo 的集中测试执行 item，优先运行 `uv run scripts/check-test-runner-coverage.py [feature] --layer [layer]` 做覆盖校验；backend 动态校验失败应记 P1 或 P0（取决于是否导致新增测试无法执行），frontend/miniapp/demo 静态校验失败至少记 P1
+   - 对 backend/frontend/miniapp/flutter/demo 的集中测试执行 item，优先运行 `uv run scripts/check-test-runner-coverage.py [feature] --layer [layer]` 做覆盖校验；backend 动态校验失败应记 P1 或 P0（取决于是否导致新增测试无法执行），其他层静态校验失败至少记 P1
    - 后端测试命令必须使用目标项目内脚本入口 `uv run scripts/backend-test.py -- [filter]`；即使没有 filter，也必须写为 `uv run scripts/backend-test.py --`。不得写成 `${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py` 或省略 `--`。若测试 item 使用 `cargo run`、裸 `cargo test`、插件根路径或省略 `--` 的后端测试命令，记 P1，并改为统一入口。
    - 不得把完整 slot 内容塞进一个 item
    - 超过拆分阈值，或职责、验证、恢复边界可疑时，必须有合理说明，否则记 P1
@@ -109,6 +109,7 @@ allowed-tools:
    - backend: subagent_type="backend-dev", "backend-test", "backend-accept"
    - frontend: subagent_type="frontend-dev", "frontend-test", "frontend-accept"
    - miniapp: subagent_type="miniapp-dev", "miniapp-test", "miniapp-accept"
+   - flutter: subagent_type="flutter-dev", "flutter-test", "flutter-accept"
    - demo: subagent_type="demo-dev", "demo-accept"
 - 聚合 agent 结果并进行主流程复核：同类问题合并，P0/P1 必须补齐任务文档证据和真源证据。
 - 若复核后存在 `${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md` 定义的 `needs_user_answer`，立即使用 `AskUserQuestion` 向用户提问；回答前不得给出可进入 `/t-run` 的结论，回答后先要求/执行任务或设计文档修正，再继续评分。
@@ -136,7 +137,7 @@ agent finding 不直接作为最终裁决；主流程必须按 rubric 完成证�
 | `STATE_FILE_MISSING` | 任务目录或 `.state.json` 缺失 | 状态文件不存在 | 运行 `/t-task [feature] --phase backend` 重建 |
 | `STATE_JSON_INVALID` | `.state.json` 格式错误 | 状态文件解析失败 | 修复 JSON 后重试；或重建任务目录 |
 | `TASK_SCHEMA_INVALID` | 缺少 `phase/phases/tasks/status/manifest/items` 字段 | 任务状态结构不完整 | 运行 `/t-task [feature] --phase [phase]` 重建 |
-| `PHASE_INVALID` | `--phase` 不是 `backend|frontend|miniapp|demo` | 非法阶段，仅支持 backend/frontend/miniapp/demo | 使用合法参数后重试 |
+| `PHASE_INVALID` | `--phase` 不是 `backend|frontend|miniapp|flutter|demo` | 非法阶段，仅支持 backend/frontend/miniapp/flutter/demo | 使用合法参数后重试 |
 | `PHASE_NOT_ACTIVE` | `--phase` 不在当前任务 active phases 中 | 当前项目未启用该阶段 | 使用 `.state.json.phases` 中存在的阶段，或重新运行 `/t-task` 生成该阶段 |
 | `PHASE_DIR_MISSING` | 阶段目录不存在 | 找不到阶段目录 | 运行 `/t-task [feature] --phase [phase]` 生成 |
 | `ITEM_DAG_INVALID` | item 依赖缺失、成环，或 `scripts/check-task-dag.py .ai/task/[feature]/[phase]` 返回非 0 | 子任务依赖非法 | 修复或重新生成该阶段 |

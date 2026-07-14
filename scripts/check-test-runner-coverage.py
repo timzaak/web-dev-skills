@@ -3,7 +3,7 @@
 
 This is a planning gate. It does not execute tests. For Rust backend runners it
 can ask cargo-nextest to list the tests selected by the documented command.
-Frontend and demo runners are checked statically because project scripts vary.
+Frontend, miniapp, Flutter, and demo runners are checked statically because project scripts vary.
 """
 
 from __future__ import annotations
@@ -21,6 +21,7 @@ COMMAND_MARKERS = {
     "backend": "backend-test.py",
     "frontend": "npm run test",
     "miniapp": "npm run",
+    "flutter": "",
     "demo": "demo-test-runner.py",
 }
 
@@ -28,6 +29,7 @@ TEST_TOKEN_RE = re.compile(r"`([^`]+)`")
 COMMAND_LINE_RE = re.compile(
     r"(?P<command>(?:uv\s+run\s+(?:\$\{CLAUDE_PLUGIN_ROOT\}/)?scripts/backend-test\.py|uv\s+run\s+(?:\$\{CLAUDE_PLUGIN_ROOT\}\\)?scripts\\backend-test\.py|"
     r"(?:cd\s+\S+\s+&&\s+)?npm\s+run\s+(?:test(?::run)?|typecheck|build(?::[A-Za-z0-9_-]+)?)|"
+    r"(?:cd\s+\S+\s+&&\s+)?(?:flutter|fvm\s+flutter)\s+(?:test|analyze)|patrol\s+test|"
     r"uv\s+run\s+scripts/demo-test-runner\.py|uv\s+run\s+scripts\\demo-test-runner\.py)"
     r"[^\n`]*)"
 )
@@ -57,7 +59,7 @@ def normalize_path(path: Path, root: Path) -> str:
 
 def infer_layer(path: Path) -> str | None:
     parts = [part.lower() for part in path.parts]
-    for layer in ("backend", "frontend", "miniapp", "demo"):
+    for layer in ("backend", "frontend", "miniapp", "flutter", "demo"):
         if layer in parts:
             return layer
     return None
@@ -68,7 +70,7 @@ def find_runner_files(root: Path, feature: str, layer: str | None) -> list[Path]
     if not task_root.is_dir():
         raise SystemExit(f"Task directory not found: {task_root}")
 
-    layers = [layer] if layer else ["backend", "frontend", "miniapp", "demo"]
+    layers = [layer] if layer else ["backend", "frontend", "miniapp", "flutter", "demo"]
     files: list[Path] = []
     for current_layer in layers:
         if current_layer == "demo":
@@ -109,7 +111,7 @@ def is_probable_test_token(token: str) -> bool:
         return False
     if lower.startswith(("uv ", "cd ", "npm ", "cargo ", "skills/")):
         return False
-    if lower in {"backend", "frontend", "miniapp", "demo", "authoring", "runner", "none"}:
+    if lower in {"backend", "frontend", "miniapp", "flutter", "demo", "authoring", "runner", "none"}:
         return False
     return bool(re.search(r"[A-Za-z0-9_\u4e00-\u9fff]", token))
 
@@ -154,6 +156,8 @@ def is_full_suite_command(command: str, layer: str) -> bool:
         return re.fullmatch(r"(?:cd\s+\S+\s+&&\s+)?npm\s+run\s+test(?::run)?", normalized) is not None
     if layer == "miniapp":
         return re.fullmatch(r"(?:cd\s+\S+\s+&&\s+)?npm\s+run\s+build(?::\S+)?", normalized) is not None
+    if layer == "flutter":
+        return re.fullmatch(r"(?:cd\s+\S+\s+&&\s+)?(?:fvm\s+)?flutter\s+test", normalized) is not None
     if layer == "demo":
         return (
             "demo-test-runner.py demo/e2e/" in normalized
@@ -283,7 +287,7 @@ def check_runner(root: Path, path: Path, dynamic: bool) -> RunnerCheck:
         missing = {test for test in expected if test not in selected}
         if missing:
             errors.append("Expected backend tests not selected by runner command: " + ", ".join(sorted(missing)))
-    elif layer in {"frontend", "miniapp", "demo"} and expected and commands:
+    elif layer in {"frontend", "miniapp", "flutter", "demo"} and expected and commands:
         mentioned: set[str] = set()
         for command in commands:
             mentioned.update(command_mentions_expected(command, expected, layer))
@@ -326,7 +330,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Validate task runner test coverage.")
     parser.add_argument("feature", help="Feature name under .ai/task/")
     parser.add_argument("--project-root", type=Path, default=Path.cwd(), help="Target project root. Defaults to cwd.")
-    parser.add_argument("--layer", choices=["backend", "frontend", "miniapp", "demo"], help="Limit to one layer.")
+    parser.add_argument("--layer", choices=["backend", "frontend", "miniapp", "flutter", "demo"], help="Limit to one layer.")
     parser.add_argument("--runner-file", type=Path, action="append", help="Specific runner item file to check.")
     parser.add_argument("--no-dynamic", action="store_true", help="Skip dynamic backend cargo-nextest list checks.")
     args = parser.parse_args()

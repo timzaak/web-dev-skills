@@ -2,7 +2,7 @@
 
 ## Required Top-Level Shape
 
-下面示例展示启用 miniapp 的状态片段；未启用 miniapp 的项目不包含 `phases.miniapp` 或 `tasks.miniapp`。
+下面示例展示启用 miniapp 与 Flutter 的状态片段；未启用的项目不包含对应 phase 或 tasks。
 
 ```json
 {
@@ -12,6 +12,7 @@
     "backend": {"status": "pending"},
     "frontend": {"status": "pending"},
     "miniapp": {"status": "pending"},
+    "flutter": {"status": "pending"},
     "demo": {"status": "pending"}
   },
   "tasks": {
@@ -56,9 +57,9 @@
 
 ## State Rules
 
-- `phase` 只允许 supported phases：`backend | frontend | miniapp | demo`。
-- `phases` / `tasks` 只要求包含当前任务的 `active_phases`；未启用 miniapp 的项目不得强制要求存在 `phases.miniapp` 或 `tasks.miniapp`。
-- `miniapp` 启用规则统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`。
+- `phase` 只允许 supported phases：`backend | frontend | miniapp | flutter | demo`。
+- `phases` / `tasks` 只要求包含当前任务的 `active_phases`；未启用 miniapp/Flutter 的项目不得强制要求对应 phase。
+- `miniapp` / `flutter` 启用规则统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`。
 - `status` 只允许 `pending | failed | completed | skipped | generated`。
   - `skipped`：阶段不适用于当前任务（如 backend 已实现，无需变更）
   - `generated`：任务规划已生成，尚未开始执行
@@ -77,6 +78,6 @@ phase 状态：
 
 - 任一 slot `failed` => phase `failed`
 - 全部 slots `skipped` => phase `skipped`
-- backend/frontend/miniapp/demo 全部 slots 均为 `completed` 或 `skipped`，且至少一个 slot `completed` => `completed`
+- 当前 active phase 的全部 slots 均为 `completed` 或 `skipped`，且至少一个 slot `completed` => `completed`
 - 全部 slots 均为 `generated` 或 `skipped`，且至少一个 slot `generated` => phase `generated`
 - 其他情况 => `pending`

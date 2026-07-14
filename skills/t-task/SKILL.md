@@ -1,7 +1,7 @@
 ---
 name: t-task
 description: Convert technical design documents into executable phased task plans with work breakdown and dependencies.
-argument-hint: "[任务名称] [--phase <backend|frontend|miniapp|demo>]"
+argument-hint: "[任务名称] [--phase <backend|frontend|miniapp|flutter|demo>]"
 allowed-tools:
   - AskUserQuestion
   - Read
@@ -60,7 +60,7 @@ allowed-tools:
 | 参数 | 说明 |
 |---|---|
 | `[feature]` | 功能名（必填） |
-| `--phase <backend\|frontend\|miniapp\|demo>` | 指定阶段生成；未指定时默认选择第一个 active phase |
+| `--phase <backend\|frontend\|miniapp\|flutter\|demo>` | 指定阶段生成；未指定时默认选择第一个 active phase |
 
 ## Preconditions
 - `.ai/design/[feature].md` 必须存在。
@@ -109,6 +109,9 @@ allowed-tools:
 | miniapp | dev | miniapp-dev |
 | miniapp | test | miniapp-test |
 | miniapp | accept | miniapp-accept |
+| flutter | dev | flutter-dev |
+| flutter | test | flutter-test |
+| flutter | accept | flutter-accept |
 | demo | dev | demo-dev |
 | demo | accept | demo-accept |
 

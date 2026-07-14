@@ -42,6 +42,7 @@ allowed-tools:
   - `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md`
   - `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md`
   - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md`
+  - `${CLAUDE_PLUGIN_ROOT}/guides/flutter/development.md`（目标项目启用 Flutter 时）
   - `AGENTS.md`
 
 ## 执行流程
