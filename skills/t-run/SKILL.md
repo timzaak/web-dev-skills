@@ -70,6 +70,7 @@ allowed-tools:
 ## Item Selection
 按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 选择可执行 item：
 
+- 首次选择前，先按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 将目标 phase 的 `generated` item 启动归一化为 `pending` 并写回状态
 - 只执行 `pending` 或 `failed` item
 - 依赖未满足不得跳过
 - 同时存在多个可执行 item 时按 manifest 顺序或 item ID 字典序
@@ -95,7 +96,9 @@ backend/test 特例：
 ## State Transition
 - 读取状态并确定执行范围。
 - 依据 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 校验状态与 DAG。
-- 执行 item 前不更新状态；中断恢复时，重新选择仍为 `pending` 或 `failed` 且依赖满足的 item。
+- 完成状态、目录、manifest/item 和 DAG 校验后，在启动任何 agent 前，将目标 phase 中全部 `generated` item 改为 `pending`，重新聚合对应 slot/phase 并一次性写回 `.state.json`；保留其他状态不变。
+- 启动归一化写回失败时按状态写入失败处理，不得启动 agent。
+- 除启动归一化外，执行 item 前不更新状态；中断恢复时，重新选择仍为 `pending` 或 `failed` 且依赖满足的 item。
 - item 成功后写入：
    - `tasks[phase][slot].items[item_id].status = completed`
 - item 失败后写入：

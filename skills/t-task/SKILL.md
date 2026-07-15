@@ -93,7 +93,7 @@ allowed-tools:
 - 硬校验失败时终止当前 slot，不写入成功状态，要求重新生成该 slot。
 - 硬校验通过后写入当前 slot manifest 和 item 文件，再继续调用下游 slot。
 - 当前阶段 slot 齐备后生成 `<phase>/index.md`。
-- 写入或更新 `.state.json`。
+- 写入或更新 `.state.json`：当前 phase 新生成且尚未执行的 item 写为 `generated`，再按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 聚合 slot 和 phase；不得在 `/t-task` 中提前改为 `pending`。
 - 返回下一步建议：复杂或高风险任务先运行 `/t-task-check [feature] --phase [phase]`；简单任务可直接运行 `/t-run [feature] --phase [phase]`。
 
 ## Agent Dispatch Mapping

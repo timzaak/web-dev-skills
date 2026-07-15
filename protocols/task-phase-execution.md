@@ -30,12 +30,13 @@
 
 ## Item Selection
 
+- 首次选择 item 前，按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 的 Execution Entry Transition 将目标 phase 的 `generated` item 归一化为 `pending` 并持久化；归一化失败时不得启动 agent。
 - 读取目标 phase 的 slot 清单，按 slot 顺序扫描。
 - 同一 slot 内按 DAG 拓扑顺序选择可执行 item。
 - 多个 item 同时可执行时，优先 slot manifest 顺序；缺失时按 item ID 字典序。
 - 仅执行 `pending` 或 `failed` item；重试 `failed` 前依赖必须全部 `completed`。
 - 依赖未满足时不得跳过下游 item。
-- `/t-run` 串行调度 item，但执行前不更新状态；中断恢复时重新选择仍为 `pending` 或 `failed` 的 item。
+- 除上述一次性启动归一化外，`/t-run` 在调度单个 item 前不更新状态；中断恢复时重新选择仍为 `pending` 或 `failed` 的 item。
 
 ## Agent Context
 

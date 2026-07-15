@@ -64,6 +64,18 @@
   - `skipped`：阶段不适用于当前任务（如 backend 已实现，无需变更）
   - `generated`：任务规划已生成，尚未开始执行
 
+## Execution Entry Transition
+
+`generated` 是规划完成态，`pending` 是执行队列态。`/t-run` 对目标 phase 完成状态文件、阶段目录、manifest/item 和 DAG 校验后，必须在选择首个 item 前执行一次启动归一化：
+
+- 将 `tasks[phase][slot].items[*].status == generated` 的 item 全部改为 `pending`；只处理本次目标 phase。
+- 保留 `pending | failed | completed | skipped` item 原状态，不得借启动归一化重置失败或已完成结果。
+- item 归一化后，按下方聚合规则重新计算目标 phase 的全部 slot 状态和 phase 状态，并在启动任何 agent 前一次性写回 `.state.json`。
+- 若写回失败，重试一次；仍失败则终止执行且不启动 agent。再次运行 `/t-run` 时从当前持久化状态重新归一化。
+- 该迁移只表示任务进入执行队列，不表示 item 已开始执行，也不引入 `running` 状态。
+
+`/t-task-check` 只校验状态，不执行该迁移。`/t-task` 新生成且尚未进入执行队列的 item 保持 `generated`。
+
 ## Aggregation Rules
 
 slot 状态：
