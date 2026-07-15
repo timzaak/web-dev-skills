@@ -89,10 +89,6 @@ Preview 不强制限定为单文件、内联 CSS/JS、无 npm/CDN/构建工具�
 
 `/t-prd` 生成或更新草稿 Preview 后，应立即打开 HTML 供人类审阅。后续沟通优先围绕 HTML Preview 进行；如果审阅中调整了功能意图、流程、状态或验收目标，必须同步修改 Markdown PRD 草稿、draft user story 和 HTML Preview。草稿通过 `/t-prd-check` 后进入 `/t-design`；如果草稿继续被修正，必须再次运行 `/t-prd-check`。实现、测试和 Demo 验收完成后，使用 `/t-prd-publish` 基于草稿、现有正式 PRD / 用户故事和实现后证据做发布总结，并修正 `docs/prd` / `docs/user-stories` 中缺失、过期或冲突的问题；完成后对应 `.ai/prd` 与 `.ai/user-stories` 草稿应删除。
 
-`/t-prd-check` 必须验证 Markdown PRD 与 HTML Preview 描述一致。不一致时，必须修正到一致后才能通过。
-
-详细契约参考 `${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md` 和 `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md`。
-
 ## 与一致性检查的关系
 
 PRD 一致性检查聚焦业务规则、访问控制语义、能力边界和验收目标，不要求 PRD 承担接口明细说明。

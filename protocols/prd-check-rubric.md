@@ -3,7 +3,6 @@
 ## Evaluation Goals
 
 - 验证 PRD 文档完整性和规范性
-- 检查 PRD HTML Preview 的存在性、可审阅性和 PRD 一致性
 - 评估用户故事质量
 - 检查 PRD 与用户故事的一致性
 - 检查 `.ai/prd` 草稿与 `docs/prd` 已发布基线是否存在未说明冲突
@@ -57,21 +56,6 @@
 | 过去时/历史内容 | 不出现 `已废弃`、`旧系统`、`原有`、`重设计前`、`架构迁移说明` | 0 / -5 |
 | 代码文件索引 | 不出现 `相关文件索引` 章节或具体代码文件路径列表 | 0 / -10 |
 | 实施进度状态 | 不出现 `当前实现状态`、`已完成`、`未完成`、`已实现`、`未实现`、`完成比例`、`实现进度` 等易过期任务状态 | 0 / -10 |
-
-### HTML Preview Checks
-
-权重 20%。具体契约参考 `${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md` 和 `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md`。
-
-| 检查项 | 验证内容 | 权重 / 扣分 |
-|---|---|---:|
-| Preview 存在性 | `.ai/preview/<domain>/<feature>.html` 存在 | 5 |
-| 来源可追溯 | 包含来源 PRD 路径和 `data-doc-source`（或兼容的 `data-prd-source`） | 3 |
-| 固定审阅区域 | 包含 `Overview`、`Scope`、`Flow`、`States`、`Rules`、`Acceptance`、`Assumptions` | 5 |
-| 依赖声明 | 使用 npm、构建工具、CDN、第三方图库或外部脚本样式时，声明依赖来源、用途和打开/运行方式 | 3 |
-| 示例数据声明 | 使用示例数据时标注“示例数据，不是接口契约” | 2 |
-| UI 目标体验边界 | 前端/交互 Preview 聚焦 PRD 定义的目标体验和关键状态，不复刻已有实现 | 0 / -5 |
-| PRD 一致性 | 与 PRD 的目标、范围、流程、业务状态、规则和验收目标一致，不引入未声明的新业务规则、权限规则或验收目标 | 0 / -10 |
-| Preview 禁止内容 | 不出现端点清单、schema、建表、迁移、类型定义 | 0 / -10 |
 
 ### Draft vs Published Baseline
 
@@ -151,10 +135,9 @@
 ## Final Score
 
 - `PRD Score = 基础章节得分 + 用户故事引用得分 - PRD 分层扣分`
-- `Preview Score = Preview 存在性 + 来源可追溯 + 固定审阅区域 + 依赖声明 + 示例数据声明 - Preview 一致性扣分 - Preview 禁止内容扣分`
 - `User Story Score = 故事结构得分 + INVEST 得分 - 禁止内容扣分 - 质量门禁扣分`
 - `Consistency Score = 链接有效性 + 优先级一致性 + 角色引用正确性`
-- `Total Score = (PRD Score × 45%) + (User Story Score × 40%) + (Preview Score × 15%) + Consistency Score`
+- `Total Score = (PRD Score × 55%) + (User Story Score × 45%) + Consistency Score`
 
 ## Severity
 
@@ -168,7 +151,6 @@
 - PRD 含当前任务是否完成、是否实现、完成比例、实现进度等易过期实施状态
 - PRD 草稿与正式 PRD 在核心业务边界、权限规则或验收目标上存在未说明冲突
 - Draft user story 与已发布 user story 在核心角色、权限规则或验收目标上存在未说明冲突
-- HTML Preview 含端点、schema、建表、迁移、类型定义等禁止内容
 
 ### P1
 
@@ -176,9 +158,6 @@
 - 验收标准模糊
 - INVEST 原则明显违反
 - 旧文档含技术表格
-- 缺失同目录同名 HTML Preview
-- HTML Preview 与 PRD 在目标、范围、流程、业务状态、规则或验收目标上描述不一致
-- HTML Preview 使用外部依赖但未声明来源、用途或打开/运行方式
 - PRD 草稿与正式 PRD 存在需要发布确认的差异但未说明差异性质
 - Draft user story 与已发布 user story 存在需要发布确认的差异但未说明差异性质
 
@@ -186,7 +165,6 @@
 
 - 前端/交互约束不完整
 - 一般格式问题
-- HTML Preview 缺少必要审阅区域、来源 PRD 路径或示例数据声明
 
 ## Output Requirements
 
@@ -196,7 +174,6 @@
 - P0/P1/P2 统计
 - 质量门禁结果
 - PRD 分层检查结果
-- HTML Preview 检查结果
 - 前 3 个关键问题
 - 报告路径
 
@@ -205,7 +182,6 @@
 - 总体评估
 - 质量门禁
 - PRD 分层检查
-- HTML Preview 检查
 - 各功能详细得分
 - P0/P1/P2 问题
 - 优先修复建议
