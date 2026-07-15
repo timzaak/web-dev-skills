@@ -18,7 +18,7 @@ allowed-tools:
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
 
-任务拆分必须服务于边界清楚、失败可定位、验证闭环明确的执行；如果设计文档、guide 或 protocol 冲突，停止并说明冲突。
+任务拆分必须服务于边界清楚、验证闭环明确的执行；如果设计文档、guide 或 protocol 冲突，停止并说明冲突。
 
 影响规划方向的缺口必须通过 `AskUserQuestion` 解决，不得把问题写成 P0/P1、假设或 handoff 后继续生成任务。
 
@@ -125,7 +125,7 @@ manifest 不得包含完整实现步骤；完整步骤必须写入 item 文件�
 
 ## Generated Document Style
 
-任务文档面向 `/t-run` 执行与恢复，不承载教程或指南复述：
+任务文档面向 `/t-run` 执行，不承载教程或指南复述：
 
 - 只写当前 feature、phase、slot、item 的可执行事实。
 - 引用 guide、protocol、agent 文档路径，不复制其中的长篇规则。

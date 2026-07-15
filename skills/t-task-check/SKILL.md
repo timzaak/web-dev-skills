@@ -94,7 +94,7 @@ allowed-tools:
    - 对 backend/frontend/miniapp/flutter/demo 的集中测试执行 item，优先运行 `uv run scripts/check-test-runner-coverage.py [feature] --layer [layer]` 做覆盖校验；backend 动态校验失败应记 P1 或 P0（取决于是否导致新增测试无法执行），其他层静态校验失败至少记 P1
    - 后端测试命令必须使用目标项目内脚本入口 `uv run scripts/backend-test.py -- [filter]`；即使没有 filter，也必须写为 `uv run scripts/backend-test.py --`。不得写成 `${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py` 或省略 `--`。若测试 item 使用 `cargo run`、裸 `cargo test`、插件根路径或省略 `--` 的后端测试命令，记 P1，并改为统一入口。
    - 不得把完整 slot 内容塞进一个 item
-   - 超过拆分阈值，或职责、验证、恢复边界可疑时，必须有合理说明，否则记 P1
+   - 超过拆分阈值，或职责、验证边界可疑时，必须有合理说明，否则记 P1
    - `Goal` 或 `Work` 中包含两个可独立交付、独立验证的主交付物时，必须拆分，否则记 P1
    - 单个 HTTP/API item 覆盖超过 10 个 endpoint，或混合不同资源域、读写操作、状态操作、配置类接口时，必须拆分，否则记 P1
    - 单个 demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流时，必须拆分，否则记 P1
