@@ -32,7 +32,7 @@ Skill 是命令式工作流入口，不是“让模型自由发挥的一段提�
 t-decision -> t-tech-research -> t-prd -> t-prd-check
 -> t-design -> t-design-check
 -> t-task -> t-task-check
--> t-run -> t-code-review
+-> t-run
 -> t-demo-run -> t-demo-accept
 -> t-prd-publish -> t-push -> t-release
 ```
