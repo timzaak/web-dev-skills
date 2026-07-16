@@ -46,7 +46,7 @@ Minimal end-to-end loop:
 # Generate executable backend tasks
 /t-tools:t-task user-management --phase backend
 
-# Check task breakdown, dependencies, and executability (optional; recommended for complex plans)
+# Check task breakdown, execution order, and executability (optional; recommended for complex plans)
 /t-tools:t-task-check user-management --phase backend
 
 # Implement and test by phase
@@ -85,6 +85,7 @@ Each phase starts with `/t-tools:t-task <feature> --phase <phase>`, may run `/t-
 - `t-doc` is for project documentation, onboarding tutorials, API references, configuration, and deployment notes. It is not for PRDs, technical designs, or small document edits.
 - `t-dream` defaults to a read-only audit of PRDs, user stories, design/tasks, implementation facts, and project structure; use `--govern-prd` explicitly when PRD governance should write changes.
 - `t-push` cleans clearly low-value comments from the current diff, summarizes a commit message, then calls `${CLAUDE_PLUGIN_ROOT}/scripts/push.py` to run affected CI, commit, and push.
+- Before running `t-push`, it is recommended to first run `/code-review --fix` and `/simplify` in Claude Code, so the code is independently reviewed and simplified before the final commit; their diffs are independent of `t-push` and will not overwrite each other.
 
 PRD, technical research, and design stages need explicit human calibration. If you are not sure how to do the spoken walkthrough, open [Do Not Shortcut the Intent](human/speech-template.en.md) and follow its headings: getting started, user story walkthrough, UI/UX walkthrough, third-party integration walkthrough, third-party library introduction, and closing. After ingesting that walkthrough, AI should first output its key understanding, evaluate executability, feasibility, and missing details, search the web for similar products and best practices when needed, write the content and answers into `.ai/future/[feature].md`, then generate or revise PRD, technical research, and design inputs. After `/t-tools:t-prd`, first step away from the generated artifact and state the PRD you would accept, then ask the AI to revise against it. After `/t-tools:t-design`, review the UX from the user's perspective: entry points, paths, feedback, defaults, and error states, then ask the AI to revise the technical design.
 

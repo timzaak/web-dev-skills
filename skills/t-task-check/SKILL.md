@@ -70,25 +70,19 @@ allowed-tools:
 - 读取 `.state.json` 并验证 schema。
 - 若指定 `--phase`，仅检查该阶段；否则检查当前阶段。指定阶段必须存在于 `.state.json.phases` 的 active phases 中。
 - 读取阶段目录下的 `index.md`、slot manifest，并建立 item 文件清单。
-- 在目标项目根目录运行确定性 DAG 校验脚本（若存在）：
-   - 命令：`python scripts/check-task-dag.py .ai/task/[feature]/[phase]`
-   - 只检查当前 feature + phase，不默认扫描全量 `.ai/task`。
-   - 该脚本结果是 item DAG 成环/无环的首要仓库证据；输出必须写入报告的 "Item DAG 验证结果"。
-   - 若脚本返回非 0，按 `ITEM_DAG_INVALID` 处理，记 confirmed P0，停止准入 `/t-run`。
-   - 若 `scripts/check-task-dag.py` 不存在，回退到抽取 `depends_on` 的内置校验，并在报告中标注"未找到项目脚本，使用内置校验"；不得临时创建 Python/JS 脚本。
 - 校验 item 时按以下顺序读取：
-   - 从 `.state.json`、slot manifest 和 item 文件头/关键章节抽取 `id/title/agent/depends_on/test_item_type` 以及 `Goal/Work/Files/Validation/Handoff`。
-   - 用抽取结果完成 item 存在性、路径一致性、manifest 覆盖、DAG、agent/slot 匹配和 backend test authoring/集中 runner 覆盖校验。
-   - 发现字段缺失、DAG/manifest 不一致、拆分阈值可疑、过度拆分可疑、设计一致性可疑或需要为 P0/P1 补证时，读取对应 item 全文。
+   - 从 `.state.json`、slot manifest 和 item 文件头/关键章节抽取 `id/title/agent/test_item_type` 以及 `Goal/Work/Files/Validation/Handoff`。
+   - 用抽取结果完成 item 存在性、路径一致性、manifest 顺序与覆盖、agent/slot 匹配和 backend test authoring/集中 runner 覆盖校验。
+   - 发现字段缺失、顺序/manifest 不一致、拆分阈值可疑、过度拆分可疑、设计一致性可疑或需要为 P0/P1 补证时，读取对应 item 全文。
    - 大型 phase 先用 `Grep`、路径清单或 manifest 定位目标 item，再读取命中的 item 文件。
-- 按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md` 校验 item DAG 与 manifest 覆盖关系。
+- 按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md` 校验 manifest 执行顺序与覆盖关系。
 - 验证 item 文件结构与内容：
-   - 必须包含 `id/title/agent/depends_on` 和 `Goal/Work/Files/Validation/Handoff` 五个章节
+   - 必须包含 `id/title/agent` 和 `Goal/Work/Files/Validation/Handoff` 五个章节
    - backend/test item 必须声明 `test_item_type: authoring|runner`
    - backend/test runner item 必须使用 `agent: general-purpose`，并引用 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md`
-   - backend/test 必须有 runner item 覆盖全部相关 authoring item，且 runner 依赖这些 authoring item
-   - backend/accept item 必须依赖 runner item，不得只依赖 authoring item
-   - frontend/test、miniapp/test、flutter/test 和 demo/dev 涉及测试代码 authoring 时，必须有集中定向执行 item 依赖全部相关测试 authoring item
+   - backend/test 必须有 runner item 覆盖全部相关 authoring item，且 runner 在 manifest 中排在这些 authoring item 之后
+   - backend/accept 前的 backend/test slot 必须至少有一个 runner 完成测试执行闭环
+   - frontend/test、miniapp/test、flutter/test 和 demo/dev 涉及测试代码 authoring 时，必须有集中定向执行 item，且在 manifest 中排在其覆盖的全部相关 authoring item 之后
    - 集中测试执行 item 必须包含 `Expected Test Manifest`，逐项列出测试文件、测试函数/用例标题、来源 authoring item 和 runner 命令
    - 测试执行 item 必须从覆盖来源推导定向命令；如升级全量，必须说明定向范围不足或门禁要求
    - 对 backend/frontend/miniapp/flutter/demo 的集中测试执行 item，优先运行 `uv run scripts/check-test-runner-coverage.py [feature] --layer [layer]` 做覆盖校验；backend 动态校验失败应记 P1 或 P0（取决于是否导致新增测试无法执行），其他层静态校验失败至少记 P1
@@ -104,7 +98,7 @@ allowed-tools:
    - 不得默认把当前 phase 的全部 item 全文传给每个 subagent。
    - dev agent 默认只接收 dev item 与直接影响实现的跨 slot 摘要。
    - test agent 默认只接收 test item、相关 dev `Handoff/Files` 摘要和集中定向测试执行闭环约束。
-   - accept agent 默认只接收 accept item、直接依赖 runner/dev `Handoff` 摘要和验收闭环约束。
+   - accept agent 默认只接收 accept item、顺序中相关 runner/dev `Handoff` 摘要和验收闭环约束。
    - demo 阶段按 dev/accept slot 同样做最小分发。
    - backend: subagent_type="backend-dev", "backend-test", "backend-accept"
    - frontend: subagent_type="frontend-dev", "frontend-test", "frontend-accept"
@@ -140,7 +134,7 @@ agent finding 不直接作为最终裁决；主流程必须按 rubric 完成证�
 | `PHASE_INVALID` | `--phase` 不是 `backend|frontend|miniapp|flutter|demo` | 非法阶段，仅支持 backend/frontend/miniapp/flutter/demo | 使用合法参数后重试 |
 | `PHASE_NOT_ACTIVE` | `--phase` 不在当前任务 active phases 中 | 当前项目未启用该阶段 | 使用 `.state.json.phases` 中存在的阶段，或重新运行 `/t-task` 生成该阶段 |
 | `PHASE_DIR_MISSING` | 阶段目录不存在 | 找不到阶段目录 | 运行 `/t-task [feature] --phase [phase]` 生成 |
-| `ITEM_DAG_INVALID` | item 依赖缺失、成环，或 `scripts/check-task-dag.py .ai/task/[feature]/[phase]` 返回非 0 | 子任务依赖非法 | 修复或重新生成该阶段 |
+| `ITEM_SEQUENCE_INVALID` | manifest 未覆盖全部 item、包含重复 item，或 item 表格无法确定从上到下的执行顺序 | 子任务执行顺序非法 | 修复或重新生成该阶段 |
 | `REPORT_INCONSISTENT` | 报告中的严重度、总分、准入结论或问题数量互相冲突 | 报告自检失败 | 重新聚合证据并重生成报告 |
 
 信息提示（不阻断）：
@@ -156,7 +150,7 @@ agent finding 不直接作为最终裁决；主流程必须按 rubric 完成证�
 ```text
 总分: 92/100 (优秀，可进入实施)
 
-门禁摘要: state=通过, phase=通过, DAG=通过, manifest/items=通过
+门禁摘要: state=通过, phase=通过, sequence=通过, manifest/items=通过
 Agent 集合: backend-dev, backend-test, backend-accept
 问题分类摘要: confirmed=2, disputed=0, assumption=0
 
@@ -169,4 +163,4 @@ P1 问题:
 ## 质量门禁
 硬性门禁统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md`
 
-这些门禁用于本检查的结论与风险分级；未运行 `t-task-check` 不阻止用户直接执行 `/t-run`。`/t-run` 仍会执行自身必要的状态、DAG、item 结构和执行安全校验。
+这些门禁用于本检查的结论与风险分级；未运行 `t-task-check` 不阻止用户直接执行 `/t-run`。`/t-run` 仍会执行自身必要的状态、执行顺序、item 结构和执行安全校验。

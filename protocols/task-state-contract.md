@@ -47,7 +47,6 @@
 - `status`
 - `file`
 - `agent`
-- `depends_on`
 
 按执行结果补充：
 
@@ -66,7 +65,7 @@
 
 ## Execution Entry Transition
 
-`generated` 是规划完成态，`pending` 是执行队列态。`/t-run` 对目标 phase 完成状态文件、阶段目录、manifest/item 和 DAG 校验后，必须在选择首个 item 前执行一次启动归一化：
+`generated` 是规划完成态，`pending` 是执行队列态。`/t-run` 对目标 phase 完成状态文件、阶段目录、manifest/item 和执行顺序校验后，必须在选择首个 item 前执行一次启动归一化：
 
 - 将 `tasks[phase][slot].items[*].status == generated` 的 item 全部改为 `pending`；只处理本次目标 phase。
 - 保留 `pending | failed | completed | skipped` item 原状态，不得借启动归一化重置失败或已完成结果。

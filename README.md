@@ -46,7 +46,7 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 # 生成 backend 阶段可执行任务
 /t-tools:t-task user-management --phase backend
 
-# 检查任务拆分、依赖和可执行性（可选，推荐复杂任务运行）
+# 检查任务拆分、顺序和可执行性（可选，推荐复杂任务运行）
 /t-tools:t-task-check user-management --phase backend
 
 # 按阶段实现与测试
@@ -85,6 +85,7 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 - `t-doc` 用于项目文档、上手教程、API 参考、配置和部署说明，不用于 PRD、技术设计或零散文档修改。
 - `t-dream` 默认只读审计 PRD、用户故事、设计/任务、实现事实与项目结构；需要写入 PRD 治理时显式使用 `--govern-prd`。
 - `t-push` 会基于本次 diff 清理明显低价值注释、总结 commit message，并调用 `${CLAUDE_PLUGIN_ROOT}/scripts/push.py` 运行受影响 CI、提交和推送。
+- 推荐 `t-push` 前先在 Claude Code 中运行 `/code-review --fix` 和 `/simplify`，让代码先经过独立审查与简化再收尾提交；二者与 `t-push` 的差异互相独立，不会相互覆盖。
 
 PRD、技术预研和设计阶段需要人的明确校准。不会口播时，直接打开 [莫要偷懒](human/speech-template.md)，按里面的标题念：起步、用户故事梳理、UI/UX 梳理、第三方对接梳理、第三方库引入和结尾。AI 吞吐这段口播后，应先输出重点理解，评估可执行性、可行性和遗漏点，必要时联网查类似产品和最佳实践，再把内容与答案写入 `.ai/future/[feature].md`，并生成或修正 PRD、技术预研和设计输入。`/t-tools:t-prd` 后，先脱离生成物口述你认可的 PRD，再让 AI 对照修正。`/t-tools:t-design` 后，从用户视角明确 UX 入口、路径、反馈、默认值和错误状态，再让 AI 修正技术设计。
 

@@ -1,6 +1,6 @@
 ---
 name: t-task
-description: Convert technical design documents into executable phased task plans with work breakdown and dependencies.
+description: Convert technical design documents into executable phased task plans with ordered work breakdown.
 argument-hint: "[任务名称] [--phase <backend|frontend|miniapp|flutter|demo>]"
 allowed-tools:
   - AskUserQuestion
@@ -43,7 +43,7 @@ allowed-tools:
 下游产出：
 - `.ai/task/[feature]/.state.json` — 任务状态文件，包含 phase/slot/item 层级状态
 - `.ai/task/[feature]/<phase>/index.md` — 阶段总览
-- `.ai/task/[feature]/<phase>/<slot>.md` — Slot manifest（导航与依赖）
+- `.ai/task/[feature]/<phase>/<slot>.md` — Slot manifest（导航与执行顺序）
 - `.ai/task/[feature]/<phase>/<slot>/<ITEM-ID>-*.md` — 可执行的 item 文件
 
 状态结构、item 字段、slot 顺序、测试集中执行和 backend/test 特殊字段统一参考：
@@ -86,8 +86,8 @@ allowed-tools:
 - slot agent 返回结构统一参考 [Agent Output Contract](#agent-output-contract)。
 - 主流程在每个 slot 返回后先执行写入前硬校验：
    - item 必填字段齐备
-   - item ID 唯一，依赖存在且无环
-   - manifest 覆盖全部 items，路径与 item 文件一致
+   - item ID 唯一
+   - manifest 按返回的 items 顺序覆盖全部 items，路径与 item 文件一致
    - 符合 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 和 `${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md` 的 P0/P1 硬门禁
    - backend/test runner 若使用全量 `uv run scripts/backend-test.py --`，必须在 `Validation` 或 `Handoff` 写明无法可靠定向的具体原因或门禁要求；否则拒绝写入成功状态
 - 硬校验失败时终止当前 slot，不写入成功状态，要求重新生成该 slot。
@@ -118,7 +118,7 @@ allowed-tools:
 ## Slot Manifest Contract
 每个 slot manifest 必须包含：
 - slot 目标和边界
-- item 表格：`id | title | agent | file | depends_on`
+- item 表格：`id | title | agent | file`；表格从上到下即 `/t-run` 执行顺序
 - 必要的上游输入和下游 handoff 摘要
 
 manifest 不得包含完整实现步骤；完整步骤必须写入 item 文件。
@@ -133,21 +133,19 @@ manifest 不得包含完整实现步骤；完整步骤必须写入 item 文件�
 - `Work` 写具体动作，不写通用工程原则。
 - `Validation` 写目标项目真实命令、脚本或验收证据，不写抽象测试建议。
 - item 应写明失败边界：失败时定位到哪类问题、由哪个 agent/slot 继续处理。
-- `Handoff` 只保留给下游 slot/agent 必需的信息；没有下游依赖时写 `None`。
+- `Handoff` 只保留给顺序中后续 slot/agent 必需的信息；没有交接内容时写 `None`。
 
 ## Agent Output Contract
 slot agent 输出必须至少包含：
 - `slot`: `dev|test|accept`
 - `manifest_target_file`
 - `manifest_content`
-- `items`: item 对象列表，每个 item 包含 `id/file/agent/depends_on/content`
-- `item_dag`
-- `self_check`: 必填字段、DAG、责任闭环拆分、过度拆分、阶段执行规则和 P0/P1 风险自检结果
+- `items`: 按执行顺序排列的 item 对象列表，每个 item 包含 `id/file/agent/content`
+- `self_check`: 必填字段、执行顺序、责任闭环拆分、过度拆分、阶段执行规则和 P0/P1 风险自检结果
 
 主流程必须：
 - 校验 `slot` 与被调度 agent 是否匹配。
-- 校验 item 依赖合法且无环。
-- 校验 manifest、item 文件路径和 `.state.json` 计划一致。
+- 校验 manifest 表格顺序与 `items` 列表一致，且 manifest、item 文件路径和 `.state.json` 计划一致。
 - 校验 item 使用 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的最小结构。
 - 校验 `self_check` 存在且未声明未解决 P0/P1。
 - 校验 slot agent 已说明 item 的责任闭环；若存在把技术层、文件类型或实现步骤当成唯一拆分依据、重复验证命令或不可独立验收的过度拆分，拒绝写入成功状态。
@@ -167,7 +165,7 @@ item 字段、backend/test item 类型、测试集中执行规则、拆分原则
 ## Forbidden
 - 生成或依赖 `agents` 根字段。
 - 把 `dev.md`、`test.md`、`accept.md` 当作 `/t-run` 的直接执行输入。
-- 当前阶段 slot 并行生成；slot 必须按依赖串行。
+- 当前阶段 slot 并行生成；slot 必须按固定顺序串行。
 - 未写入上游 manifest 和 item 文件就调用下游 slot agent。
 - 在任务文档中复制 guide/protocol/subagent 的长篇指南。
 - 在 item 中写与当前交付无关的通用实现建议、培训内容或风格偏好。
@@ -177,7 +175,7 @@ item 字段、backend/test item 类型、测试集中执行规则、拆分原则
 ## Failure
 - 设计文档不存在：提示先运行 `/t-design [feature]`。
 - 任一 slot agent 生成失败：终止本次任务生成，不写入该 slot 的成功状态，并返回失败 agent 与失败原因。
-- slot agent 返回 item 缺少必填字段、依赖不存在或形成环：拒绝写入成功状态，要求重新生成该 slot。
+- slot agent 返回 item 缺少必填字段，或 manifest 顺序与 items 列表不一致：拒绝写入成功状态，要求重新生成该 slot。
 - slot agent 返回缺失 `self_check`、manifest 覆盖不完整、backend/test 类型非法、触发必须拆分规则、明显过度拆分，或 item 数量超限且无用户授权证据：拒绝写入成功状态，要求重新生成或合并该 slot。
 - slot agent 返回 `needs_user_answer`：使用 `AskUserQuestion` 向用户提问，回答前不写入该 slot；回答后先同步设计/规划依据，再重新生成该 slot。
 

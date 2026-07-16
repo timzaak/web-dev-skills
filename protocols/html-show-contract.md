@@ -139,7 +139,7 @@ HTML Preview 的主视觉必须按语义选择表达方式，不能默认堆卡�
 |---|---|---|
 | Flow graph | 步骤、调用链、审批链、数据流 | `.flow-graph` + `.flow-node` + `.flow-edge` |
 | State graph | 状态、触发条件、合法/非法迁移 | `.state-graph` + `.state-node` + `.transition` |
-| DAG / Dependency graph | task item 依赖、模块依赖、阻塞关系 | `.dag` + `.node-row` 或 `.dependency-grid` |
+| Execution sequence / Pipeline | task item 顺序、阶段推进、阻塞关系 | `.pipeline` + `.node-row` 或 `.sequence-grid` |
 | Inline SVG graph | 复杂连线、分支、汇聚、环路 | `<svg class="svg-graph">` + `<g>` + `<path>` + `<text>` |
 | Mermaid graph | 流程、状态、时序、类图等标准图 | Mermaid fenced source 或 Mermaid runtime |
 | D3 / ECharts graph | 复杂关系、布局、数据驱动图 | 外部脚本或本地依赖，必须声明依赖与打开方式 |
@@ -187,7 +187,7 @@ HTML Preview 的主视觉必须按语义选择表达方式，不能默认堆卡�
 | Decision Brief | 是否值得做，边界和杀死条件是什么 | 决策地图 | `Decision`、`Confidence`、`Scope Direction`、`Kill Criteria`、`D0/D1 Decisions`、`Open Questions`、`Handoff` |
 | Tech Research | 技术路线是否可行，差距和风险在哪里 | 可行性地图 | `Feasibility`、`Gap Matrix`、`Option Comparison`、`Risks`、`Handoff` |
 | Design | 实现结构会怎么变，影响面和风险在哪里 | 结构变化地图 | `Intent`、`Traceability`、`Architecture Change`、`Interface & Data Impact`、`Frontend Impact`、`Risks`、`Test Strategy`、`File Impact`、`Handoff` |
-| Task | 怎么执行、怎么恢复、哪些门禁会阻塞 | 执行地图（Current + Blocking + Next） | `Execution Overview`、`Phase & Slot Map`、`Item DAG`、`Blocking Gates`、`Validation Plan`、`Resume Points`、`Handoff` |
+| Task | 怎么执行、怎么恢复、哪些门禁会阻塞 | 执行地图（Current + Blocking + Next） | `Execution Overview`、`Phase & Slot Map`、`Item Sequence`、`Blocking Gates`、`Validation Plan`、`Resume Points`、`Handoff` |
 | Generic | 这份文档讲什么，核心答案是什么 | answer board 或文档导读 | 按 Markdown 大纲自适应 |
 
 **section 与 3-block 骨架的映射**：通用模板 `preview-template.html` 是「重点（PrimaryVisual）/ 结构（Map）/ 细节（Details）」三块骨架。上表每个文档类型的”推荐 section”是该类型应在结构区及其下展开的内容块，不要求页面逐字出现这些标题——agent 在 3-block 骨架内用对应组件（`change-map`、`dag`、`lane`、`matrix`、`signal`、`details` 分组等）表达这些内容。PRD 走 `prd-preview-contract.md` 的固定结构，不套用 3-block 骨架。

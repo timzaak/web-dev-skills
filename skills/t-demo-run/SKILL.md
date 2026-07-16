@@ -99,7 +99,7 @@ Result: {"success":"true|false","fixed":"true|false","logs":"demo/test-results/r
 ## 恢复机制
 当流程中断时：
 - 读取 `TaskList`。
-- 找到 `pending` 且依赖已满足的任务继续执行。
+- 按任务列表顺序找到第一个 `pending` 或 `failed` 任务继续执行。
 
 ## 失败处理
 - 环境启动失败：停止并记录错误。

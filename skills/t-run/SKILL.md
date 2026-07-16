@@ -41,9 +41,9 @@ allowed-tools:
 
 ## Purpose
 - 读取 `.ai/task/[feature]/.state.json`。
-- 按当前 phase 的 item DAG 选择可执行 item，但始终串行调度单个 sub agent。
+- 按当前 phase 的 slot 和 manifest 顺序选择可执行 item，并始终串行调度单个 sub agent。
 - `/t-run` 的执行单元、slot 顺序、失败处理、所需上下文统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`。
-- `index.md` 和 slot manifest 只作为上下文和导航，不作为直接执行输入。
+- `index.md` 和 slot manifest 不作为直接执行单元；slot manifest 同时是 slot 内 item 执行顺序的真源。
 - backend 的 OpenAPI 导出与前端 API 生成验收由 `backend-accept` 负责。
 
 ## Args
@@ -72,9 +72,8 @@ allowed-tools:
 
 - 首次选择前，先按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 将目标 phase 的 `generated` item 启动归一化为 `pending` 并写回状态
 - 只执行 `pending` 或 `failed` item
-- 依赖未满足不得跳过
-- 同时存在多个可执行 item 时按 manifest 顺序或 item ID 字典序
-- 若 DAG 成环、依赖缺失或 item 文件缺失，立即终止并提示重新运行 `/t-task-check`
+- 按固定 slot 顺序和 manifest 表格从上到下选择第一个待执行 item，不得跳过
+- 若 manifest 未覆盖全部 item、包含重复 item、顺序无法确定或 item 文件缺失，立即终止并提示重新运行 `/t-task-check`
 
 ## Sub Agent Context Contract
 每个 item 必须按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 通过 `Agent` tool 启动，`subagent_type` 为 item 文件中的 `agent` 字段值。传入 prompt 必须包含最小上下文（见下方）。
@@ -88,17 +87,17 @@ backend/test 特例：
 - 必须读取 `test_item_type`，只允许 `authoring` 或 `runner`。
 - 缺少 `test_item_type` 时拒绝执行，提示先运行 `/t-task-check` 或重建/修正 item。
 - `authoring`：只编写或调整场景测试并做编译验证。
-- `runner`：按 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md`，在全部相关 authoring item 完成后集中执行定向测试、失败分类、生产代码修复委派和重测。
+- `runner`：按 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md` 执行；它必须在 manifest 中排在全部相关 authoring item 之后，再集中执行定向测试、失败分类、生产代码修复委派和重测。
 - `runner` 执行前必须从 `Expected Test Manifest`、变更文件和 package/module/test name 推导最小可靠定向命令；item 只给出全量 `uv run scripts/backend-test.py --` 且没有升级原因时，拒绝执行并提示重新运行 `/t-task-check` 或修正 item。
 - 同一 item 同时包含“写新场景测试”和“修复生产代码直到通过”时拒绝执行。
 - item 正文使用 `Goal / Work / Files / Validation / Handoff` 五个章节；执行 agent 以这些章节作为目标、动作、路径、验证和交接依据。
 
 ## State Transition
 - 读取状态并确定执行范围。
-- 依据 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 校验状态与 DAG。
-- 完成状态、目录、manifest/item 和 DAG 校验后，在启动任何 agent 前，将目标 phase 中全部 `generated` item 改为 `pending`，重新聚合对应 slot/phase 并一次性写回 `.state.json`；保留其他状态不变。
+- 依据 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 校验状态与执行顺序。
+- 完成状态、目录、manifest/item 和执行顺序校验后，在启动任何 agent 前，将目标 phase 中全部 `generated` item 改为 `pending`，重新聚合对应 slot/phase 并一次性写回 `.state.json`；保留其他状态不变。
 - 启动归一化写回失败时按状态写入失败处理，不得启动 agent。
-- 除启动归一化外，执行 item 前不更新状态；中断恢复时，重新选择仍为 `pending` 或 `failed` 且依赖满足的 item。
+- 除启动归一化外，执行 item 前不更新状态；中断恢复时，重新选择顺序中的第一个 `pending` 或 `failed` item。
 - item 成功后写入：
    - `tasks[phase][slot].items[item_id].status = completed`
 - item 失败后写入：
@@ -106,7 +105,7 @@ backend/test 特例：
    - `tasks[phase][slot].items[item_id].last_error = <summary>`
    - `tasks[phase][slot].status = failed`
    - `phases[phase].status = failed`
-   - 停止依赖该 item 的后续执行
+   - 停止当前 phase 的后续执行
 - 每个 item 完成或失败后重新聚合 slot 和 phase 状态。
 - 若当前 item 成功且仍有可执行 item，则返回 Item Selection，继续串行选择下一个 item。
 - backend 阶段在 `accept` slot 全部 completed 后聚合为 completed。
@@ -114,9 +113,8 @@ backend/test 特例：
 ## Forbidden
 - 直接执行 `dev.md`、`test.md`、`accept.md`。
 - 只传 `index.md` 或 slot manifest 就开始执行。
-- 忽略 item DAG，按文件名随意执行。
-- 依赖未完成时执行下游 item。
-- 同一 DAG 层并发执行多个 item。
+- 忽略 manifest 顺序，按文件名或 `.state.json` 对象顺序执行。
+- 前序 item 未完成时执行后续 item。
 - 一次启动多个 sub agents 或批量下发多个 item。
 - 当前 item 未完成时，预取、提前执行或跨 slot 执行其他 item。
 - 对 `backend-test` 直接下发"先跑全量 `uv run scripts/backend-test.py --`"而不做变更分析。
@@ -124,12 +122,12 @@ backend/test 特例：
 
 ## Failure
 - 状态文件缺失/损坏：终止并提示先运行 `/t-task [feature] --phase [phase]`。
-- 依赖不满足：阻塞后续依赖 item。
+- 前序 item 失败：停止当前 phase，修复后从该 item 恢复。
 - 状态写入失败：重试一次，失败则终止。
 - agent 超时或编译级联错误：标记 item 为 `failed`，写入 `last_error`。
 - 阶段未启用：提示当前项目未启用该阶段，并展示 `.state.json.phases` 中的 active phases。
 - 阶段未生成：提示先运行 `/t-task [feature] --phase [phase]`。
-- item 文件缺失或 DAG 非法：提示重建该阶段任务目录。
+- item 文件缺失或 manifest 顺序非法：提示重建该阶段任务目录。
 - item 缺少 `Goal/Work/Files/Validation/Handoff` 五章节：提示重新运行 `/t-task-check`；若确认为旧格式任务，重新运行 `/t-task [feature] --phase [phase]` 生成。
 
 ## Examples
@@ -149,6 +147,6 @@ agent_spec: ${CLAUDE_PLUGIN_ROOT}/agents/backend-dev.md
 item_file: .ai/task/sample-feature/backend/dev/BE-D02-domain-models.md
 slot_manifest: .ai/task/sample-feature/backend/dev.md
 phase_index: .ai/task/sample-feature/backend/index.md
-dependencies:
-  BE-D01: completed, file=.ai/task/sample-feature/backend/dev/BE-D01-domain-models.md
+previous_items:
+  BE-D01: completed, file=.ai/task/sample-feature/backend/dev/BE-D01-domain-models.md, handoff=<必要片段>
 ```

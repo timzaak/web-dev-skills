@@ -31,12 +31,11 @@
 ## Item Selection
 
 - 首次选择 item 前，按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 的 Execution Entry Transition 将目标 phase 的 `generated` item 归一化为 `pending` 并持久化；归一化失败时不得启动 agent。
-- 读取目标 phase 的 slot 清单，按 slot 顺序扫描。
-- 同一 slot 内按 DAG 拓扑顺序选择可执行 item。
-- 多个 item 同时可执行时，优先 slot manifest 顺序；缺失时按 item ID 字典序。
-- 仅执行 `pending` 或 `failed` item；重试 `failed` 前依赖必须全部 `completed`。
-- 依赖未满足时不得跳过下游 item。
-- 除上述一次性启动归一化外，`/t-run` 在调度单个 item 前不更新状态；中断恢复时重新选择仍为 `pending` 或 `failed` 的 item。
+- 按 [Slot Order](#slot-order) 扫描目标 phase；同一 slot 内严格按 slot manifest 的 item 表格从上到下执行。
+- manifest 必须覆盖 `.state.json` 中当前 slot 的全部 item，且每个 item 只能出现一次；顺序缺失或不一致时终止执行。
+- 选择顺序中的第一个 `pending` 或 `failed` item；后续 item 不得越过它提前执行。
+- `completed` 或 `skipped` item 直接越过，不重复执行。
+- 除上述一次性启动归一化外，`/t-run` 在调度单个 item 前不更新状态；中断恢复时重新选择顺序中的第一个 `pending` 或 `failed` item。
 
 ## Agent Context
 
@@ -46,7 +45,7 @@
 - `feature`, `phase`, `slot`, `item_id`
 - 当前 item 文件全文
 - 当前阶段 `index.md`
-- 直接依赖 item 的状态、文件路径与必要片段
+- 当前 item 之前已完成 item 的状态、文件路径与必要 `Handoff` 片段
 
 可选提供当前 slot manifest、阶段设计摘要、最小状态切片、completion criteria / validation。
 
@@ -57,7 +56,6 @@
 - `id`: 稳定 ID，例如 `BE-D01`, `FE-T02`, `MA-A01`, `FL-T01`, `DE-A01`
 - `title`
 - `agent`
-- `depends_on`
 
 item 正文只使用以下章节：
 
@@ -65,7 +63,7 @@ item 正文只使用以下章节：
 - `## Work`：当前 agent 需要执行的具体动作。
 - `## Files`：预计新增、修改或重点检查的目标项目路径。
 - `## Validation`：目标项目真实命令、脚本或验收证据。
-- `## Handoff`：给下游 item 或 slot 的必要交接信息；没有下游依赖时写 `None`。
+- `## Handoff`：给顺序中后续 item 或 slot 的必要交接信息；没有交接内容时写 `None`。
 
 backend/test item 还必须符合 [Backend Test Item Types](#backend-test-item-types)。
 
@@ -158,7 +156,7 @@ backend/test、frontend/test、miniapp/test、flutter/test、demo/dev 的测试�
 测试规划遵循集中执行：
 
 - authoring item 负责写测试资产；runner item 汇总本轮相关 authoring 产物并执行。
-- runner 依赖本轮全部相关 authoring item，并记录覆盖来源。
+- runner 必须排在其覆盖的全部相关 authoring item 之后，并记录覆盖来源。
 - runner 必须包含 `Expected Test Manifest`：测试文件、测试函数/用例标题、来源 authoring item、预期 runner 命令。
 - runner 只运行覆盖来源所需的最小可靠定向测试、类型检查或构建命令；全量测试只在定向范围无法覆盖风险，或发布/验收门禁要求时使用，并说明原因。
 - 编译、预构建、项目启动等等待成本允许存在，但 item 必须记录实际命令和失败/耗时证据。
@@ -184,17 +182,17 @@ backend/test slot 必须显式规划测试执行闭环：
 - 每个新增或修改场景测试的 `authoring` item 必须被 runner 覆盖。
 - runner 按验证范围拆分；同一业务场景或 package/module 优先合并。
 - `runner.agent` 必须为 `general-purpose`。
-- runner 必须依赖本轮全部相关 `authoring` item。
+- runner 必须排在本轮全部相关 `authoring` item 之后。
 - runner 必须在 `Work` 或 `Validation` 中引用 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md`，并按该协议执行。
 - runner 中每条后端测试命令都必须以 `uv run scripts/backend-test.py --` 开头；没有 filter 时也保留结尾 `--`。
 - runner 默认必须带 filter 或 `-E` 表达式来收敛到 Expected Test Manifest 覆盖范围；只有定向范围无法可靠覆盖风险或存在明确门禁要求时，才允许规划全量 `uv run scripts/backend-test.py --`，并必须写明升级原因。
 - 不得写 `${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py`，不得省略 `--`，目标项目本地脚本失败时不得改用插件脚本绕过。
-- backend/accept item 必须依赖至少一个 runner，不得只依赖 authoring。
+- backend/accept 由固定 slot 顺序保证在 backend/test 之后执行；backend/test 必须至少包含一个 runner，且 runner 位于相关 authoring item 之后。
 
 缺少 `test_item_type`、类型非法、runner 未引用后端测试执行协议、或 runner agent 不是 `general-purpose` 时，执行应终止并提示重新运行 `/t-task-check` 或重建任务。
 
 ## Failure Handling
 
 - 状态文件缺失或损坏：终止并提示先运行 `/t-task`
-- DAG 成环、依赖缺失、item 文件缺失：终止并提示运行 `/t-task-check`
-- item 执行失败：写回 `last_error`，阻断依赖该 item 的后续执行
+- manifest 顺序无效、覆盖不完整或 item 文件缺失：终止并提示运行 `/t-task-check`
+- item 执行失败：写回 `last_error`，停止当前 phase；再次运行时从该失败 item 恢复
