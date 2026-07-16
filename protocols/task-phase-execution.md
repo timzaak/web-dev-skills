@@ -103,6 +103,25 @@ backend/test item 还必须符合 [Backend Test Item Types](#backend-test-item-t
 - 中等任务按责任闭环拆分；强耦合且同一验证命令覆盖的实现动作优先放在同一 item，降低 handoff 和上下文切换成本。
 - 复杂任务必须拆细，尤其是跨领域、跨用户故事、跨测试闭环、跨外部契约或失败后难恢复的任务。
 
+### Slot Item Count Limits
+
+为避免任务被过度拆分，每个 slot 的 item 数量设置默认上限：
+
+| slot | 默认上限 |
+|---|---|
+| dev | 3 |
+| test | 2 |
+| accept | 2 |
+
+demo 阶段的 `accept` slot 同样适用 `accept` 上限。
+
+超过上限时的处理规则：
+
+- slot agent 必须返回 `needs_user_answer`；由 `t-task` 使用 `AskUserQuestion` 确认是否允许更多拆分，回答前不得写入该 slot。
+- 向用户确认时应说明：当前 slot、建议 item 数量、超过上限的理由（如跨领域、跨测试闭环、失败后难恢复等）、合并后可能导致的单次执行规模或失败归因风险。
+- 用户允许后，在 slot manifest 或相关 item 的 `Handoff` 中记录上限、实际数量和授权理由；用户未允许时，合并到上限以内。
+- 合并后单个 item 变大但责任闭环单一、验证命令定向、失败可定位的，不应因此记 P1。
+
 优先合并的情况：
 
 - 同一资源或业务操作的 DTO、domain、repository、service/use case、HTTP/OpenAPI 改动强耦合，并由同一组定向检查或场景测试覆盖。

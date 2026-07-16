@@ -151,6 +151,7 @@ slot agent 输出必须至少包含：
 - 校验 item 使用 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的最小结构。
 - 校验 `self_check` 存在且未声明未解决 P0/P1。
 - 校验 slot agent 已说明 item 的责任闭环；若存在把技术层、文件类型或实现步骤当成唯一拆分依据、重复验证命令或不可独立验收的过度拆分，拒绝写入成功状态。
+- 校验 slot item 数量上限；超限时必须具有用户授权证据，否则拒绝写入。
 - 先写入当前 slot manifest 和 item 文件，再继续调用下游 slot。
 - 在当前阶段要求的 slot 结果齐备后再生成 `index.md`。
 - 文档写入与 `.state.json` 更新保持同轮完成。
@@ -177,7 +178,7 @@ item 字段、backend/test item 类型、测试集中执行规则、拆分原则
 - 设计文档不存在：提示先运行 `/t-design [feature]`。
 - 任一 slot agent 生成失败：终止本次任务生成，不写入该 slot 的成功状态，并返回失败 agent 与失败原因。
 - slot agent 返回 item 缺少必填字段、依赖不存在或形成环：拒绝写入成功状态，要求重新生成该 slot。
-- slot agent 返回缺失 `self_check`、manifest 覆盖不完整、backend/test 类型非法、触发必须拆分规则或明显过度拆分：拒绝写入成功状态，要求重新生成该 slot。
+- slot agent 返回缺失 `self_check`、manifest 覆盖不完整、backend/test 类型非法、触发必须拆分规则、明显过度拆分，或 item 数量超限且无用户授权证据：拒绝写入成功状态，要求重新生成或合并该 slot。
 - slot agent 返回 `needs_user_answer`：使用 `AskUserQuestion` 向用户提问，回答前不写入该 slot；回答后先同步设计/规划依据，再重新生成该 slot。
 
 ## Examples

@@ -72,6 +72,7 @@
 - 若当前阶段为 backend，backend/test runner 默认使用定向命令；全量 `uv run scripts/backend-test.py --` 只有在写明无法可靠定向或门禁要求时才允许
 - 若当前阶段为 backend，backend/accept item 依赖 runner item，不只依赖 authoring item
 - 若当前阶段为 frontend/miniapp/flutter/demo，涉及测试代码 authoring 时必须有集中定向执行 item，且不得默认规划全量测试
+- slot item 数量符合 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的上限，或具有用户授权证据
 - 大范围重构、旧架构替换或旧模块迁移任务包含旧代码清理清单，并按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 先删除旧实现再改写新结构
 - 检查是否存在过度拆分：同一责任闭环被拆成多个无法独立验收的 item，或多个 item 只是在技术层之间传递 handoff
 - 设计文档与任务文档一致
@@ -156,7 +157,7 @@ agent 评审边界：
 
 - slot 状态与 item 聚合状态不匹配
 - item 缺少关键章节
-- item 超过拆分阈值，或职责、验证、恢复边界可疑且无合理说明
+- slot item 数量超过 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的上限且无用户授权证据，或 item 职责、验证、恢复边界可疑且无合理说明
 - item 职责混杂，单次 agent 调用高概率无法完成
 - item 合并多个弱相关、可独立交付、独立验证的主交付物
 - item 过度拆分：同一责任闭环被拆成多个无法独立验收的 item，多个 item 修改同一小文件集并重复相同验证命令，或依赖链只是在 DTO/domain/repository/service/route、API/store/page/error/permission 等技术层之间传递 handoff
