@@ -25,6 +25,12 @@
 
 生成文件是派生物，不手工维护。路由优先复用项目现有 go_router/typed route 方案；不要从历史文档推断路径，也不要为简单跳转强行重写稳定导航。
 
+## API 客户端
+
+- 目标项目已有 API client 生成流程时，先确认其配置、输入和输出位置，并优先复用生成的 client/type。
+- API 契约变化后，先再生客户端，再调整 Repository、Service、Notifier 和 View；生成物不手工编辑。
+- 未采用 API client 生成的项目不强制引入新的生成工具或独立 package。
+
 ## UI 质量
 
 - 设计值走 `ThemeData`、`ColorScheme`、`ThemeExtension`。
