@@ -5,7 +5,6 @@ argument-hint: "[feature-name]"
 allowed-tools:
   - AskUserQuestion
   - Read
-  - Agent
   - Glob
   - Grep
   - Write
@@ -21,9 +20,8 @@ allowed-tools:
 ## 输出
 
 - `.ai/decision/<feature>.md`
-- `.ai/preview/decision/<feature>.html`
 
-Markdown 使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-decision/template.md)。Preview 通过 `html-show` subagent 生成。
+Markdown 使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-decision/template.md)。
 
 ## 参数
 
@@ -238,23 +236,12 @@ Markdown 使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-decision/template.m
 3. 跑六问诘问主线，只追问阻塞决策的问题。
 4. 形成至少两个选项：`Minimal` 和 `Recommended`；若六问识别出致命假设，加 `Wedge`；确有价值时加 `Ambitious`。
 5. 写入 `.ai/decision/<feature>.md`。
-6. 按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 委派 `html-show`：
-
-```text
-使用 html-show 生成 HTML Preview。
-源文档: .ai/decision/<feature>.md
-```
-
-7. 默认不自动打开；报告 `.ai/preview/decision/<feature>.html` 路径与打开命令。仅当用户明确要求打开时才执行（命令见 `html-show-contract.md` 的 `Opening the Preview`）。
-
-如果 Preview 生成失败，终止并报告；不能只交付 Markdown。
 
 ## 收尾
 
 说明：
 
 - Decision Brief 路径
-- HTML Preview 路径
 - Verdict、信心、Scope Direction
 - 关键 D0 决策和阻塞问题
 - 下一步命令：`/t-tech-research <feature>`、`/t-prd <feature>`、重跑 `/t-decision <feature>` 或停止
@@ -272,4 +259,3 @@ Markdown 使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-decision/template.m
 - `Park` / `Reject` 引用了 Kill Criteria
 - 未确认 D0 只进入 Open Questions，不写成已确认
 - 不包含接口、数据库、技术设计、任务拆解或实现细节
-- Preview 存在且与 Markdown 一致

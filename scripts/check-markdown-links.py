@@ -28,6 +28,7 @@ EXCLUDE_DIRS = {
     ".venv",
     "__pycache__",
     ".ai",
+    ".zcode",
     "human",
 }
 

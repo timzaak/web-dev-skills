@@ -11,7 +11,7 @@ T-Tools 不是一组零散 prompt，而是一套面向工程交付的 AI 编程�
 - `.ai/` 与 `docs/`：目标项目的运行时产物和长期业务事实。
 - 人：表达真实意图、裁决取舍、指出细节偏好，并在 Preview、check 和 accept 中校准 AI 产物。
 
-做需求、PRD 或技术预研前，可以先使用 [莫要偷懒](speech-template.md)。它让人按标题自然口述目标用户、用户路径、页面信息、权限、前后端承接、第三方依赖和风险；AI 吞吐后再做可执行性、可行性、查漏补缺和待确认问题整理。
+做需求、PRD 或技术预研前，可以先使用 [莫要偷懒](speech-template.md)。它让人按标题自然口述起步目标、用户故事、UI/UX、第三方对接、第三方库引入和结尾要求；AI 吞吐后再做可执行性、可行性、查漏补缺和待确认问题整理，并按需沉淀到 `.ai/future/[feature].md`。
 
 ## 四层结构
 
@@ -32,12 +32,12 @@ Skill 是命令式工作流入口，不是“让模型自由发挥的一段提�
 t-decision -> t-tech-research -> t-prd -> t-prd-check
 -> t-design -> t-design-check
 -> t-task -> t-task-check
--> t-run -> t-code-review
+-> t-run
 -> t-demo-run -> t-demo-accept
 -> t-prd-publish -> t-push -> t-release
 ```
 
-并不是每个项目都需要完整跑完所有可选阶段，但 check / accept 不是装饰。它们负责阻止上游问题继续进入下游。
+并不是每个项目都需要完整跑完所有阶段。随着 AI 能力提升，`t-prd-check`、`t-design-check`、`t-task-check` 是可选质量检查：复杂、高风险或多人协作时用于阻止上游问题继续进入下游；简单低风险变更可以直接进入下一阶段。实现后的 accept 阶段仍负责验收收口。
 
 ### Agents：专业执行者
 
@@ -84,11 +84,11 @@ Agent 文档只说明什么时候读 guide、如何执行、返回什么，不�
 
 ### PRD：先让人看懂 AI 的产品理解
 
-`t-prd` 会先写 `.ai/prd` 与 `.ai/user-stories` 草稿，并生成 HTML Preview。Markdown 仍是正式契约，Preview 是人类快速审阅契约的入口。
+`t-prd` 会先写 `.ai/prd` 与 `.ai/user-stories` 草稿。Markdown 是正式契约，也是人类审阅 AI 产品理解的入口。
 
-有效顺序不是马上打开 Preview 顺着 AI 读，而是先脱离生成物，按 [莫要偷懒](speech-template.md) 口述一版自己认可的需求：它解决什么痛点、哪个用户路径最重要、哪些状态、权限、异常、文案、数据边界或体验细节不能漏。然后再看 Preview，要求 AI 对照修正 PRD、user story 和 Preview。
+有效顺序不是顺着 AI 的生成物读，而是先脱离生成物，按 [莫要偷懒](speech-template.md) 口述一版自己认可的需求：它解决什么痛点、哪个用户路径最重要、UI/UX 第一眼要看懂什么、异常状态如何反馈、第三方能力和第三方库是否真的适配。然后要求 AI 对照修正 PRD 和 user story。
 
-`t-prd-check` 检查的不是格式本身，而是 AI 写下的产品理解、Preview 呈现的产品理解、用户故事和正式文档之间是否一致。实现、测试和 Demo 验收完成后，`t-prd-publish` 再把仍然成立的长期事实合并回 `docs/`。
+`t-prd-check` 是可选质量检查，检查的不是格式本身，而是 AI 写下的产品理解、用户故事和正式文档之间是否一致。跳过它时，`t-design` 仍要自行混合验证草稿与已发布基线的关键冲突。实现、测试和 Demo 验收完成后，`t-prd-publish` 再把仍然成立的长期事实合并回 `docs/`。
 
 ### Tech Research：先把可行性问题说完整
 

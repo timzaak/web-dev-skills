@@ -154,7 +154,6 @@ subagent 的详细规则见 `${CLAUDE_PLUGIN_ROOT}/agents/html-show.md` 和 `${C
 - 文档类型（PRD / 通用）
 - 本次走 create 还是 update
 - 可视化类型（prd-review / decision-map / research-map / design-change-map / task-execution-map / answer-board / interactive-preview / backend-flow / state-diagram / dependency-graph / timeline / swimlane / pipeline / hub-map / capability-matrix / acceptance-matrix / document-reader）
-- PRD 模式下一步：`/t-prd-check [feature]` 验证一致性
 
 ## 失败处理
 
@@ -168,7 +167,6 @@ subagent 的详细规则见 `${CLAUDE_PLUGIN_ROOT}/agents/html-show.md` 和 `${C
 
 - Preview 内容边界以 `${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md` 为准
 - PRD 模式额外遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md`
-- PRD 模式 Preview 生成后建议运行 `/t-prd-check [feature]` 验证一致性
 
 ## 附加资源
 

@@ -23,7 +23,7 @@ tools:
 - 前端或交互功能：目标体验的低保真页面、关键路径、业务状态切换、示例数据。
 - 后端或无 UI 功能：流程图、状态图、调用方场景、能力边界矩阵、验收矩阵、pipeline 或 hub map。
 - 技术设计：结构变化地图、依赖图、影响面摘要、风险热力、测试覆盖和文件影响。
-- 任务文档：phase/slot 执行地图、item DAG、阻塞门禁、恢复点、时间线和下一步命令。
+- 任务文档：phase/slot 执行地图、item 顺序、阻塞门禁、恢复点、时间线和下一步命令。
 - 通用文档：从标题和大纲推断核心答案，生成 answer board、关系图、时间线或可读导览。
 
 不负责：
@@ -71,13 +71,13 @@ PRD 文档额外读取：
   - `.ai/decision/**/*.md` → Decision 模式：突出 Verdict、Problem、Target User、Evidence、Lethal Assumptions & Kill Criteria、Scope Direction、Product Decisions、Risks、Open Questions、Handoff。
   - `.ai/tech-research/**/*.md` → Tech Research 模式：突出可行性、差距、技术路线、影响、风险和后续建议。
   - `.ai/design/**/*.md` → Design 模式：突出实现结构如何变化、影响面、关键取舍、最高风险、测试策略和文件影响范围。
-  - `.ai/task/**/*.md` → Task 模式：首屏给 Current Progress（phase/slot 进度）+ Blocking（阻塞门禁）+ Next Action（下一步命令），再展开 item DAG、验证计划、恢复点和 handoff。
+  - `.ai/task/**/*.md` → Task 模式：首屏给 Current Progress（phase/slot 进度）+ Blocking（阻塞门禁）+ Next Action（下一步命令），再展开 item 顺序、验证计划、恢复点和 handoff。
   - 其他 → 通用模式：从文档标题和大纲推断核心答案，生成 answer board 或可读 HTML。
 - 判断表达形态，并先写出一行“表达选择”：`语义 -> visualization_type -> 组件`：
   - 有前端/交互入口：生成可点击的低保真交互 Preview。
   - 纯后端或无 UI：生成流程图、状态图、调用方场景、能力边界矩阵、验收矩阵、pipeline 或 hub map。
   - 技术设计：生成结构变化地图、依赖图、影响矩阵、风险热力、测试矩阵或文件影响图。
-  - 任务文档：生成 phase lane、slot lane、item DAG、blocking gates、resume points 或执行时间线。
+  - 任务文档：生成 phase lane、slot lane、item sequence、blocking gates、resume points 或执行时间线。
   - 通用文档：生成 answer board、关系图、对比矩阵、因果链或时间线。
 - Decision / Tech Research / Design / Task / Generic Preview 必须至少有一个真正主视觉：Mermaid、flow/state graph、DAG、swimlane、pipeline、timeline、matrix、heatmap、hub map、inline SVG 或同等第三方图形。`insight`、`signal`、`.card`、普通段落不算主视觉。
 - `.card` 只用于局部说明；连续 3 个以上 card 必须改成图、矩阵、时间线、泳道或 pipeline。
@@ -95,7 +95,7 @@ PRD 文档额外读取：
 - Decision Brief 优先展示 Verdict、Confidence、Scope Direction、证据强度、致命假设与 Kill Criteria、方案比较、D0/D1 决策、Open Questions 和 Handoff。
 - Tech Research 优先展示可行性结论、差距、选定路线、风险、后续 PRD/Design 建议和参考来源。
 - Design 优先展示结构变化地图、来源追溯、接口/数据/前端影响摘要、风险、测试策略和文件影响范围。
-- Task 优先展示执行地图、item DAG、阻塞门禁、验证计划、恢复点和 handoff。
+- Task 优先展示执行地图、item 顺序、阻塞门禁、验证计划、恢复点和 handoff。
 - HTML、CSS、JS 可内联或外置；外置资源必须位于 `.ai/preview/` 下的资源目录，外部依赖必须声明来源、用途和运行方式。
 - 用 `data-doc-source`、`data-doc-section` 标记来源。
 - 如使用示例数据，明确写出"示例数据，不是接口契约"。

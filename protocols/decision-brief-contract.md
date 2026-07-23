@@ -5,9 +5,6 @@ Decision Brief 是 `/t-decision` 的输出，位于 PRD 之前，用来决定 fe
 ## Files
 
 - Source: `.ai/decision/<feature>.md`
-- Preview: `.ai/preview/decision/<feature>.html`
-
-Preview 必须遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md`。
 
 ## Verdict
 

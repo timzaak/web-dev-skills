@@ -3,7 +3,8 @@ name: t-doc
 description: |
   Generate project tutorial documentation that reads like a human wrote it, not like AI output.
   Scans the codebase, extracts architecture/APIs/config/deployment details, and writes
-  structured tutorial docs under docs/tutorials/. Use this skill whenever the user asks to
+  structured tutorial docs in the project's documentation target, preferring an existing
+  docs-web site over docs/tutorials/. Use this skill whenever the user asks to
   write project docs, tutorials, getting-started guides, API references, deployment guides,
   onboarding docs, or any kind of project walkthrough. Also trigger when they say "write
   documentation", "generate docs", "create a tutorial", "onboarding guide", "write a guide",
@@ -48,9 +49,17 @@ allowed-tools:
 
 输出语言跟随用户输入；用户没明确指定时默认中文。
 
-## 已有文档
+## 教程位置判定
 
-目标目录是 `docs/tutorials/`。如果目录已存在，先告诉用户已有内容，询问覆盖还是增量更新。
+写作前先在项目根目录判定教程目标，后续扫描、已有文档检查、写入和验证都使用同一个目标：
+
+1. 如果存在 `docs-web/`，优先把教程集成到该文档站点中，不再写入 `docs/tutorials/`。
+2. 读取 `docs-web/README.md`、`package.json`、站点配置、内容源配置、路由和已有页面，识别真实的内容目录、文件格式、语言结构与导航方式。例如内容可能位于 `docs-web/content/docs/`，但不要只凭目录名硬编码。
+3. 沿用站点已有约定：使用 `.md` 或 `.mdx`，放进现有教程分组或文档内容层级；多语言站点按现有语言目录组织；同步更新 `meta.json`、sidebar、nav、索引页等导航入口，确保教程能通过 Web 页面访问和发现。
+4. `docs-web/` 存在但无法从配置和现有内容确认内容源或路由规则时，列出已识别的候选位置并询问用户，不要静默回退到 `docs/tutorials/`。
+5. 只有项目根目录不存在 `docs-web/` 时，才使用 `docs/tutorials/` 和下面的 Markdown 默认结构。
+
+目标确定后检查其中是否已有对应教程。若存在，先告诉用户已有内容，询问覆盖还是增量更新。
 
 - 覆盖：重写目标教程。
 - 增量更新：先读已有文档，只补充或修正变化部分。
@@ -65,6 +74,7 @@ allowed-tools:
 | `package.json`, `pom.xml`, `pyproject.toml` | 依赖和版本 |
 | `src/`, `app/`, `lib/` 入口文件 | 模块结构、路由、核心抽象 |
 | `docs/`, `guides/`, `protocols/` | 现有文档和规范 |
+| `docs-web/` 的配置、内容与导航文件 | 文档站内容源、格式、语言、路由和导航约定 |
 | `docker-compose.yml`, `Dockerfile` | 部署方式 |
 | `.github/workflows/`, `.gitlab-ci.yml`, `Jenkinsfile` | CI/CD |
 | `.env.example`, `config/` | 配置项 |
@@ -82,7 +92,7 @@ Glob 搜索要避开依赖目录。优先用明确路径，例如 `.github/workf
 
 ## 输出结构
 
-默认写到：
+不存在 `docs-web/` 时，默认写到：
 
 ```text
 docs/tutorials/
@@ -95,6 +105,8 @@ docs/tutorials/
 ```
 
 按项目实际裁剪。没有 API 层就不写 `api-reference.md`；部署只是 `git push` 的话，放在 `getting-started.md` 末尾即可。
+
+存在 `docs-web/` 时，章节目标相同，但输出路径、扩展名和层级跟随站点已有约定。不要强制创建 `tutorials/` 子目录或 `index.md`；如果站点用元数据生成教程入口和顺序，就更新对应元数据。如果站点有多语言结构，只生成用户要求的语言；用户未指定且站点已有多语言版本时，先在大纲中说明准备生成哪些语言。
 
 具体章节骨架见 [references/doc-templates.md](${CLAUDE_PLUGIN_ROOT}/skills/t-doc/references/doc-templates.md)。
 
@@ -113,10 +125,11 @@ docs/tutorials/
 
 ## 工作流程
 
-- 信息收集：按上面的来源扫描，用批量搜索建立项目事实。
+- 目标判定：按“教程位置判定”选定 `docs-web/` 的实际内容源或 `docs/tutorials/`。
+- 信息收集：按上面的来源扫描，用批量搜索建立项目事实；使用 `docs-web/` 时同时确认页面格式、路由、导航和验证命令。
 - 确认大纲：告诉用户准备写哪些章节、各章覆盖什么，等用户确认或调整。
 - 逐章编写：确认后按章节写入目标目录。
-- 自检修订：按 [references/writing-style.md](${CLAUDE_PLUGIN_ROOT}/skills/t-doc/references/writing-style.md) 检查所有文件，改掉 AI 味、空话和不可验证内容。
+- 自检修订：按 [references/writing-style.md](${CLAUDE_PLUGIN_ROOT}/skills/t-doc/references/writing-style.md) 检查所有文件，改掉 AI 味、空话和不可验证内容；使用 `docs-web/` 时运行站点已有的类型检查或构建命令，确认页面可生成且导航可达。
 
 不要跳过大纲确认。先确认再写，避免整套文档返工。
 

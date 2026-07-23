@@ -39,14 +39,14 @@
 `.state.json` 必须满足：
 
 - `feature` 存在
-- `phase` 为 supported phases：`backend|frontend|miniapp|demo`
-- `phases` 包含当前任务的 active phases；未启用 miniapp 的项目不要求包含 `miniapp`
+- `phase` 为 supported phases：`backend|frontend|miniapp|flutter|demo`
+- `phases` 包含当前任务的 active phases；未启用 miniapp/Flutter 的项目不要求包含对应 phase
 - `phases[*].status` 存在
 - `tasks[phase]` 存在
-- backend/frontend/miniapp 含 `dev/test/accept`
+- backend/frontend/miniapp/flutter 含 `dev/test/accept`
 - demo 含 `dev/accept`
 - 每个 slot 含 `status/manifest/items`
-- 每个 item 含 `status/file/agent/depends_on`
+- 每个 item 含 `status/file/agent`
 
 缺失或非法 => `TASK_SCHEMA_INVALID`
 
@@ -58,20 +58,19 @@
 
 - 设计文档存在
 - `.state.json` schema 有效
-- 阶段依赖正确
+- 当前 phase 存在于 active phases，且阶段目录与状态文件一致
 - `index.md`、slot manifest、item 文件齐备
-- item DAG 合法：
+- item 执行顺序合法：
    - item ID 唯一
-   - `depends_on` 指向存在 item
-   - 无依赖环
    - item 文件路径与 state 一致
-   - manifest 覆盖全部 items
+   - manifest 按表格从上到下覆盖全部 items，且无重复 item
 - item 文件包含必填字段
-- item 文件包含 `id/title/agent/depends_on` 和 `Goal/Work/Files/Validation/Handoff` 五个章节
+- item 文件包含 `id/title/agent` 和 `Goal/Work/Files/Validation/Handoff` 五个章节
 - 若当前阶段为 backend，backend/test slot 符合 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 authoring/集中 runner 覆盖与 runner agent/协议引用要求
 - 若当前阶段为 backend，backend/test runner 默认使用定向命令；全量 `uv run scripts/backend-test.py --` 只有在写明无法可靠定向或门禁要求时才允许
-- 若当前阶段为 backend，backend/accept item 依赖 runner item，不只依赖 authoring item
-- 若当前阶段为 frontend/miniapp/demo，涉及测试代码 authoring 时必须有集中定向执行 item，且不得默认规划全量测试
+- 若当前阶段为 backend，backend/test 至少包含一个 runner，且 runner 在 manifest 中排在其覆盖的 authoring item 之后
+- 若当前阶段为 frontend/miniapp/flutter/demo，涉及测试代码 authoring 时必须有排在相关 authoring item 之后的集中定向执行 item，且不得默认规划全量测试
+- slot item 数量符合 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的上限，或具有用户授权证据
 - 大范围重构、旧架构替换或旧模块迁移任务包含旧代码清理清单，并按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 先删除旧实现再改写新结构
 - 检查是否存在过度拆分：同一责任闭环被拆成多个无法独立验收的 item，或多个 item 只是在技术层之间传递 handoff
 - 设计文档与任务文档一致
@@ -84,14 +83,14 @@
 
 - 先读取 `.state.json`、当前 phase `index.md` 和 slot manifest。
 - 再抽取 item 关键字段，建立轻量 item 表。
-- DAG、manifest 覆盖、agent/slot 匹配、backend test authoring/集中 runner 覆盖等结构检查优先基于轻量 item 表完成。
+- manifest 顺序与覆盖、agent/slot 匹配、backend test authoring/集中 runner 覆盖等结构检查优先基于轻量 item 表完成。
 - 只有以下情况才读取 item 全文：
   - 关键字段缺失或冲突，需要定位具体证据。
   - 拆分阈值、过度拆分、职责混杂、设计一致性存在疑点。
   - subagent finding 需要主流程复核。
   - P0/P1 需要补齐任务文档证据。
 
-subagent 上下文必须按 agent/slot 裁剪。不得默认向每个 subagent 传入当前 phase 的全部 item 全文；应传入相关 item 路径、关键字段摘要、必要片段和直接依赖 item 文件路径。
+subagent 上下文必须按 agent/slot 裁剪。不得默认向每个 subagent 传入当前 phase 的全部 item 全文；应传入相关 item 路径、关键字段摘要、必要片段和顺序中相关前序 item 文件路径。
 
 ## Agent Review Contract
 
@@ -130,7 +129,7 @@ agent 评审边界：
 | 文档完整性 | 15 | `index.md`、slot manifest 和 item 文件 |
 | Item 可执行性 | 20 | item 责任闭环清楚、步骤明确、验证命令明确、失败可定位 |
 | 内容一致性 | 20 | 与设计文档、PRD、用户故事、技术预研、仓库路径和术语一致 |
-| 依赖与恢复 | 15 | item DAG 合法、handoff 可追溯、失败可恢复 |
+| 顺序与恢复 | 15 | manifest 顺序明确、handoff 可追溯、失败可恢复 |
 | 文档规范 | 10 | Markdown 结构和格式规范 |
 | 代码示例质量 | 5 | 示例可读、可执行、不误导 |
 
@@ -141,13 +140,12 @@ agent 评审边界：
 - `.state.json` 缺失或格式错误
 - 缺少核心 phase/slot/item 结构
 - 阶段目录、manifest、item 文件缺失
-- item 依赖不存在或成环
-- manifest 未覆盖全部 items
-- 阶段依赖关系错误
+- manifest 未覆盖全部 item、包含重复 item，或无法确定执行顺序
+- 当前 phase 不在 active phases 中，或阶段目录与状态文件冲突
 - backend/test 缺少 runner item、runner agent 不是 `general-purpose`、runner 未引用 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md`，或存在 authoring item 未被集中 runner 覆盖
 - backend/test runner 把全量 `uv run scripts/backend-test.py --` 当默认 validation，且未说明定向范围不足或门禁要求
-- backend/accept item 只依赖 backend/test authoring item，未依赖 runner item
-- frontend/miniapp/demo 涉及测试代码 authoring，却缺少依赖全部相关 authoring item 的集中定向执行 item
+- backend/test runner 排在其覆盖的 authoring item 之前，或 backend/test 缺少 runner 导致 accept 前没有测试执行闭环
+- frontend/miniapp/flutter/demo 涉及测试代码 authoring，却缺少排在相关 authoring item 之后的集中定向执行 item
 - 命令、路径、阶段链路经仓库和规范双重验证后确认会直接导致 `/t-run` 无法执行
 
 出现 `confirmed P0` 时，必须拒绝进入 `/t-run`。
@@ -156,16 +154,16 @@ agent 评审边界：
 
 - slot 状态与 item 聚合状态不匹配
 - item 缺少关键章节
-- item 超过拆分阈值，或职责、验证、恢复边界可疑且无合理说明
+- slot item 数量超过 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的上限且无用户授权证据，或 item 职责、验证、恢复边界可疑且无合理说明
 - item 职责混杂，单次 agent 调用高概率无法完成
 - item 合并多个弱相关、可独立交付、独立验证的主交付物
-- item 过度拆分：同一责任闭环被拆成多个无法独立验收的 item，多个 item 修改同一小文件集并重复相同验证命令，或依赖链只是在 DTO/domain/repository/service/route、API/store/page/error/permission 等技术层之间传递 handoff
+- item 过度拆分：同一责任闭环被拆成多个无法独立验收的 item，多个 item 修改同一小文件集并重复相同验证命令，或执行序列只是在 DTO/domain/repository/service/route、API/store/page/error/permission 等技术层之间传递 handoff
 - HTTP/API item 覆盖超过 10 个 endpoint，或混合不同资源域、读写操作、状态操作、配置类接口，导致单次执行或验证闭环不可恢复
-- item 略大但责任闭环单一、验证定向、失败可定位、依赖清晰、handoff 可恢复时不应仅因规模、步骤数或文件数记 P1
+- item 略大但责任闭环单一、验证定向、失败可定位、顺序清晰、handoff 可恢复时不应仅因规模、步骤数或文件数记 P1
 - demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流
 - 大范围重构缺少旧代码清理清单，清单没有说明删除边界与残留搜索方式，或未按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的“先删除旧实现再改写新结构”顺序组织
 - 没有真实兼容约束（按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的兼容性来源判定：PRD、设计文档、外部 API 契约、数据保留、跨版本部署或用户显式要求均不成立）时，任务计划仍以兼容层、adapter、bridge、fallback、双路径分支或“以后再删”作为主路径
-- 下游 item 缺少 `Handoff` 追溯
+- 后续 item 缺少 `Handoff` 追溯
 - 设计文档与任务文档严重不一致但暂不直接阻塞执行
 
 ### P2
@@ -181,7 +179,7 @@ agent 评审边界：
 
 - 总分、等级、是否可进入 `/t-run`
 - 用户澄清状态：无阻塞澄清 / 已通过 `AskUserQuestion` 解决 / 等待用户回答
-- 门禁摘要：状态文件、阶段依赖、item DAG、manifest/items、agent 集合
+- 门禁摘要：状态文件、phase 有效性、item 顺序、manifest/items、agent 集合
 - 扣分维度摘要
 - P0/P1/P2 单行清单：`级别 | 文件 | 问题 | 修复`
 - 需用户回答的问题清单：`问题 | 证据 | 需要用户决定什么 | 阻塞的后续动作`

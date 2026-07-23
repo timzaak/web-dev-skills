@@ -1,6 +1,6 @@
 {
   "name": "t-tools",
-  "description": "DDD-driven development skills, sub-agents and workflow commands for Java Spring Boot + React projects",
+  "description": "DDD-driven development skills, sub-agents and workflow commands for Java Spring Boot, React, miniapp, and Flutter projects",
   "version": "1.0.0",
   "author": {
     "name": "T Team"
@@ -8,7 +8,8 @@
   "targetStack": {
     "backend": "Java / Spring Boot",
     "frontend": "React / TanStack Router & Query / Tailwind / Radix UI",
-    "testing": "JUnit / Maven / Vitest / Playwright"
+    "mobile": "Flutter / Riverpod / go_router / integration_test / Patrol",
+    "testing": "JUnit / Maven / Vitest / Flutter Test / Playwright / Patrol"
   },
   "requiredMcpServers": ["context7"]
 }

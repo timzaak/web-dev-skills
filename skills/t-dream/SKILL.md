@@ -413,4 +413,4 @@ agent 失败时记录失败模块为 P1，并继续其他模块（`--all` 模式
 - 评分公式必须可复算，分项分值之和必须等于总分。
 - 报告必须落盘。
 - PRD 只承载产品规则、能力边界和验收目标；接口或路由说明问题作为描述准确性问题单独记录。
-- Check / accept 阶段仍由 `/t-prd-check`、`/t-design-check`、`/t-task-check` 或 `/t-demo-accept` 执行门禁。
+- 阶段质量收口仍由专门命令承担：`/t-prd-check`、`/t-design-check`、`/t-task-check` 是可选质量检查，`/t-demo-accept` 是 Demo 验收。

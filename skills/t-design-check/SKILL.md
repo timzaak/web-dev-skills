@@ -20,7 +20,7 @@ allowed-tools:
 - 评估技术设计文档的可实施性、完整性与一致性。
 - 给出可复查的 100 分量化结果。
 - 输出 P0/P1/P2 修复清单。
-- 给出明确的设计质量门禁结论。
+- 给出明确的设计质量检查结论；本检查为可选，不作为 `/t-task` 的硬性前置。
 - 发现必须由用户裁决的设计问题时，使用 `AskUserQuestion` 阻塞式提问，不得只写入问题清单后继续。
 
 评分维度、严重级别和报告要求统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-check-rubric.md`
@@ -42,6 +42,7 @@ allowed-tools:
   - `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md`
   - `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md`
   - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md`
+  - `${CLAUDE_PLUGIN_ROOT}/guides/flutter/development.md`（目标项目启用 Flutter 时）
   - `AGENTS.md`
 
 ## 执行流程
@@ -52,8 +53,10 @@ allowed-tools:
 - 如果设计文档声明为纯技术方案且不涉及业务逻辑变动，可接受 `.ai/tech-research/[feature].md` 作为唯一需求来源；此时不得因缺少 PRD/用户故事扣 P0，但需要核对技术目标、约束、影响范围和风险是否一致。
 - 核对设计文档与项目规范的一致性。
 - 按 `${CLAUDE_PLUGIN_ROOT}/protocols/design-check-rubric.md` 检查 API、数据库、前端与测试策略。
+- 评估设计方案的章节组织是否内聚：若同一业务闭环、同一数据模型或同一外部契约被拆分为多个独立章节，应在设计阶段合并，避免 `/t-task` 产出颗粒度过细的 item。
 - 若发现 `${CLAUDE_PLUGIN_ROOT}/protocols/design-check-rubric.md` 定义的 `needs_user_answer`，立即使用 `AskUserQuestion` 向用户提问；回答前不生成通过结论，回答后先要求/执行设计文档修正，再继续评分。
 - 生成评分与问题清单。
+- 输出下一步建议：通过或风险可接受时进入 `/t-task [feature]`；修复后可重新运行 `/t-design-check [feature]`。
 - 写入报告：`.ai/quality/design-check-[feature]-[YYYYMMDD-HHMMSS].md`。
 
 ## 错误处理
@@ -94,3 +97,4 @@ P1 问题:
 - 分项分值之和必须等于 100。
 - 每个扣分项必须有文件定位。
 - 结论必须可追溯到证据。
+- 质量结论只约束本次检查报告；是否跳过修复继续 `/t-task` 由用户按风险决定。
