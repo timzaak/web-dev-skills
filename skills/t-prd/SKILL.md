@@ -119,6 +119,7 @@ PRD Grill Snapshot
 ## 职责边界
 
 - `/t-prd`：补齐 draft user story → 创建/更新 `.ai/prd` 草稿
+- `/t-tech-research`：可在 `/t-prd` 前后运行；技术未知会改变产品范围时先运行，产品边界决定技术选择时可在 PRD 草稿后运行，并将影响产品语义的结论交回 `/t-prd` 更新
 - `/t-prd-check`：可选检查 PRD 草稿、正式 PRD 基线和用户故事质量（不在本 skill 范围内）
 - `/t-design`：基于草稿 PRD 与正式 PRD 的混合验证生成技术设计；若跳过 `/t-prd-check`，`/t-design` 仍需自行识别关键冲突（不在本 skill 范围内）
 - 本 skill 产出产品语义草稿，不负责接口明细、数据库设计或技术实现方案
@@ -255,7 +256,7 @@ create 路径使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-prd/template.md
 - 本次走 create、draft-from-published 还是 update
 - 需要重点补充或确认的部分
 - 待确认项：明确说明"无"或以对话形式列出，不写入 Markdown PRD
-- 下一步：高风险或复杂需求建议先运行 `/t-prd-check [feature]`；简单需求可直接执行 `/t-design [feature]`。若检查发现问题，修复后可再次运行 `/t-prd-check [feature]`
+- 下一步：若仍有会改变产品范围、业务规则、用户流程或验收目标的技术未知，先运行 `/t-tech-research [feature]`，再重跑 `/t-prd [feature]` 收敛草稿；否则高风险或复杂需求建议运行 `/t-prd-check [feature]`，简单需求可直接执行 `/t-design [feature]`
 
 推断部分需在收尾对话中显式列出：哪些来自现有文档、哪些来自当前对话、哪些仍待确认；未确认内容不写入 Markdown PRD。
 
@@ -271,6 +272,7 @@ create 路径使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-prd/template.md
 
 - 新增 PRD 草稿前应尽量具备可引用的 user story
 - PRD 草稿内容边界以"核心约束"一节为准
+- 进入 `/t-design` 前，PRD 草稿与已有技术预研不得存在未解释冲突
 - 新草稿创建后建议按风险决定是否运行 `/t-prd-check [feature]`
 
 ## 附加资源

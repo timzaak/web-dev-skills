@@ -26,18 +26,23 @@ A skill is an imperative workflow entry point, not "a prompt that lets the model
 - Advances `.ai/task/**/.state.json`.
 - Provides a recoverable path when something fails.
 
-The main path is:
+After Decision, the main path branches according to the primary unknown and converges before Design:
 
 ```text
-t-decision -> t-tech-research -> t-prd -> t-prd-check
--> t-design -> t-design-check
--> t-task -> t-task-check
+t-decision
+├─ technical unknowns may change product scope -> t-tech-research -> t-prd -> [t-prd-check] -> t-design
+├─ product boundaries determine technical choices -> t-prd -> [t-tech-research -> t-prd update] -> [t-prd-check] -> t-design
+└─ purely technical, no business-logic change -> t-tech-research -> t-design
+
+t-design -> [t-design-check] -> t-task -> [t-task-check]
 -> t-run
 -> t-demo-run -> t-demo-accept
 -> t-prd-publish -> t-push -> t-release
 ```
 
-Not every project needs every stage. As AI capability improves, `t-prd-check`, `t-design-check`, and `t-task-check` are optional quality checks: use them for complex, high-risk, or multi-person work to stop upstream problems before they move downstream; simple low-risk changes may continue directly to the next stage. Implementation accept stages still close delivery acceptance.
+`t-prd` and `t-tech-research` have no globally fixed order. Start with research when feasibility, cost, dependencies, or compatibility may change product scope. Start with a PRD draft when product boundaries, user flows, or acceptance goals must be clear before selecting a technical route. If later research changes product semantics, rerun `t-prd` to update the draft. Before `t-design`, the artifacts must converge without unexplained conflicts. A purely technical proposal may skip PRD only when it does not change business logic, product rules, user-visible flows, or acceptance goals.
+
+Not every project needs every stage. `t-prd-check`, `t-design-check`, and `t-task-check` are optional quality checks: use them for complex, high-risk, or multi-person work to stop upstream problems before they move downstream; simple low-risk changes may continue directly to the next stage. Implementation accept stages still close delivery acceptance.
 
 ### Agents: Specialized Executors
 
@@ -93,6 +98,8 @@ The useful order is not to follow the AI's generated artifact immediately. First
 `t-tech-research` is used to decide whether the requirement is feasible, which dependencies are needed, which existing modules are affected, and which risks may change PRD or design direction. The spoken template is not a replacement for the technical research report; it helps humans first state third-party API expectations, tech stack compatibility, frontend/backend SDK needs, data idempotency, webhook ordering, and permission boundaries.
 
 After receiving the walkthrough, AI should separate confirmed technical constraints, facts that require official documentation, current-state facts that can be verified from the codebase, and product or technical decisions that must be asked of the user. Guesses in the walkthrough must not be written as confirmed conclusions.
+
+Technical research may happen before or after a PRD draft. When a draft exists, research treats it as a candidate product boundary but must not silently rewrite product decisions. If research shows that scope, business rules, user flows, or acceptance goals must change, hand the findings back to `t-prd` for an update instead of carrying the conflict into design.
 
 ### Design: Human-Led UX Choices
 

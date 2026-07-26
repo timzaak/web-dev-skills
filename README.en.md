@@ -5,7 +5,7 @@
 A Claude Code plugin for Rust, React, miniapp, and Flutter projects. It turns AI programming into an executable, resumable, and acceptable engineering workflow:
 
 ```text
-Decision -> Tech Research -> PRD -> Design -> Task -> Development -> Acceptance -> Demo -> Release
+Decision -> PRD / Tech Research (choose by the main unknown; iterate if needed) -> Design -> Task -> Development -> Acceptance -> Demo -> Release
 ```
 
 T-Tools is designed for projects that already have a delivery chain across product documents, design, task breakdown, development, testing, and demos. Its focus is not freeform model execution. It uses skills to orchestrate stages, subagents to split work, protocols to keep shared contracts stable, and check / accept stages to close quality when needed.
@@ -28,10 +28,11 @@ Minimal end-to-end loop:
 # Product decision gate
 /t-tools:t-decision user-management
 
-# Use when feasibility, dependency, or cost risks affect scope
+# Start with research when feasibility, dependency, or cost risks affect product scope
 /t-tools:t-tech-research user-management
 
-# Generate .ai/prd and .ai/user-stories drafts
+# Generate .ai/prd and .ai/user-stories drafts when product boundaries are ready;
+# this may also run before research, then run again afterward to converge the drafts
 /t-tools:t-prd user-management
 
 # PRD quality check (optional; recommended for high-risk requirements)
@@ -80,7 +81,8 @@ Each phase starts with `/t-tools:t-task <feature> --phase <phase>`, may run `/t-
 
 - This README consistently uses `/t-tools:t-*` as the standard invocation format.
 - All `t-*` skills are manual command entries and must not be invoked automatically by the model.
-- `t-decision` is the product decision gate before PRD. It writes `.ai/decision/<feature>.md`; continue only after a `Proceed` or `Research First` verdict.
+- `t-decision` is the product decision gate before PRD and technical research. It writes `.ai/decision/<feature>.md`; `Proceed` routes to `t-prd` or `t-tech-research` according to the main unknown, while `Research First` routes to `t-tech-research`.
+- `t-prd` and `t-tech-research` have no globally fixed order. Start with research when technical unknowns may change scope; start with a PRD draft when product boundaries determine the technical choice. If later findings change product semantics, rerun `t-prd`; both artifacts must converge without unexplained conflicts before `t-design`.
 - `t-prd` only writes candidate requirements under `.ai/prd` and `.ai/user-stories`; `t-prd-publish` merges still-valid long-term product facts back into `docs/`.
 - `t-doc` is for project documentation, onboarding tutorials, API references, configuration, and deployment notes. It is not for PRDs, technical designs, or small document edits.
 - `t-dream` defaults to a read-only audit of PRDs, user stories, design/tasks, implementation facts, and project structure; use `--govern-prd` explicitly when PRD governance should write changes.

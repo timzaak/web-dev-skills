@@ -28,9 +28,11 @@
 
 - Pre-publish 阶段必须同时读取相关 published sources 和 draft sources。
 - 同一 feature 存在 `.ai/prd` 或 `.ai/user-stories` 时，它们表达本轮候选变更意图；`docs/prd` 和 `docs/user-stories` 表达已发布基线。
+- `/t-tech-research` 在 PRD 草稿后运行时必须读取相关 `.ai/prd`、`.ai/user-stories` 与 published baseline，将其作为产品边界输入；技术结论不得静默改写产品语义。
 - 设计、任务、实现、测试、Demo 和检查阶段可以引用 draft user story，但必须保留来源路径，不能把它改写成已发布事实。
 - 纯技术方案可以只引用 `.ai/tech-research/**/*.md`，但必须声明不涉及业务逻辑、产品规则、用户可见流程或验收目标变动。
 - Draft source 与 published source 在目标、范围、角色、权限、业务状态或验收目标上冲突时，停止并报告冲突；不要自动合并或平均折中。
+- 技术预研结论会改变范围、业务规则、用户流程或验收目标时，必须通过 `/t-prd` 更新候选 PRD / user story；进入 `/t-design` 前不得保留未解释冲突。
 
 ## Write Rules
 

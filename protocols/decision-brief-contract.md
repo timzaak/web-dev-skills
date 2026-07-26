@@ -10,7 +10,7 @@ Decision Brief 是 `/t-decision` 的输出，位于 PRD 之前，用来决定 fe
 
 | Verdict | 含义 | 下一步 |
 |---|---|---|
-| `Proceed` | 产品方向明确，值得继续 | `/t-prd` 或 `/t-tech-research` |
+| `Proceed` | 产品方向明确，值得继续 | 按主要未知项选择 `/t-prd` 或 `/t-tech-research` |
 | `Research First` | 值得探索，但技术可行性/成本/依赖会影响范围 | `/t-tech-research` |
 | `Needs Clarification` | 关键产品判断缺失 | 补齐后重跑 `/t-decision` |
 | `Park` | 暂存，不进入当前实现链路 | 记录重启条件 |
@@ -63,8 +63,10 @@ Decision Brief 是 `/t-decision` 的输出，位于 PRD 之前，用来决定 fe
 
 ## Downstream
 
+- `/t-prd` 与 `/t-tech-research` 没有全局固定顺序：技术未知会改变产品范围时先预研，产品边界决定技术选择时先写 PRD 草稿。
 - `/t-tech-research` 承接技术未知项，不改写 Verdict。若 Verdict=Research First 且 Decision Brief 含致命假设，可被指派“最小证伪计划”作为预研目标。
 - `/t-prd` 承接目标用户、范围、成功标准和已确认 D0/D1；不得把 Open Questions 写成已确认。
+- PRD 草稿后的预研若发现需要改变范围、业务规则、用户流程或验收目标，必须回到 `/t-prd` 更新草稿；进入 `/t-design` 前，PRD 与技术预研不得存在未解释冲突。
 - `/t-prd-check` 检查 PRD 是否偏离 Decision Brief。
 - `/t-design` 不得用技术方案推翻 Decision Brief；冲突时回到 `/t-decision`。
 - `Park` / `Reject` 必须引用 §5 的 Kill Criteria 作为依据。

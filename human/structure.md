@@ -26,18 +26,23 @@ Skill 是命令式工作流入口，不是“让模型自由发挥的一段提�
 - 推进 `.ai/task/**/.state.json`。
 - 在失败时给出可恢复路径。
 
-主链路是：
+主链路在 Decision 后按主要未知项分流，并在 Design 前收敛：
 
 ```text
-t-decision -> t-tech-research -> t-prd -> t-prd-check
--> t-design -> t-design-check
--> t-task -> t-task-check
+t-decision
+├─ 技术未知会改变产品范围 -> t-tech-research -> t-prd -> [t-prd-check] -> t-design
+├─ 产品边界决定技术选择 -> t-prd -> [t-tech-research -> t-prd（更新）] -> [t-prd-check] -> t-design
+└─ 纯技术且不改变业务逻辑 -> t-tech-research -> t-design
+
+t-design -> [t-design-check] -> t-task -> [t-task-check]
 -> t-run
 -> t-demo-run -> t-demo-accept
 -> t-prd-publish -> t-push -> t-release
 ```
 
-并不是每个项目都需要完整跑完所有阶段。随着 AI 能力提升，`t-prd-check`、`t-design-check`、`t-task-check` 是可选质量检查：复杂、高风险或多人协作时用于阻止上游问题继续进入下游；简单低风险变更可以直接进入下一阶段。实现后的 accept 阶段仍负责验收收口。
+`t-prd` 与 `t-tech-research` 没有全局固定顺序。技术可行性、成本、依赖或兼容性会改变产品范围时先预研；只有明确产品边界、用户流程或验收目标后才能选择技术路线时先写 PRD 草稿。后续预研结论一旦改变产品语义，必须重跑 `t-prd` 更新草稿。进入 `t-design` 前，两类产物必须收敛且不存在未解释冲突；不涉及业务逻辑、产品规则、用户可见流程或验收目标变动的纯技术方案可以不经过 PRD。
+
+并不是每个项目都需要完整跑完所有阶段。`t-prd-check`、`t-design-check`、`t-task-check` 是可选质量检查：复杂、高风险或多人协作时用于阻止上游问题继续进入下游；简单低风险变更可以直接进入下一阶段。实现后的 accept 阶段仍负责验收收口。
 
 ### Agents：专业执行者
 
@@ -93,6 +98,8 @@ Agent 文档只说明什么时候读 guide、如何执行、返回什么，不�
 `t-tech-research` 用来判断需求能不能做、需要什么依赖、会影响哪些现有模块，以及哪些风险会改变 PRD 或设计方向。口播模板不是技术预研报告的替代品，而是让人先把第三方 API 预期、技术栈兼容性、前后端 SDK、数据幂等、Webhook 乱序和权限边界讲清楚。
 
 AI 收到口播后，应区分用户已确认的技术约束、需要查官方文档的事实、可从代码库验证的现状，以及必须追问用户的产品或技术决策。不能把口播里的猜测直接写成已确认结论。
+
+技术预研可以发生在 PRD 草稿之前或之后。若已有草稿，预研应把它作为候选产品边界读取，但不得静默改写产品决策；若预研发现范围、业务规则、用户流程或验收目标需要变化，应把结论交回 `t-prd` 更新，而不是直接带着冲突进入设计。
 
 ### Design：由人明确 UX 取舍
 

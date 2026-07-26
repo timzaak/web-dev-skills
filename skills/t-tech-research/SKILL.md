@@ -21,7 +21,7 @@ allowed-tools:
 
 ## 目标
 
-基于 Decision Brief、用户需求和现有代码库，评估技术可行性、依赖缺口、代码影响范围和关键风险，生成报告供后续 `/t-prd` 或纯技术方案 `/t-design` 参考。
+基于 Decision Brief、用户需求、已有 PRD / user story（如存在）和现有代码库，评估技术可行性、依赖缺口、代码影响范围和关键风险，生成报告供 `/t-prd` 创建或更新草稿，或供纯技术方案 `/t-design` 参考。
 
 会影响技术路线、依赖选择、范围边界、兼容性、成本/风险结论、PRD 建议或后续 `/t-design` 输入的问题，必须通过 `AskUserQuestion` 解决；不得只写成 P0/P1 风险、显式假设或"需要更多信息"后继续收敛。
 
@@ -37,7 +37,7 @@ allowed-tools:
 - `.ai/decision/<file-name>.md`（可选但推荐，来自 `/t-decision`）
 - 用户原始需求描述（参数、当前对话或补问获取）
 - 现有代码库
-- 可选：`docs/prd/00-index.md`、`docs/user-stories/00-index.md`、`.ai/user-stories/**/*.md`、`.ai/design/**/*.md`
+- 可选：`.ai/prd/**/*.md`、`docs/prd/**/*.md`、`.ai/user-stories/**/*.md`、`docs/user-stories/**/*.md`、`.ai/design/**/*.md`
 
 输出报告必须包含：
 - 需求理解与技术需求提取
@@ -46,7 +46,7 @@ allowed-tools:
 - 库调研与最佳实践（如适用）
 - 影响分析
 - 可行性判定
-- PRD 编写建议
+- PRD 创建/更新建议
 - 纯技术方案设计建议（如不涉及业务逻辑变动）
 - 参考资料
 
@@ -66,6 +66,7 @@ allowed-tools:
 
 - 先分析现有代码和依赖，再评估缺口；不凭空列举库
 - 如果存在 `.ai/decision/<file-name>.md`，必须承接其中 Verdict、Scope Direction、D0/D1 决策和 Handoff；不得用技术预研改写产品立项结论
+- 如果已存在相关 `.ai/prd`、`.ai/user-stories` 或 published baseline，必须读取并把它们作为候选产品边界与已发布基线；不得用技术结论静默改写产品语义
 - 如果 Decision Brief 的 Verdict 是 `Needs Clarification`、`Park` 或 `Reject`，除非用户明确要求技术探索，否则应停止并提示先回到 `/t-decision`
 - 依赖评估必须基于真实 `Cargo.toml`、`package.json` 和 lock 文件（如存在）
 - 外部搜索只用于库级事实、最佳实践和兼容性信息，不能替代本地代码分析
@@ -103,9 +104,10 @@ allowed-tools:
 - `frontend/package.json`
 - `Cargo.lock`
 - `package-lock.json`
-- `docs/prd/00-index.md`
-- `docs/user-stories/00-index.md`
+- `.ai/prd/**/*.md`
+- `docs/prd/**/*.md`
 - `.ai/user-stories/**/*.md`
+- `docs/user-stories/**/*.md`
 - `.ai/design/**/*.md`
 
 扫描真实代码目录，重点关注：
@@ -171,7 +173,7 @@ allowed-tools:
 - 需要引入的新库数量和名称（如适用）
 - 主要影响范围
 - 关键风险点
-- 下一步命令：业务功能进入 `/t-prd <file-name>`；不涉及业务逻辑变动的纯技术方案可进入 `/t-design <file-name>`
+- 下一步命令：尚无 PRD 草稿的业务功能进入 `/t-prd <file-name>`；已有 PRD 草稿且预研结论改变范围、业务规则、用户流程或验收目标时，重跑 `/t-prd <file-name>` 更新草稿；二者已收敛时可按风险进入 `/t-prd-check <file-name>` 或 `/t-design <file-name>`；不涉及业务逻辑变动的纯技术方案可直接进入 `/t-design <file-name>`
 
 ## 质量门禁
 
@@ -182,8 +184,9 @@ allowed-tools:
 - 是否已收敛为单一明确技术路线
 - 是否移除了方案对比、候选排序和开放式选择
 - 报告是否不含任何"待确认"/"需确认"/"待定"/"TBD"等未决项；阻塞性未确认信息是否已通过 `AskUserQuestion` 解决，非阻塞缺口是否已转为显式假设
-- PRD 编写建议是否明确可执行；如不涉及业务逻辑变动，是否说明可直接进入 `/t-design`
+- PRD 创建/更新建议是否明确可执行；如不涉及业务逻辑变动，是否说明可直接进入 `/t-design`
 - 如存在 Decision Brief，是否没有偏离其目标用户、范围方向和已确认产品决策
+- 如存在 PRD 草稿或 published baseline，是否已读取且没有静默改写产品语义；需要改变产品语义时是否明确交回 `/t-prd` 更新
 - 影响分析中的路径是否真实存在
 - 可行性判定是否明确
 - 风险评估是否区分 P0/P1/P2
