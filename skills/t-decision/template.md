@@ -59,10 +59,10 @@
 
 ## 8. Product Decisions
 
-| Level | 决策项 | 结论 | 依据 | 影响 |
-|---|---|---|---|---|
-| D0 | [CEO/Product 决策] | [结论] | [依据] | [影响] |
-| D1 | [产品执行决策] | [结论] | [依据] | [影响] |
+| Decision ID | Level | Topic | 决策项 | 结论 | 依据 | 影响 |
+|---|---|---|---|---|---|---|
+| `DEC-[feature]-001` | D0 | [stable.topic.key] | [CEO/Product 决策] | [结论] | [依据] | [影响] |
+| `DEC-[feature]-002` | D1 | [stable.topic.key] | [产品执行决策] | [结论] | [依据] | [影响] |
 
 ## 9. Risks
 

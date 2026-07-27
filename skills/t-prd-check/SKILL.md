@@ -3,6 +3,7 @@ name: t-prd-check
 description: Validate draft PRD, published PRD baseline, and user stories for quality and consistency.
 argument-hint: "[feature-name|--all]"
 allowed-tools:
+  - AskUserQuestion
   - Read
   - Glob
   - Grep
@@ -14,6 +15,7 @@ allowed-tools:
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
+决策连续性和用户决策暴露统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`
 
 ## 目标
 - 验证 `.ai/prd` PRD 草稿完整性和规范性
@@ -22,6 +24,7 @@ allowed-tools:
 - 检查 PRD 草稿与 `docs/prd` 已发布基线是否存在未说明冲突
 - 检查 `.ai/user-stories` draft 与 `docs/user-stories` 已发布基线是否存在未说明冲突
 - 检查 PRD / 用户故事是否错误混入接口、建表、schema 等实现细节
+- 检查是否把需要用户回答的问题静默写成待确认、假设、风险或模糊占位
 - 输出量化评分和修复清单
 - 明确检查结论与风险；通过后建议进入 `/t-design [feature]`，未运行或未通过时用户仍可自行决定是否继续；若有修复，建议重新运行 `/t-prd-check [feature]`
 
@@ -35,6 +38,7 @@ allowed-tools:
 
 ## 输入范围
 - PRD 草稿: `.ai/prd/**/*.md`
+- 决策账本: `.ai/decision-log/<feature>.md`（存在时必须读取）
 - 已发布 PRD 基线: `docs/prd/**/*.md`（排除 `00-index.md`）
 - Draft 用户故事: `.ai/user-stories/**/*.md`
 - 已发布用户故事: `docs/user-stories/**/*.md`
@@ -56,6 +60,10 @@ allowed-tools:
 ### 3. PRD 草稿检查
 按 `${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md` 执行：
 
+- 先运行 `python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py <prd-path>`
+- 对命中项按 Decision Exposure Gate 分类
+- 若存在 `needs_user_answer`，先查 Decision Log；未解决时立即使用 `AskUserQuestion`，回答前不评分、不生成通过结论
+- 用户回答后先写入 Decision Log，再停止并要求运行 `/t-prd [feature]` 更新拥有产品事实的 PRD；PRD 修正并重新扫描通过后再继续检查
 - 基础章节检查
 - 用户故事引用检查
 - PRD 分层与禁止内容检查
@@ -102,6 +110,7 @@ allowed-tools:
 - 通过时建议下一步为 `/t-design [feature]`
 - 未运行或未通过本检查不阻断 `/t-design`，但报告必须明确继续下游的已知风险
 - 未通过或修复后，建议再次运行 `/t-prd-check [feature]`
+- 报告必须给出用户澄清状态、Decision Log 路径和决策闭合扫描结果
 
 ### 9. 失败处理
 - 未找到 PRD 文档：提示检查功能名称或先运行 `/t-prd [feature]`

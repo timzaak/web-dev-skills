@@ -17,6 +17,7 @@ allowed-tools:
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
+决策连续性和用户决策暴露统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`
 
 ## 目标
 - 评估任务文档可执行性与一致性。
@@ -44,6 +45,7 @@ allowed-tools:
 
 ## 输入范围
 - 设计文档：`.ai/design/[feature].md`
+- 决策账本：`.ai/decision-log/[feature].md`（存在时必须读取）
 - 需求来源：`.ai/user-stories/**/*.md`、`docs/user-stories/**/*.md`、`.ai/prd/**/*.md`、`docs/prd/**/*.md`、`.ai/tech-research/**/*.md`（按设计文档引用读取）
 - 状态文件：`.ai/task/[feature]/.state.json`
 - 阶段目录：`.ai/task/[feature]/[phase]/`
@@ -70,6 +72,7 @@ allowed-tools:
 - 读取 `.state.json` 并验证 schema。
 - 若指定 `--phase`，仅检查该阶段；否则检查当前阶段。指定阶段必须存在于 `.state.json.phases` 的 active phases 中。
 - 读取阶段目录下的 `index.md`、slot manifest，并建立 item 文件清单。
+- 对当前 phase 全部 Markdown 运行 `python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py <all-phase-markdown-paths>`，并核对 `index.md` 的 Decision Trace 覆盖相关 Active Decision。
 - 校验 item 时按以下顺序读取：
    - 从 `.state.json`、slot manifest 和 item 文件头/关键章节抽取 `id/title/agent/test_item_type` 以及 `Goal/Work/Files/Validation/Handoff`。
    - 用抽取结果完成 item 存在性、路径一致性、manifest 顺序与覆盖、agent/slot 匹配和 backend test authoring/集中 runner 覆盖校验。
@@ -106,7 +109,7 @@ allowed-tools:
    - flutter: subagent_type="flutter-dev", "flutter-test", "flutter-accept"
    - demo: subagent_type="demo-dev", "demo-accept"
 - 聚合 agent 结果并进行主流程复核：同类问题合并，P0/P1 必须补齐任务文档证据和真源证据。
-- 若复核后存在 `${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md` 定义的 `needs_user_answer`，立即使用 `AskUserQuestion` 向用户提问；回答前不得给出可进入 `/t-run` 的结论，回答后先要求/执行任务或设计文档修正，再继续评分。
+- 若复核后存在 `${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md` 定义的 `needs_user_answer`，先查 Decision Log；仍未解决时立即使用 `AskUserQuestion`。回答前不得给出可进入 `/t-run` 的结论；回答后先更新 Decision Log 和拥有该事实的设计/任务文档，再重新扫描和评分。
 - 按评分体系生成评分与问题清单。
 - 执行报告一致性自检。
 - 输出下一步建议：通过或风险可接受时进入 `/t-run [feature] --phase [phase]`；修复后可重新运行 `/t-task-check [feature] --phase [phase]`。

@@ -8,6 +8,24 @@
 - 检查 `.ai/prd` 草稿与 `docs/prd` 已发布基线是否存在未说明冲突
 - 检查 `.ai/user-stories` draft 与 `docs/user-stories` 已发布基线是否存在未说明冲突
 - 检查是否错误混入接口、建表、schema 等实现细节
+- 检查是否把用户决策静默写成待确认、假设、风险或模糊占位
+
+## Decision Closure Gate
+
+评分前必须按 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md` 执行：
+
+1. 读取 `.ai/decision-log/<feature>.md`（如存在）。
+2. 运行 `python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py <prd-path>`。
+3. 对命中项区分 `fact_lookup`、`agent_decision`、`needs_user_answer`、`verification_action`。
+4. 存在 `needs_user_answer` 时立即使用 `AskUserQuestion`；回答前不得评分或给出通过结论。
+5. 回答写入 Decision Log 后，必须先由 `/t-prd` 更新 PRD，再重新扫描和检查。
+
+PRD 完成态必须满足：
+
+- `needs_user_answer=0`。
+- “已确认决策”只包含带稳定 DEC ID 的已确认结论。
+- 影响 PRD 的 Active Decision 均有追踪，不引用 Superseded Decision。
+- 不含“待确认”“需确认”“待定”“TBD”“需要用户决定”“后续确认”“暂定”等未决表达。
 
 ## PRD Checks
 
@@ -152,6 +170,8 @@
 - PRD 草稿与正式 PRD 在核心业务边界、权限规则或验收目标上存在未说明冲突
 - Draft user story 与已发布 user story 在核心角色、权限规则或验收目标上存在未说明冲突
 
+`needs_user_answer` 不计入 P0/P1/P2；它是评分前阻塞状态，必须先完成用户裁决和源文档修正。
+
 ### P1
 
 - PRD 缺少必要接口说明引用
@@ -176,6 +196,8 @@
 - PRD 分层检查结果
 - 前 3 个关键问题
 - 报告路径
+- 用户澄清状态：无阻塞澄清 / 已通过 `AskUserQuestion` 解决 / 等待用户回答
+- Decision Log 路径与决策闭合扫描结果
 
 详细报告应包含：
 

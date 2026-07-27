@@ -21,12 +21,16 @@
 - `.ai/user-stories/**/*.md`
 - `.ai/tech-research/**/*.md`
 - `.ai/decision/**/*.md`
+- `.ai/decision-log/**/*.md`
 
 这些文件表达当前工作流中的候选需求、决策和技术事实。它们可供设计、任务、实现、测试和 Demo 阶段追溯，但不是长期权威源。
+
+`.ai/decision-log/**/*.md` 是当前 feature 跨阶段决策连续性的结构化来源。其记录规则、稳定 ID 和用户决策暴露门禁统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`。
 
 ## Read Rules
 
 - Pre-publish 阶段必须同时读取相关 published sources 和 draft sources。
+- Pre-publish 阶段在提问或作出新决策前必须读取相关 `.ai/decision-log/<feature>.md`；已解决问题不得重复询问。
 - 同一 feature 存在 `.ai/prd` 或 `.ai/user-stories` 时，它们表达本轮候选变更意图；`docs/prd` 和 `docs/user-stories` 表达已发布基线。
 - `/t-tech-research` 在 PRD 草稿后运行时必须读取相关 `.ai/prd`、`.ai/user-stories` 与 published baseline，将其作为产品边界输入；技术结论不得静默改写产品语义。
 - 设计、任务、实现、测试、Demo 和检查阶段可以引用 draft user story，但必须保留来源路径，不能把它改写成已发布事实。

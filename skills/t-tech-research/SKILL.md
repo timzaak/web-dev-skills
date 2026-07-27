@@ -18,6 +18,7 @@ allowed-tools:
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
+跨阶段决策连续性和用户决策暴露统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`
 
 ## 目标
 
@@ -27,6 +28,7 @@ allowed-tools:
 
 输出文件：
 - `.ai/tech-research/<file-name>.md`（file-name 取自 `$ARGUMENTS` 第一个空格前的部分）
+- `.ai/decision-log/<file-name>.md`（复用上游决策并记录本阶段技术决策或已解决问题）
 
 如果未传 feature 名称，立即终止并提示：
 `请提供 feature 名称。例如：/t-tech-research user-management`
@@ -35,6 +37,7 @@ allowed-tools:
 
 输入：
 - `.ai/decision/<file-name>.md`（可选但推荐，来自 `/t-decision`）
+- `.ai/decision-log/<file-name>.md`（存在时必须在任何提问前读取）
 - 用户原始需求描述（参数、当前对话或补问获取）
 - 现有代码库
 - 可选：`.ai/prd/**/*.md`、`docs/prd/**/*.md`、`.ai/user-stories/**/*.md`、`docs/user-stories/**/*.md`、`.ai/design/**/*.md`
@@ -60,12 +63,14 @@ allowed-tools:
 - 拒绝 `..`, `/`, `\`
 - 文件名长度限制 1 到 60 字符
 - 如果用户传入的完整参数不含空格且为长中文描述（>20字符），主动提议一个简短的英文 kebab-case 文件名，经用户确认后使用
+- 确保 `.ai/tech-research/` 和 `.ai/decision-log/` 存在
 - 如果 `.ai/tech-research/<file-name>.md` 已存在，先询问是否覆盖
 
 ## 核心约束
 
 - 先分析现有代码和依赖，再评估缺口；不凭空列举库
 - 如果存在 `.ai/decision/<file-name>.md`，必须承接其中 Verdict、Scope Direction、D0/D1 决策和 Handoff；不得用技术预研改写产品立项结论
+- 如果存在 `.ai/decision-log/<file-name>.md`，必须承接相关 Active Decision，不得重复询问 Resolved Question 或采用 Superseded Decision
 - 如果已存在相关 `.ai/prd`、`.ai/user-stories` 或 published baseline，必须读取并把它们作为候选产品边界与已发布基线；不得用技术结论静默改写产品语义
 - 如果 Decision Brief 的 Verdict 是 `Needs Clarification`、`Park` 或 `Reject`，除非用户明确要求技术探索，否则应停止并提示先回到 `/t-decision`
 - 依赖评估必须基于真实 `Cargo.toml`、`package.json` 和 lock 文件（如存在）
@@ -86,7 +91,7 @@ allowed-tools:
 
 如果当前对话中已有足够需求背景，不要重复提问。
 
-仅在需求目标、约束、技术偏好或排除项不足以支撑可行性判断时，使用 `AskUserQuestion` 补问最少问题：
+先按 Topic 检查 `.ai/decision-log/<file-name>.md`；已有结论直接采用。仅在需求目标、约束、技术偏好或排除项不足以支撑可行性判断且账本没有答案时，使用 `AskUserQuestion` 补问最少问题：
 - 需求目标或问题陈述
 - 期望的技术能力或效果
 - 特定库或技术方向偏好
@@ -96,10 +101,13 @@ allowed-tools:
 
 只有非阻塞缺口才可在写报告前转为 §6.2 显式假设。报告中不得留下"待确认"/"需确认"/"待定"/"TBD"等未决项。
 
+用户回答后先更新 Decision Log，再更新 Tech Research。D2 技术取舍若不改变产品语义、风险接受、显著成本或兼容承诺，由本阶段明确选择并记录 DEC，不得留成备选路线。
+
 ### 2. 建立本地上下文
 
 按需读取以下文件，跳过不存在的文件：
 - `.ai/decision/<file-name>.md`
+- `.ai/decision-log/<file-name>.md`
 - `backend/Cargo.toml`
 - `frontend/package.json`
 - `Cargo.lock`
@@ -165,6 +173,14 @@ allowed-tools:
 
 如果某章节不适用，保留章节并标记"不适用"及原因，不要直接删除。
 
+报告必须包含 Decision Trace，逐项说明相关 Active Decision 的应用位置。写入后运行：
+
+```bash
+python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py .ai/tech-research/<file-name>.md
+```
+
+扫描命中时按 Decision Exposure Gate 分类并处理；重新扫描通过前不得交付报告。
+
 ## 收尾输出
 
 完成后说明：
@@ -184,6 +200,7 @@ allowed-tools:
 - 是否已收敛为单一明确技术路线
 - 是否移除了方案对比、候选排序和开放式选择
 - 报告是否不含任何"待确认"/"需确认"/"待定"/"TBD"等未决项；阻塞性未确认信息是否已通过 `AskUserQuestion` 解决，非阻塞缺口是否已转为显式假设
+- 是否 `needs_user_answer=0`、通过决策闭合扫描，并对相关 Active Decision 提供 Decision Trace
 - PRD 创建/更新建议是否明确可执行；如不涉及业务逻辑变动，是否说明可直接进入 `/t-design`
 - 如存在 Decision Brief，是否没有偏离其目标用户、范围方向和已确认产品决策
 - 如存在 PRD 草稿或 published baseline，是否已读取且没有静默改写产品语义；需要改变产品语义时是否明确交回 `/t-prd` 更新
@@ -199,6 +216,7 @@ allowed-tools:
 - 文件名非法：终止并说明允许字符范围
 - 无法创建输出目录或写文件：终止并报告
 - 需求描述不足：若影响可行性或路线判断，使用 `AskUserQuestion` 补齐，回答前不写报告；若不影响，只在报告中写入显式假设
+- 决策闭合扫描失败：按 Decision Exposure Gate 分类；需要用户裁决时提问并停止，修正后重新扫描
 - 既无代码库也无依赖文件：继续，但标记"无法评估现有实现，仅基于需求分析"
 - Context7 查询无结果：降级到 WebSearch，在报告中标注信息来源
 - WebSearch 也无结果：在报告中标记"外部信息不可用，依赖本地分析"

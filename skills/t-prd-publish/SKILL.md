@@ -15,6 +15,7 @@ allowed-tools:
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
+决策连续性和用户决策暴露统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`
 
 若草稿、正式 PRD、用户故事或规范之间冲突，以明确澄清为继续条件：停止、说明冲突并等待决策。
 
@@ -56,6 +57,7 @@ allowed-tools:
 - `docs/prd/00-index.md` — 正式 PRD 索引（如存在）
 - `docs/user-stories/**/*.md` — 草稿引用的用户故事
 - `.ai/design/<feature>.md` — 相关技术设计（如存在）
+- `.ai/decision-log/<feature>.md` — 跨阶段决策账本（存在时必须读取）
 - `.ai/task/<feature>/.state.json` — 可选实现阶段背景材料（如存在）
 - `.ai/quality/**/*.md` — 相关 check / accept 报告（如存在）
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/prd.md`
@@ -88,6 +90,8 @@ allowed-tools:
 - draft 用户故事是否符合 INVEST、GWT 和内容边界规则
 - 草稿内容是否符合 PRD 内容边界
 - 草稿、draft 用户故事、正式 PRD / 用户故事和实现后证据的一致性与已说明差异
+- PRD 和设计是否覆盖仍然有效的 Active Decision，且没有把 Superseded Decision 发布为当前事实
+- 是否存在 `Must Resolve Before=t-prd-publish` 或更早但尚未解决的 Deferred Question；存在时先完成用户裁决
 - 现有正式 PRD / 用户故事是否存在缺失、过期或与已交付产品语义不一致的问题
 - 草稿中哪些内容应写入、删去、降级或仅作为发布摘要说明
 - draft 用户故事中哪些故事应追加、合并、改写、删去或仅作为发布摘要说明
@@ -127,6 +131,7 @@ allowed-tools:
 - 如索引存在，更新 `docs/prd/00-index.md` 的对应条目；索引维护遵循目标项目现有索引文件
 - 删除 `.ai/prd/<domain>/<feature>.md`
 - 删除 `.ai/user-stories/<domain>/<feature>.md`（如存在）
+- 保留 `.ai/decision-log/<feature>.md` 供本轮后续追溯；不得随 PRD 草稿一起删除
 - 若 `.ai/prd/<domain>/` 删除草稿后为空，可删除该空目录
 - 若 `.ai/user-stories/<domain>/` 删除草稿后为空，可删除该空目录
 

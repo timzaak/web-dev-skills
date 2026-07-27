@@ -27,7 +27,7 @@
 - 项目没有更具体约束时，采用 `${CLAUDE_PLUGIN_ROOT}/guides/` 中的默认规范。
 - 不同来源冲突时不得静默覆盖；应报告冲突、涉及的来源以及继续执行需要采用的规则。
 
-PRD、用户故事和技术预研的正式来源与候选来源边界见 `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`。
+PRD、用户故事和技术预研的正式来源与候选来源边界见 `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`。跨阶段已确认决策、已解决问题和延期问题写入目标项目 `.ai/decision-log/`，结构与门禁见 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`。
 
 ## Script Entry Rules
 

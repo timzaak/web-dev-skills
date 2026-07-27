@@ -49,6 +49,8 @@
 
 可选提供当前 slot manifest、阶段设计摘要、最小状态切片、completion criteria / validation。
 
+当前阶段 `index.md` 必须包含 `Decision ID | Status | Task/Item Location | Notes` 追踪表，覆盖影响该 phase 的 Active Decision。受具体决定约束的 item 在 `Goal` 或 `Handoff` 引用稳定 DEC ID；不得采用 Superseded Decision。
+
 ## Item Contract
 
 每个 item 必须能让 `/t-run` 单独恢复执行，并包含：

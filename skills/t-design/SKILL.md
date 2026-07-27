@@ -16,6 +16,7 @@ allowed-tools:
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
+跨阶段决策连续性和用户决策暴露统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`
 
 设计生成应保持简单、当前必需、可追溯；如果需求、spec、代码或本 skill 冲突，停止并说明冲突。
 
@@ -43,6 +44,7 @@ allowed-tools:
 
 输出文件：
 - `.ai/design/$ARGUMENTS.md`
+- `.ai/decision-log/$ARGUMENTS.md`（复用上游决策并记录本阶段新 D2 决策或已解决问题）
 
 如果未传方案名称，立即终止并提示：
 `请提供方案名称。例如：/t-design <feature>`
@@ -52,6 +54,7 @@ allowed-tools:
 上游输入（按设计类型选择）：
 - 业务功能设计：
   - `.ai/decision/<feature>.md` — 产品立项决策简报（如存在，作为 PRD 之前的方向约束）
+  - `.ai/decision-log/<feature>.md` — 跨阶段决策账本（存在时必须读取）
   - `.ai/prd/<domain>/<feature>.md` — PRD 草稿（如存在，作为当前候选需求）
   - `docs/prd/<domain>/<feature>.md` — 已发布 PRD 基线（如存在，作为正式需求基线）
   - `.ai/user-stories/**/*.md` — draft 用户故事（如存在，作为当前候选需求）
@@ -81,7 +84,7 @@ allowed-tools:
   - 数据库设计（如适用）
   - 前端设计（如适用）
   - 测试策略
-  - 风险与待确认事项
+  - 风险与验证动作
   - 文件影响范围
 
 推荐文档大小：300-500 行。超过 800 行应考虑拆分方案。
@@ -91,6 +94,7 @@ allowed-tools:
 - 业务功能设计必须混合验证 `.ai/prd` 草稿与 `docs/prd` 正式 PRD：草稿是当前候选需求，正式 PRD 是已发布基线；两者存在未说明冲突时停止并要求修正草稿，必要时运行 `/t-prd-check [feature]`
 - 业务功能设计必须混合验证 `.ai/user-stories` draft 与 `docs/user-stories` 已发布故事：draft story 是当前候选需求，正式 story 是已发布基线；两者存在未说明冲突时停止并要求修正草稿，必要时运行 `/t-prd-check [feature]`
 - 若存在 `.ai/decision/<feature>.md`，设计必须尊重其中目标用户、Scope Direction、D0/D1 产品决策和 Handoff；不得用技术方案静默改变立项结论
+- 若存在 `.ai/decision-log/<feature>.md`，必须逐项承接影响设计的 Active Decision；不得重复询问 Resolved Question，也不得使用 Superseded Decision
 - 若存在 `.ai/prd` 草稿且内容会影响设计，默认基于草稿继续设计，并在设计文档中标记是否已找到对应 PRD Check 报告；不得要求先发布到 `docs/prd`
 - 若存在 `.ai/user-stories` draft 且内容会影响设计，默认基于 draft story 继续设计，并在设计文档中保留 `.ai/user-stories/...` 来源路径；不得要求先发布到 `docs/user-stories`
 - 若没有 `.ai/prd` 草稿但存在 `docs/prd` 正式 PRD，可基于正式 PRD 继续设计，并在设计文档中标记"未发现 PRD 草稿"
@@ -114,6 +118,7 @@ allowed-tools:
 - `.ai/user-stories/$ARGUMENTS.md` 或 `.ai/user-stories/**/$ARGUMENTS.md`（如存在）
 - `docs/prd/00-index.md`
 - `.ai/decision/$ARGUMENTS.md`（如存在）
+- `.ai/decision-log/$ARGUMENTS.md`（如存在；必须在任何提问之前读取）
 - `.ai/prd/$ARGUMENTS.md` 或 `.ai/prd/**/$ARGUMENTS.md`（如存在）
 - `docs/prd/**/$ARGUMENTS.md`（如存在）
 - `.ai/tech-research/$ARGUMENTS.md`（如存在）
@@ -131,6 +136,7 @@ allowed-tools:
 - 拒绝 `..`, `/`, `\`
 - 长度限制 1 到 50 字符
 - 确保 `.ai/design/` 目录存在
+- 确保 `.ai/decision-log/` 存在
 
 如果 `.ai/design/$ARGUMENTS.md` 已存在，先询问是否覆盖。
 
@@ -143,7 +149,11 @@ allowed-tools:
 
 如果用户已经在当前对话或命令参数里给出足够信息，不要重复提问。
 
-若缺失或冲突会影响目标范围、业务规则、权限/安全边界、API 契约、数据模型、迁移/兼容性、验收标准或测试策略，必须在继续设计前使用 `AskUserQuestion` 获取答案；不得把它写入 §7 风险与待确认事项后继续。
+提问前必须按 Topic 检查 Decision Log 的 Active Decisions、Resolved Questions 和 Deferred Questions。若已有结论，直接采用；只有出现新冲突证据或满足重开条件时才能重新提问。
+
+若缺失或冲突会影响目标范围、业务规则、权限/安全边界、API 契约、数据模型、迁移/兼容性、验收标准、显著成本、风险接受或测试策略，必须在继续设计前使用 `AskUserQuestion` 获取答案；不得把它写入风险、验证动作或假设后继续。
+
+用户回答后，先更新 Decision Log，再更新拥有该事实的 PRD、Tech Research 或 Design。D2 工程取舍若不改变产品语义、风险接受、显著成本或兼容承诺，由设计阶段明确选择并记录 DEC，不得写成“待确认”。
 
 ### 3. 搜索需求来源
 
@@ -167,6 +177,7 @@ allowed-tools:
 - PRD 草稿中的当前候选业务边界、规则、非功能要求
 - 已发布 PRD 中的正式基线，以及草稿相对基线的目标、范围、规则、状态和验收目标差异
 - draft 用户故事相对已发布故事的新增或变更场景，以及未说明冲突
+- Decision Log 中影响设计的 Active Decisions、已解决问题和本阶段到期的 Deferred Questions
 
 如果同时存在草稿和正式 PRD：
 - 草稿与正式 PRD 一致或明确是增量/替换 → 继续设计，并在"需求来源"中同时引用两者和差异摘要
@@ -180,7 +191,7 @@ allowed-tools:
 - 优先检查是否存在 `.ai/tech-research/$ARGUMENTS.md`
 - 如果存在且内容足以支撑纯技术方案，继续生成设计，并在需求来源中标记 PRD/用户故事不适用
 - 如果不存在或技术预研不足，且缺失会影响方案判断，使用 `AskUserQuestion` 要求用户补齐目标、范围或来源后再继续
-- 只有不影响方案方向、实现边界和验收结论的缺失，才可在设计文档中显式记录"缺失输入/假设"
+- 只有不需要用户选择、且不影响方案方向、实现边界和验收结论的证据限制，才可在设计文档中记录为“已确认假设与证据限制”
 
 纯技术方案设计至少提取这些内容：
 - 技术目标、当前约束、选定技术路线
@@ -221,10 +232,19 @@ allowed-tools:
 - 有方案设计与替代方案或关键取舍
 - 有 API 接口设计、数据库设计、前端设计中的适用部分
 - 有测试策略
-- 有风险与待确认事项；其中不得包含尚未回答且会阻塞设计方向或任务规划的问题
+- 有风险与验证动作；不得包含需要用户回答的问题
+- 有 Decision Trace，逐项说明影响设计的 Active Decision 如何应用
 - 有文件影响范围
 
 如果某章节不适用，保留章节并标记"不适用"及原因。
+
+写入后运行：
+
+```bash
+python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py .ai/design/$ARGUMENTS.md
+```
+
+扫描命中时按 Decision Exposure Gate 分类并处理；重新扫描通过前不得交付设计或建议进入 `/t-task`。
 
 ### 6. API 接口设计要求
 
@@ -271,8 +291,10 @@ allowed-tools:
 
 完成后在响应中明确说明：
 - 文档路径
+- Decision Log 路径和本轮新增/复用/替代的 DEC/Q ID
 - 本次设计覆盖的核心范围
-- 关键风险或待确认点
+- 关键风险和验证动作
+- 延期问题：明确说明“无”，或列出已告知用户、写入 Decision Log 且尚未到最迟解决阶段的 Q ID
 - 下一步命令：高风险或复杂设计建议运行 `/t-design-check $ARGUMENTS`；简单设计可直接进入 `/t-task $ARGUMENTS`
 - 如文档内容较多或结构复杂，可使用 `/t-html-show .ai/design/$ARGUMENTS.md` 生成 HTML 可视化预览
 
@@ -300,16 +322,21 @@ allowed-tools:
 - 前端设计是否避免单列 API 契约描述，而是聚焦页面、交互、状态与依赖
 - 数据库设计是否遵循"尽量简洁，不默认展开审计"
 - 是否包含测试策略和风险
-- 是否把缺失信息写成显式假设
+- 是否仅把不需要用户选择的证据限制写入“已确认假设与证据限制”
+- 是否 `needs_user_answer=0`
+- 是否所有影响设计的 Active Decision 均在 Decision Trace 中有 Applied / Not Applicable / Superseded 结论
+- 是否通过 `check-decision-closure.py`
 
 ## 失败处理
 
 - 参数缺失：终止并给出 `/t-design [方案名称]` 示例
 - 文件名非法：终止并说明允许字符范围
 - 无法创建输出目录或写文件：终止并报告
-- 未找到足够需求文档：若影响设计判断，使用 `AskUserQuestion` 补齐；不影响时才把假设写入文档
+- 未找到足够需求文档：若影响设计判断，使用 `AskUserQuestion` 补齐并停止；不影响时只记录不需要用户选择的证据限制
+- 决策闭合扫描失败：按 Decision Exposure Gate 分类；需要用户裁决时提问并停止，修正后重新扫描
 - 代码分析失败：继续，但标记"现有实现分析不完整"
 
 ## 附加资源
 
 - 设计文档结构模板：[template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-design/template.md)
+- 决策连续性协议：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`

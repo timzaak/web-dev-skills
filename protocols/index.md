@@ -5,6 +5,7 @@
 | 插件资源与目标项目运行时边界 | [runtime-boundaries.md](${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md) |
 | PRD、用户故事和技术预研的正式/候选来源边界 | [requirement-source-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md) |
 | 产品立项决策简报结构、结论和下游承接规则 | [decision-brief-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/decision-brief-contract.md) |
+| 跨阶段决策账本、用户决策暴露和消费追踪 | [decision-continuity-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md) |
 | 实现类 agent 的通用结构化输出 | [agent-task-output-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md) |
 | 子 agent 调用前的角色规范注入 | [subagent-dispatch.md](${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md) |
 | 修复后补测集合的字段与允许命令 | [tests-to-run-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md) |

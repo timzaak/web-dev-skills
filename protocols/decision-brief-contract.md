@@ -5,6 +5,7 @@ Decision Brief 是 `/t-decision` 的输出，位于 PRD 之前，用来决定 fe
 ## Files
 
 - Source: `.ai/decision/<feature>.md`
+- Cross-stage decision log: `.ai/decision-log/<feature>.md`
 
 ## Verdict
 
@@ -60,6 +61,8 @@ Decision Brief 是 `/t-decision` 的输出，位于 PRD 之前，用来决定 fe
 | `D0` | CEO/Product 决策：目标用户、商业承诺、优先级、合规/安全/权限、兼容性、显著成本、是否继续 | 必须确认并记录 |
 | `D1` | 产品执行决策：默认流程、关键异常、可见性、验收优先级 | 影响 PRD 时记录 |
 | `D2` | 工程决策：实现方式、测试组织、内部重构 | 不进入 Decision Brief |
+
+Product Decisions 必须分配 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md` 定义的稳定 DEC ID，并同步进入 Decision Log。Open Questions 必须分配 Q ID；未确认问题不得写入 Active Decisions。
 
 ## Downstream
 

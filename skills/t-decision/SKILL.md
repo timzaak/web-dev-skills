@@ -14,12 +14,14 @@ allowed-tools:
 # 产品立项决策
 
 契约：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-brief-contract.md`
+跨阶段决策连续性：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`
 
 `/t-decision` 位于 `/t-tech-research` 和 `/t-prd` 之前，用来判断一个 feature 是否值得进入后续工程流程。它只做产品立项和范围取舍，不写 PRD、不做技术设计、不拆任务、不实现代码。
 
 ## 输出
 
 - `.ai/decision/<feature>.md`
+- `.ai/decision-log/<feature>.md`
 
 Markdown 使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-decision/template.md)。
 
@@ -34,6 +36,8 @@ Markdown 使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-decision/template.m
 
 如果 `.ai/decision/<feature>.md` 已存在，先询问覆盖、更新或终止。
 
+更新已有 Product Decision 时不得复用原 DEC ID 改写历史结论；创建新 DEC、设置 `Supersedes`，并把旧记录移入 Decision Log 的 Superseded Decisions。
+
 ## 读取上下文
 
 按需读取，缺失则跳过：
@@ -42,6 +46,7 @@ Markdown 使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-decision/template.m
 - `docs/user-stories/00-index.md`
 - `.ai/user-stories/**/*.md`
 - `.ai/decision/**/*.md`
+- `.ai/decision-log/**/*.md`
 - `.ai/prd/**/*.md`
 - `docs/prd/**/*.md`
 - `.ai/tech-research/<feature>.md`
@@ -231,17 +236,19 @@ Markdown 使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-decision/template.m
 
 ## 工作流程
 
-1. 校验参数，确保 `.ai/decision/` 存在。
+1. 校验参数，确保 `.ai/decision/` 和 `.ai/decision-log/` 存在。
 2. 读取上下文，识别已有 PRD、用户故事、决策、技术预研和冲突。
 3. 跑六问诘问主线，只追问阻塞决策的问题。
 4. 形成至少两个选项：`Minimal` 和 `Recommended`；若六问识别出致命假设，加 `Wedge`；确有价值时加 `Ambitious`。
-5. 写入 `.ai/decision/<feature>.md`。
+5. 为 Product Decisions 分配稳定 DEC ID，为 Open Questions 分配稳定 Q ID。
+6. 写入 `.ai/decision/<feature>.md`，并同步创建或更新 `.ai/decision-log/<feature>.md`。Open Questions 不得进入 Active Decisions。
 
 ## 收尾
 
 说明：
 
 - Decision Brief 路径
+- Decision Log 路径和新建/复用的 DEC/Q ID
 - Verdict、信心、Scope Direction
 - 关键 D0 决策和阻塞问题
 - 下一步命令：`/t-tech-research <feature>`、`/t-prd <feature>`、重跑 `/t-decision <feature>` 或停止
@@ -258,4 +265,5 @@ Markdown 使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-decision/template.m
 - 至少包含 Minimal 和 Recommended 两个选项
 - `Park` / `Reject` 引用了 Kill Criteria
 - 未确认 D0 只进入 Open Questions，不写成已确认
+- Product Decisions 的 DEC ID 与 Decision Log 一致，Open Questions 的 Q ID 可被下游检索
 - 不包含接口、数据库、技术设计、任务拆解或实现细节
