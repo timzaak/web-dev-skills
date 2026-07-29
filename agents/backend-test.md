@@ -34,6 +34,7 @@ tools:
 规则：
 
 - 后端测试入口、场景测试写法、单元测试价值门槛和验证命令以 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md` 为准。
+- 代码注释规范以 `${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md` 为准；`User Story` 与 `Covers` 追溯注释只引用用户故事来源路径，不引用 `.ai/design` 或 `.ai/task`。
 - backend/test authoring/集中 runner 拆分和 `test_item_type` 以 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 为准。
 
 ## 职责

@@ -136,6 +136,7 @@ cd frontend && npm run lint
 - 不硬编码 API 路径
 - 不用 `any` 和不安全断言绕过类型系统
 - UI 组件不直接承担不必要的数据访问和全局状态写入
+- 代码注释规范（禁止引用 `.ai/design`/`.ai/task`、低价值注释定义）以 `${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md` 为准
 
 ## 结构化输出
 

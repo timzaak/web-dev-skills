@@ -51,4 +51,5 @@
 - PRD、设计、任务和测试注释引用用户故事时必须写明具体来源路径，可以是 `docs/user-stories/...` 或 `.ai/user-stories/...`。
 - 面向人类长期文档的引用应优先指向 `docs/user-stories/...`；pre-publish 阶段允许临时指向 `.ai/user-stories/...`。
 - Draft user story 发布后，相关 PRD、设计、任务或 Demo 注释中仍有价值的长期引用应在发布或治理阶段改为 `docs/user-stories/...`。
+- 代码注释中的临时工作流文档引用禁令、追溯注释形态与低价值注释定义以 `${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md` 为准。
 
