@@ -70,6 +70,7 @@ Claude Code 里的 `/t-tools:t-<skill>` 在 Codex / ZCode 里对应 `/t-tool <sk
 | `/t-tools:t-prd user-management` | `/t-tool t-prd user-management` |
 | `/t-tools:t-prd-check user-management` | `/t-tool t-prd-check user-management` |
 | `/t-tools:t-run user-management --phase backend` | `/t-tool t-run user-management --phase backend` |
+| `/t-tools:t-super-run user-management --phase backend` | `/t-tool t-super-run user-management --phase backend` |
 
 不带参数运行 `/t-tool` 会列出本仓库 `skills/` 下所有可用子 skill。
 

@@ -12,6 +12,7 @@
 | 修复后补测集合的字段与允许命令 | [tests-to-run-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md) |
 | `.ai/task/.../.state.json` 的唯一结构真相 | [task-state-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md) |
 | phase/slot/item 的执行顺序与前置规则 | [task-phase-execution.md](${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md) |
+| `.ai/super-run/...` 的目标级计划、状态、主会话执行与 Goal 闭环 | [super-run-state-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/super-run-state-contract.md) |
 | backend-test 的默认收敛与升级策略 | [backend-test-execution.md](${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md) |
 | 设计检查评分标准 | [design-check-rubric.md](${CLAUDE_PLUGIN_ROOT}/protocols/design-check-rubric.md) |
 | PRD / user story 检查评分标准 | [prd-check-rubric.md](${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md) |

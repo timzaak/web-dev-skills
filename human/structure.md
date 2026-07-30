@@ -143,6 +143,8 @@ Demo 阶段不是后端或前端测试的重复。它用 Playwright E2E 按用�
 
 `t-run` 只执行 item，不直接执行 `index.md`、`dev.md`、`test.md`、`accept.md` 这类 manifest。任意时刻最多一个 item 处于 `running`，这样牺牲一些并发速度，换来更小上下文、更清楚的失败定位和可恢复状态。
 
+`t-super-run` 提供单主会话执行模型。它不生成 item，也不调用 subagent，而是在主会话中按当前 task 读取对应 agent 规范和关联 guide，执行后把状态与证据写入 `.ai/super-run/[feature]/`，再切换下一个角色。backend/frontend 固定为 `dev -> test -> accept`，demo 为 `dev -> accept`；Goal 负责持续推进，状态文件负责跨上下文恢复。需要显式 subagent 分工或细粒度 handoff 时继续使用标准链路。
+
 修复 agent 必须返回 `tests_to_run`，说明修复后应该补跑哪些后端、前端或 Demo 命令，避免“Demo 通过但底层回归失败”的风险被藏起来。
 
 ## 辅助治理

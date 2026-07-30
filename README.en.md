@@ -53,6 +53,10 @@ Minimal end-to-end loop:
 # Implement and test by phase
 /t-tools:t-run user-management --phase backend
 
+# GPT-5.6 Sol-class path: let one main session plan, execute, and remain in
+# Goal mode through implementation, validation, repair, and acceptance
+/t-tools:t-super-run user-management --phase backend
+
 # Run Demo/E2E tests
 /t-tools:t-demo-run super-admin
 
@@ -77,10 +81,13 @@ Minimal end-to-end loop:
 
 Each phase starts with `/t-tools:t-task <feature> --phase <phase>`, may run `/t-tools:t-task-check <feature> --phase <phase>` depending on risk, and then `/t-tools:t-run <feature> --phase <phase>` executes items serially. The quick start expands backend only as an example; repeat the same loop for frontend, miniapp, flutter, and demo.
 
+`/t-tools:t-super-run <feature> [--phase backend|frontend|demo]` is a single-main-session execution path optimized for GPT-5.6 Sol (`gpt-5.6-sol`)-class models. It combines planning and execution, dispatches no subagents, records outcome-level `dev -> test -> accept` state for backend/frontend or `dev -> accept` for demo, and actively uses Goal mode through implementation, validation, repair, and acceptance. Its state lives independently under `.ai/super-run/<feature>/` and must not overwrite or derive `.ai/task/<feature>/`. Without `--phase`, it selects the first applicable unfinished phase in `backend -> frontend -> demo` order. Miniapp and Flutter keep their existing stage commands; use `t-task -> [t-task-check] -> t-run` when explicit subagent ownership, fine-grained item handoffs, or consistent dispatch behavior across runtimes is required.
+
 ## Key Rules
 
 - This README consistently uses `/t-tools:t-*` as the standard invocation format.
 - All `t-*` skills are manual command entries and must not be invoked automatically by the model.
+- `t-super-run` reads existing agent specifications as role guides without starting subagents, and uses outcome-level state, staged handoffs, and Goal mode for long-running execution and interruption recovery.
 - `t-decision` is the product decision gate before PRD and technical research. It writes `.ai/decision/<feature>.md`; `Proceed` routes to `t-prd` or `t-tech-research` according to the main unknown, while `Research First` routes to `t-tech-research`.
 - Confirmed decisions, resolved questions, and explicitly deferred questions persist across stages in `.ai/decision-log/<feature>.md` with stable DEC/Q IDs. Every stage must consult the log before asking, so it does not repeat a resolved question or apply a superseded decision.
 - A completed PRD, technical research report, or design must have `needs_user_answer=0`. Questions that affect scope, business rules, permissions, security, compatibility, significant cost, acceptance, or risk acceptance must be asked before delivery, not silently stored as pending items, assumptions, or risks.

@@ -143,6 +143,8 @@ The model is `phase -> slot -> item`:
 
 `t-run` executes only items. It does not directly execute manifests such as `index.md`, `dev.md`, `test.md`, or `accept.md`. At most one item may be `running` at a time. This trades some concurrency for smaller context, clearer failure localization, and recoverable state.
 
+`t-super-run` provides a single-main-session execution model. It generates no items and dispatches no subagents. Instead, the main session reads the current task's agent specification and related guides, executes the work, checkpoints status and evidence under `.ai/super-run/[feature]/`, and then switches roles. Backend/frontend use `dev -> test -> accept`; demo uses `dev -> accept`. Goal mode keeps the phase moving, while the state file supports recovery across context compaction. Keep the standard path when explicit subagent ownership or fine-grained handoffs are required.
+
 A fixing agent must return `tests_to_run`, explaining which backend, frontend, or Demo commands should be rerun after the fix. This keeps the risk of "Demo passes but lower-level regression fails" visible.
 
 ## Supporting Governance

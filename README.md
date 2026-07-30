@@ -53,6 +53,10 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 # 按阶段实现与测试
 /t-tools:t-run user-management --phase backend
 
+# GPT-5.6 Sol 级强模型路径：由主会话规划、执行并用 Goal 持续到验收通过
+# 此命令采用目标级 task，不生成供 t-task-check 检查的细粒度 item
+/t-tools:t-super-run user-management --phase backend
+
 # 运行 Demo/E2E 测试
 /t-tools:t-demo-run super-admin
 
@@ -77,10 +81,13 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 
 每个 phase 都先运行 `/t-tools:t-task <feature> --phase <phase>`，随后可按风险选择运行 `/t-tools:t-task-check <feature> --phase <phase>`，再用 `/t-tools:t-run <feature> --phase <phase>` 串行执行 item。README 的快速上手只展开 backend 作为示例；frontend、miniapp、flutter 和 demo 重复同样闭环。
 
+`/t-tools:t-super-run <feature> [--phase backend|frontend|demo]` 是针对 GPT-5.6 Sol（`gpt-5.6-sol`）及同等级强模型优化的单主会话执行路径：它合并任务规划与执行，不调用 subagent，只按 backend/frontend 的 `dev -> test -> accept` 或 demo 的 `dev -> accept` 记录目标级状态，并主动使用 Goal 持续完成实现、测试、修复和验收。状态独立保存在 `.ai/super-run/<feature>/`；不得与 `.ai/task/<feature>/` 互相覆盖或推导。未传 `--phase` 时按 `backend -> frontend -> demo` 选择首个适用且未完成阶段。miniapp 和 Flutter 继续使用现有阶段命令；需要显式 subagent 分工、细粒度 item handoff 或跨运行时保持相同调度行为时仍使用 `t-task -> [t-task-check] -> t-run`。
+
 ## 关键使用规则
 
 - 本 README 统一使用 `/t-tools:t-*` 作为标准调用形式。
 - 所有 `t-*` skill 都是手工触发入口，不允许模型根据语义自动触发。
+- `t-super-run` 读取既有 agent 规范作为当前角色指南，但不启动 subagent，并用目标级状态、阶段 handoff 和 Goal 支持长程执行及中断恢复。
 - `t-decision` 是 PRD 与技术预研前的产品立项门禁，输出 `.ai/decision/<feature>.md`；`Proceed` 根据主要未知项进入 `t-prd` 或 `t-tech-research`，`Research First` 先进入 `t-tech-research`。
 - 已确认决策、已解决问题和显式延期问题跨阶段写入 `.ai/decision-log/<feature>.md`，使用稳定 DEC/Q ID；任何阶段提问前必须先查账本，避免重复询问或采用已被替代的决定。
 - PRD、技术预研和设计交付时必须满足 `needs_user_answer=0`。影响范围、业务规则、权限、安全、兼容性、显著成本、验收或风险接受的问题必须先询问用户，不得静默写成“待确认”、假设或风险后继续。
