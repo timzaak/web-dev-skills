@@ -257,10 +257,16 @@ def run_tests(
                         line.encode("ascii", errors="replace").decode("ascii"), end=""
                     )
         exit_code = proc.wait()
-    duration = round(time.time() - start, 1)
 
+    # Playwright already prints the discovered tests and their total. The structured
+    # run summary below describes execution artifacts, so it is misleading noise for
+    # a discovery-only command.
+    if list_tests:
+        return exit_code
+
+    duration = round(time.time() - start, 1)
     all_skipped = False
-    if not list_tests and exit_code == 0:
+    if exit_code == 0:
         log_content = playwright_log.read_text(encoding="utf-8", errors="replace")
         has_passed = bool(re.search(r"\d+ passed", log_content))
         has_failed = bool(re.search(r"\d+ failed", log_content))
@@ -285,7 +291,7 @@ def run_tests(
         summary["error"] = "All tests skipped"
 
     # 打印结果
-    if not list_tests and exit_code != 0:
+    if exit_code != 0:
         if all_skipped:
             print("[!] All tests were skipped; no tests actually executed")
         try:
