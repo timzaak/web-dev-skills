@@ -17,8 +17,8 @@ uv run scripts/test-stop.py
 # 运行单个 Demo E2E
 uv run scripts/demo-test-runner.py demo/e2e/smoke.e2e.ts --mode fast
 
-# 批量运行 Demo E2E
-uv run scripts/demo-run-all.py
+# 批量运行 Demo E2E（入口由 /t-demo-run-all 主会话驱动；脚本仅提供 discover/finalize 子命令）
+uv run scripts/demo-run-all.py discover
 ```
 
 如需手动启动开发环境，可直接查看并调整：
