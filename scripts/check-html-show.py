@@ -135,25 +135,16 @@ class PreviewResult:
         self.issues.append(message)
 
 
-def find_prd_files(root: Path, feature: str | None) -> list[Path]:
+def find_prd_files(root: Path) -> list[Path]:
+    """收集所有可作为 Preview 源的已知 Markdown 文档（`.ai/prd`、`docs/prd` 及其他可派生类型）。
+
+    `--all` 模式下扫描全部；按 feature 名称搜索的入口已在 skill 侧合并为路径入参，不再支持。
+    草稿与正式 PRD 重名时优先草稿，避免重复校验。
+    """
     draft_root = root / ".ai" / "prd"
     published_root = root / "docs" / "prd"
     draft_files = [path for path in draft_root.rglob("*.md") if path.name != "00-index.md"] if draft_root.exists() else []
     published_files = [path for path in published_root.rglob("*.md") if path.name != "00-index.md"] if published_root.exists() else []
-    if feature and feature != "--all":
-        normalized = feature.lower()
-        draft_matches = [
-            path
-            for path in draft_files
-            if path.stem.lower() == normalized or normalized in path.stem.lower()
-        ]
-        if draft_matches:
-            return sorted(draft_matches)
-        return sorted(
-            path
-            for path in published_files
-            if path.stem.lower() == normalized or normalized in path.stem.lower()
-        )
 
     draft_keys = {(path.parent.name, path.stem.lower()) for path in draft_files}
     published_without_drafts = [
@@ -589,7 +580,7 @@ def validate_preview(source_path: Path, root: Path, doc_type: str | None = None)
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate HTML Preview files.")
-    parser.add_argument("target", nargs="?", default="--all", help="Feature name, file path, or --all")
+    parser.add_argument("target", nargs="?", default="--all", help="Markdown file path, or --all to scan all known source documents")
     parser.add_argument("--root", default=".", help="Target project root, defaults to current directory")
     parser.add_argument("--type", choices=["prd", "decision", "tech-research", "design", "task", "generic"], default=None, help="Document type (auto-detect if not specified)")
     parser.add_argument("--json", action="store_true", help="Print machine-readable JSON")
@@ -597,12 +588,13 @@ def main() -> int:
 
     root = Path(args.root).resolve()
 
-    # Determine source files
+    # Determine source files: a Markdown file path is used directly; otherwise (--all or a
+    # non-existent/non-md argument) fall back to scanning all known source documents.
     target_path = root / args.target if args.target != "--all" else None
     if target_path and target_path.exists() and target_path.suffix.lower() == ".md":
         source_files = [target_path]
     else:
-        source_files = find_prd_files(root, args.target)
+        source_files = find_prd_files(root, None)
 
     results = [validate_preview(path, root, args.type) for path in source_files]
     summary = {

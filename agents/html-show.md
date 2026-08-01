@@ -47,7 +47,7 @@ tools:
 ## 输入契约
 
 调用方只需提供：
-- 文档路径：源 Markdown 文件路径
+- 文档路径：源 Markdown 文件路径（feature 名称等非路径入参不在此 agent 的处理范围）
 
 agent 自动推断：
 - 输出路径：PRD → `.ai/preview/<domain>/<feature>.html`；Decision → `.ai/preview/decision/<feature>.html`；Tech Research → `.ai/preview/tech-research/<feature>.html`；Design → `.ai/preview/design/<feature>.html`；Task → `.ai/preview/task/<feature>/.../<name>.html`；其他 → `.ai/preview/<stem>.html`

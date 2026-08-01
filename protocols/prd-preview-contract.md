@@ -35,7 +35,7 @@ HTML Preview 不再强制限定为单文件、内联 CSS/JS、无 npm/CDN/构建
 
 ## Review Workflow
 
-`/t-html-show` 在 PRD 模式下生成或更新 Preview 后，默认不自动打开；打开为可选项，规则与命令见 `html-show-contract.md` 的 `Opening the Preview`。
+`/t-html-show` 在源文档为 PRD 时生成或更新 Preview，之后默认不自动打开；打开为可选项，规则与命令见 `html-show-contract.md` 的 `Opening the Preview`。
 
 审阅流程遵循 `html-show-contract.md` 中定义的通用 Review Workflow。
 
