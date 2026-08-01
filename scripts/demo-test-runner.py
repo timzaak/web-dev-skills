@@ -106,6 +106,20 @@ def ensure_environment(
     return demo_env.start_environment(logger=logger, timeout=120)
 
 
+def prepare_run_log_dir(demo_dir: Path, run_id: str) -> Path:
+    """清理当次 Playwright 临时产物并创建独立 run 日志目录。"""
+    for relative in ("test-results/artifacts", "playwright-report"):
+        path = demo_dir / relative
+        if path.exists():
+            shutil.rmtree(path, ignore_errors=True)
+
+    log_dir = demo_dir / "test-results" / "runs" / run_id
+    if log_dir.exists():
+        shutil.rmtree(log_dir, ignore_errors=True)
+    log_dir.mkdir(parents=True, exist_ok=True)
+    return log_dir
+
+
 def run_tests(
     test_file: str,
     mode: str,
@@ -150,8 +164,8 @@ def run_tests(
 
     # 规范化测试文件路径
     # Playwright testDir is './e2e', so we need path relative to that
-    # Input can be: 'demo/e2e/regular-user/test.e2e.ts' or 'e2e/regular-user/test.e2e.ts'
-    # Output should be: 'regular-user/test.e2e.ts'
+    # Input can be: 'demo/e2e/<group>/<scenario>.e2e.ts' or 'e2e/<group>/<scenario>.e2e.ts'
+    # Output is relative to demo/e2e/.
     original_test_file = test_file
     test_file = test_file.replace("\\", "/")
 
@@ -187,16 +201,9 @@ def run_tests(
     # 切换到 demo 目录
     os.chdir(demo_dir)
 
-    # 清理旧的测试结果
-    for old in ("test-results/artifacts", "test-results/runs", "playwright-report"):
-        path = Path(old)
-        if path.exists():
-            shutil.rmtree(path, ignore_errors=True)
-
-    # 创建日志目录
+    # runs/ 是诊断和批次报告的证据源；仅覆盖当前同名 run_id。
     run_id = run_id or f"run-{time.strftime('%Y%m%d-%H%M%S')}"
-    log_dir = Path("test-results/runs") / run_id
-    log_dir.mkdir(parents=True, exist_ok=True)
+    log_dir = prepare_run_log_dir(demo_dir, run_id).relative_to(demo_dir)
     playwright_log = log_dir / "playwright-output.log"
 
     # 转换为绝对路径用于清晰输出

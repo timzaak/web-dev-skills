@@ -58,10 +58,13 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 /t-tools:t-super-run user-management --phase backend
 
 # 运行 Demo/E2E 测试
-/t-tools:t-demo-run super-admin
+/t-tools:t-demo-run demo/e2e/<role>/<scenario>.e2e.ts
+
+# 串行运行全部非 live Demo/E2E，支持断点续跑
+/t-tools:t-demo-run-all
 
 # 最终验收
-/t-tools:t-demo-accept super-admin
+/t-tools:t-demo-accept <role>
 
 # 实现和验收后发布正式 PRD / 用户故事
 /t-tools:t-prd-publish user-management

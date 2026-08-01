@@ -26,8 +26,8 @@ allowed-tools:
 ```
 
 `target` 说明：
-- 测试文件路径：`demo/e2e/super-admin/super-admin-comprehensive-demo.e2e.ts`
-- 角色名：`super-admin` / `realm-admin` / `regular-user` / `third-party-app`
+- 测试文件路径：`demo/e2e/<role>/<scenario>.e2e.ts`
+- 角色名：按目标项目 `demo/e2e/` 下的实际角色目录匹配
 - `all` 或留空：验收全部 Demo 测试
 
 ## 执行流程

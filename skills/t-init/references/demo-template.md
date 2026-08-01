@@ -662,9 +662,7 @@ export const TEST_REALMS: Record<string, TestRealm> = {
  * 测试角色
  */
 export const TEST_ROLES = {
-  USER: 'user',
-  ADMIN: 'admin',
-  REALM_ADMIN: 'realm-admin',
+  // 按目标项目的实际角色补充，不在插件模板中预设业务角色。
 } as const
 
 /**

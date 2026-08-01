@@ -5,9 +5,9 @@ Discovery + reporting helper for batch Demo E2E runs.
 This script is intentionally side-effect-free at execution time: it does NOT
 run tests or spawn nested `claude` processes. The actual per-file loop, the
 diagnose -> fix -> rerun repair cycle, and the demo-environment restart are
-driven by the `/t-demo-run-all` skill in the main session. Driving the batch
+driven by the `/t-tools:t-demo-run-all` skill in the main session. Driving the batch
 from the main session (short, observable Bash/Agent calls with file-backed
-checkpoints) replaces the old blocking `claude -p "/t-demo-run <file>"`
+checkpoints) replaces the old blocking nested-CLI workflow
 subprocess loop, which froze the parent session for up to hours.
 
 Subcommands:
@@ -24,7 +24,7 @@ Subcommands:
       files back.
 
   (no subcommand)
-      Print guidance. Direct batch execution must go through /t-demo-run-all.
+      Print guidance. Direct batch execution must go through /t-tools:t-demo-run-all.
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 
-from lib.paths import REPO_ROOT, SCRIPTS_DIR
+from lib.paths import REPO_ROOT
 
 # Configure UTF-8 encoding for Windows console
 if sys.platform == "win32":
@@ -111,10 +111,12 @@ def load_json_report(path: Path) -> dict[str, object]:
 
 def write_json_report(path: Path, payload: dict[str, object]) -> None:
     payload["updated_at"] = now_display()
-    path.write_text(
+    temp_path = path.with_name(f".{path.name}.tmp")
+    temp_path.write_text(
         json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
+    temp_path.replace(path)
 
 
 def find_latest_json_report(report_prefix: str) -> Path | None:
@@ -142,24 +144,38 @@ def determine_resume_index(payload: dict[str, object]) -> int:
     if not isinstance(entries, list):
         raise ValueError("Latest batch report does not contain entries")
 
+    if payload.get("batch_status") != "running":
+        raise ValueError("Latest batch is not running and cannot be continued")
+
+    completed_files: list[str] = []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            raise ValueError("Latest batch report contains a non-object entry")
+        test_file = str(entry.get("test_file", ""))
+        if not test_file:
+            raise ValueError("Latest batch report contains an entry without test_file")
+        completed_files.append(test_file)
+
+    expected_prefix = discovered_files[:len(completed_files)]
+    if completed_files != expected_prefix:
+        raise ValueError("Latest batch entries are not a completed prefix of discovered_files")
+
     current_file = payload.get("current_file")
     if isinstance(current_file, str) and current_file:
         try:
-            return discovered_files.index(current_file)
+            resume_index = discovered_files.index(current_file)
         except ValueError as exc:
             raise ValueError(f"current_file not found in discovered_files: {current_file}") from exc
+        if resume_index != len(entries):
+            raise ValueError("current_file does not immediately follow the completed entries")
+        return resume_index
 
-    last_failed_index = -1
-    for index, entry in enumerate(entries):
-        if not isinstance(entry, dict):
-            raise ValueError("Latest batch report contains a non-object entry")
-        if str(entry.get("status", "")) == "failed":
-            last_failed_index = index
-
-    if last_failed_index >= 0:
-        return last_failed_index
-
-    return len(entries)
+    current_index = payload.get("current_index", len(entries))
+    if not isinstance(current_index, int) or isinstance(current_index, bool):
+        raise ValueError("Latest batch report contains an invalid current_index")
+    if current_index != len(entries):
+        raise ValueError("current_index does not match the completed entry count")
+    return current_index
 
 
 def build_fresh_payload(
@@ -219,7 +235,7 @@ def restore_payload_for_continue(
     if not isinstance(entries, list):
         raise ValueError("Latest batch report does not contain entries")
 
-    payload["entries"] = entries[:resume_index]
+    payload["entries"] = entries
     payload["batch_status"] = "running"
     payload["invocation"] = "continue"
     payload["current_index"] = resume_index
@@ -308,7 +324,7 @@ def build_markdown_report(
     if failed_entries:
         lines.extend([
             "For unfixed files, review the error details above. Consider:",
-            "1. Running individual tests with verbose logging: `/t-demo-run [file]`",
+            "1. Running individual tests with verbose logging: `/t-tools:t-demo-run [file]`",
             "2. Checking the logs for specific failure patterns",
             "3. Manual investigation or targeted fixes based on error messages",
         ])
@@ -402,21 +418,51 @@ def cmd_finalize(args: argparse.Namespace) -> int:
         print("ERROR: batch JSON does not contain entries")
         return 1
 
+    try:
+        discovered_files = payload_entry_paths(payload)
+    except ValueError as exc:
+        print(f"ERROR: {exc}")
+        return 1
+
+    if len(raw_entries) != len(discovered_files):
+        print(
+            "ERROR: batch is incomplete: "
+            f"expected {len(discovered_files)} entries, found {len(raw_entries)}"
+        )
+        return 1
+
     entries: list[RunEntry] = []
-    for entry in raw_entries:
+    for index, entry in enumerate(raw_entries):
         if not isinstance(entry, dict):
-            continue
+            print(f"ERROR: entry {index} is not an object")
+            return 1
+        expected_file = discovered_files[index]
+        actual_file = str(entry.get("test_file", ""))
+        if actual_file != expected_file:
+            print(
+                f"ERROR: entry {index} test_file mismatch: "
+                f"expected {expected_file}, found {actual_file or '<empty>'}"
+            )
+            return 1
+        status = str(entry.get("status", ""))
+        if status not in {"passed", "failed"}:
+            print(f"ERROR: entry {index} has invalid status: {status or '<empty>'}")
+            return 1
+        fixed = parse_boolish(entry.get("fixed", False))
+        if fixed and status != "passed":
+            print(f"ERROR: entry {index} cannot be fixed unless status is passed")
+            return 1
         entries.append(
             RunEntry(
-                test_file=str(entry.get("test_file", "")),
-                status=str(entry.get("status", "")),
+                test_file=actual_file,
+                status=status,
                 exit_code=int(entry.get("exit_code", 0) or 0),
                 duration=float(entry.get("duration", 0.0) or 0.0),
                 run_id=str(entry.get("run_id", "")),
                 logs=str(entry.get("logs", "")),
                 summary=entry.get("summary", {}) if isinstance(entry.get("summary", {}), dict) else {},
                 error=str(entry.get("error", "")),
-                fixed=parse_boolish(entry.get("fixed", False)),
+                fixed=fixed,
             )
         )
 
@@ -436,7 +482,7 @@ def cmd_finalize(args: argparse.Namespace) -> int:
         "generated_at": payload.get("generated_at", generated_at),
         "batch_status": "completed",
         "total_duration": total_duration,
-        "total_files": len(entries),
+        "total_files": len(discovered_files),
         "passed_files": passed_count,
         "failed_files": failed_count,
         "current_index": len(entries),
@@ -468,7 +514,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Discovery + reporting helper for batch Demo E2E runs. "
-            "Test execution is driven by /t-demo-run-all in the main session."
+            "Test execution is driven by /t-tools:t-demo-run-all in the main session."
         )
     )
     sub = parser.add_subparsers(dest="command")
@@ -481,7 +527,7 @@ def build_parser() -> argparse.ArgumentParser:
         "continue_flag",
         nargs="?",
         choices=["continue"],
-        help="Resume the latest batch from the interrupted file or latest failed file",
+        help="Resume the latest running batch from its first unfinished file",
     )
     p_discover.add_argument(
         "--report-prefix",
@@ -521,12 +567,12 @@ def main() -> int:
     if not getattr(args, "command", None):
         # No subcommand: do NOT execute any batch. The old default mode spawned
         # nested `claude -p` subprocesses and locked the parent session for up
-        # to hours. Direct batch execution must go through /t-demo-run-all.
+        # to hours. Direct batch execution must go through /t-tools:t-demo-run-all.
         parser.print_help()
         print("")
-        print("Direct batch execution is driven by the /t-demo-run-all skill in the")
-        print("main session. To start a batch there, run `/t-demo-run-all` (fresh) or")
-        print("`/t-demo-run-all continue` (resume). This script only provides discovery")
+        print("Direct batch execution is driven by /t-tools:t-demo-run-all in the")
+        print("main session. Run `/t-tools:t-demo-run-all` (fresh) or")
+        print("`/t-tools:t-demo-run-all continue` (resume). This script only provides discovery")
         print("and reporting helpers (the `discover` and `finalize` subcommands).")
         return 1
 

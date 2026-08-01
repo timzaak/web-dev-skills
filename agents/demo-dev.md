@@ -75,9 +75,8 @@ Runtime Dependencies：
 - 先读取 `${CLAUDE_PLUGIN_ROOT}/guides/demo/index.md`，再进入对应细页。
 - 读取 `demo/e2e/selectors.ts`，再对照前端 `data-testid` 实现校准关键选择器。
 - 确定输出文件路径：
-   - `super-admin` -> `demo/e2e/super-admin/...`
-   - `realm-admin` -> `demo/e2e/realm-admin/...`
-   - 其他角色按 `demo/e2e/` 真实目录结构落位
+   - 按目标项目 `demo/e2e/` 的真实角色或业务分组目录落位
+   - 不预设具体角色名、目录名或测试文件名
 - 按用户故事和设计文档生成或修复测试：
    - 优先语义化选择器，其次共享 `SELECTORS`
    - 明确环境验证、数据清理和关键断言
