@@ -34,7 +34,7 @@ allowed-tools:
 
 | 参数 | 说明 |
 | --- | --- |
-| `[feature]` | 必填；允许中文、英文、数字、空格、下划线和连字符，拒绝 `..`、`/`、`\`，长度 1–60 |
+| `[feature]` | 必填；允许中文、英文、数字、空格、下划线和连字符 |
 | `--phase <backend\|frontend\|demo>` | 可选；未传时选择首个适用且未完成的 phase |
 
 ## Preconditions
@@ -47,7 +47,7 @@ allowed-tools:
 
 在规划或恢复前：
 
-1. 读取目标项目 `AGENTS.md` / `CLAUDE.md`、`.ai/design/[feature].md` 和现有 `.ai/super-run/[feature]/`。
+1. 读取目标项目 `.ai/design/[feature].md` 和现有 `.ai/super-run/[feature]/`。
 2. 读取相关 `.ai/prd/**/*.md`、`docs/prd/**/*.md`、`.ai/user-stories/**/*.md` 与 `docs/user-stories/**/*.md`，保留 draft/published 来源边界。
 3. 在任何提问前读取 `.ai/decision-log/[feature].md`；存在时按需读取 `.ai/decision/[feature].md` 与 `.ai/tech-research/[feature].md`。
 4. 检查设计引用、Decision Trace、目标项目代码和配置，确定 active phases、真实验证入口和当前实现事实。
@@ -99,15 +99,3 @@ allowed-tools:
 - `.state.json` 已按最终结果聚合。
 
 输出当前 phase、task 状态、主要变更、验证证据和下一未完成 phase。若全部 active phases 已完成，明确报告 feature 的 super-run 已完成。
-
-## Example
-
-```bash
-/t-super-run feature --phase backend
-```
-
-未传 phase 时：
-
-```bash
-/t-super-run feature
-```

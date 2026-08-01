@@ -31,13 +31,6 @@ allowed-tools:
 
 不要因为用户只是问"怎么实现""大概怎么做"就自动触发本 skill。
 
-默认不用于以下前缀任务，除非用户明确要求补设计文档：
-- `bugfix-`
-- `refactor-`
-- `doc-`
-- `test-`
-- `style-`
-
 ## 目标
 
 基于用户故事、PRD 草稿、已发布 PRD 基线、技术预研、用户已准备的仓库内资料和现有代码，生成一份可实施、可追踪、可用于 `/t-task` 的技术设计文档。`/t-prd-check` 是推荐的可选上游检查；未运行时，本 skill 必须自行完成关键需求来源混合验证。
@@ -70,7 +63,6 @@ allowed-tools:
 - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md` — 前端开发规范
 - `${CLAUDE_PLUGIN_ROOT}/guides/flutter/development.md` — Flutter 开发规范（目标项目启用 Flutter 时）
 - `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md` — 质量规范
-- `AGENTS.md` — Agent 规范
 
 ## Output Contract
 
@@ -86,8 +78,6 @@ allowed-tools:
   - 测试策略
   - 风险与验证动作
   - 文件影响范围
-
-推荐文档大小：300-500 行。超过 800 行应考虑拆分方案。
 
 ## 核心约束
 
@@ -125,7 +115,6 @@ allowed-tools:
 - `${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md`、`${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md` 和/或 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/development.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md`
-- `AGENTS.md`
 
 ## 工作流程
 
@@ -133,10 +122,6 @@ allowed-tools:
 
 - 校验 `$ARGUMENTS` 非空
 - 文件名仅允许中文、英文、数字、空格、下划线、连字符
-- 拒绝 `..`, `/`, `\`
-- 长度限制 1 到 50 字符
-- 确保 `.ai/design/` 目录存在
-- 确保 `.ai/decision-log/` 存在
 
 如果 `.ai/design/$ARGUMENTS.md` 已存在，先询问是否覆盖。
 
@@ -200,16 +185,7 @@ allowed-tools:
 
 ### 4. 分析现有实现
 
-分析真实代码结构，不要假设 `backend/src` 存在。重点检查：
-- `backend/api/`
-- `backend/core/`
-- `backend/sdk/`
-- `backend/integration-tests/`
-- `frontend/src/`
-- `frontend/tests/`
-- `demo/e2e/`（如需求涉及主故事验收）
-
-需要输出：
+分析真实代码结构，不要假设，需要输出：
 - 现有实现入口
 - 可复用模块
 - 需要修改的边界
@@ -316,7 +292,7 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py .ai/design/$ARGUM
 - 如果没有 PRD/用户故事，是否明确声明这是纯技术方案设计且不涉及业务逻辑变动
 - 是否使用真实文件路径
 - 是否避免过度设计
-- 是否与现有 Rust + React 架构一致
+- 是否与现有代码架构一致
 - 是否说明权限、错误处理、迁移/兼容性影响
 - 是否补齐 API 接口设计、数据库设计与前端设计的适用内容
 - 前端设计是否避免单列 API 契约描述，而是聚焦页面、交互、状态与依赖
@@ -335,8 +311,3 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py .ai/design/$ARGUM
 - 未找到足够需求文档：若影响设计判断，使用 `AskUserQuestion` 补齐并停止；不影响时只记录不需要用户选择的证据限制
 - 决策闭合扫描失败：按 Decision Exposure Gate 分类；需要用户裁决时提问并停止，修正后重新扫描
 - 代码分析失败：继续，但标记"现有实现分析不完整"
-
-## 附加资源
-
-- 设计文档结构模板：[template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-design/template.md)
-- 决策连续性协议：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`

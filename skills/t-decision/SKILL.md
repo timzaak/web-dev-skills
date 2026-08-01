@@ -29,8 +29,7 @@ Markdown 使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-decision/template.m
 
 - `$ARGUMENTS` 必须是 feature 名称
 - 允许中文、英文、数字、空格、下划线、连字符
-- 拒绝 `..`, `/`, `\`
-- 长度 1-60
+
 
 缺失或非法时终止并提示：`/t-decision <feature>`
 
@@ -51,13 +50,10 @@ Markdown 使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-decision/template.m
 - `docs/prd/**/*.md`
 - `.ai/tech-research/<feature>.md`
 - `.ai/design/<feature>.md`
-- `AGENTS.md`
 
 可少量搜索代码，用于判断已有能力、替代方案和复用事实；不得展开技术方案。
 
 ## 决策规则
-
-借鉴 gstack 的 office-hours / CEO review，但只保留门禁：
 
 - 先判断问题，再判断方案。
 - 证据优先：真实行为、付费、业务阻塞、明确成本强于“感兴趣”。
@@ -68,11 +64,12 @@ Markdown 使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-decision/template.m
 
 ## 交互姿态
 
-这一阶段的价值是辅导人类做判断，不是快速生成文档。要像 gstack 的 office-hours / CEO review 一样，帮助用户把模糊想法压成可决策的问题。
+这一阶段的价值是辅导人类做判断，不是快速生成文档。要帮助用户把模糊想法压成可决策的问题。
 
 保持直接、具体、可验证：
 
-- **主动重构问题（reframe）**：锁定 problem statement 前，至少主动提出一个替代问题定义让用户确认或否决，而不是只在心里做代理问题检查。这是借鉴 gstack office-hours 最核心的一招——用户说“做个日历简报 App”，诘问后发现真问题是“缺一个个人幕僚”。
+- **主动重构问题（reframe）**：锁定 problem statement 前，至少主动提出一个替代问题定义让用户确认或否决，而不是只在心里做代理问题检查。
+
 - 对每个关键回答都形成判断：支持继续、削弱继续、还是需要更多证据。
 - 不迎合模糊表达。用户说“体验更好”“更智能”“更完整”时，追问到具体场景、指标、行为或后果。
 - 不把“有人觉得有用”当需求证据。行为、付费、业务阻塞、替代方案成本更重要。
@@ -88,7 +85,7 @@ Markdown 使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-decision/template.m
 
 ## 六问诘问（必跑）
 
-这是 `/t-decision` 的诘问主线，借鉴 gstack office-hours 的 forcing questions，但只保留门禁。**写 Verdict 前六问必须逐项有结论**（或显式写跳过理由）；上下文已能回答的直接引用，不重复问；一次只问一个，只问会影响 Verdict、Scope 或成功标准的问题。
+这是 `/t-decision` 的诘问主线，但只保留门禁。**写 Verdict 前六问必须逐项有结论**（或显式写跳过理由）；上下文已能回答的直接引用，不重复问；一次只问一个，只问会影响 Verdict、Scope 或成功标准的问题。
 
 1. **谁在痛、痛到什么程度** — 定位到角色 + 场景 + 可观察后果。强制量化：发生频率、占用时长、涉及人数、花费金钱或业务阻塞强度。给不出数字，证据强度记 Weak，并把该项写入“待量化”。
 2. **这是问题，还是方案** — 把“我要做 X”翻译成“谁在 Y 场景下受困于 Z”。**至少提出一个替代问题定义（reframe）**让用户确认或否决；用户描述若只是方案包装，必须改写成问题。
@@ -172,8 +169,6 @@ Markdown 使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-decision/template.m
 如果前提不成立，不要为了推进流程而给 `Proceed`。
 
 ## Scope 模式
-
-参考 gstack 的 CEO review，把 scope 明确归为一种：
 
 - `Expand`：当前想法太小，扩大后价值显著更高。必须逐项让用户接受扩展。
 - `Selective Expand`：主范围保持，但列出候选增强项让用户 cherry-pick。

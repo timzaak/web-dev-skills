@@ -18,13 +18,6 @@ allowed-tools:
 
 若本 skill、spec 或既有文档之间冲突，停止、说明冲突并等待澄清；不要平均折中。
 
-## 适用范围
-
-不要用它做：
-- PRD 完整性检查 → 使用 `/t-prd-check`
-- 用户故事质量检查 → 使用 `/t-prd-check`
-- 实施进度或完成情况记录 → 使用对应实现阶段命令或任务状态文件，不写入 PRD
-
 ## 目标
 
 基于 Decision Brief、现有 user story、正式 PRD、已有 PRD 草稿和用户补充信息，先补齐必要的 draft user story，再创建或更新一份 PRD 草稿，供人类快速审阅。`.ai/prd` 和 `.ai/user-stories` 是实现前和实现期间的临时候选需求工作区，不是长期权威源。
@@ -34,22 +27,14 @@ allowed-tools:
 - `.ai/user-stories/<domain>/[feature].md`（如需新增或补齐用户故事）
 - `.ai/decision-log/[feature].md`（存在或产生决策、已解决问题、延期问题时创建或更新）
 
-## 使用方式
-
-```bash
-/t-prd [feature]
-```
 
 ## 参数要求
 
 - `[feature]` 必须是 feature 名称
 - 文件名仅允许英文、数字、空格、下划线、连字符
-- 拒绝 `..`, `/`, `\`
-- 长度限制 1 到 50 字符
-
-如果参数不合法，立即终止并提示正确用法。
 
 ## 核心约束
+以多年产品经理的身份去编写用户故事和产品需求文档。
 
 **路径与域**：
 - PRD 草稿写入 `.ai/prd/<domain>/[feature].md`
@@ -64,7 +49,6 @@ allowed-tools:
 - 聚焦产品边界与规则，不承载接口 schema、数据库建表或技术方案
 - 可以写：接口能力范围、访问控制原则、租户/realm 边界、兼容性要求、前端页面入口、关键交互、状态反馈约束
 - 禁止写：具体端点（`GET/POST /api/...`）、请求/响应参数表、HTTP 状态码列表、数据库表结构/迁移方案、Rust/TypeScript 类型定义
-- 禁止写：当前任务是否已实现、完成比例、已完成/未完成清单等会随实现推进快速过期的进度状态
 
 **更新行为**：
 - 已有同名草稿 → update 路径，以草稿为基底逐章更新
@@ -80,7 +64,7 @@ allowed-tools:
 
 ## 提问规则
 
-- `$ARGUMENTS` 是 Claude Code 传入的 feature 名称；用户已在命令或当前对话中给出的信息不重复追问
+- `$ARGUMENTS` 是 feature 名称；用户已在命令或当前对话中给出的信息不重复追问
 - 先读取现有文档和代码上下文，不询问可直接查明的事实
 - 提问前必须读取 `.ai/decision-log/$ARGUMENTS.md` 并按 Topic 检查已确认决策和已解决问题；不得重复询问
 - 目标、范围边界、业务规则、成功标准、关键异常、角色价值、验收信号或风险接受无法从已确认来源裁决时，必须使用 `AskUserQuestion`
@@ -90,7 +74,6 @@ allowed-tools:
 - 确实不影响当前 PRD 的延期问题只能写入 Decision Log，必须指定 owner stage 和 `Must Resolve Before`，并在本轮收尾中明确告知用户
 - 如果存在 `.ai/decision/[feature].md`，PRD 必须承接其中 Verdict、Scope Direction、D0/D1 决策和 Handoff；不得把 Open Questions 写成已确认决策
 - 如果 Decision Brief 的 Verdict 是 `Needs Clarification`、`Park` 或 `Reject`，停止并提示先回到 `/t-decision [feature]`
-- 信息足够生成可审阅 PRD 草稿时停止追问，不为了完美而继续打断
 
 ## PRD 前置澄清门禁
 
@@ -120,14 +103,6 @@ PRD Grill Snapshot
 - 至少确认 1 条 `Success criteria`
 - 已确认本次包含范围和至少 1 条明确 out of scope 或"暂无明确排除项"
 - 没有会改变 PRD 主体方向的阻塞问题
-
-## 职责边界
-
-- `/t-prd`：补齐 draft user story → 创建/更新 `.ai/prd` 草稿
-- `/t-tech-research`：可在 `/t-prd` 前后运行；技术未知会改变产品范围时先运行，产品边界决定技术选择时可在 PRD 草稿后运行，并将影响产品语义的结论交回 `/t-prd` 更新
-- `/t-prd-check`：可选检查 PRD 草稿、正式 PRD 基线和用户故事质量（不在本 skill 范围内）
-- `/t-design`：基于草稿 PRD 与正式 PRD 的混合验证生成技术设计；若跳过 `/t-prd-check`，`/t-design` 仍需自行识别关键冲突（不在本 skill 范围内）
-- 本 skill 产出产品语义草稿，不负责接口明细、数据库设计或技术实现方案
 
 ## Input Contract
 
@@ -164,34 +139,26 @@ PRD Grill Snapshot
 
 ## 工作流程
 
-### 1. 校验参数
-
-- 检查 `[feature]` 非空且符合文件名规则
-- 缺失 feature：直接失败并提示参数
-- 将 `$ARGUMENTS` 作为 feature 名称唯一入参来源
-- 确保 `.ai/decision-log/` 存在
-
-### 2. 选择目标域
+### 1. 选择目标域
 
 先读取：
 - `docs/prd/00-index.md`
 - `.ai/decision-log/$ARGUMENTS.md`（存在时必须先读取）
 - `.ai/decision/$ARGUMENTS.md`（必须检查；存在时从中提取 Verdict、Scope Direction、D0/D1 决策、Open Questions 和 Handoff）
 - `docs/user-stories/00-index.md`
-- `.ai/user-stories/**/*.md`
 - `.ai/tech-research/$ARGUMENTS.md`（如已存在，从中提取技术需求和影响分析）
 - `.ai/prd/**/*.md` 和 `docs/prd/**/*.md` 中与 `$ARGUMENTS` 相关的少量候选文件
 
-根据已发布/候选用户故事、草稿/正式 PRD 和需求语义推断目标域（`auth | billing | core | integration`）。无法推断时用 `AskUserQuestion` 询问一次。
+根据已发布/候选用户故事、草稿/正式 PRD 和需求语义推断目标域。无法推断时用 `AskUserQuestion` 询问一次。
 
-### 3. 检查已有文件
+### 2. 检查已有文件
 
 检查 `.ai/prd/<domain>/[feature].md` 和 `docs/prd/<domain>/[feature].md`：
 - 草稿不存在且正式 PRD 不存在 → create 路径
 - 草稿不存在但正式 PRD 存在 → draft-from-published 路径
 - 草稿已存在 → update 路径
 
-### 4. 收集信息
+### 3. 收集信息
 
 如已存在 `.ai/decision-log/$ARGUMENTS.md`，先提取 Active Decisions、Resolved Questions、Deferred Questions 和 Superseded Decisions。到达本阶段最迟解决点的 Deferred Question 必须在写 PRD 前解决。
 
@@ -215,7 +182,7 @@ PRD Grill Snapshot
 - 至少 1 个主验收场景
 - 默认优先级（P0/P1/P2）
 
-### 5. 执行 PRD 前置澄清门禁
+### 4. 执行 PRD 前置澄清门禁
 
 基于已收集信息建立临时 `PRD Grill Snapshot`，并按"PRD 前置澄清门禁"检查是否满足最低条件。
 
@@ -225,7 +192,7 @@ PRD Grill Snapshot
 - 为追求完整性持续追问非阻塞细节
 - 询问仓库中可直接查明的事实
 
-### 6. 检查、补齐并关联 user story
+### 5. 检查、补齐并关联 user story
 
 读取：
 - `docs/user-stories/00-index.md`、`_README.md`、`_roles.md`
@@ -244,7 +211,7 @@ PRD Grill Snapshot
 - 若缺口影响产品语义、范围、角色、业务状态或验收目标，使用 `AskUserQuestion` 并停止写入。
 - 若产品语义已确认、仅缺独立 user story 文件，则把它作为追踪覆盖工作补齐，不得写成待用户确认。
 
-### 7. 生成 PRD 草稿
+### 6. 生成 PRD 草稿
 
 create 路径使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-prd/template.md)；draft-from-published 和 update 路径按核心约束中的"更新行为"逐章处理。
 
@@ -264,14 +231,14 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py .ai/prd/<domain>/
 
 不适用的章节保留并标记"不适用"。如需技术细节，建议执行 `/t-design`。
 
-### 8. 人机迭代
+### 7. 人机迭代
 
 如果用户基于 PRD 草稿提出修改意见：
 - 表达方式调整 → 更新 Markdown PRD 草稿
 - 产品语义调整 → 更新 Markdown PRD 草稿，并同步必要的 draft user story
 - 与既有 Decision Brief、正式 PRD 或 user story 冲突时，以用户最新确认的意图为准；先创建新的 DEC 并设置 `Supersedes`，再在草稿中记录覆盖关系，不得复用旧 DEC ID 改写历史
 
-### 9. 收尾
+### 8. 收尾
 
 完成后明确说明：
 - user story 文件路径和变更方式（新增/追加）
@@ -288,7 +255,7 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py .ai/prd/<domain>/
 ## 失败处理
 
 - 缺失 feature → 直接失败并提示参数
-- 目标域无法判断 → 提示选择 `auth|billing|core|integration`
+- 目标域无法判断 → 提示选择
 - 文件无法写入 → 终止并报告
 - user story 信息不足 → 先分类；影响产品语义时补问并停止，不影响产品语义时补齐追踪文件或记录验证动作
 - 决策闭合扫描失败 → 按 Decision Exposure Gate 分类；需要用户裁决时提问并停止，修正后重新扫描

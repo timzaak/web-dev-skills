@@ -161,14 +161,3 @@ uv run scripts/backend-test.py -- -E 'package(<crate>) and test(<pattern>)'
 ### 校准模式输出
 
 详细输出格式见 `${CLAUDE_PLUGIN_ROOT}/guides/backend/calibration-mode.md`。
-
-## Shared References
-
-- `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
-- `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/backend/tdd-workflow.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/backend/validation.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/backend/calibration-mode.md`

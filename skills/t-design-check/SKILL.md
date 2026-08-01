@@ -27,15 +27,6 @@ allowed-tools:
 
 评分维度、严重级别和报告要求统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-check-rubric.md`
 
-## 使用方式
-```bash
-/t-design-check [方案名称]
-```
-
-| 参数 | 说明 |
-|---|---|
-| `[feature]` | 方案名称（必填） |
-
 ## 输入范围
 - 设计文档：`.ai/design/[feature].md`
 - 决策账本：`.ai/decision-log/[feature].md`（存在时必须读取）

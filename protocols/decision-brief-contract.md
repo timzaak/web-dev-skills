@@ -1,7 +1,5 @@
 # Decision Brief Contract
 
-Decision Brief 是 `/t-decision` 的输出，位于 PRD 之前，用来决定 feature 是否进入后续流程。
-
 ## Files
 
 - Source: `.ai/decision/<feature>.md`

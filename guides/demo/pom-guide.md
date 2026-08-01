@@ -1,4 +1,4 @@
-# Page Object Model (POM) 使用指南（精简版）
+# Page Object Model (POM) 使用指南
 
 **目的**：定义 Demo/E2E 中 POM 的最小实现规范，提升可维护性。
 

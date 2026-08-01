@@ -59,12 +59,8 @@ allowed-tools:
   - 第一个空格前的部分作为输出文件名（如 `rag-otel-metrics`）
   - 空格后的部分作为额外的需求上下文，纳入需求理解
   - 如果用户只传了一个词，则同时作为文件名和需求主题
-- 文件名仅允许中文、英文、数字、下划线、连字符；推荐 kebab-case
-- 拒绝 `..`, `/`, `\`
-- 文件名长度限制 1 到 60 字符
-- 如果用户传入的完整参数不含空格且为长中文描述（>20字符），主动提议一个简短的英文 kebab-case 文件名，经用户确认后使用
-- 确保 `.ai/tech-research/` 和 `.ai/decision-log/` 存在
-- 如果 `.ai/tech-research/<file-name>.md` 已存在，先询问是否覆盖
+  - 确保 `.ai/tech-research/` 和 `.ai/decision-log/` 存在
+  - 如果 `.ai/tech-research/<file-name>.md` 已存在，先询问是否覆盖
 
 ## 核心约束
 
@@ -76,9 +72,9 @@ allowed-tools:
 - 依赖评估必须基于真实 `Cargo.toml`、`package.json` 和 lock 文件（如存在）
 - 外部搜索只用于库级事实、最佳实践和兼容性信息，不能替代本地代码分析
 - Context7 优先，WebSearch 只作补充
-- 影响分析中的文件路径必须使用仓库真实路径，但只到文件或模块粒度；不写具体行号、函数签名、字段名、SQL 语句、DTO 字段或中间件实现细节
+- 影响分析中的文件路径必须使用仓库真实路径，但只到文件或模块粒度
 - 不产出 API 接口设计、数据库设计或任务拆解
-- 报告聚焦于"能否做""需要什么""影响什么"；不写成"/t-design"级别的实现说明
+- 报告聚焦于"能否做""需要什么""影响什么"
 - 技术路线只描述方向、集成方式与依赖选择，不给出具体 schema、接口字段、路由路径、代码结构或配置项命名
 - 讨论时可多方案；最终报告必须收敛为单一、明确、可执行的技术路线
 - 最终报告不得保留方案对比、候选排序或"可选/视情况"等开放式描述
@@ -105,26 +101,7 @@ allowed-tools:
 
 ### 2. 建立本地上下文
 
-按需读取以下文件，跳过不存在的文件：
-- `.ai/decision/<file-name>.md`
-- `.ai/decision-log/<file-name>.md`
-- `backend/Cargo.toml`
-- `frontend/package.json`
-- `Cargo.lock`
-- `package-lock.json`
-- `.ai/prd/**/*.md`
-- `docs/prd/**/*.md`
-- `.ai/user-stories/**/*.md`
-- `docs/user-stories/**/*.md`
-- `.ai/design/**/*.md`
-
-扫描真实代码目录，重点关注：
-- `backend/api/`
-- `backend/core/`
-- `backend/sdk/`
-- `frontend/src/`
-
-如果代码分析较复杂，可委托探索任务，要求返回相关实现位置、可复用点、影响模块和理由。
+按需读取此项目的依赖和相关代码，如果代码分析较复杂，可委托探索任务，要求返回相关实现位置、可复用点、影响模块和理由。
 
 ### 3. 分析差距
 

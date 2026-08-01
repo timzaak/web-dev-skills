@@ -30,19 +30,13 @@ allowed-tools:
 
 评分、扣分和问题分级统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md`
 
-## 使用方式
-```bash
-/t-prd-check [feature-name]
-/t-prd-check --all
-```
 
 ## 输入范围
 - PRD 草稿: `.ai/prd/**/*.md`
 - 决策账本: `.ai/decision-log/<feature>.md`（存在时必须读取）
-- 已发布 PRD 基线: `docs/prd/**/*.md`（排除 `00-index.md`）
+- 已发布 PRD 基线: `docs/prd/**/*.md`
 - Draft 用户故事: `.ai/user-stories/**/*.md`
 - 已发布用户故事: `docs/user-stories/**/*.md`
-- 排除文件: `00-index.md`, `_roles.md`, `_README.md`, `client-app-settings.md`, `builtin_protection.md`
 
 ## 执行流程
 
@@ -101,10 +95,8 @@ allowed-tools:
 - `Consistency Score`
 - `Total Score`
 
-### 7. 问题分级
-问题分级统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md`
 
-### 8. 输出要求
+### 7. 输出要求
 - 控制台摘要和报告结构统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md`
 - 详细报告文件：`.ai/quality/prd-check-[YYYYMMDD-HHMMSS].md`
 - 通过时建议下一步为 `/t-design [feature]`
@@ -112,7 +104,7 @@ allowed-tools:
 - 未通过或修复后，建议再次运行 `/t-prd-check [feature]`
 - 报告必须给出用户澄清状态、Decision Log 路径和决策闭合扫描结果
 
-### 9. 失败处理
+### 8. 失败处理
 - 未找到 PRD 文档：提示检查功能名称或先运行 `/t-prd [feature]`
 - 文件解析错误：记录错误并继续其他文件
 - 报告目录不存在：使用 `Bash` 创建 `.ai/quality/`

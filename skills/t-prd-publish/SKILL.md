@@ -30,12 +30,6 @@ allowed-tools:
 - 可能更新：`docs/prd/00-index.md`
 - 可能更新：`docs/user-stories/**/*.md`
 
-## 使用方式
-
-```bash
-/t-prd-publish [feature]
-```
-
 ## 核心约束
 
 - 固定在实现、测试和 Demo 验收完成之后运行，服务于实现后的正式文档发布。
@@ -59,7 +53,6 @@ allowed-tools:
 - `.ai/design/<feature>.md` — 相关技术设计（如存在）
 - `.ai/decision-log/<feature>.md` — 跨阶段决策账本（存在时必须读取）
 - `.ai/task/<feature>/.state.json` — 可选实现阶段背景材料（如存在）
-- `.ai/quality/**/*.md` — 相关 check / accept 报告（如存在）
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/prd.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/user-story.md`
 - `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
@@ -73,8 +66,6 @@ allowed-tools:
 
 - 检查 `[feature]` 非空且符合文件名规则
 - 文件名仅允许英文、数字、空格、下划线、连字符
-- 拒绝 `..`, `/`, `\`
-- 长度限制 1 到 50 字符
 
 ### 2. 定位草稿和目标
 
@@ -140,8 +131,6 @@ allowed-tools:
 - 重新检查正式 PRD 是否可读且路径正确
 - 确认对应 `.ai/prd/<domain>/<feature>.md` 已不存在
 - 确认对应 `.ai/user-stories/<domain>/<feature>.md` 已不存在或本轮不存在 draft 用户故事
-- 运行或建议运行 `/t-html-show docs/prd/<domain>/<feature>.md` 生成正式 PRD Preview
-- 建议运行 `/t-prd-check [feature]` 对正式 PRD 做发布后校验
 
 ## 收尾输出
 

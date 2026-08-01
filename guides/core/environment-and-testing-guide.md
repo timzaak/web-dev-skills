@@ -40,6 +40,3 @@
 - Frontend：[`testing.md`](${CLAUDE_PLUGIN_ROOT}/guides/frontend/testing.md)
 - 质量门禁：[`quality.md`](${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md)
 
-## 可选 AI 工作流
-
-`/t-tools:t-*` 工作流命令可作为辅助工程入口，但不是仓库默认构建/测试入口。优先遵循当前脚本、构建和测试命令。

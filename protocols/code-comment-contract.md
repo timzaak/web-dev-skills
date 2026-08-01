@@ -1,6 +1,6 @@
 # Code Comment Contract
 
-本协议定义目标项目生产代码与测试代码中注释的编写约束，是所有实现类 agent（backend-dev、backend-test、frontend-dev、frontend-test、demo-dev 等）编写注释时的单一真相源；`/t-push` 提交前的注释兜底清理也以本协议为准。
+本协议定义目标项目生产代码与测试代码中注释的编写约束。
 
 ## 禁止引用临时工作流文档
 
@@ -33,3 +33,4 @@
 
 - `/t-push` 在提交前按本协议清理本次变更文件中的违规注释，清理范围只限本次变更文件，不做全仓历史清理。
 - 编写阶段已遵守本协议时，兜底清理应基本无活可干；`/t-push` 频繁清出同类注释说明编写侧未遵守本协议。
+- `/t-prd-publish` 时，需要将代码中引用 `.ai/user-stories/` 调整成 `docs/user-stories/` 中的用户故事。
