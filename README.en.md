@@ -58,10 +58,10 @@ Minimal end-to-end loop:
 /t-tools:t-super-run user-management --phase backend
 
 # Run Demo/E2E tests
-/t-tools:t-demo-run demo/e2e/<role>/<scenario>.e2e.ts
+/t-demo-run demo/e2e/<role>/<scenario>.e2e.ts
 
 # Run all non-live Demo/E2E files sequentially with checkpoint resume
-/t-tools:t-demo-run-all
+/t-demo-run-all
 
 # Final acceptance
 /t-tools:t-demo-accept <role>

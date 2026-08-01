@@ -5,7 +5,7 @@ Discovery + reporting helper for batch Demo E2E runs.
 This script is intentionally side-effect-free at execution time: it does NOT
 run tests or spawn nested `claude` processes. The actual per-file loop, the
 diagnose -> fix -> rerun repair cycle, and the demo-environment restart are
-driven by the `/t-tools:t-demo-run-all` skill in the main session. Driving the batch
+driven by the `/t-demo-run-all` skill in the main session. Driving the batch
 from the main session (short, observable Bash/Agent calls with file-backed
 checkpoints) replaces the old blocking nested-CLI workflow
 subprocess loop, which froze the parent session for up to hours.
@@ -23,8 +23,18 @@ Subcommands:
       report from its entries, set batch_status=completed, and write both
       files back.
 
+  checkpoint --json <path> --index N
+      Mark one discovered file as current without rewriting JSON in the main
+      session.
+
+  record --json <path> --status passed|failed [...]
+      Append the current file's compact result and advance the checkpoint.
+
+  block --json <path> --error <message>
+      Preserve the current checkpoint and record a blocking environment error.
+
   (no subcommand)
-      Print guidance. Direct batch execution must go through /t-tools:t-demo-run-all.
+      Print guidance. Direct batch execution must go through /t-demo-run-all.
 """
 
 from __future__ import annotations
@@ -117,6 +127,10 @@ def write_json_report(path: Path, payload: dict[str, object]) -> None:
         encoding="utf-8",
     )
     temp_path.replace(path)
+
+
+def resolve_report_path(path: Path) -> Path:
+    return path if path.is_absolute() else REPO_ROOT / path
 
 
 def find_latest_json_report(report_prefix: str) -> Path | None:
@@ -324,7 +338,7 @@ def build_markdown_report(
     if failed_entries:
         lines.extend([
             "For unfixed files, review the error details above. Consider:",
-            "1. Running individual tests with verbose logging: `/t-tools:t-demo-run [file]`",
+            "1. Running individual tests with verbose logging: `/t-demo-run [file]`",
             "2. Checking the logs for specific failure patterns",
             "3. Manual investigation or targeted fixes based on error messages",
         ])
@@ -400,14 +414,98 @@ def cmd_discover(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_checkpoint(args: argparse.Namespace) -> int:
+    report_path = resolve_report_path(args.json)
+    try:
+        payload = load_json_report(report_path)
+        discovered_files = payload_entry_paths(payload)
+        entries = payload.get("entries")
+        if payload.get("batch_status") != "running":
+            raise ValueError("Batch is not running")
+        if not isinstance(entries, list):
+            raise ValueError("Batch report does not contain entries")
+        if args.index != len(entries):
+            raise ValueError("Checkpoint index must equal the completed entry count")
+        if args.index < 0 or args.index >= len(discovered_files):
+            raise ValueError("Checkpoint index is out of range")
+        payload["current_index"] = args.index
+        payload["current_file"] = discovered_files[args.index]
+        payload.pop("last_error", None)
+        write_json_report(report_path, payload)
+    except (FileNotFoundError, json.JSONDecodeError, ValueError) as exc:
+        print(f"ERROR: {exc}")
+        return 1
+    return 0
+
+
+def cmd_record(args: argparse.Namespace) -> int:
+    report_path = resolve_report_path(args.json)
+    try:
+        payload = load_json_report(report_path)
+        discovered_files = payload_entry_paths(payload)
+        entries = payload.get("entries")
+        if payload.get("batch_status") != "running":
+            raise ValueError("Batch is not running")
+        if not isinstance(entries, list):
+            raise ValueError("Batch report does not contain entries")
+        index = len(entries)
+        if index >= len(discovered_files):
+            raise ValueError("Batch already contains all file results")
+        expected_file = discovered_files[index]
+        if payload.get("current_file") != expected_file:
+            raise ValueError("Current file does not match the next unfinished file")
+        if args.fixed and args.status != "passed":
+            raise ValueError("Only a passed result can be marked fixed")
+
+        entries.append({
+            "test_file": expected_file,
+            "status": args.status,
+            "exit_code": args.exit_code,
+            "duration": args.duration,
+            "run_id": args.run_id,
+            "logs": args.logs,
+            "error": args.error if args.status == "failed" else "",
+            "fixed": args.fixed,
+        })
+        payload["current_index"] = index + 1
+        payload["current_file"] = ""
+        payload["passed_files"] = sum(
+            1 for entry in entries if isinstance(entry, dict) and entry.get("status") == "passed"
+        )
+        payload["failed_files"] = len(entries) - int(payload["passed_files"])
+        payload["total_duration"] = round(sum(
+            float(entry.get("duration", 0.0) or 0.0)
+            for entry in entries
+            if isinstance(entry, dict)
+        ), 3)
+        payload.pop("last_error", None)
+        write_json_report(report_path, payload)
+    except (FileNotFoundError, json.JSONDecodeError, ValueError) as exc:
+        print(f"ERROR: {exc}")
+        return 1
+    return 0
+
+
+def cmd_block(args: argparse.Namespace) -> int:
+    report_path = resolve_report_path(args.json)
+    try:
+        payload = load_json_report(report_path)
+        if payload.get("batch_status") != "running" or not payload.get("current_file"):
+            raise ValueError("Batch has no active file checkpoint")
+        payload["last_error"] = args.error
+        write_json_report(report_path, payload)
+    except (FileNotFoundError, json.JSONDecodeError, ValueError) as exc:
+        print(f"ERROR: {exc}")
+        return 1
+    return 0
+
+
 # --------------------------------------------------------------------------- #
 # Subcommand: finalize
 # --------------------------------------------------------------------------- #
 
 def cmd_finalize(args: argparse.Namespace) -> int:
-    json_report_path = args.json
-    if not json_report_path.is_absolute():
-        json_report_path = REPO_ROOT / json_report_path
+    json_report_path = resolve_report_path(args.json)
     if not json_report_path.exists():
         print(f"ERROR: batch JSON not found: {json_report_path}")
         return 1
@@ -514,7 +612,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Discovery + reporting helper for batch Demo E2E runs. "
-            "Test execution is driven by /t-tools:t-demo-run-all in the main session."
+            "Test execution is driven by /t-demo-run-all in the main session."
         )
     )
     sub = parser.add_subparsers(dest="command")
@@ -545,6 +643,36 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_discover.set_defaults(func=cmd_discover)
 
+    p_checkpoint = sub.add_parser(
+        "checkpoint",
+        help="Mark the next file as current in the batch JSON.",
+    )
+    p_checkpoint.add_argument("--json", type=Path, required=True)
+    p_checkpoint.add_argument("--index", type=int, required=True)
+    p_checkpoint.set_defaults(func=cmd_checkpoint)
+
+    p_record = sub.add_parser(
+        "record",
+        help="Append the current file result and advance the checkpoint.",
+    )
+    p_record.add_argument("--json", type=Path, required=True)
+    p_record.add_argument("--status", choices=["passed", "failed"], required=True)
+    p_record.add_argument("--exit-code", type=int, default=0)
+    p_record.add_argument("--duration", type=float, default=0.0)
+    p_record.add_argument("--run-id", default="")
+    p_record.add_argument("--logs", default="")
+    p_record.add_argument("--error", default="")
+    p_record.add_argument("--fixed", action="store_true")
+    p_record.set_defaults(func=cmd_record)
+
+    p_block = sub.add_parser(
+        "block",
+        help="Record a blocking error without advancing the current file.",
+    )
+    p_block.add_argument("--json", type=Path, required=True)
+    p_block.add_argument("--error", required=True)
+    p_block.set_defaults(func=cmd_block)
+
     p_finalize = sub.add_parser(
         "finalize",
         help="Render Markdown report from batch JSON and mark batch completed.",
@@ -567,13 +695,13 @@ def main() -> int:
     if not getattr(args, "command", None):
         # No subcommand: do NOT execute any batch. The old default mode spawned
         # nested `claude -p` subprocesses and locked the parent session for up
-        # to hours. Direct batch execution must go through /t-tools:t-demo-run-all.
+        # to hours. Direct batch execution must go through /t-demo-run-all.
         parser.print_help()
         print("")
-        print("Direct batch execution is driven by /t-tools:t-demo-run-all in the")
-        print("main session. Run `/t-tools:t-demo-run-all` (fresh) or")
-        print("`/t-tools:t-demo-run-all continue` (resume). This script only provides discovery")
-        print("and reporting helpers (the `discover` and `finalize` subcommands).")
+        print("Direct batch execution is driven by /t-demo-run-all in the")
+        print("main session. Run `/t-demo-run-all` (fresh) or")
+        print("`/t-demo-run-all continue` (resume). This script only provides discovery,")
+        print("checkpoint persistence, and reporting helpers.")
         return 1
 
     return args.func(args)

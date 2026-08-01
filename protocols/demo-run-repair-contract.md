@@ -42,14 +42,13 @@ Result: {"success":"true|false","logs":"...","exitCode":0,"testFile":"...","runI
 
 ## 环境和数据隔离
 
-- `backend` 修复会影响常驻后端进程。当次 `change_scope.backend == true` 时，必须在当前用例的 Demo 验证前执行：
+- 每次分发修复前后必须比较实际文件变化。只要当次修复实际产生后端代码变动，就必须在当前用例的 Demo 验证前执行：
 
   ```bash
   uv run scripts/demo-stop.py --quiet && uv run scripts/demo-start.py
   ```
 
-- `frontend` 修复不要因修复本身重启 Demo 环境；直接进入补测和 Demo 验证。
-- `demo | miniapp | flutter` 修复不触发 Demo 环境重启。
+- 是否重建环境只以后端代码是否实际产生变动为准，不以 `recommended_agent`、`task_completion.change_scope` 或其他代码层的变动作为判定依据。`change_scope` 仍用于选择补测范围，不能替代文件变化事实。
 - 批次运行时，Demo 用例产生的业务数据可能影响后续文件。每个文件完成后，若还有下一个文件，必须通过上述 stop/start 重建 Demo 环境和数据容器。
 - 环境重建不得删除 `demo/test-results/runs/<run-id>/` 历史证据。
 

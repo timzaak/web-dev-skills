@@ -49,6 +49,48 @@ class ResumeStateTests(unittest.TestCase):
             demo_run_all.determine_resume_index(state)
 
 
+class ProgressCommandTests(unittest.TestCase):
+    def test_checkpoint_and_record_derive_progress_fields(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            report = Path(temp_dir) / "batch.json"
+            report.write_text(json.dumps(payload()), encoding="utf-8")
+            checkpoint_args = Namespace(json=report, index=0)
+            self.assertEqual(demo_run_all.cmd_checkpoint(checkpoint_args), 0)
+
+            record_args = Namespace(
+                json=report,
+                status="passed",
+                exit_code=0,
+                duration=1.25,
+                run_id="run-a",
+                logs="demo/logs/a",
+                error="ignored",
+                fixed=True,
+            )
+            self.assertEqual(demo_run_all.cmd_record(record_args), 0)
+            saved = json.loads(report.read_text(encoding="utf-8"))
+            self.assertEqual(saved["current_index"], 1)
+            self.assertEqual(saved["current_file"], "")
+            self.assertEqual(saved["passed_files"], 1)
+            self.assertEqual(saved["total_duration"], 1.25)
+            self.assertEqual(saved["entries"][0]["test_file"], "demo/e2e/a.e2e.ts")
+            self.assertEqual(saved["entries"][0]["error"], "")
+
+    def test_block_preserves_checkpoint(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            report = Path(temp_dir) / "batch.json"
+            state = payload()
+            state["current_file"] = "demo/e2e/a.e2e.ts"
+            report.write_text(json.dumps(state), encoding="utf-8")
+            self.assertEqual(
+                demo_run_all.cmd_block(Namespace(json=report, error="restart failed")),
+                0,
+            )
+            saved = json.loads(report.read_text(encoding="utf-8"))
+            self.assertEqual(saved["current_file"], "demo/e2e/a.e2e.ts")
+            self.assertEqual(saved["entries"], [])
+            self.assertEqual(saved["last_error"], "restart failed")
+
 class FinalizeTests(unittest.TestCase):
     def test_incomplete_batch_is_not_finalized(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

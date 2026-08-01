@@ -1,6 +1,6 @@
 ---
 name: t-demo-run-all
-description: Discover all non-live Demo E2E tests and run them one file at a time in the main session, diagnosing and fixing failures inline, refreshing backend repairs before verification and rebuilding demo data between files, until every file is resolved or exhausts its retry budget.
+description: Discover all non-live Demo E2E tests and run them one file at a time in the main session, diagnosing and fixing failures inline, restarting the environment after backend code changes and rebuilding demo data between files, until every file is resolved or exhausts its retry budget.
 argument-hint: "[continue]"
 allowed-tools:
   - Read
@@ -20,8 +20,8 @@ allowed-tools:
 
 - 自动发现除 `live/`、`fixtures/`、`templates/`、`verification/` 和文件名含 `test-` 之外的全部 Demo 测试。
 - **由当前主会话逐个文件驱动**，每一步都是可观察、可中断的短 Bash / Agent 调用。
-- 单文件失败时复用 `/t-tools:t-demo-run` 的修复流程：整文件跑 → 失败时拆用例 → 每用例诊断 → 分发修复 → 补测 → 重跑，每文件最多 6 次尝试。
-- backend 修复后在当前 Demo 验证前重建环境；frontend 修复不因修复本身重启。
+- 单文件失败时复用 `/t-demo-run` 的修复流程：整文件跑 → 失败时拆用例 → 每用例诊断 → 分发修复 → 补测 → 重跑，每文件最多 6 次尝试。
+- 当次修复实际产生后端代码变动时，在当前 Demo 验证前重建环境。
 - 文件之间重建 Demo 环境和数据容器，避免前一文件产生的业务数据影响后续测试。
 - 每文件达到上限仍失败则标记 `FAILED` 并继续下一个文件，不阻塞整批。
 - 持续写盘批次状态，支持 `continue` 从未完成文件的断点恢复。
@@ -29,16 +29,16 @@ allowed-tools:
 
 ## 为什么不再 fork 嵌套 `claude -p`
 
-旧版本对每个文件 spawn 一个嵌套 Claude CLI 子进程并串行等待，叠加多轮 diagnose→fix→retest 和长超时，会长时间阻塞发起调用的会话。本 skill 改为**主会话直接驱动循环**：每条命令都是独立、可见的 Bash/Agent 调用，可以随时 Ctrl-C 后用 `/t-tools:t-demo-run-all continue` 从断点恢复。
+旧版本对每个文件 spawn 一个嵌套 Claude CLI 子进程并串行等待，叠加多轮 diagnose→fix→retest 和长超时，会长时间阻塞发起调用的会话。本 skill 改为**主会话直接驱动循环**：每条命令都是独立、可见的 Bash/Agent 调用，可以随时 Ctrl-C 后用 `/t-demo-run-all continue` 从断点恢复。
 
 ## 使用方式
 
 ```bash
-/t-tools:t-demo-run-all            # 从头运行全部非 live 文件
+/t-demo-run-all            # 从头运行全部非 live 文件
 ```
 
 ```bash
-/t-tools:t-demo-run-all continue   # 从最近运行中批次的未完成断点继续
+/t-demo-run-all continue   # 从最近运行中批次的未完成断点继续
 ```
 
 ## 执行流程
@@ -78,7 +78,11 @@ Glob: demo/e2e/**/*.e2e.ts
 
 #### B1. 写断点
 
-向 `json_report` 写入 `current_index = zero_based_index`、`current_file = <rel>`、`updated_at`，确保中断可恢复。每次写入后立即落盘（用 Write 工具覆盖整个 JSON）。
+用短命令写入当前文件断点；不要在主会话读取、展开或覆盖整份 JSON：
+
+```bash
+uv run scripts/demo-run-all.py checkpoint --json <json_report> --index <zero_based_index>
+```
 
 #### B2. 运行整个测试文件
 
@@ -103,21 +107,35 @@ Result: {"success":"true|false","logs":"...","exitCode":0,"testFile":"...","runI
 按 `demo-run-repair-contract.md` 处理当前失败用例，最多 6 轮。关键约束：
 
 - 诊断必须使用实际失败 run ID；`--list-tests` 不得替换诊断证据。
-- backend 修复后在当前 Demo 验证前重建环境；frontend 修复不重启。
+- 以修复前后实际文件变化为准；当次修复产生后端代码变动时，在当前 Demo 验证前重建环境。
 - 定向失败全部消除后必须运行整文件终验。终验通过才记 `status=passed, fixed=true`。
 - 达到上限仍失败时记 `status=failed, fixed=false`，保留最后失败证据并继续批次。
 
 #### B5. 持久化 + 文件间数据隔离
 
-1. **准备 entry**：在内存中组装本文件的 `{test_file, status, exit_code, duration, run_id, logs, summary, error, fixed}`，暂不推进断点。
+1. **保留最小结果**：只保留 `{status, exit_code, duration, run_id, logs, fixed}`；仅失败时再保留一句简短 `error`。文件名、下标、计数和总耗时由脚本推导。
 2. **数据隔离**：若还有下一个文件，无论当前文件成功或失败，都先重建 Demo 环境和数据容器：
    ```bash
    uv run scripts/demo-stop.py --quiet && uv run scripts/demo-start.py
    ```
-   - 重建失败：写入顶层 `last_error`，保留当前 `current_index/current_file` 且不追加 entry，**中止批次**。数据未确认隔离时不得运行下一文件。
-3. **写 entry 并推进断点**：数据隔离成功，或当前已是最后一个文件时，追加 entry，更新 `current_index = zero_based_index + 1`、`current_file = ""`、`passed_files`/`failed_files`、`total_duration`，清空 `last_error` 并落盘。
+   - 重建失败：执行 `uv run scripts/demo-run-all.py block --json <json_report> --error "<简短原因>"` 后中止批次。该命令保留断点且不追加结果。
+3. **写结果并推进断点**：数据隔离成功，或当前已是最后一个文件时，执行一条短命令：
+
+   ```bash
+   uv run scripts/demo-run-all.py record --json <json_report> --status <passed|failed> --exit-code <n> --duration <s> --run-id <id> --logs <path> [--fixed] [--error "<失败摘要>"]
+   ```
+
+   `record` 自动补齐 `test_file`，更新断点、计数和总耗时。成功结果不传 `--error`。
 
 #### B6. 进入下一个文件
+
+主会话进度只输出一行，不复述诊断、命令或 JSON：
+
+```text
+[<完成数>/<总数>] <PASS|FIXED|FAIL> <test_file> (<duration>s)
+```
+
+仅在 `FAIL` 或批次阻塞时追加一句原因；run ID、日志路径和累计统计留在最终报告中。
 
 ### C. 收尾
 
@@ -136,7 +154,7 @@ uv run scripts/demo-run-all.py finalize --json <json_report>
 中断（手动 Ctrl-C、会话结束、上下文压缩）后：
 
 ```bash
-/t-tools:t-demo-run-all continue
+/t-demo-run-all continue
 ```
 
 - `discover continue` 只恢复最近且 `batch_status=running` 的批次：存在 `current_file` 时从该文件重跑，否则从 `current_index`（必须等于已持久化 entry 数）继续。已持久化的成功或失败文件都不重跑。
@@ -145,16 +163,15 @@ uv run scripts/demo-run-all.py finalize --json <json_report>
 
 ## 批次状态契约
 
-`json_report` 必须持续写盘，至少包含（与脚本约定一致，旧报告向后兼容）：
+`json_report` 由辅助脚本维护，主会话不得输出整份状态模板。恢复所需的最小语义为：
 
 - `batch_status`: `running` | `completed`
-- `invocation`: `fresh` | `continue`
-- `current_index`, `current_file`
 - `discovered_files`: 仓库相对 posix 路径列表
-- `entries[]`: 每文件 `{test_file, status, exit_code, duration, run_id, logs, summary, error, fixed}`
-- `total_files`, `passed_files`, `failed_files`, `total_duration`
-- `json_report`, `markdown_report`, `updated_at`
-- `last_error`：可选，断点推进前的环境或持久化错误；成功推进后清空
+- `entries[]`: 已完成文件的紧凑结果前缀
+- `current_file`: 当前未完成文件；为空时从 `entries.length` 继续
+- `last_error`: 仅阻塞时存在
+
+计数、下标、总耗时和报告路径属于脚本派生/维护字段，不在主会话进度模板中重复生成。
 
 ## 汇总报告
 
@@ -164,7 +181,7 @@ uv run scripts/demo-run-all.py finalize --json <json_report>
 
 - 单文件达到 6 次仍失败：标记 `FAILED` 并继续下一个文件。
 - `discover` 找不到文件或 `continue` 无可继续内容：终止并给出脚本返回的错误。
-- backend 修复后的验证前重建失败：记录本轮失败，不在旧后端进程上验证。
+- 后端代码变动后的验证前重建失败：记录本轮失败，不在旧后端进程上验证。
 - 文件间数据隔离失败：记入 `last_error` 并中断批次，由 `continue` 恢复。
 - runner 启动失败：按整文件失败处理，记录错误并继续。
 
@@ -174,9 +191,9 @@ uv run scripts/demo-run-all.py finalize --json <json_report>
 - 不允许并行执行多个测试文件。
 - 不允许使用 slow/headed 模式。
 - 每文件修复上限 6 次（diagnose→fix→补测→重跑）；超限标 `FAILED` 继续。
-- backend 修复后必须在当前 Demo 验证前重建环境；frontend 修复不因修复本身重启。
+- 当次修复实际产生后端代码变动时，必须在当前 Demo 验证前重建环境；判定以修复前后文件变化为准，不以 agent 类型或 `change_scope` 代替。
 - 进入下一文件前必须重建 Demo 数据环境；重建失败时不得继续。
 - 所有 `Agent` 调用必须先按 `subagent-dispatch.md` 注入角色规范。
-- 必须在每文件前后写盘批次状态；必须以 `finalize` 收尾产出报告。
+- 必须用 `checkpoint` / `record` 在每文件前后写盘状态，不得由主会话覆盖整份 JSON；必须以 `finalize` 收尾产出报告。
 - 排除 `live/`、`fixtures/`、`templates/`、`verification/` 目录及文件名含 `test-` 的文件。
 - 单文件修复闭环以 `demo-run-repair-contract.md` 为唯一契约源，本 skill 只编排批次状态、文件间隔离和汇总。

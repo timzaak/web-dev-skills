@@ -29,7 +29,7 @@ allowed-tools:
 
 ## 使用方式
 ```bash
-/t-tools:t-demo-run demo/e2e/<role>/<scenario>.e2e.ts
+/t-demo-run demo/e2e/<role>/<scenario>.e2e.ts
 ```
 
 ## 执行流程
@@ -56,6 +56,6 @@ allowed-tools:
 - 拆分后的用例执行必须串行。
 - 每个失败用例必须有诊断记录。
 - 每次修复后必须先执行相关层补测，再执行 Demo 验证。
-- backend 修复后必须在 Demo 验证前重建环境；frontend 修复不因修复本身重启环境。
+- 当次修复实际产生后端代码变动时，必须在 Demo 验证前重建环境；判定以修复前后文件变化为准，不以 agent 类型或 `change_scope` 代替。
 - 定向失败用例全部通过后，必须以整文件终验收口。
 - 必须输出最后一行 `Result: {...}`。
