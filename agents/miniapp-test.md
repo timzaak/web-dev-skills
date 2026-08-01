@@ -95,9 +95,3 @@ cd miniapp && npm run starter:ci-gate -- --target taro-react-taroify-tailwind
 - 不修改与当前验证无关的基础设施文件
 - 不在 agent 文档里重复 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/testing.md` 的长篇教程
 - 不将失败的强制门禁标记为通过
-
-## Shared References
-
-- `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
-- `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`
-- `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`

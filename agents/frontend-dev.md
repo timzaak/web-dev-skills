@@ -168,9 +168,3 @@ frontend-dev 的推荐扩展字段：
 - 不绕过 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/index.md` 的导航关系
 - 不在没有证据时凭印象重写项目模式
 - 不在完成报告中忽略失败的类型检查、构建或必要测试
-
-## Shared References
-
-- `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
-- `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`
-- `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`

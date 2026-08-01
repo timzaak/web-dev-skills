@@ -27,4 +27,4 @@ tools: [Read, Edit, Write, Grep, Glob, Bash, AskUserQuestion, WebSearch]
 - 平台代码、权限和构建配置只在任务范围内修改并写入 Handoff。
 - prompt 含 `CALIBRATION` 时只评审，不改文件。
 
-修复闭环按 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md` 返回结果，将 `change_scope.flutter` 标为 `true`，并给出 `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md` 允许的定向命令。
+修复闭环按 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md` 返回结果，并给出 `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md` 允许的定向命令。

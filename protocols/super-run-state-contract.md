@@ -105,15 +105,6 @@ Task 必填字段：
 - `completed`：交付物与当前 task 的验证均完成。
 - `skipped`：已有证据证明 task 或 phase 不适用。
 
-Phase 聚合顺序：
-
-1. 任一 task 为 `blocked`，phase 为 `blocked`。
-2. 否则任一 task 为 `failed`，phase 为 `failed`。
-3. 全部 task 为 `skipped`，phase 为 `skipped`。
-4. 全部 task 为 `completed | skipped` 且至少一个为 `completed`，phase 为 `completed`。
-5. 任一 task 为 `in_progress | completed`，phase 为 `in_progress`。
-6. 其他情况为 `pending`。
-
 执行 task 前先写 `in_progress`。成功后写 `completed`、删除旧 `last_error`，并追加文件、命令、报告或日志证据；失败后先写 `failed` 和 `last_error`，再决定自动修复或转为 `blocked`。状态写入失败时重试一次，仍失败则停止，避免继续产生无法恢复的修改。
 
 恢复 `in_progress` task 时，先检查工作区、已有交付物和验证证据，再从未满足的完成条件继续；不得把中断状态直接视为成功，也不得无条件重复可能产生副作用的动作。

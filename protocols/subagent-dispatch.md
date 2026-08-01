@@ -6,10 +6,6 @@
 
 通过 `Agent` tool 启动任意子 agent 前，**必须**先 Read `subagent_type` 指向的角色规范文件全文，并把它作为子 agent prompt 的角色指令段注入。
 
-## 为什么必须显式注入
-
-Claude Code 经 `--plugin-dir` 自动把 `agents/*.md` 注册为可调用 subagent，子 agent 启动即获得角色定义。**ZCode / Codex 等非 Claude 运行时不加载 `agents/*.md`**，子 agent 读不到角色职责、Read Order、验证步骤和 Completion Gate，会退化成无角色约束的通用 agent。因此调用方必须显式读取并注入，统一行为，不按运行时分支（Claude Code 也走同一注入逻辑，行为一致）。
-
 ## 注入步骤（MANDATORY）
 
 确定 `subagent_type` 后、调用 `Agent` 工具前：
