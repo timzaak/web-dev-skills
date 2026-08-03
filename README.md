@@ -2,10 +2,10 @@
 
 [English](README.en.md)
 
-面向 Java Spring Boot、React、小程序与 Flutter 项目的 Claude Code plugin。它把 AI 编程拆成一条可执行、可恢复、可验收的工程工作流：
+面向 Java Spring Boot、React、小程序与 Flutter 项目的 Claude Code plugin。它把 AI 编程拆成一套可执行、可恢复、可验收的工程工作流：
 
 ```text
-Decision -> 技术预研 -> PRD -> 设计 -> 任务 -> 开发 -> 验收 -> Demo -> 发布
+Decision -> PRD / 技术预研（按主要未知项选择，可回环）-> 设计 -> 任务 -> 开发 -> 验收 -> Demo -> 发布
 ```
 
 T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和 Demo 交付链路的项目。它的重点不是让模型自由发挥，而是用 skill 编排阶段、用 subagent 分工执行、用 protocol 固化共享契约，并在需要时用 check / accept 阶段收口质量。
@@ -28,10 +28,11 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 # 产品立项判断
 /t-tools:t-decision user-management
 
-# 需要可行性、依赖或成本判断时使用
+# 技术可行性、依赖或成本会影响产品范围时，先做技术预研
 /t-tools:t-tech-research user-management
 
-# 生成 .ai/prd 与 .ai/user-stories 草稿
+# 产品边界已足以成稿时生成 .ai/prd 与 .ai/user-stories 草稿；
+# 也可先生成草稿，再做技术预研，最后重跑本命令收敛草稿
 /t-tools:t-prd user-management
 
 # PRD 质量检查（可选，推荐高风险需求运行）
@@ -52,11 +53,18 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 # 按阶段实现与测试
 /t-tools:t-run user-management --phase backend
 
+# GPT-5.6 Sol 级强模型路径：由主会话规划、执行并用 Goal 持续到验收通过
+# 此命令采用目标级 task，不生成供 t-task-check 检查的细粒度 item
+/t-tools:t-super-run user-management --phase backend
+
 # 运行 Demo/E2E 测试
-/t-tools:t-demo-run super-admin
+/t-demo-run demo/e2e/<role>/<scenario>.e2e.ts
+
+# 串行运行全部非 live Demo/E2E，支持断点续跑
+/t-demo-run-all
 
 # 最终验收
-/t-tools:t-demo-accept super-admin
+/t-tools:t-demo-accept <role>
 
 # 实现和验收后发布正式 PRD / 用户故事
 /t-tools:t-prd-publish user-management
@@ -76,11 +84,17 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 
 每个 phase 都先运行 `/t-tools:t-task <feature> --phase <phase>`，随后可按风险选择运行 `/t-tools:t-task-check <feature> --phase <phase>`，再用 `/t-tools:t-run <feature> --phase <phase>` 串行执行 item。README 的快速上手只展开 backend 作为示例；frontend、miniapp、flutter 和 demo 重复同样闭环。
 
+`/t-tools:t-super-run <feature> [--phase backend|frontend|demo]` 是针对 GPT-5.6 Sol（`gpt-5.6-sol`）及同等级强模型优化的单主会话执行路径：它合并任务规划与执行，不调用 subagent，只按 backend/frontend 的 `dev -> test -> accept` 或 demo 的 `dev -> accept` 记录目标级状态，并主动使用 Goal 持续完成实现、测试、修复和验收。状态独立保存在 `.ai/super-run/<feature>/`；不得与 `.ai/task/<feature>/` 互相覆盖或推导。未传 `--phase` 时按 `backend -> frontend -> demo` 选择首个适用且未完成阶段。miniapp 和 Flutter 继续使用现有阶段命令；需要显式 subagent 分工、细粒度 item handoff 或跨运行时保持相同调度行为时仍使用 `t-task -> [t-task-check] -> t-run`。
+
 ## 关键使用规则
 
 - 本 README 统一使用 `/t-tools:t-*` 作为标准调用形式。
 - 所有 `t-*` skill 都是手工触发入口，不允许模型根据语义自动触发。
-- `t-decision` 是 PRD 前的产品立项门禁，输出 `.ai/decision/<feature>.md`；结论为 `Proceed` 或 `Research First` 后再进入后续流程。
+- `t-super-run` 读取既有 agent 规范作为当前角色指南，但不启动 subagent，并用目标级状态、阶段 handoff 和 Goal 支持长程执行及中断恢复。
+- `t-decision` 是 PRD 与技术预研前的产品立项门禁，输出 `.ai/decision/<feature>.md`；`Proceed` 根据主要未知项进入 `t-prd` 或 `t-tech-research`，`Research First` 先进入 `t-tech-research`。
+- 已确认决策、已解决问题和显式延期问题跨阶段写入 `.ai/decision-log/<feature>.md`，使用稳定 DEC/Q ID；任何阶段提问前必须先查账本，避免重复询问或采用已被替代的决定。
+- PRD、技术预研和设计交付时必须满足 `needs_user_answer=0`。影响范围、业务规则、权限、安全、兼容性、显著成本、验收或风险接受的问题必须先询问用户，不得静默写成“待确认”、假设或风险后继续。
+- `t-prd` 与 `t-tech-research` 没有全局固定顺序：技术未知会改变范围时先预研，产品边界决定技术选择时先写 PRD 草稿；后续结论改变产品语义时必须重跑 `t-prd` 更新草稿，二者在进入 `t-design` 前必须收敛且不存在未解释冲突。
 - `t-prd` 只写 `.ai/prd` 和 `.ai/user-stories` 候选需求；`t-prd-publish` 才把仍然成立的长期产品事实合并回 `docs/`。
 - `t-doc` 用于项目文档、上手教程、API 参考、配置和部署说明，不用于 PRD、技术设计或零散文档修改。
 - `t-dream` 默认只读审计 PRD、用户故事、设计/任务、实现事实与项目结构；需要写入 PRD 治理时显式使用 `--govern-prd`。

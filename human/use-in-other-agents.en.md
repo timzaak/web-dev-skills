@@ -70,6 +70,7 @@ See [Install Context7](#install-context7) below. Context7 is a `requiredMcpServe
 | `/t-tools:t-prd user-management` | `/t-tool t-prd user-management` |
 | `/t-tools:t-prd-check user-management` | `/t-tool t-prd-check user-management` |
 | `/t-tools:t-run user-management --phase backend` | `/t-tool t-run user-management --phase backend` |
+| `/t-tools:t-super-run user-management --phase backend` | `/t-tool t-super-run user-management --phase backend` |
 
 Running `/t-tool` with no argument lists every sub-skill under the repo's `skills/`.
 

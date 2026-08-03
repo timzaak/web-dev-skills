@@ -26,18 +26,23 @@ Skill 是命令式工作流入口，不是“让模型自由发挥的一段提�
 - 推进 `.ai/task/**/.state.json`。
 - 在失败时给出可恢复路径。
 
-主链路是：
+主链路在 Decision 后按主要未知项分流，并在 Design 前收敛：
 
 ```text
-t-decision -> t-tech-research -> t-prd -> t-prd-check
--> t-design -> t-design-check
--> t-task -> t-task-check
+t-decision
+├─ 技术未知会改变产品范围 -> t-tech-research -> t-prd -> [t-prd-check] -> t-design
+├─ 产品边界决定技术选择 -> t-prd -> [t-tech-research -> t-prd（更新）] -> [t-prd-check] -> t-design
+└─ 纯技术且不改变业务逻辑 -> t-tech-research -> t-design
+
+t-design -> [t-design-check] -> t-task -> [t-task-check]
 -> t-run
 -> t-demo-run -> t-demo-accept
 -> t-prd-publish -> t-push -> t-release
 ```
 
-并不是每个项目都需要完整跑完所有阶段。随着 AI 能力提升，`t-prd-check`、`t-design-check`、`t-task-check` 是可选质量检查：复杂、高风险或多人协作时用于阻止上游问题继续进入下游；简单低风险变更可以直接进入下一阶段。实现后的 accept 阶段仍负责验收收口。
+`t-prd` 与 `t-tech-research` 没有全局固定顺序。技术可行性、成本、依赖或兼容性会改变产品范围时先预研；只有明确产品边界、用户流程或验收目标后才能选择技术路线时先写 PRD 草稿。后续预研结论一旦改变产品语义，必须重跑 `t-prd` 更新草稿。进入 `t-design` 前，两类产物必须收敛且不存在未解释冲突；不涉及业务逻辑、产品规则、用户可见流程或验收目标变动的纯技术方案可以不经过 PRD。
+
+并不是每个项目都需要完整跑完所有阶段。`t-prd-check`、`t-design-check`、`t-task-check` 是可选质量检查：复杂、高风险或多人协作时用于阻止上游问题继续进入下游；简单低风险变更可以直接进入下一阶段。实现后的 accept 阶段仍负责验收收口。
 
 ### Agents：专业执行者
 
@@ -96,6 +101,8 @@ Agent 文档只说明什么时候读 guide、如何执行、返回什么，不�
 
 AI 收到口播后，应区分用户已确认的技术约束、需要查官方文档的事实、可从代码库验证的现状，以及必须追问用户的产品或技术决策。不能把口播里的猜测直接写成已确认结论。
 
+技术预研可以发生在 PRD 草稿之前或之后。若已有草稿，预研应把它作为候选产品边界读取，但不得静默改写产品决策；若预研发现范围、业务规则、用户流程或验收目标需要变化，应把结论交回 `t-prd` 更新，而不是直接带着冲突进入设计。
+
 ### Design：由人明确 UX 取舍
 
 `t-design` 不只是把 PRD 翻译成模块、接口和状态。只要功能涉及前端界面，人就需要从用户视角重新走一遍体验：
@@ -137,6 +144,8 @@ Demo 阶段不是后端或前端测试的重复。它用 Playwright E2E 按用�
 - `item`：真正可执行的最小任务文件。
 
 `t-run` 只执行 item，不直接执行 `index.md`、`dev.md`、`test.md`、`accept.md` 这类 manifest。任意时刻最多一个 item 处于 `running`，这样牺牲一些并发速度，换来更小上下文、更清楚的失败定位和可恢复状态。
+
+`t-super-run` 提供单主会话执行模型。它不生成 item，也不调用 subagent，而是在主会话中按当前 task 读取对应 agent 规范和关联 guide，执行后把状态与证据写入 `.ai/super-run/[feature]/`，再切换下一个角色。backend/frontend 固定为 `dev -> test -> accept`，demo 为 `dev -> accept`；Goal 负责持续推进，状态文件负责跨上下文恢复。需要显式 subagent 分工或细粒度 handoff 时继续使用标准链路。
 
 修复 agent 必须返回 `tests_to_run`，说明修复后应该补跑哪些后端、前端或 Demo 命令，避免“Demo 通过但底层回归失败”的风险被藏起来。
 

@@ -136,6 +136,7 @@ cd frontend && npm run lint
 - 不硬编码 API 路径
 - 不用 `any` 和不安全断言绕过类型系统
 - UI 组件不直接承担不必要的数据访问和全局状态写入
+- 代码注释规范（禁止引用 `.ai/design`/`.ai/task`、低价值注释定义）以 `${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md` 为准
 
 ## 结构化输出
 
@@ -167,9 +168,3 @@ frontend-dev 的推荐扩展字段：
 - 不绕过 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/index.md` 的导航关系
 - 不在没有证据时凭印象重写项目模式
 - 不在完成报告中忽略失败的类型检查、构建或必要测试
-
-## Shared References
-
-- `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
-- `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`
-- `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`

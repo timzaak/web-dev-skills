@@ -90,10 +90,6 @@ tools:
 
 仅当问题与 API 调用直接相关时输出这一章节；不要对纯 UI 或纯测试问题强行生成。
 
-URL 归一化规则（前端 dev server :3000 代理 API 到后端 :8080，curl 应直接请求后端）：
-- `http://localhost:3000/api/...` 转为 `http://localhost:8080/api/...`
-- 其他 URL 保持原样
-
 ### 5. 输出诊断报告
 
 报告必须：

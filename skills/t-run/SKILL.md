@@ -130,11 +130,6 @@ backend/test 特例：
 - item 文件缺失或 manifest 顺序非法：提示重建该阶段任务目录。
 - item 缺少 `Goal/Work/Files/Validation/Handoff` 五章节：提示重新运行 `/t-task-check`；若确认为旧格式任务，重新运行 `/t-task [feature] --phase [phase]` 生成。
 
-## Examples
-```bash
-# 按阶段执行
-/t-run sample-feature --phase backend
-```
 
 ```text
 # 调用 backend-dev item 时的最小上下文

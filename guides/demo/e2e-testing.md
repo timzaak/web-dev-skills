@@ -35,7 +35,7 @@ demo/e2e/
 
 ```powershell
 uv run scripts/demo-test-runner.py demo/e2e/[test-file].ts
-uv run scripts/demo-run-all.py
+uv run scripts/demo-run-all.py discover   # 批量入口由 /t-demo-run-all 主会话驱动；脚本只辅助发现、进度写盘和汇总
 uv run scripts/debug-test.py demo/e2e/[test-file].ts
 uv run scripts/demo-stop.py
 ```

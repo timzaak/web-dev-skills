@@ -53,7 +53,7 @@ npx jscpd --pattern "**/*.java" --reporters console backend
 
 ## 5. 环境验证（MANDATORY）
 
-启动后端服务（确保 PostgreSQL 和 Redis 等依赖可用），然后进行健康检查（路径和响应结构以目标项目契约为准）：
+启动后端服务，然后进行健康检查（路径和响应结构以目标项目契约为准）：
 
 ```powershell
 Start-Sleep -Seconds 5

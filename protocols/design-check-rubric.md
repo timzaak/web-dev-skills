@@ -12,7 +12,7 @@
 | 数据库设计完整性 | 20 | 表/字段、类型、约束、索引、迁移策略明确 |
 | 前端设计完整性 | 10 | 页面/组件、线框说明、状态与数据依赖明确 |
 | 测试与验收策略 | 10 | 后端/前端/Demo 测试入口和主验收路径明确 |
-| 文档规范与假设显式化 | 5 | 结构稳定、假设清晰、风险可追溯 |
+| 决策闭合与文档规范 | 5 | `needs_user_answer=0`，决策追踪完整，风险与验证动作可执行 |
 
 ## Clarification Gate
 
@@ -22,10 +22,18 @@
 
 - 不得把这类问题仅写入 P0/P1/P2、风险表、待确认事项或假设后继续推进。
 - 问题必须给出证据、具体决策点和被阻塞的后续动作。
-- 用户回答后，先更新设计文档，再继续评分或进入 `/t-task`。
+- 用户回答后，先更新 Decision Log 和设计文档，再运行决策闭合扫描；通过后才能继续评分。
 - 未得到用户回答前，不得给出“通过设计验收”或“可进入后续拆解”的结论。
 
 已由证据确认的问题继续按 P0/P1/P2 记录；必须由用户裁决的问题状态为 `needs_user_answer`，不参与 P0 计数。
+
+评分前必须运行：
+
+```bash
+python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py .ai/design/<feature>.md
+```
+
+扫描命中项必须按 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md` 分类。设计完成态必须满足 `needs_user_answer=0`，且 Decision Trace 覆盖所有影响设计的 Active Decision。
 
 ## Severity Rules
 
@@ -51,7 +59,7 @@
 ### P2
 
 - 可复用点说明不够聚焦
-- 非阻塞风险或已解决待确认事项不够具体
+- 风险或验证动作缺少负责人、完成条件
 - 示例与字段表轻微重复，可压缩
 
 ## Detailed Checks
@@ -87,7 +95,8 @@ API：
 
 - §8 文件影响范围章节必须存在，表格包含 `文件 | 操作 | 说明` 三列，操作列使用 CREATE/MODIFY/DELETE
 - §5 详细设计章节必须存在（即使内容是"不适用"），用于放置具体数据结构与函数签名
-- §7 风险与待确认事项只记录非阻塞风险、已回答的确认事项或明确不影响设计方向的问题，使用 `| 风险项 | 等级 | 缓解措施 |` 三列表格，等级标注 P0/P1/P2
+- §7 风险与验证动作只记录方向已经确定的风险和不需要用户选择的验证动作，包含风险项、等级、缓解或验证动作、负责人、完成条件
+- §2.5 Decision Trace 覆盖所有影响设计的 Active Decision，并说明 Applied / Not Applicable / Superseded
 - 所有文件路径必须为仓库真实路径，不得出现 `backend/src/...` 这类未验证的示例路径
 
 ## Report Requirements

@@ -5,7 +5,7 @@
 A Claude Code plugin for Java Spring Boot, React, miniapp, and Flutter projects. It turns AI programming into an executable, resumable, and acceptable engineering workflow:
 
 ```text
-Decision -> Tech Research -> PRD -> Design -> Task -> Development -> Acceptance -> Demo -> Release
+Decision -> PRD / Tech Research (choose by the main unknown; iterate if needed) -> Design -> Task -> Development -> Acceptance -> Demo -> Release
 ```
 
 T-Tools is designed for projects that already have a delivery chain across product documents, design, task breakdown, development, testing, and demos. Its focus is not freeform model execution. It uses skills to orchestrate stages, subagents to split work, protocols to keep shared contracts stable, and check / accept stages to close quality when needed.
@@ -28,10 +28,11 @@ Minimal end-to-end loop:
 # Product decision gate
 /t-tools:t-decision user-management
 
-# Use when feasibility, dependency, or cost risks affect scope
+# Start with research when feasibility, dependency, or cost risks affect product scope
 /t-tools:t-tech-research user-management
 
-# Generate .ai/prd and .ai/user-stories drafts
+# Generate .ai/prd and .ai/user-stories drafts when product boundaries are ready;
+# this may also run before research, then run again afterward to converge the drafts
 /t-tools:t-prd user-management
 
 # PRD quality check (optional; recommended for high-risk requirements)
@@ -52,11 +53,18 @@ Minimal end-to-end loop:
 # Implement and test by phase
 /t-tools:t-run user-management --phase backend
 
+# GPT-5.6 Sol-class path: let one main session plan, execute, and remain in
+# Goal mode through implementation, validation, repair, and acceptance
+/t-tools:t-super-run user-management --phase backend
+
 # Run Demo/E2E tests
-/t-tools:t-demo-run super-admin
+/t-demo-run demo/e2e/<role>/<scenario>.e2e.ts
+
+# Run all non-live Demo/E2E files sequentially with checkpoint resume
+/t-demo-run-all
 
 # Final acceptance
-/t-tools:t-demo-accept super-admin
+/t-tools:t-demo-accept <role>
 
 # Publish formal PRD / user stories after implementation and acceptance
 /t-tools:t-prd-publish user-management
@@ -76,11 +84,17 @@ Minimal end-to-end loop:
 
 Each phase starts with `/t-tools:t-task <feature> --phase <phase>`, may run `/t-tools:t-task-check <feature> --phase <phase>` depending on risk, and then `/t-tools:t-run <feature> --phase <phase>` executes items serially. The quick start expands backend only as an example; repeat the same loop for frontend, miniapp, flutter, and demo.
 
+`/t-tools:t-super-run <feature> [--phase backend|frontend|demo]` is a single-main-session execution path optimized for GPT-5.6 Sol (`gpt-5.6-sol`)-class models. It combines planning and execution, dispatches no subagents, records outcome-level `dev -> test -> accept` state for backend/frontend or `dev -> accept` for demo, and actively uses Goal mode through implementation, validation, repair, and acceptance. Its state lives independently under `.ai/super-run/<feature>/` and must not overwrite or derive `.ai/task/<feature>/`. Without `--phase`, it selects the first applicable unfinished phase in `backend -> frontend -> demo` order. Miniapp and Flutter keep their existing stage commands; use `t-task -> [t-task-check] -> t-run` when explicit subagent ownership, fine-grained item handoffs, or consistent dispatch behavior across runtimes is required.
+
 ## Key Rules
 
 - This README consistently uses `/t-tools:t-*` as the standard invocation format.
 - All `t-*` skills are manual command entries and must not be invoked automatically by the model.
-- `t-decision` is the product decision gate before PRD. It writes `.ai/decision/<feature>.md`; continue only after a `Proceed` or `Research First` verdict.
+- `t-super-run` reads existing agent specifications as role guides without starting subagents, and uses outcome-level state, staged handoffs, and Goal mode for long-running execution and interruption recovery.
+- `t-decision` is the product decision gate before PRD and technical research. It writes `.ai/decision/<feature>.md`; `Proceed` routes to `t-prd` or `t-tech-research` according to the main unknown, while `Research First` routes to `t-tech-research`.
+- Confirmed decisions, resolved questions, and explicitly deferred questions persist across stages in `.ai/decision-log/<feature>.md` with stable DEC/Q IDs. Every stage must consult the log before asking, so it does not repeat a resolved question or apply a superseded decision.
+- A completed PRD, technical research report, or design must have `needs_user_answer=0`. Questions that affect scope, business rules, permissions, security, compatibility, significant cost, acceptance, or risk acceptance must be asked before delivery, not silently stored as pending items, assumptions, or risks.
+- `t-prd` and `t-tech-research` have no globally fixed order. Start with research when technical unknowns may change scope; start with a PRD draft when product boundaries determine the technical choice. If later findings change product semantics, rerun `t-prd`; both artifacts must converge without unexplained conflicts before `t-design`.
 - `t-prd` only writes candidate requirements under `.ai/prd` and `.ai/user-stories`; `t-prd-publish` merges still-valid long-term product facts back into `docs/`.
 - `t-doc` is for project documentation, onboarding tutorials, API references, configuration, and deployment notes. It is not for PRDs, technical designs, or small document edits.
 - `t-dream` defaults to a read-only audit of PRDs, user stories, design/tasks, implementation facts, and project structure; use `--govern-prd` explicitly when PRD governance should write changes.

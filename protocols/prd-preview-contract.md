@@ -20,7 +20,7 @@ Preview 是临时验证产物，不纳入版本控制。
 - HTML Preview 不允许引入 Markdown PRD 未声明的新需求、权限规则、业务规则或验收目标。
 - 如果人类基于 HTML Preview 提出修改，必须同时更新 HTML Preview 和 Markdown PRD，不能只改其中一个。
 - 如果 Preview 为了演示流程使用示例数据，必须显式标注“示例数据，不是接口契约”。
-- 如果 Preview 为了表达交互做了推断，必须在页面中列入“待确认假设”。
+- Preview 为表达交互所做的推断只能是不改变产品语义的可视化假设，并必须显式标注；需要用户裁决的问题必须在生成 Preview 前按 Decision Exposure Gate 解决。
 
 ## Technology Constraints
 
@@ -35,7 +35,7 @@ HTML Preview 不再强制限定为单文件、内联 CSS/JS、无 npm/CDN/构建
 
 ## Review Workflow
 
-`/t-html-show` 在 PRD 模式下生成或更新 Preview 后，默认不自动打开；打开为可选项，规则与命令见 `html-show-contract.md` 的 `Opening the Preview`。
+`/t-html-show` 在源文档为 PRD 时生成或更新 Preview，之后默认不自动打开；打开为可选项，规则与命令见 `html-show-contract.md` 的 `Opening the Preview`。
 
 审阅流程遵循 `html-show-contract.md` 中定义的通用 Review Workflow。
 
@@ -60,7 +60,7 @@ PRD 的审阅任务是**完整性审查**（产品意图、范围、规则、验
 - 业务状态、异常、空态或权限可见性说明。
 - 验收目标摘要。
 - 示例数据声明（如使用）。
-- 待确认假设（如有）。
+- 可视化假设或验证风险（如有；不得包含需要用户回答的问题）。
 
 前端或交互功能应包含：
 

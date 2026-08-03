@@ -29,17 +29,6 @@ allowed-tools:
 
 PRD 治理模式只保留当前产品规则、用户可见契约、范围边界和验收目标，删除或降级已经被实现过程替代的临时方案、迁移过程和重复技术细节。
 
-## 使用方式
-```bash
-/t-dream realm
-/t-dream --all
-/t-dream realm --deep
-/t-dream realm --backend-only
-/t-dream realm --govern-prd
-/t-dream 整理 document PRD
-/t-dream 合并 infrastructure PRD
-```
-
 ## 参数
 | 参数 | 说明 |
 |---|---|

@@ -1,28 +1,52 @@
 #!/usr/bin/env python3
 """
-Batch runner for all Demo E2E files.
+Discovery + reporting helper for batch Demo E2E runs.
 
-Runs demo files sequentially via scripts/demo-test-runner.py, preserves
-the single-environment / single-file contract, and writes both Markdown and
-JSON summaries for later diagnosis.
+This script is intentionally side-effect-free at execution time: it does NOT
+run tests or spawn nested `claude` processes. The actual per-file loop, the
+diagnose -> fix -> rerun repair cycle, and the demo-environment restart are
+driven by the `/t-demo-run-all` skill in the main session. Driving the batch
+from the main session (short, observable Bash/Agent calls with file-backed
+checkpoints) replaces the old blocking nested-CLI workflow
+subprocess loop, which froze the parent session for up to hours.
 
-Supports two modes:
-  - fresh (default): run from beginning
-  - continue: resume from last interrupted or failed file
+Subcommands:
+  discover [continue] [--filter-file F] [--report-prefix P]
+      Enumerate non-live demo test files. In fresh mode, write the initial
+      batch JSON payload. In continue mode, read the latest batch JSON and
+      compute the resume index. Prints a single JSON line on stdout that the
+      skill consumes (discovered_files, batch_run_id, json_report, md_report,
+      resume_index, resumed_from).
+
+  finalize --json <path>
+      Read the batch JSON written/updated by the skill, render the Markdown
+      report from its entries, set batch_status=completed, and write both
+      files back.
+
+  checkpoint --json <path> --index N
+      Mark one discovered file as current without rewriting JSON in the main
+      session.
+
+  record --json <path> --status passed|failed [...]
+      Append the current file's compact result and advance the checkpoint.
+
+  block --json <path> --error <message>
+      Preserve the current checkpoint and record a blocking environment error.
+
+  (no subcommand)
+      Print guidance. Direct batch execution must go through /t-demo-run-all.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-import subprocess
 import sys
-import time
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 
-from lib.paths import REPO_ROOT, SCRIPTS_DIR
+from lib.paths import REPO_ROOT
 
 # Configure UTF-8 encoding for Windows console
 if sys.platform == "win32":
@@ -48,42 +72,16 @@ class RunEntry:
     fixed: bool = False
 
 
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description="Run all Demo E2E files sequentially (using Claude CLI by default)"
-    )
-    parser.add_argument(
-        "command",
-        nargs="?",
-        choices=["continue"],
-        help="Resume the latest batch from the interrupted file or latest failed file",
-    )
-    parser.add_argument(
-        "--report-prefix",
-        default="demo-run-all",
-        help="Report filename prefix (default: demo-run-all)",
-    )
-    parser.add_argument(
-        "--log-level",
-        default="mini",
-        choices=["mini", "verbose"],
-        help="Log level for test execution",
-    )
-    parser.add_argument(
-        "--filter-file",
-        type=Path,
-        default=None,
-        help=(
-            "Path to a file listing test files relative to demo/e2e/, one per line. "
-            "Blank lines and lines starting with # are skipped."
-        ),
-    )
-    parser.add_argument(
-        "--direct-script",
-        action="store_true",
-        help="Use direct demo-test-runner.py script instead of Claude CLI (fallback mode)",
-    )
-    return parser
+def now_display() -> str:
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def parse_boolish(value: object) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.lower() == "true"
+    return False
 
 
 def discover_test_files(*, filter_file: Path | None = None) -> list[Path]:
@@ -117,41 +115,22 @@ def discover_test_files(*, filter_file: Path | None = None) -> list[Path]:
     ]
 
 
-def print_header(text: str) -> None:
-    print(f"\n{'='*60}", flush=True)
-    print(f"  {text}", flush=True)
-    print(f"{'='*60}\n", flush=True)
-
-
-def print_step(step: str, details: str = "") -> None:
-    if details:
-        print(f"[demo-run-all] {step}: {details}", flush=True)
-    else:
-        print(f"[demo-run-all] {step}", flush=True)
-
-
-def now_display() -> str:
-    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-
-def parse_boolish(value: object) -> bool:
-    if isinstance(value, bool):
-        return value
-    if isinstance(value, str):
-        return value.lower() == "true"
-    return False
-
-
 def load_json_report(path: Path) -> dict[str, object]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
 def write_json_report(path: Path, payload: dict[str, object]) -> None:
     payload["updated_at"] = now_display()
-    path.write_text(
+    temp_path = path.with_name(f".{path.name}.tmp")
+    temp_path.write_text(
         json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
+    temp_path.replace(path)
+
+
+def resolve_report_path(path: Path) -> Path:
+    return path if path.is_absolute() else REPO_ROOT / path
 
 
 def find_latest_json_report(report_prefix: str) -> Path | None:
@@ -179,24 +158,38 @@ def determine_resume_index(payload: dict[str, object]) -> int:
     if not isinstance(entries, list):
         raise ValueError("Latest batch report does not contain entries")
 
+    if payload.get("batch_status") != "running":
+        raise ValueError("Latest batch is not running and cannot be continued")
+
+    completed_files: list[str] = []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            raise ValueError("Latest batch report contains a non-object entry")
+        test_file = str(entry.get("test_file", ""))
+        if not test_file:
+            raise ValueError("Latest batch report contains an entry without test_file")
+        completed_files.append(test_file)
+
+    expected_prefix = discovered_files[:len(completed_files)]
+    if completed_files != expected_prefix:
+        raise ValueError("Latest batch entries are not a completed prefix of discovered_files")
+
     current_file = payload.get("current_file")
     if isinstance(current_file, str) and current_file:
         try:
-            return discovered_files.index(current_file)
+            resume_index = discovered_files.index(current_file)
         except ValueError as exc:
             raise ValueError(f"current_file not found in discovered_files: {current_file}") from exc
+        if resume_index != len(entries):
+            raise ValueError("current_file does not immediately follow the completed entries")
+        return resume_index
 
-    last_failed_index = -1
-    for index, entry in enumerate(entries):
-        if not isinstance(entry, dict):
-            raise ValueError("Latest batch report contains a non-object entry")
-        if str(entry.get("status", "")) == "failed":
-            last_failed_index = index
-
-    if last_failed_index >= 0:
-        return last_failed_index
-
-    return len(entries)
+    current_index = payload.get("current_index", len(entries))
+    if not isinstance(current_index, int) or isinstance(current_index, bool):
+        raise ValueError("Latest batch report contains an invalid current_index")
+    if current_index != len(entries):
+        raise ValueError("current_index does not match the completed entry count")
+    return current_index
 
 
 def build_fresh_payload(
@@ -205,14 +198,12 @@ def build_fresh_payload(
     test_files: list[Path],
     json_report_path: Path,
     md_report_path: Path,
-    direct_script: bool,
 ) -> dict[str, object]:
     return {
         "generated_at": now_display(),
         "updated_at": now_display(),
         "report_prefix": report_prefix,
         "batch_status": "running",
-        "mode": "direct-script" if direct_script else "claude-cli",
         "invocation": "fresh",
         "total_duration": 0.0,
         "total_files": len(test_files),
@@ -231,7 +222,6 @@ def build_fresh_payload(
 def restore_payload_for_continue(
     *,
     report_prefix: str,
-    direct_script: bool,
 ) -> tuple[dict[str, object], Path, Path, list[Path], int]:
     json_report_path = find_latest_json_report(report_prefix)
     if json_report_path is None:
@@ -259,9 +249,8 @@ def restore_payload_for_continue(
     if not isinstance(entries, list):
         raise ValueError("Latest batch report does not contain entries")
 
-    payload["entries"] = entries[:resume_index]
+    payload["entries"] = entries
     payload["batch_status"] = "running"
-    payload["mode"] = "direct-script" if direct_script else "claude-cli"
     payload["invocation"] = "continue"
     payload["current_index"] = resume_index
     payload["current_file"] = discovered_files[resume_index]
@@ -273,149 +262,6 @@ def restore_payload_for_continue(
         1 for entry in payload["entries"] if isinstance(entry, dict) and str(entry.get("status", "")) == "failed"
     )
     return payload, json_report_path, md_report_path, test_files, resume_index
-
-
-def check_claude_cli() -> bool:
-    try:
-        result = subprocess.run(
-            ["claude", "--version"],
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
-        return result.returncode == 0
-    except (FileNotFoundError, subprocess.TimeoutExpired):
-        return False
-
-
-def extract_json_from_claude_output(stdout: str) -> dict[str, object]:
-    import re
-    json_pattern = r'Result:\s*(\{[^{}]*"success"[^{}]*\})'
-    matches = re.findall(json_pattern, stdout)
-    if matches:
-        try:
-            return json.loads(matches[-1])
-        except json.JSONDecodeError:
-            pass
-    return {}
-
-
-def extract_result(stdout: str) -> dict[str, object]:
-    for line in reversed(stdout.splitlines()):
-        if not line.startswith("Result: "):
-            continue
-        try:
-            return json.loads(line[len("Result: ") :].strip())
-        except json.JSONDecodeError:
-            break
-    return {}
-
-
-def run_single(test_file: Path, *, log_level: str, batch_run_id: str) -> RunEntry:
-    rel_path = test_file.relative_to(REPO_ROOT).as_posix()
-    per_file_run_id = f"{batch_run_id}-{test_file.stem}"
-    cmd = [
-        sys.executable,
-        str(SCRIPTS_DIR / "demo-test-runner.py"),
-        rel_path,
-        "--mode",
-        "fast",
-        "--log-level",
-        log_level,
-        "--run-id",
-        per_file_run_id,
-    ]
-    started = time.time()
-
-    stdout_lines = []
-    with subprocess.Popen(
-        cmd,
-        cwd=str(REPO_ROOT),
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        bufsize=1,
-    ) as proc:
-        for line in iter(proc.stdout.readline, ""):
-            if line:
-                stdout_lines.append(line)
-                print(line, end="", flush=True)
-        proc.wait()
-
-    duration = round(time.time() - started, 1)
-    stdout = "".join(stdout_lines)
-    summary = extract_result(stdout)
-    logs = str(summary.get("logs", ""))
-    status = "passed" if proc.returncode == 0 else "failed"
-    error = ""
-    if proc.returncode != 0 and not logs:
-        tail = "\n".join(stdout.splitlines()[-20:]).strip()
-        error = tail or "demo-test-runner did not emit Result JSON"
-    return RunEntry(
-        test_file=rel_path,
-        status=status,
-        exit_code=proc.returncode,
-        duration=duration,
-        run_id=str(summary.get("runId", per_file_run_id)),
-        logs=logs,
-        summary=summary,
-        error=error,
-    )
-
-
-def run_single_claude(test_file: Path, *, log_level: str, batch_run_id: str) -> RunEntry:
-    """Use Claude CLI to call /t-demo-run (default behavior)"""
-    rel_path = test_file.relative_to(REPO_ROOT).as_posix()
-    per_file_run_id = f"{batch_run_id}-{test_file.stem}"
-
-    cmd = [
-        "claude",
-        "--dangerously-skip-permissions",
-        "-p",
-        f"/t-demo-run {rel_path}",
-    ]
-
-    started = time.time()
-    stdout_lines = []
-
-    with subprocess.Popen(
-        cmd,
-        cwd=str(REPO_ROOT),
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        bufsize=1,
-    ) as proc:
-        for line in iter(proc.stdout.readline, ""):
-            if line:
-                stdout_lines.append(line)
-                print(line, end="", flush=True)
-        proc.wait()
-
-    duration = round(time.time() - started, 1)
-    stdout = "".join(stdout_lines)
-    summary = extract_json_from_claude_output(stdout)
-
-    status = "passed" if summary.get("success") == "true" else "failed"
-    logs = summary.get("logs", "")
-    error = summary.get("error", "")
-    is_fixed = summary.get("fixed", "false") == "true"
-
-    return RunEntry(
-        test_file=rel_path,
-        status=status,
-        exit_code=summary.get("exit_code", proc.returncode),
-        duration=duration,
-        run_id=summary.get("run_id", per_file_run_id),
-        logs=logs,
-        summary=summary,
-        error=error,
-        fixed=is_fixed,
-    )
 
 
 def build_markdown_report(
@@ -506,8 +352,16 @@ def ensure_quality_dir() -> None:
     QUALITY_DIR.mkdir(parents=True, exist_ok=True)
 
 
-def main() -> int:
-    args = build_parser().parse_args()
+def print_json_stdout(payload: dict[str, object]) -> None:
+    """Print a single JSON line on stdout for the skill to parse."""
+    print(json.dumps(payload, ensure_ascii=False))
+
+
+# --------------------------------------------------------------------------- #
+# Subcommand: discover
+# --------------------------------------------------------------------------- #
+
+def cmd_discover(args: argparse.Namespace) -> int:
     try:
         test_files = discover_test_files(filter_file=args.filter_file)
     except FileNotFoundError as exc:
@@ -517,28 +371,22 @@ def main() -> int:
         print("ERROR: No demo test files found")
         return 1
 
-    if not args.direct_script and not check_claude_cli():
-        print("WARNING: 'claude' command not found, falling back to direct script mode")
-        print("         Install Claude Code CLI to use the enhanced mode with auto-fix")
-        args.direct_script = True
-
-    is_continue = args.command == "continue"
-
     ensure_quality_dir()
-    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    is_continue = args.continue_flag
 
     if is_continue:
         try:
             payload, json_report_path, md_report_path, test_files, resume_index = restore_payload_for_continue(
                 report_prefix=args.report_prefix,
-                direct_script=args.direct_script,
             )
         except ValueError as exc:
             print(f"ERROR: {exc}")
             return 1
+        write_json_report(json_report_path, payload)
         batch_run_id = Path(str(json_report_path.stem)).name
         resumed_from = test_files[resume_index].relative_to(REPO_ROOT).as_posix()
     else:
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
         json_report_path = QUALITY_DIR / f"{args.report_prefix}-{timestamp}.json"
         md_report_path = QUALITY_DIR / f"{args.report_prefix}-{timestamp}.md"
         payload = build_fresh_payload(
@@ -546,97 +394,193 @@ def main() -> int:
             test_files=test_files,
             json_report_path=json_report_path,
             md_report_path=md_report_path,
-            direct_script=args.direct_script,
         )
         write_json_report(json_report_path, payload)
         batch_run_id = f"run-all-{timestamp}"
         resume_index = 0
         resumed_from = ""
 
-    print_header("Demo E2E Batch Run")
-    print(f"  Discovered: {len(test_files)} test files", flush=True)
-    print(f"  Log level: {args.log_level}", flush=True)
-    print(f"  Report prefix: {args.report_prefix}", flush=True)
-    print(f"  Mode: {'Direct Script' if args.direct_script else 'Claude CLI (with auto-fix)'}", flush=True)
-    print(f"  Invocation: {'Continue' if is_continue else 'Fresh'}", flush=True)
-    print(f"  JSON report: {json_report_path.relative_to(REPO_ROOT).as_posix()}", flush=True)
-    if resumed_from:
-        print(f"  Resume from: {resumed_from}", flush=True)
-    print(flush=True)
+    discovered_rel = [path.relative_to(REPO_ROOT).as_posix() for path in test_files]
+    print_json_stdout({
+        "discovered_files": discovered_rel,
+        "batch_run_id": batch_run_id,
+        "json_report": json_report_path.relative_to(REPO_ROOT).as_posix(),
+        "md_report": md_report_path.relative_to(REPO_ROOT).as_posix(),
+        "resume_index": resume_index,
+        "resumed_from": resumed_from,
+        "invocation": "continue" if is_continue else "fresh",
+        "total_files": len(discovered_rel),
+    })
+    return 0
 
-    entries = [
-        RunEntry(
-            test_file=str(entry["test_file"]),
-            status=str(entry["status"]),
-            exit_code=int(entry["exit_code"]),
-            duration=float(entry["duration"]),
-            run_id=str(entry["run_id"]),
-            logs=str(entry.get("logs", "")),
-            summary=entry.get("summary", {}) if isinstance(entry.get("summary", {}), dict) else {},
-            error=str(entry.get("error", "")),
-            fixed=parse_boolish(entry.get("fixed", False)),
-        )
-        for entry in payload.get("entries", [])
-        if isinstance(entry, dict)
-    ]
-    started = time.time()
 
-    print_header("Running Tests")
-    for zero_based_index, test_file in enumerate(test_files[resume_index:], start=resume_index):
-        rel_path = test_file.relative_to(REPO_ROOT).as_posix()
-        display_index = zero_based_index + 1
+def cmd_checkpoint(args: argparse.Namespace) -> int:
+    report_path = resolve_report_path(args.json)
+    try:
+        payload = load_json_report(report_path)
+        discovered_files = payload_entry_paths(payload)
+        entries = payload.get("entries")
+        if payload.get("batch_status") != "running":
+            raise ValueError("Batch is not running")
+        if not isinstance(entries, list):
+            raise ValueError("Batch report does not contain entries")
+        if args.index != len(entries):
+            raise ValueError("Checkpoint index must equal the completed entry count")
+        if args.index < 0 or args.index >= len(discovered_files):
+            raise ValueError("Checkpoint index is out of range")
+        payload["current_index"] = args.index
+        payload["current_file"] = discovered_files[args.index]
+        payload.pop("last_error", None)
+        write_json_report(report_path, payload)
+    except (FileNotFoundError, json.JSONDecodeError, ValueError) as exc:
+        print(f"ERROR: {exc}")
+        return 1
+    return 0
 
-        print(f"[{display_index}/{len(test_files)}] {rel_path}", flush=True)
-        payload["current_index"] = zero_based_index
-        payload["current_file"] = rel_path
-        payload["entries"] = [asdict(entry) for entry in entries]
-        payload["total_duration"] = round(time.time() - started, 1)
-        write_json_report(json_report_path, payload)
 
-        if args.direct_script:
-            entry = run_single(test_file, log_level=args.log_level, batch_run_id=batch_run_id)
-        else:
-            entry = run_single_claude(test_file, log_level=args.log_level, batch_run_id=batch_run_id)
+def cmd_record(args: argparse.Namespace) -> int:
+    report_path = resolve_report_path(args.json)
+    try:
+        payload = load_json_report(report_path)
+        discovered_files = payload_entry_paths(payload)
+        entries = payload.get("entries")
+        if payload.get("batch_status") != "running":
+            raise ValueError("Batch is not running")
+        if not isinstance(entries, list):
+            raise ValueError("Batch report does not contain entries")
+        index = len(entries)
+        if index >= len(discovered_files):
+            raise ValueError("Batch already contains all file results")
+        expected_file = discovered_files[index]
+        if payload.get("current_file") != expected_file:
+            raise ValueError("Current file does not match the next unfinished file")
+        if args.fixed and args.status != "passed":
+            raise ValueError("Only a passed result can be marked fixed")
 
-        entries.append(entry)
-        payload["entries"] = [asdict(item) for item in entries]
-        payload["current_index"] = zero_based_index + 1
+        entries.append({
+            "test_file": expected_file,
+            "status": args.status,
+            "exit_code": args.exit_code,
+            "duration": args.duration,
+            "run_id": args.run_id,
+            "logs": args.logs,
+            "error": args.error if args.status == "failed" else "",
+            "fixed": args.fixed,
+        })
+        payload["current_index"] = index + 1
         payload["current_file"] = ""
-        payload["passed_files"] = sum(1 for item in entries if item.status == "passed")
+        payload["passed_files"] = sum(
+            1 for entry in entries if isinstance(entry, dict) and entry.get("status") == "passed"
+        )
         payload["failed_files"] = len(entries) - int(payload["passed_files"])
-        payload["total_duration"] = round(time.time() - started, 1)
-        write_json_report(json_report_path, payload)
+        payload["total_duration"] = round(sum(
+            float(entry.get("duration", 0.0) or 0.0)
+            for entry in entries
+            if isinstance(entry, dict)
+        ), 3)
+        payload.pop("last_error", None)
+        write_json_report(report_path, payload)
+    except (FileNotFoundError, json.JSONDecodeError, ValueError) as exc:
+        print(f"ERROR: {exc}")
+        return 1
+    return 0
 
-        if entry.status == "passed":
-            status_icon = "[PASS]"
-        elif entry.fixed:
-            status_icon = "[FIXED]"
-        else:
-            status_icon = "[FAIL]"
 
-        print(f"       {status_icon} ({entry.duration}s)", flush=True)
-        print(flush=True)
+def cmd_block(args: argparse.Namespace) -> int:
+    report_path = resolve_report_path(args.json)
+    try:
+        payload = load_json_report(report_path)
+        if payload.get("batch_status") != "running" or not payload.get("current_file"):
+            raise ValueError("Batch has no active file checkpoint")
+        payload["last_error"] = args.error
+        write_json_report(report_path, payload)
+    except (FileNotFoundError, json.JSONDecodeError, ValueError) as exc:
+        print(f"ERROR: {exc}")
+        return 1
+    return 0
 
-    total_duration = round(time.time() - started, 1)
+
+# --------------------------------------------------------------------------- #
+# Subcommand: finalize
+# --------------------------------------------------------------------------- #
+
+def cmd_finalize(args: argparse.Namespace) -> int:
+    json_report_path = resolve_report_path(args.json)
+    if not json_report_path.exists():
+        print(f"ERROR: batch JSON not found: {json_report_path}")
+        return 1
+
+    payload = load_json_report(json_report_path)
+    raw_entries = payload.get("entries")
+    if not isinstance(raw_entries, list):
+        print("ERROR: batch JSON does not contain entries")
+        return 1
+
+    try:
+        discovered_files = payload_entry_paths(payload)
+    except ValueError as exc:
+        print(f"ERROR: {exc}")
+        return 1
+
+    if len(raw_entries) != len(discovered_files):
+        print(
+            "ERROR: batch is incomplete: "
+            f"expected {len(discovered_files)} entries, found {len(raw_entries)}"
+        )
+        return 1
+
+    entries: list[RunEntry] = []
+    for index, entry in enumerate(raw_entries):
+        if not isinstance(entry, dict):
+            print(f"ERROR: entry {index} is not an object")
+            return 1
+        expected_file = discovered_files[index]
+        actual_file = str(entry.get("test_file", ""))
+        if actual_file != expected_file:
+            print(
+                f"ERROR: entry {index} test_file mismatch: "
+                f"expected {expected_file}, found {actual_file or '<empty>'}"
+            )
+            return 1
+        status = str(entry.get("status", ""))
+        if status not in {"passed", "failed"}:
+            print(f"ERROR: entry {index} has invalid status: {status or '<empty>'}")
+            return 1
+        fixed = parse_boolish(entry.get("fixed", False))
+        if fixed and status != "passed":
+            print(f"ERROR: entry {index} cannot be fixed unless status is passed")
+            return 1
+        entries.append(
+            RunEntry(
+                test_file=actual_file,
+                status=status,
+                exit_code=int(entry.get("exit_code", 0) or 0),
+                duration=float(entry.get("duration", 0.0) or 0.0),
+                run_id=str(entry.get("run_id", "")),
+                logs=str(entry.get("logs", "")),
+                summary=entry.get("summary", {}) if isinstance(entry.get("summary", {}), dict) else {},
+                error=str(entry.get("error", "")),
+                fixed=fixed,
+            )
+        )
+
+    total_duration = float(payload.get("total_duration", 0.0) or 0.0)
     passed_count = sum(1 for entry in entries if entry.status == "passed")
     failed_count = len(entries) - passed_count
 
-    print_header("Run Summary")
-    print(f"  Total files: {len(entries)}", flush=True)
-    print(f"  Passed: {passed_count}", flush=True)
-    print(f"  Failed: {failed_count}", flush=True)
-    print(f"  Duration: {total_duration}s", flush=True)
-    print(flush=True)
+    md_value = payload.get("markdown_report")
+    if isinstance(md_value, str) and md_value:
+        md_report_path = REPO_ROOT / md_value.replace("/", "\\")
+    else:
+        md_report_path = json_report_path.with_suffix(".md")
 
-    print_step("Generating reports...")
     generated_at = now_display()
-
     json_payload = {
         **payload,
         "generated_at": payload.get("generated_at", generated_at),
         "batch_status": "completed",
         "total_duration": total_duration,
-        "total_files": len(entries),
+        "total_files": len(discovered_files),
         "passed_files": passed_count,
         "failed_files": failed_count,
         "current_index": len(entries),
@@ -654,18 +598,113 @@ def main() -> int:
         encoding="utf-8",
     )
 
-    print_step("Reports generated")
-    print(f"  Markdown: {md_report_path.relative_to(REPO_ROOT).as_posix()}", flush=True)
-    print(f"  JSON: {json_report_path.relative_to(REPO_ROOT).as_posix()}", flush=True)
-    print(flush=True)
-
-    if failed_count == 0:
-        print_header("[SUCCESS] All Tests Passed!")
-    else:
-        print_header(f"[FAILURE] {failed_count} Test(s) Failed")
-    print(flush=True)
-
+    print(f"Markdown: {md_report_path.relative_to(REPO_ROOT).as_posix()}")
+    print(f"JSON: {json_report_path.relative_to(REPO_ROOT).as_posix()}")
+    print(f"Passed: {passed_count}  Failed: {failed_count}")
     return 0 if failed_count == 0 else 1
+
+
+# --------------------------------------------------------------------------- #
+# Argument parsing
+# --------------------------------------------------------------------------- #
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Discovery + reporting helper for batch Demo E2E runs. "
+            "Test execution is driven by /t-demo-run-all in the main session."
+        )
+    )
+    sub = parser.add_subparsers(dest="command")
+
+    p_discover = sub.add_parser(
+        "discover",
+        help="Enumerate non-live demo files; write/resume batch JSON; print plan JSON.",
+    )
+    p_discover.add_argument(
+        "continue_flag",
+        nargs="?",
+        choices=["continue"],
+        help="Resume the latest running batch from its first unfinished file",
+    )
+    p_discover.add_argument(
+        "--report-prefix",
+        default="demo-run-all",
+        help="Report filename prefix (default: demo-run-all)",
+    )
+    p_discover.add_argument(
+        "--filter-file",
+        type=Path,
+        default=None,
+        help=(
+            "Path to a file listing test files relative to demo/e2e/, one per line. "
+            "Blank lines and lines starting with # are skipped."
+        ),
+    )
+    p_discover.set_defaults(func=cmd_discover)
+
+    p_checkpoint = sub.add_parser(
+        "checkpoint",
+        help="Mark the next file as current in the batch JSON.",
+    )
+    p_checkpoint.add_argument("--json", type=Path, required=True)
+    p_checkpoint.add_argument("--index", type=int, required=True)
+    p_checkpoint.set_defaults(func=cmd_checkpoint)
+
+    p_record = sub.add_parser(
+        "record",
+        help="Append the current file result and advance the checkpoint.",
+    )
+    p_record.add_argument("--json", type=Path, required=True)
+    p_record.add_argument("--status", choices=["passed", "failed"], required=True)
+    p_record.add_argument("--exit-code", type=int, default=0)
+    p_record.add_argument("--duration", type=float, default=0.0)
+    p_record.add_argument("--run-id", default="")
+    p_record.add_argument("--logs", default="")
+    p_record.add_argument("--error", default="")
+    p_record.add_argument("--fixed", action="store_true")
+    p_record.set_defaults(func=cmd_record)
+
+    p_block = sub.add_parser(
+        "block",
+        help="Record a blocking error without advancing the current file.",
+    )
+    p_block.add_argument("--json", type=Path, required=True)
+    p_block.add_argument("--error", required=True)
+    p_block.set_defaults(func=cmd_block)
+
+    p_finalize = sub.add_parser(
+        "finalize",
+        help="Render Markdown report from batch JSON and mark batch completed.",
+    )
+    p_finalize.add_argument(
+        "--json",
+        type=Path,
+        required=True,
+        help="Path to the batch JSON report (absolute or relative to repo root).",
+    )
+    p_finalize.set_defaults(func=cmd_finalize)
+
+    return parser
+
+
+def main() -> int:
+    parser = build_parser()
+    args = parser.parse_args()
+
+    if not getattr(args, "command", None):
+        # No subcommand: do NOT execute any batch. The old default mode spawned
+        # nested `claude -p` subprocesses and locked the parent session for up
+        # to hours. Direct batch execution must go through /t-demo-run-all.
+        parser.print_help()
+        print("")
+        print("Direct batch execution is driven by /t-demo-run-all in the")
+        print("main session. Run `/t-demo-run-all` (fresh) or")
+        print("`/t-demo-run-all continue` (resume). This script only provides discovery,")
+        print("checkpoint persistence, and reporting helpers.")
+        return 1
+
+    return args.func(args)
 
 
 if __name__ == "__main__":

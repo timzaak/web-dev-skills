@@ -1,74 +1,44 @@
 # Runtime Boundaries
 
-本协议定义插件资源与目标项目运行时事实的边界。所有 skill 和 agent 在读取上下文、选择脚本入口、写入流程产物时都应按本协议解析。
+本协议定义目标项目运行时事实与插件资源的边界。skill 和 agent 在读取上下文、写入产物及选择脚本入口时必须遵循本协议。
 
-## Plugin-Owned Paths
+## Ownership
 
-以下路径属于插件自身，可作为稳定引用：
+| 位置 | 职责 |
+| --- | --- |
+| 目标项目代码与配置 | 当前实现事实 |
+| 目标项目 `AGENTS.md` / `CLAUDE.md` | 项目级执行约束 |
+| 目标项目 `docs/` | 已发布的长期产品、设计和使用事实 |
+| 目标项目 `.ai/` | 当前工作流的草稿、状态、质量报告和预览产物 |
+| 目标项目 `scripts/` | 环境、测试和 Demo 的本地执行入口 |
+| `${CLAUDE_PLUGIN_ROOT}/protocols/` | 跨 skill 和 agent 的共享契约 |
+| `${CLAUDE_PLUGIN_ROOT}/guides/` | 默认工程规范和领域实践 |
+| `${CLAUDE_PLUGIN_ROOT}/skills/` | 阶段入口和编排逻辑 |
+| `${CLAUDE_PLUGIN_ROOT}/agents/` | subagent 角色边界和执行职责 |
 
-- `skills/`
-- `agents/`
-- `guides/`
-- `protocols/`
-- `.claude-plugin/`
+插件资源不是目标项目的业务事实来源。目标项目可以在不破坏共享契约的前提下覆盖插件默认规范。
 
-插件资源用于提供流程编排、共享契约、工程规范、模板和兼容脚本。它们不是目标项目的业务事实来源。
+## Resolution Rules
 
-## Target-Project Runtime Paths
+- 当前实现行为以目标项目代码和配置为准。
+- 项目执行约束以目标项目 `AGENTS.md` / `CLAUDE.md` 为准。
+- 长期项目事实从目标项目代码、配置和 `docs/` 读取；`.ai/` 中的内容视为当前流程产物，只有通过相应发布阶段写入 `docs/` 后才成为长期文档。
+- 跨阶段的结构化字段、状态、报告格式、评分规则和命令契约以 `${CLAUDE_PLUGIN_ROOT}/protocols/` 为准。
+- 项目没有更具体约束时，采用 `${CLAUDE_PLUGIN_ROOT}/guides/` 中的默认规范。
+- 不同来源冲突时不得静默覆盖；应报告冲突、涉及的来源以及继续执行需要采用的规则。
 
-以下路径属于目标项目仓库，不是插件自带资源：
-
-- `AGENTS.md`
-- `CLAUDE.md`
-- `docs/`
-- `.ai/`
-- `scripts/`
-
-目标项目运行时路径用于承载当前项目事实、阶段产物、本地执行入口和项目级行为准则。
-
-## Resolution Order
-
-读取事实和做执行决策时，按以下优先级解析：
-
-1. 目标项目代码、配置和本地脚本。
-2. 目标项目 `AGENTS.md` / `CLAUDE.md` 中的项目级约束。
-3. 目标项目 `docs/` 中的长期产品、设计和使用事实。
-4. 目标项目 `.ai/` 中的当前工作流草稿、状态、质量报告和预览产物。
-5. 插件 `protocols/` 中的结构化字段、状态结构、报告格式和评分规则。
-6. 插件 `guides/` 中的默认工程规范和领域实践。
-7. 插件 `skills/` 和 `agents/` 中的阶段编排和角色职责说明。
-
-若上层事实与下层默认规则冲突，不要静默覆盖；应显式报告冲突，并说明继续执行需要采用哪个来源。
-
-## Runtime Rules
-
-- 若 `AGENTS.md` 与插件文档、guide、protocol 或既有产物冲突，显式报告冲突。
-- 读取 `docs/`、`.ai/`、`scripts/` 时，把它们视为目标项目运行时产物。
-- 目标项目根目录下的 `scripts/` 是环境启动、测试执行、Demo 运行等脚本的优先入口；插件 `scripts/` 仅作为未初始化或缺少本地脚本时的兼容回退。
-- 项目本地脚本可以按项目需要调整 Docker 镜像、容器名、端口、环境变量和启动细节，但脚本文件名、主要命令行参数和输出契约应保持稳定。
-- 长期项目事实优先来自目标项目代码、配置和 `docs/`。
-- `.ai/` 是工作流运行时空间，承载决策简报、PRD 草稿、draft user stories、技术预研、设计草稿、任务状态、质量报告和预览产物；需要长期沉淀的内容应通过对应发布阶段写回 `docs/`。
-- PRD、用户故事和技术预研的正式/候选来源、读取优先级和写入边界统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`。
-- 插件 `guides/` 提供默认开发规范和质量门禁；如果目标项目 `AGENTS.md`、代码事实或正式文档给出更具体约束，优先采用目标项目约束并记录差异。
-- 跨 skill 或 agent 的结构化字段、状态结构、报告格式优先来自 `protocols/`。
-- `SKILL.md` 和 agent 文档只定义如何编排、何时读取、需要返回什么，不重写 guide/protocol 中已有规则。
-- `agents/*.md` 定义 subagent 角色边界与执行职责；非 Claude 运行时不保证自动加载。所有 skill 调用子 agent 前统一按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 显式注入角色规范。
+PRD、用户故事和技术预研的正式来源与候选来源边界见 `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`。跨阶段已确认决策、已解决问题和延期问题写入目标项目 `.ai/decision-log/`，结构与门禁见 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`。
 
 ## Script Entry Rules
 
-运行环境、测试和 Demo 脚本时，按以下顺序选择入口：
+运行环境、测试和 Demo 脚本时：
 
-1. 若目标项目存在 `scripts/<name>.py`，使用 `uv run scripts/<name>.py ...`。
-2. 若目标项目缺少该脚本，才回退到 `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/<name>.py ...`。
-3. 若目标项目本地脚本存在但失败，不要直接改用插件脚本绕过；应先报告本地脚本失败原因，除非失败原因明确是脚本缺失或未初始化。
+1. 目标项目存在 `scripts/<name>.py` 时，使用 `uv run scripts/<name>.py ...`。
+2. 目标项目缺少该脚本时，才回退到 `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/<name>.py ...`。
+3. 目标项目脚本存在但执行失败时，不得用插件脚本绕过；应报告失败原因。
 
-脚本文件名、主要命令行参数、JSON 输出和日志契约属于跨阶段共享契约，应保持稳定。项目可以调整脚本内部的 Docker 镜像、容器名、端口、环境变量和启动命令。
+项目可以调整本地脚本内部的 Docker 镜像、容器名、端口、环境变量和启动命令，但脚本文件名、主要命令行参数、JSON 输出和日志契约必须保持稳定。
 
-## Document Ownership
+## Subagent Runtime
 
-- `docs/`：目标项目长期事实，包括正式 PRD、用户故事、设计基线、教程和面向人类维护的项目文档。
-- `.ai/`：流程运行时产物，包括决策简报、PRD 草稿、draft user stories、技术预研、设计草稿、任务状态、质量报告和 HTML Preview。
-- `protocols/`：插件共享契约，包括状态结构、输出结构、评分规则、报告格式和命令契约。
-- `guides/`：插件工程规范和领域实践，用于指导实现、测试、验收和 Demo 维护。
-- `skills/`：阶段入口和编排逻辑。
-- `agents/`：subagent 角色边界、执行职责和只读验收职责。
+`${CLAUDE_PLUGIN_ROOT}/agents/*.md` 在非 Claude 运行时不保证自动加载。skill 调用子 agent 前，必须按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 显式注入角色规范。

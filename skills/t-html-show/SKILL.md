@@ -1,7 +1,7 @@
 ---
 name: t-html-show
 description: Generate HTML Preview for any Markdown document, helping humans quickly understand content.
-argument-hint: "[feature-name | document-path]"
+argument-hint: "[document-path]"
 allowed-tools:
   - Read
   - Agent
@@ -26,31 +26,24 @@ allowed-tools:
 
 基于任意 Markdown 文档生成或更新 HTML Preview。
 
-输出文件：
-- PRD: `.ai/preview/<domain>/[feature].html`
-- Decision Brief: `.ai/preview/decision/[feature].html`
-- Tech Research: `.ai/preview/tech-research/[feature].html`
-- Design: `.ai/preview/design/[feature].html`
-- Task: `.ai/preview/task/<feature>/.../[name].html`
-- 其他: `.ai/preview/[stem].html`
+参数是源 Markdown 文档路径。文档类型由路径自动推断，输出路径按类型派生：
+
+- PRD: `.ai/prd/<domain>/<feature>.md` 或 `docs/prd/<domain>/<feature>.md` → `.ai/preview/<domain>/<feature>.html`
+- Decision Brief: `.ai/decision/<feature>.md` → `.ai/preview/decision/<feature>.html`
+- Tech Research: `.ai/tech-research/<feature>.md` → `.ai/preview/tech-research/<feature>.html`
+- Design: `.ai/design/<feature>.md` → `.ai/preview/design/<feature>.html`
+- Task: `.ai/task/<feature>/.../<name>.md` → `.ai/preview/task/<feature>/.../<name>.html`
+- 其他: `<path>/<name>.md` → `.ai/preview/<name>.html`
 
 ## 使用方式
 
 ```bash
-# PRD 模式（向后兼容）
-/t-html-show [feature]
-
-# 通用模式（任意 Markdown 文件）
 /t-html-show <path-to-markdown>
 ```
 
 ## 参数要求
 
-两种模式：
-1. **PRD 模式**：参数是 feature 名称，优先搜索 `.ai/prd/**/*.md`，再搜索 `docs/prd/**/*.md`
-2. **通用模式**：参数是文件路径，直接使用
-
-文件名仅允许英文、数字、空格、下划线、连字符。拒绝 `..`。长度限制 1 到 50 字符。
+参数必须是源 Markdown 文档的文件路径，直接使用。拒绝 `..`。
 
 如果参数不合法，立即终止并提示正确用法。
 
@@ -58,12 +51,7 @@ allowed-tools:
 
 **路径与域**：
 - Preview 写入 `.ai/preview/` 下，不进入代码仓库
-- PRD 来源路径为 `.ai/prd/<domain>/[feature].md` 或 `docs/prd/<domain>/[feature].md`，输出 `.ai/preview/<domain>/[feature].html`
-- Decision Brief 来源路径为 `.ai/decision/[feature].md`，输出 `.ai/preview/decision/[feature].html`
-- Tech Research 来源路径为 `.ai/tech-research/[feature].md`，输出 `.ai/preview/tech-research/[feature].html`
-- Design 来源路径为 `.ai/design/[feature].md`，输出 `.ai/preview/design/[feature].html`
-- Task 来源路径为 `.ai/task/<feature>/.../[name].md`，输出 `.ai/preview/task/<feature>/.../[name].html`
-- 其他文档：输出 `.ai/preview/<stem>.html`
+- 文档类型与输出路径由源文档路径派生，规则见上方「目标」
 
 **Preview 边界**：
 - 是源文档的可视化审阅视图，不能引入源文档未声明的新需求或规则
@@ -86,9 +74,7 @@ allowed-tools:
 - `${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md` — HTML Preview 通用契约
 - `${CLAUDE_PLUGIN_ROOT}/templates/preview-template.html` — HTML 模板
 
-PRD 模式额外读取：
-- `.ai/prd/<domain>/[feature].md` — PRD 草稿（优先）
-- `docs/prd/<domain>/[feature].md` — 正式 PRD（草稿不存在时）
+当源文档为 PRD（路径位于 `.ai/prd/**` 或 `docs/prd/**`）时额外读取：
 - `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md` — PRD 专用契约
 
 如果源文档不存在，立即终止并提示先创建文档。
@@ -114,11 +100,8 @@ PRD 模式额外读取：
 
 ### 2. 定位文档
 
-判断模式：
-- 参数匹配已有文件路径 → 通用模式，直接使用
-- 参数不匹配文件路径 → PRD 模式，优先搜索 `.ai/prd/**/*.md`，再搜索 `docs/prd/**/*.md` 找到目标 PRD
-  - 未找到 → 终止并提示先执行 `/t-prd`
-  - 确定目标域（`auth | billing | core | integration`）
+- 参数即为源 Markdown 文档路径，直接使用
+- 文档不存在 → 终止并提示先创建文档
 
 ### 3. 检查已有 Preview
 
@@ -151,13 +134,13 @@ subagent 的详细规则见 `${CLAUDE_PLUGIN_ROOT}/agents/html-show.md` 和 `${C
 
 完成后明确说明：
 - Preview 路径
-- 文档类型（PRD / 通用）
+- 文档类型（PRD / Decision / Tech Research / Design / Task / Generic）
 - 本次走 create 还是 update
 - 可视化类型（prd-review / decision-map / research-map / design-change-map / task-execution-map / answer-board / interactive-preview / backend-flow / state-diagram / dependency-graph / timeline / swimlane / pipeline / hub-map / capability-matrix / acceptance-matrix / document-reader）
 
 ## 失败处理
 
-- 缺失参数 → 直接失败并提示用法
+- 缺失参数或参数不是文件路径 → 直接失败并提示用法
 - 源文档不存在 → 终止并提示先创建文档
 - 文件无法写入 → 终止并报告
 - HTML Preview 无法生成 → 终止并报告
@@ -166,7 +149,7 @@ subagent 的详细规则见 `${CLAUDE_PLUGIN_ROOT}/agents/html-show.md` 和 `${C
 ## 质量门禁
 
 - Preview 内容边界以 `${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md` 为准
-- PRD 模式额外遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md`
+- PRD 文档额外遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md`
 
 ## 附加资源
 

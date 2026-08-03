@@ -104,7 +104,6 @@ Backend 主规范。它定义插件级稳定约束；目标项目的真实架构
 
 ```bash
 cd backend
-/code-review
 mvn test
 ```
 

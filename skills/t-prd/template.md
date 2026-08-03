@@ -84,10 +84,16 @@
 ---
 
 ## 8. 已确认决策
-- [决策项：结论]
+
+| Decision ID | 状态 | 决策项 | 结论 | PRD 落点 | 来源 |
+|---|---|---|---|---|---|
+| `DEC-[feature]-001` | Applied / Not Applicable / Superseded | [决策项] | [已确认结论] | [章节] | `.ai/decision-log/[feature].md` |
+
+> 这里只记录带稳定 DEC ID 的已确认结论。用户决策必须在写入前解决。
 
 ---
 
 ## 9. 参考资料
 - 用户故事：`docs/user-stories/...` 或 `.ai/user-stories/...`
 - 相关 PRD：`docs/prd/...`
+- 决策账本：`.ai/decision-log/[feature].md`

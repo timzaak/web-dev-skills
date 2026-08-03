@@ -118,6 +118,7 @@ cd frontend && npm run lint
 - 用工厂函数构造测试数据，避免散落硬编码 fixture
 - 同类 enum、边界值和非法输入用 `it.each` 合并
 - 验证 request body 时优先通过 MSW handler 观察请求，不 mock 内部 API 函数
+- 代码注释规范（禁止引用 `.ai/design`/`.ai/task`、低价值注释定义）以 `${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md` 为准
 
 若需要返回结构化完成结果，优先遵循：
 

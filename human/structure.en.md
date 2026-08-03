@@ -26,18 +26,23 @@ A skill is an imperative workflow entry point, not "a prompt that lets the model
 - Advances `.ai/task/**/.state.json`.
 - Provides a recoverable path when something fails.
 
-The main path is:
+After Decision, the main path branches according to the primary unknown and converges before Design:
 
 ```text
-t-decision -> t-tech-research -> t-prd -> t-prd-check
--> t-design -> t-design-check
--> t-task -> t-task-check
+t-decision
+├─ technical unknowns may change product scope -> t-tech-research -> t-prd -> [t-prd-check] -> t-design
+├─ product boundaries determine technical choices -> t-prd -> [t-tech-research -> t-prd update] -> [t-prd-check] -> t-design
+└─ purely technical, no business-logic change -> t-tech-research -> t-design
+
+t-design -> [t-design-check] -> t-task -> [t-task-check]
 -> t-run
 -> t-demo-run -> t-demo-accept
 -> t-prd-publish -> t-push -> t-release
 ```
 
-Not every project needs every stage. As AI capability improves, `t-prd-check`, `t-design-check`, and `t-task-check` are optional quality checks: use them for complex, high-risk, or multi-person work to stop upstream problems before they move downstream; simple low-risk changes may continue directly to the next stage. Implementation accept stages still close delivery acceptance.
+`t-prd` and `t-tech-research` have no globally fixed order. Start with research when feasibility, cost, dependencies, or compatibility may change product scope. Start with a PRD draft when product boundaries, user flows, or acceptance goals must be clear before selecting a technical route. If later research changes product semantics, rerun `t-prd` to update the draft. Before `t-design`, the artifacts must converge without unexplained conflicts. A purely technical proposal may skip PRD only when it does not change business logic, product rules, user-visible flows, or acceptance goals.
+
+Not every project needs every stage. `t-prd-check`, `t-design-check`, and `t-task-check` are optional quality checks: use them for complex, high-risk, or multi-person work to stop upstream problems before they move downstream; simple low-risk changes may continue directly to the next stage. Implementation accept stages still close delivery acceptance.
 
 ### Agents: Specialized Executors
 
@@ -96,6 +101,8 @@ The useful order is not to follow the AI's generated artifact immediately. First
 
 After receiving the walkthrough, AI should separate confirmed technical constraints, facts that require official documentation, current-state facts that can be verified from the codebase, and product or technical decisions that must be asked of the user. Guesses in the walkthrough must not be written as confirmed conclusions.
 
+Technical research may happen before or after a PRD draft. When a draft exists, research treats it as a candidate product boundary but must not silently rewrite product decisions. If research shows that scope, business rules, user flows, or acceptance goals must change, hand the findings back to `t-prd` for an update instead of carrying the conflict into design.
+
 ### Design: Human-Led UX Choices
 
 `t-design` is not only a translation from PRD to modules, APIs, and states. When a feature includes frontend UI, humans need to walk through the experience from the user's perspective:
@@ -137,6 +144,8 @@ The model is `phase -> slot -> item`:
 - `item`: the smallest executable task file.
 
 `t-run` executes only items. It does not directly execute manifests such as `index.md`, `dev.md`, `test.md`, or `accept.md`. At most one item may be `running` at a time. This trades some concurrency for smaller context, clearer failure localization, and recoverable state.
+
+`t-super-run` provides a single-main-session execution model. It generates no items and dispatches no subagents. Instead, the main session reads the current task's agent specification and related guides, executes the work, checkpoints status and evidence under `.ai/super-run/[feature]/`, and then switches roles. Backend/frontend use `dev -> test -> accept`; demo uses `dev -> accept`. Goal mode keeps the phase moving, while the state file supports recovery across context compaction. Keep the standard path when explicit subagent ownership or fine-grained handoffs are required.
 
 A fixing agent must return `tests_to_run`, explaining which backend, frontend, or Demo commands should be rerun after the fix. This keeps the risk of "Demo passes but lower-level regression fails" visible.
 

@@ -76,6 +76,7 @@ examples:
 - backend 细页入口与导航关系以 `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md` 为准
 - 后端事实、架构边界、禁止事项以 `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md` 为准
 - 测试写法与验证顺序以对应 guide 为准
+- 代码注释规范（禁止引用 `.ai/design`/`.ai/task`、低价值注释定义与保留标准）以 `${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md` 为准
 - agent 文档不再重复定义第二套后端规范
 
 ## Context7 文档查询
@@ -159,14 +160,3 @@ uv run scripts/backend-test.py -- --tests '*<TestClass>'
 ### 校准模式输出
 
 详细输出格式见 `${CLAUDE_PLUGIN_ROOT}/guides/backend/calibration-mode.md`。
-
-## Shared References
-
-- `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
-- `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/backend/tdd-workflow.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/backend/validation.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/backend/calibration-mode.md`
