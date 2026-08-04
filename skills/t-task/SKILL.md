@@ -1,7 +1,7 @@
 ---
 name: t-task
 description: Convert technical design documents into executable phased task plans with ordered work breakdown.
-argument-hint: "[任务名称] [--phase <backend|frontend|miniapp|flutter|demo>]"
+argument-hint: "[任务名称] [--phase <backend|frontend|miniapp|flutter|web-demo|flutter-demo>]"
 allowed-tools:
   - AskUserQuestion
   - Read
@@ -62,7 +62,7 @@ allowed-tools:
 | 参数 | 说明 |
 |---|---|
 | `[feature]` | 功能名（必填） |
-| `--phase <backend\|frontend\|miniapp\|flutter\|demo>` | 指定阶段生成；未指定时默认选择第一个 active phase |
+| `--phase <backend\|frontend\|miniapp\|flutter\|web-demo\|flutter-demo>` | 指定阶段生成；未指定时默认选择第一个 active phase |
 
 ## Preconditions
 - `.ai/design/[feature].md` 必须存在。
@@ -116,8 +116,10 @@ allowed-tools:
 | flutter | dev | flutter-dev |
 | flutter | test | flutter-test |
 | flutter | accept | flutter-accept |
-| demo | dev | demo-dev |
-| demo | accept | demo-accept |
+| web-demo | dev | web-demo-dev |
+| web-demo | accept | web-demo-accept |
+| flutter-demo | dev | flutter-demo-dev |
+| flutter-demo | accept | flutter-demo-accept |
 
 ## Slot Manifest Contract
 每个 slot manifest 必须包含：

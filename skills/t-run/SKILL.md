@@ -1,7 +1,7 @@
 ---
 name: t-run
-description: Execute phased task plans by dispatching work to specialized sub-agents for backend, frontend, miniapp, Flutter, or demo phases.
-argument-hint: "[任务名称] [--phase <backend|frontend|miniapp|flutter|demo>]"
+description: Execute phased task plans for backend, frontend, miniapp, Flutter, Web Demo, or Flutter Demo.
+argument-hint: "[任务名称] [--phase <backend|frontend|miniapp|flutter|web-demo|flutter-demo>]"
 allowed-tools:
   - AskUserQuestion
   - Read
@@ -50,7 +50,7 @@ allowed-tools:
 | 参数 | 说明 |
 |---|---|
 | `[feature]` | 功能名 |
-| `--phase <backend\|frontend\|miniapp\|flutter\|demo>` | 仅执行指定阶段；未指定时执行 `.state.json` 的当前阶段 |
+| `--phase <backend\|frontend\|miniapp\|flutter\|web-demo\|flutter-demo>` | 仅执行指定阶段；未指定时执行 `.state.json` 的当前阶段 |
 
 ## Preconditions
 - `.ai/task/[feature]/.state.json` 必须存在且可解析。
@@ -59,7 +59,7 @@ allowed-tools:
 - 当前阶段目录必须存在。
 - 当前阶段必须包含：
   - `index.md`
-  - 对应 slot manifest：backend/frontend/miniapp/flutter 为 `dev.md`, `test.md`, `accept.md`；demo 为 `dev.md`, `accept.md`
+  - 对应 slot manifest：backend/frontend/miniapp/flutter 为 `dev.md`, `test.md`, `accept.md`；web-demo/flutter-demo 为 `dev.md`, `accept.md`
   - 对应 item 目录和 item 文件
 
 ## Shared Contracts

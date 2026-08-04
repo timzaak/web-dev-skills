@@ -15,7 +15,7 @@ tools: [Read, Edit, Write, Grep, Glob, Bash, AskUserQuestion, WebSearch]
 
 ## 边界
 
-- service/repository/Notifier 用单元测试；View/路由/DI 用 widget 测试；重要用例用 integration test；原生 UI 用 Patrol/等价方案。
+- service/repository/Notifier 用单元测试；View/路由/DI 用 widget 测试；跨组件用例用 integration test；原生 UI 技术门禁可用 Patrol。按用户故事组织的演示归 `flutter-demo` phase，不在本 agent 重复 authoring。
 - 每个测试隔离 ProviderScope/container，fake 优先，断言可观察行为。
 - authoring 与集中定向 runner 分离；命令来自目标项目事实。
 - Web integration 和 Patrol 不得误用普通 `flutter test`。

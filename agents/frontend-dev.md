@@ -107,7 +107,7 @@ tools:
 
 - 新增或修改可交互 UI 时，检查 `data-testid`
 - 命名与覆盖范围只看 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/testid-standards.md`
-- 若可能影响 Demo 选择器，检查 `demo/e2e/` 与 `${CLAUDE_PLUGIN_ROOT}/guides/demo/demo-debugging.md`
+- 若可能影响 Demo 选择器，检查 `demo/e2e/` 与 `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/demo-debugging.md`
 
 ### 完成前验证
 
@@ -140,7 +140,7 @@ cd frontend && npm run lint
 
 ## 结构化输出
 
-当 frontend-dev 用于修复 `t-demo-run` 失败时，`task_completion` 必须返回：
+当 frontend-dev 用于修复 `t-web-demo-run` 失败时，`task_completion` 必须返回：
 
 - `change_scope`
 - `tests_to_run`

@@ -1,7 +1,7 @@
 ---
 name: t-super-run
-description: Plan and execute a backend, frontend, or demo phase in one persistent main-session Goal with outcome-level status, role-guide switching, validation, recovery, and acceptance loops, without dispatching subagents.
-argument-hint: "[任务名称] [--phase <backend|frontend|demo>]"
+description: Plan and execute a backend, frontend, web-demo, flutter, or flutter-demo phase in one persistent main-session Goal with outcome-level status, role-guide switching, validation, recovery, and acceptance loops, without dispatching subagents.
+argument-hint: "[任务名称] [--phase <backend|frontend|web-demo|flutter|flutter-demo>]"
 allowed-tools:
   - AskUserQuestion
   - Read
@@ -35,12 +35,12 @@ allowed-tools:
 | 参数 | 说明 |
 | --- | --- |
 | `[feature]` | 必填；允许中文、英文、数字、空格、下划线和连字符 |
-| `--phase <backend\|frontend\|demo>` | 可选；未传时选择首个适用且未完成的 phase |
+| `--phase <backend\|frontend\|web-demo\|flutter\|flutter-demo>` | 可选；未传时选择首个适用且未完成的 phase |
 
 ## Preconditions
 
 - `.ai/design/[feature].md` 必须存在。
-- 只支持 `backend | frontend | demo`。miniapp 和 Flutter 使用 `/t-task`、可选 `/t-task-check` 与 `/t-run`。
+- 只支持 `backend | frontend | web-demo | flutter | flutter-demo`。miniapp 使用 `/t-task`、可选 `/t-task-check` 与 `/t-run`。
 - 不读取或修改 `.ai/task/[feature]/` 作为 super-run 状态。
 
 ## Source Loading
@@ -60,10 +60,11 @@ allowed-tools:
 - 按 `${CLAUDE_PLUGIN_ROOT}/protocols/super-run-state-contract.md` 创建或更新：
   - `.ai/super-run/[feature]/.state.json`
   - `.ai/super-run/[feature]/[phase].md`
-- backend/frontend 固定规划 `dev -> test -> accept`，demo 固定规划 `dev -> accept`。
+- backend/frontend/flutter 固定规划 `dev -> test -> accept`，web-demo/flutter-demo 固定规划 `dev -> accept`。
 - 每个 task 只规划一个责任闭环，不生成 item。
 - 计划必须写明每个 task 要读取的 agent 规范及其关联文档的具体路径。
-- demo/dev 的关联文档必须包含 `${CLAUDE_PLUGIN_ROOT}/agents/demo-diagnose.md`，用于把 Demo 失败归因到测试资产、frontend 或 backend 后再切换对应规范修复。
+- web-demo/dev 的关联文档必须包含 `${CLAUDE_PLUGIN_ROOT}/agents/web-demo-diagnose.md`，用于把 Playwright 失败归因到测试资产、frontend 或 backend 后再切换对应规范修复。
+- flutter-demo/dev 的关联文档必须包含 `${CLAUDE_PLUGIN_ROOT}/agents/flutter-demo-diagnose.md`，用于把 Patrol 失败归因到测试资产、Flutter 或 backend 后再切换对应规范修复。
 - 首次写入后或恢复到未完成 phase 后，主动调用 `/goal` 或运行时等价 Goal API；Goal 的 outcome、constraints 和 verification 必须符合共享协议。
 
 规划写清目标、成功标准、权限边界、当前角色、证据入口和停止条件，具体实现路径根据仓库事实决定。不要把 `t-task` 的细粒度 item 换一种格式复制进来，也不要用长篇过程指令占用持续 Goal 的上下文。

@@ -12,7 +12,7 @@
 | 日常开发环境 | 手动启动 PostgreSQL + Redis + cargo run + npm run dev |
 | 后端测试 | `uv run scripts/backend-test.py -- [filter]` |
 | 前端类型检查与构建 | `cd frontend && npm run type-check` / `npm run build` |
-| Demo / E2E | `uv run scripts/demo-test-runner.py demo/e2e/[test].ts` |
+| Demo / E2E | `uv run scripts/web-demo-test-runner.py demo/e2e/[test].ts` |
 
 说明：
 
@@ -35,7 +35,7 @@
 
 ## 入口
 
-- Demo：[`e2e-testing.md`](${CLAUDE_PLUGIN_ROOT}/guides/demo/e2e-testing.md)
+- Demo：[`e2e-testing.md`](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/e2e-testing.md)
 - Backend：[`testing.md`](${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md)
 - Frontend：[`testing.md`](${CLAUDE_PLUGIN_ROOT}/guides/frontend/testing.md)
 - 质量门禁：[`quality.md`](${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md)

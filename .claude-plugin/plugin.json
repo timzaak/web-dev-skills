@@ -9,7 +9,7 @@
     "backend": "Rust / Axum",
     "frontend": "React / TanStack Router & Query / Tailwind / Radix UI",
     "mobile": "Flutter / Riverpod / go_router / integration_test / Patrol",
-    "testing": "cargo nextest / Vitest / Flutter Test / Playwright / Patrol"
+    "testing": "cargo nextest / Vitest / Flutter Test / Web Demo (Playwright) / Flutter Demo (Android Patrol)"
   },
   "requiredMcpServers": ["context7"]
 }

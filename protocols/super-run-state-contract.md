@@ -11,7 +11,9 @@ super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相
 ├── .state.json
 ├── backend.md
 ├── frontend.md
-└── demo.md
+├── web-demo.md
+├── flutter.md
+└── flutter-demo.md
 ```
 
 - `.state.json` 是 super-run 状态的唯一事实源。
@@ -20,13 +22,15 @@ super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相
 
 ## Supported Phases And Tasks
 
-`supported_phases` 固定为 `backend | frontend | demo`，默认顺序为 `backend -> frontend -> demo`。
+`supported_phases` 固定为 `backend | frontend | web-demo | flutter | flutter-demo`。默认顺序为 `backend -> frontend -> flutter -> web-demo -> flutter-demo`；一个 feature 通常只命中单一端栈，`active_phases` 由真实交付端收窄。miniapp 仍使用分阶段的 `t-task -> t-run` 工作流。
 
 | phase | task 顺序 | agent 规范 |
 | --- | --- | --- |
 | backend | `dev -> test -> accept` | `backend-dev -> backend-test -> backend-accept` |
 | frontend | `dev -> test -> accept` | `frontend-dev -> frontend-test -> frontend-accept` |
-| demo | `dev -> accept` | `demo-dev -> demo-accept` |
+| flutter | `dev -> test -> accept` | `flutter-dev -> flutter-test -> flutter-accept` |
+| web-demo | `dev -> accept` | `web-demo-dev -> web-demo-accept` |
+| flutter-demo | `dev -> accept` | `flutter-demo-dev -> flutter-demo-accept` |
 
 `active_phases` 只包含设计、PRD 或明确用户要求中的真实交付端。显式传入的 phase 不适用时终止，不得为满足命令而编造交付范围。
 
@@ -44,7 +48,7 @@ super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相
 {
   "feature": "sample-feature",
   "current_phase": "backend",
-  "active_phases": ["backend", "frontend", "demo"],
+  "active_phases": ["backend", "frontend", "web-demo"],
   "phases": {
     "backend": {
       "status": "in_progress",
@@ -141,7 +145,8 @@ Agent 规范在这里是主会话执行指南，不适用 `${CLAUDE_PLUGIN_ROOT}
 - backend/test 先按 `backend-test` 规范编写或维护场景测试并做编译验证，再由主会话按 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md` 执行定向测试与失败分类。
 - frontend/test 按 `frontend-test` 规范完成测试资产和定向执行。
 - 测试发现生产代码缺陷时，在同一个 test task 内读取对应 dev agent 规范后修复，再重新执行受影响测试；不得弱化断言、权限预期或业务规则。
-- demo/dev 同时承担 Demo/E2E 资产维护和定向执行，demo 不新增独立 test task。Demo 失败时读取 `demo-diagnose` 规范分类；测试资产问题仍在 demo/dev 修复，backend/frontend 实现问题则在同一 task 内切换到对应 dev 规范修复，并补跑底层定向测试和 Demo。
+- web-demo/dev 同时承担 Playwright 资产维护和定向执行，不新增独立 test task。失败时读取 `web-demo-diagnose` 规范分类，再切换对应 dev 规范修复并补跑底层定向测试。
+- flutter-demo/dev 同时承担 Patrol 资产维护和定向执行，不新增独立 test task。失败时读取 `flutter-demo-diagnose` 规范分类，再切换 `flutter-demo-dev`、`flutter-dev` 或 `backend-dev` 规范修复并补跑整文件测试；Android device 选定值写入 `flutter-demo.md` plan，运行时缺失则询问用户。
 - accept 必须保持对应 accept agent 的只读验收边界；允许写验收报告，不得直接修改生产代码或测试来制造通过结果。
 - accept 拒绝时按证据重新打开 dev 或 test，并把 accept 重置为 `pending`。修复、重测后重新验收，直到通过或进入 `blocked`。
 

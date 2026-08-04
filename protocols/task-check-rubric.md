@@ -42,12 +42,12 @@
 `.state.json` 必须满足：
 
 - `feature` 存在
-- `phase` 为 supported phases：`backend|frontend|miniapp|flutter|demo`
+- `phase` 为 supported phases：`backend|frontend|miniapp|flutter|web-demo|flutter-demo`
 - `phases` 包含当前任务的 active phases；未启用 miniapp/Flutter 的项目不要求包含对应 phase
 - `phases[*].status` 存在
 - `tasks[phase]` 存在
 - backend/frontend/miniapp/flutter 含 `dev/test/accept`
-- demo 含 `dev/accept`
+- web-demo / flutter-demo 含 `dev/accept`
 - 每个 slot 含 `status/manifest/items`
 - 每个 item 含 `status/file/agent`
 
@@ -72,7 +72,7 @@
 - 若当前阶段为 backend，backend/test slot 符合 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 authoring/集中 runner 覆盖与 runner agent/协议引用要求
 - 若当前阶段为 backend，backend/test runner 默认使用定向命令；全量 `uv run scripts/backend-test.py --` 只有在写明无法可靠定向或门禁要求时才允许
 - 若当前阶段为 backend，backend/test 至少包含一个 runner，且 runner 在 manifest 中排在其覆盖的 authoring item 之后
-- 若当前阶段为 frontend/miniapp/flutter/demo，涉及测试代码 authoring 时必须有排在相关 authoring item 之后的集中定向执行 item，且不得默认规划全量测试
+- 若当前阶段为 frontend/miniapp/flutter/web-demo/flutter-demo，涉及测试代码 authoring 时必须有排在相关 authoring item 之后的集中定向执行 item，且不得默认规划全量测试
 - slot item 数量符合 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的上限，或具有用户授权证据
 - 大范围重构、旧架构替换或旧模块迁移任务包含旧代码清理清单，并按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 先删除旧实现再改写新结构
 - 检查是否存在过度拆分：同一责任闭环被拆成多个无法独立验收的 item，或多个 item 只是在技术层之间传递 handoff
@@ -148,7 +148,7 @@ agent 评审边界：
 - backend/test 缺少 runner item、runner agent 不是 `general-purpose`、runner 未引用 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md`，或存在 authoring item 未被集中 runner 覆盖
 - backend/test runner 把全量 `uv run scripts/backend-test.py --` 当默认 validation，且未说明定向范围不足或门禁要求
 - backend/test runner 排在其覆盖的 authoring item 之前，或 backend/test 缺少 runner 导致 accept 前没有测试执行闭环
-- frontend/miniapp/flutter/demo 涉及测试代码 authoring，却缺少排在相关 authoring item 之后的集中定向执行 item
+- frontend/miniapp/flutter/web-demo/flutter-demo 涉及测试代码 authoring，却缺少排在相关 authoring item 之后的集中定向执行 item
 - 命令、路径、阶段链路经仓库和规范双重验证后确认会直接导致 `/t-run` 无法执行
 
 出现 `confirmed P0` 时，必须拒绝进入 `/t-run`。
@@ -163,7 +163,7 @@ agent 评审边界：
 - item 过度拆分：同一责任闭环被拆成多个无法独立验收的 item，多个 item 修改同一小文件集并重复相同验证命令，或执行序列只是在 DTO/domain/repository/service/route、API/store/page/error/permission 等技术层之间传递 handoff
 - HTTP/API item 覆盖超过 10 个 endpoint，或混合不同资源域、读写操作、状态操作、配置类接口，导致单次执行或验证闭环不可恢复
 - item 略大但责任闭环单一、验证定向、失败可定位、顺序清晰、handoff 可恢复时不应仅因规模、步骤数或文件数记 P1
-- demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流
+- web-demo / flutter-demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流
 - 大范围重构缺少旧代码清理清单，清单没有说明删除边界与残留搜索方式，或未按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的“先删除旧实现再改写新结构”顺序组织
 - 没有真实兼容约束（按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的兼容性来源判定：PRD、设计文档、外部 API 契约、数据保留、跨版本部署或用户显式要求均不成立）时，任务计划仍以兼容层、adapter、bridge、fallback、双路径分支或“以后再删”作为主路径
 - 后续 item 缺少 `Handoff` 追溯

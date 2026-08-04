@@ -57,14 +57,23 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 # 此命令采用目标级 task，不生成供 t-task-check 检查的细粒度 item
 /t-tools:t-super-run user-management --phase backend
 
-# 运行 Demo/E2E 测试
-/t-demo-run demo/e2e/<role>/<scenario>.e2e.ts
+# 运行 Web Demo/E2E 测试
+/t-tools:t-web-demo-run demo/e2e/<role>/<scenario>.e2e.ts
 
 # 串行运行全部非 live Demo/E2E，支持断点续跑
-/t-demo-run-all
+/t-tools:t-web-demo-run-all
+# 批量 Demo 失败密集且疑似共享根因时：加 scan 参数先聚类再按唯一根因修
+/t-tools:t-web-demo-run-all scan
 
-# 最终验收
-/t-tools:t-demo-accept <role>
+# 运行 Android Flutter 用户故事演示
+/t-tools:t-flutter-demo-run patrol_test/<domain>/<story>_test.dart --device <android-id>
+
+# 串行运行全部 Patrol 演示，支持断点续跑
+/t-tools:t-flutter-demo-run-all --device <android-id>
+
+# Web / Flutter Demo 最终验收
+/t-tools:t-web-demo-accept <role>
+/t-tools:t-flutter-demo-accept <domain|all> --device <android-id>
 
 # 实现和验收后发布正式 PRD / 用户故事
 /t-tools:t-prd-publish user-management
@@ -74,17 +83,18 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 
 ## 阶段拆分
 
-`t-task`、`t-task-check` 和 `t-run` 都按 phase 推进，其中 `t-task-check` 是可选检查。典型 Web 顺序是 `backend -> frontend -> demo`；按实际交付端可插入 `miniapp` 和/或 `flutter`。
+`t-task`、`t-task-check` 和 `t-run` 都按 phase 推进，其中 `t-task-check` 是可选检查。典型 Web 顺序是 `backend -> frontend -> web-demo`；典型 Flutter 顺序是 `backend -> flutter -> flutter-demo`。
 
 - `backend`：后端接口、数据模型、权限、业务逻辑、后端测试和只读验收。
 - `frontend`：React 页面、组件、状态、前端测试和只读验收。
 - `miniapp`：小程序页面、平台能力、构建验证和只读验收。
 - `flutter`：Flutter View、Riverpod 状态、数据层、单元/widget/integration 测试和只读验收。
-- `demo`：基于用户故事维护 Playwright Demo/E2E，并验收真实用户路径。
+- `web-demo`：基于用户故事维护 Playwright Demo/E2E，并验收浏览器用户路径。
+- `flutter-demo`：基于用户故事维护 Android Patrol 演示，覆盖真实 App 操作与原生系统 UI。
 
-每个 phase 都先运行 `/t-tools:t-task <feature> --phase <phase>`，随后可按风险选择运行 `/t-tools:t-task-check <feature> --phase <phase>`，再用 `/t-tools:t-run <feature> --phase <phase>` 串行执行 item。README 的快速上手只展开 backend 作为示例；frontend、miniapp、flutter 和 demo 重复同样闭环。
+每个 phase 都先运行 `/t-tools:t-task <feature> --phase <phase>`，随后可按风险选择运行 `/t-tools:t-task-check <feature> --phase <phase>`，再用 `/t-tools:t-run <feature> --phase <phase>` 串行执行 item。README 的快速上手只展开 backend 作为示例；其他 active phase 重复同样闭环。
 
-`/t-tools:t-super-run <feature> [--phase backend|frontend|demo]` 是针对 GPT-5.6 Sol（`gpt-5.6-sol`）及同等级强模型优化的单主会话执行路径：它合并任务规划与执行，不调用 subagent，只按 backend/frontend 的 `dev -> test -> accept` 或 demo 的 `dev -> accept` 记录目标级状态，并主动使用 Goal 持续完成实现、测试、修复和验收。状态独立保存在 `.ai/super-run/<feature>/`；不得与 `.ai/task/<feature>/` 互相覆盖或推导。未传 `--phase` 时按 `backend -> frontend -> demo` 选择首个适用且未完成阶段。miniapp 和 Flutter 继续使用现有阶段命令；需要显式 subagent 分工、细粒度 item handoff 或跨运行时保持相同调度行为时仍使用 `t-task -> [t-task-check] -> t-run`。
+`/t-tools:t-super-run <feature> [--phase backend|frontend|web-demo|flutter|flutter-demo]` 是针对 GPT-5.6 Sol（`gpt-5.6-sol`）及同等级强模型优化的单主会话执行路径：它合并任务规划与执行，不调用 subagent，只按 backend/frontend/flutter 的 `dev -> test -> accept` 或 web-demo/flutter-demo 的 `dev -> accept` 记录目标级状态。miniapp 使用 `t-task -> [t-task-check] -> t-run`。
 
 ## 关键使用规则
 

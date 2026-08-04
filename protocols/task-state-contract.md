@@ -13,7 +13,8 @@
     "frontend": {"status": "pending"},
     "miniapp": {"status": "pending"},
     "flutter": {"status": "pending"},
-    "demo": {"status": "pending"}
+    "web-demo": {"status": "pending"},
+    "flutter-demo": {"status": "pending"}
   },
   "tasks": {
     "backend": {
@@ -56,7 +57,7 @@
 
 ## State Rules
 
-- `phase` 只允许 supported phases：`backend | frontend | miniapp | flutter | demo`。
+- `phase` 只允许 supported phases：`backend | frontend | miniapp | flutter | web-demo | flutter-demo`。
 - `phases` / `tasks` 只要求包含当前任务的 `active_phases`；未启用 miniapp/Flutter 的项目不得强制要求对应 phase。
 - `miniapp` / `flutter` 启用规则统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`。
 - `status` 只允许 `pending | failed | completed | skipped | generated`。

@@ -57,14 +57,23 @@ Minimal end-to-end loop:
 # Goal mode through implementation, validation, repair, and acceptance
 /t-tools:t-super-run user-management --phase backend
 
-# Run Demo/E2E tests
-/t-demo-run demo/e2e/<role>/<scenario>.e2e.ts
+# Run Web Demo/E2E tests
+/t-tools:t-web-demo-run demo/e2e/<role>/<scenario>.e2e.ts
 
 # Run all non-live Demo/E2E files sequentially with checkpoint resume
-/t-demo-run-all
+/t-tools:t-web-demo-run-all
+# When many Demo files fail with overlapping causes: add scan to pre-scan, cluster by root cause, then fix each unique cause once
+/t-tools:t-web-demo-run-all scan
 
-# Final acceptance
-/t-tools:t-demo-accept <role>
+# Run one Android Flutter user-story demo
+/t-tools:t-flutter-demo-run patrol_test/<domain>/<story>_test.dart --device <android-id>
+
+# Run all Patrol demos sequentially with checkpoint resume
+/t-tools:t-flutter-demo-run-all --device <android-id>
+
+# Web / Flutter Demo acceptance
+/t-tools:t-web-demo-accept <role>
+/t-tools:t-flutter-demo-accept <domain|all> --device <android-id>
 
 # Publish formal PRD / user stories after implementation and acceptance
 /t-tools:t-prd-publish user-management
@@ -74,17 +83,18 @@ Minimal end-to-end loop:
 
 ## Phase Split
 
-`t-task`, `t-task-check`, and `t-run` all progress by phase, with `t-task-check` as an optional check. A typical web order is `backend -> frontend -> demo`; insert `miniapp` and/or `flutter` when those clients are part of the delivery scope.
+`t-task`, `t-task-check`, and `t-run` all progress by phase. A typical web order is `backend -> frontend -> web-demo`; a typical Flutter order is `backend -> flutter -> flutter-demo`.
 
 - `backend`: backend APIs, data models, permissions, business logic, backend tests, and read-only acceptance.
 - `frontend`: React pages, components, state, frontend tests, and read-only acceptance.
 - `miniapp`: miniapp pages, platform capabilities, build verification, and read-only acceptance.
 - `flutter`: Flutter views, Riverpod state, data layers, unit/widget/integration tests, and read-only acceptance.
-- `demo`: Playwright Demo/E2E based on user stories, with acceptance for real user paths.
+- `web-demo`: Playwright Demo/E2E based on user stories and browser user paths.
+- `flutter-demo`: Android Patrol demos based on user stories, including real App actions and native system UI.
 
-Each phase starts with `/t-tools:t-task <feature> --phase <phase>`, may run `/t-tools:t-task-check <feature> --phase <phase>` depending on risk, and then `/t-tools:t-run <feature> --phase <phase>` executes items serially. The quick start expands backend only as an example; repeat the same loop for frontend, miniapp, flutter, and demo.
+Each phase starts with `/t-tools:t-task <feature> --phase <phase>`, may run `/t-tools:t-task-check <feature> --phase <phase>` depending on risk, and then `/t-tools:t-run <feature> --phase <phase>` executes items serially. Repeat the loop for every active phase.
 
-`/t-tools:t-super-run <feature> [--phase backend|frontend|demo]` is a single-main-session execution path optimized for GPT-5.6 Sol (`gpt-5.6-sol`)-class models. It combines planning and execution, dispatches no subagents, records outcome-level `dev -> test -> accept` state for backend/frontend or `dev -> accept` for demo, and actively uses Goal mode through implementation, validation, repair, and acceptance. Its state lives independently under `.ai/super-run/<feature>/` and must not overwrite or derive `.ai/task/<feature>/`. Without `--phase`, it selects the first applicable unfinished phase in `backend -> frontend -> demo` order. Miniapp and Flutter keep their existing stage commands; use `t-task -> [t-task-check] -> t-run` when explicit subagent ownership, fine-grained item handoffs, or consistent dispatch behavior across runtimes is required.
+`/t-tools:t-super-run <feature> [--phase backend|frontend|web-demo|flutter|flutter-demo]` is the single-main-session path for backend, frontend, Web Demo, Flutter, and Flutter Demo. It merges planning and execution without dispatching subagents, recording outcome-level state as `dev -> test -> accept` for backend/frontend/flutter or `dev -> accept` for web-demo/flutter-demo. Miniapp uses `t-task -> [t-task-check] -> t-run`.
 
 ## Key Rules
 

@@ -11,6 +11,14 @@
     "summary": "任务完成摘要",
     "files_modified": ["path/a.tsx"],
     "files_created": ["path/b.test.tsx"],
+    "change_scope": {
+      "backend": false,
+      "frontend": true,
+      "miniapp": false,
+      "flutter": false,
+      "web_demo": false,
+      "flutter_demo": false
+    },
     "tests_to_run": [
       {
         "layer": "frontend",
@@ -43,10 +51,22 @@
 - `tests_written`
 - `next_steps`
 
+## `change_scope`
+
+```json
+{
+  "backend": false,
+  "frontend": false,
+  "miniapp": false,
+  "flutter": false,
+  "web_demo": false,
+  "flutter_demo": false
+}
+```
 
 规则：
 
-- 五个字段都必须出现
+- 六个字段都必须出现
 - 只将实际受影响层标记为 `true`
 - 未启用 miniapp/Flutter 的项目仍返回对应字段为 `false`，以保持修复闭环契约稳定
 
@@ -67,6 +87,14 @@
 {
   "task_completion": {
     "status": "failed",
+    "change_scope": {
+      "backend": false,
+      "frontend": true,
+      "miniapp": false,
+      "flutter": false,
+      "web_demo": false,
+      "flutter_demo": false
+    },
     "tests_to_run": [],
     "error": {
       "severity": "P0|P1|P2|P3",
@@ -85,5 +113,13 @@
 
 - 失败也必须使用 `task_completion` envelope，便于调用方统一读取 `task_completion.status`。
 - `task_completion.status` 必须为 `failed`。
-- `change_scope` 必须按已产生或可能影响的层填写；无法判断时五项都保留并在 `error.details` 说明不确定性。
+- `change_scope` 必须按已产生或可能影响的层填写；字段为 `backend/frontend/miniapp/flutter/web_demo/flutter_demo`。无法判断时六项都保留并在 `error.details` 说明不确定性。
 - 若失败发生在修复或验证闭环中，`tests_to_run` 可以为空数组，但必须在 `error.details` 或 `suggested_fix` 中说明无法给出补测命令的原因。
+
+## Role-Specific Extensions
+
+- `frontend-dev` 可补充 `validation_results`、`components_added`、`components_modified`
+- `miniapp-dev` 可补充 `validation_results`、`components_added`、`components_modified`
+- `flutter-dev` 可补充 `validation_results`、`widgets_added`、`widgets_modified`
+- `web-demo-dev` / `flutter-demo-dev` 可只保留最小成功字段，不需要 `validation_results`
+- 其他实现类 agent 可在不破坏上述字段语义的前提下扩展

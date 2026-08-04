@@ -1,12 +1,13 @@
-# Flutter 演示测试（integration_test + Patrol）
+# Flutter 集成测试与 Patrol 原生自动化
 
-定位：`integration_test` 验证重要用户用例；Patrol/等价工具处理原生平台 UI。它们不替代单元/widget 测试。
+定位：`integration_test` 验证跨组件集成；Patrol 也可处理原生平台 UI。按用户故事组织、可运行和可验收的 Android 演示统一见 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/demo-testing.md`。它们都不替代单元/widget 测试。
 
 ## 载体与命令
 
 - Android、iOS、desktop：官方 `integration_test`。
 - Web：仍可使用 `integration_test`，但官方流程需要 ChromeDriver、driver 文件和 `flutter drive`。
 - 权限弹窗、通知、WebView、应用切换等原生 UI：目标项目已采用 Patrol 时使用 Patrol；否则在设计中指定等价方案。
+- 用户故事演示：使用 `flutter-demo` phase 和 `patrol_test/`，不混入普通 `flutter/test` runner。
 
 ```bash
 flutter devices

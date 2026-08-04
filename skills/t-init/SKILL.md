@@ -122,7 +122,7 @@ allowed-tools:
 
 ### Step 3: 生成后端（backend-dev subagent）
 
-按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 使用 Agent 工具调度 `t-tools:backend-dev` subagent。后续 `frontend-dev` / `demo-dev` 调用同理。
+按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 使用 Agent 工具调度 `t-tools:backend-dev` subagent。后续 `frontend-dev` / `web-demo-dev` 调用同理。
 
 **Subagent Prompt 模板**：
 
@@ -222,9 +222,9 @@ allowed-tools:
 - `vite.config.ts` 要有注释说明每个插件的作用
 - **UI 组件（sonner 等）不要 AI 手写**，必须通过 `npx shadcn@latest add` 生成
 
-### Step 5: 生成 Demo E2E 测试（demo-dev subagent）
+### Step 5: 生成 Demo E2E 测试（web-demo-dev subagent）
 
-使用 Agent 工具调度 `t-tools:demo-dev` subagent。
+使用 Agent 工具调度 `t-tools:web-demo-dev` subagent。
 
 **Subagent Prompt 模板**：
 
@@ -267,12 +267,12 @@ allowed-tools:
 - `test-stop.py`
 - `demo-start.py`
 - `demo-stop.py`
-- `demo-test-runner.py`
-- `demo-run-all.py`
+- `web-demo-test-runner.py`
+- `web-demo-run-all.py`
 - `debug-test.py`
 - `cleanup-demo.py`
 - `cleanup-test-logs.py`
-- `demo-failure-summary.py`
+- `web-demo-failure-summary.py`
 - `lib/*.py`
 
 复制后按当前项目调整脚本默认配置：
@@ -381,8 +381,8 @@ allowed-tools:
 │   ├── backend-test.py
 │   ├── test-start.py
 │   ├── test-stop.py
-│   ├── demo-test-runner.py
-│   ├── demo-run-all.py
+│   ├── web-demo-test-runner.py
+│   ├── web-demo-run-all.py
 │   └── lib/
 ├── AGENTS.md                    # Claude Code 行为准则 + 项目描述
 ├── CLAUDE.md                    # 引用 AGENTS.md
@@ -420,14 +420,14 @@ allowed-tools:
 - [ ] `scripts/backend-test.py`
 - [ ] `scripts/test-start.py`
 - [ ] `scripts/test-stop.py`
-- [ ] `scripts/demo-test-runner.py`
-- [ ] `scripts/demo-run-all.py`
+- [ ] `scripts/web-demo-test-runner.py`
+- [ ] `scripts/web-demo-run-all.py`
 - [ ] `scripts/demo-start.py`
 - [ ] `scripts/demo-stop.py`
 - [ ] `scripts/debug-test.py`
 - [ ] `scripts/cleanup-demo.py`
 - [ ] `scripts/cleanup-test-logs.py`
-- [ ] `scripts/demo-failure-summary.py`
+- [ ] `scripts/web-demo-failure-summary.py`
 - [ ] `scripts/lib/*.py`
 - [ ] `README.md`
 
