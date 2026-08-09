@@ -11,7 +11,7 @@
 ## 追溯注释
 
 - 测试追溯注释只引用用户故事，不引用设计或任务文档。
-- 追溯注释必须写明具体来源路径，可以是 `docs/user-stories/...` 或 `.ai/user-stories/...`；来源路径规则以 `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md` 的 Reference Rules 为准。
+- 追溯注释必须写明具体来源路径，且只能是 `docs/user-stories/...`；禁止引用 `.ai/user-stories/...` 等 `.ai/` 临时产物（来源约束与理由见 `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md` 的 Reference Rules）。
 
 ## 禁止编写的低价值注释
 
@@ -33,4 +33,4 @@
 
 - `/t-push` 在提交前按本协议清理本次变更文件中的违规注释，清理范围只限本次变更文件，不做全仓历史清理。
 - 编写阶段已遵守本协议时，兜底清理应基本无活可干；`/t-push` 频繁清出同类注释说明编写侧未遵守本协议。
-- `/t-prd-publish` 时，需要将代码中引用 `.ai/user-stories/` 调整成 `docs/user-stories/` 中的用户故事。
+- `/t-prd-publish` 时，需要将代码注释中残留的 `.ai/user-stories/` 引用调整成 `docs/user-stories/` 中的用户故事（此类引用本不该出现在交付代码中，兜底清理时按违规注释处理）。

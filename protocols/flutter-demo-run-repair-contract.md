@@ -4,7 +4,7 @@
 
 ## Test And Evidence Shape
 
-- 测试文件位于 `patrol_test/<domain>/<story>_test.dart`，文件顶部引用 `.ai/user-stories/...` 或 `docs/user-stories/...` 及稳定 US ID。
+- 测试文件位于 `patrol_test/<domain>/<story>_test.dart`，文件顶部引用 `docs/user-stories/...` 及稳定 US ID（交付测试文件不得引用 `.ai/user-stories/...`，见 `${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md`）。
 - 一个文件覆盖一个用户故事或单一强耦合状态流；普通 Flutter 交互与原生 UI 都由 Patrol 驱动。
 - 使用生产 composition root 或只改变环境配置的 Demo entrypoint。禁止以 Provider fake、mock repository 或直接构造单页代替用户故事演示。
 - 日志写入 `patrol_test/test-results/runs/<run-id>/patrol-output.log`，测试资产 authoring 时确保 `patrol_test/test-results/` 被忽略。

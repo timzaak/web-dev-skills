@@ -38,7 +38,7 @@ allowed-tools:
 
 - 用户故事一致性检查（必须）。
 - 读取测试文件顶部注释中的用户故事路径。
-- 校验用户故事文件存在；路径可以是 `.ai/user-stories/...` draft 或 `docs/user-stories/...` 已发布文档。
+- 校验用户故事文件存在；交付测试文件只允许引用 `docs/user-stories/...`，不接受 `.ai/user-stories/...`（见 `${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md`）。
 - 核对场景覆盖、角色匹配、关键断言与验收标准。
 
 - 编译检查（必须）。
@@ -81,7 +81,7 @@ wc -l [测试文件路径]
 - `demo/test-results/`
 
 ## 失败处理
-- 用户故事不存在（`.ai/user-stories` 或 `docs/user-stories` 均未找到）：直接拒绝验收。
+- 用户故事不存在（`docs/user-stories` 未找到，或测试文件引用的是已被/将被删除的 `.ai/user-stories` 草稿）：直接拒绝验收。
 - 编译失败：直接拒绝验收。
 - 测试失败或超时：直接拒绝验收。
 - 批量模式下：记录失败并继续处理后续文件。
