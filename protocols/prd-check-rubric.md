@@ -146,7 +146,7 @@ INVEST 明显违反（如故事无法独立验收、价值不清或无法测试�
 | 优先级一致 | PRD 与用户故事中的优先级一致 | 无冲突 |
 | 角色引用 | 用户故事中的角色存在于 `docs/user-stories/_roles.md` | 全部存在 |
 
-draft story / 草稿 PRD 与已发布基线的差异按 [PRD Score — 草稿与发布基线](#prd-score--草稿与发布基线) 计分；一致性门禁只看 PRD 与 user story 之间是否自洽，不重复计分。
+draft story / 草稿 PRD 与已发布基线的差异按 [PRD Score — 草稿与发布基线（15）](#prd-score--草稿与发布基线15) 计分；一致性门禁只看 PRD 与 user story 之间是否自洽，不重复计分。
 
 ## Final Score
 

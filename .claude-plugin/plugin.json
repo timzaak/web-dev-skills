@@ -11,5 +11,5 @@
     "mobile": "Flutter / Riverpod / go_router / integration_test / Patrol",
     "testing": "cargo nextest / Vitest / Flutter Test / Web Demo (Playwright) / Flutter Demo (Android Patrol)"
   },
-  "requiredMcpServers": ["context7"]
+  "requiredMcpServers": ["context7", "figma"]
 }

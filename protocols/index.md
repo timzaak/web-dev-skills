@@ -24,6 +24,7 @@
 | Demo 诊断报告结构与分类映射 | [diagnostic-report-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-contract.md) |
 | Web Demo 单文件运行、修复、补测与环境刷新 | [web-demo-run-repair-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md) |
 | Flutter Patrol Demo 单文件与批量修复 | [flutter-demo-run-repair-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/flutter-demo-run-repair-contract.md) |
+| Figma 设计稿 → 已有前端代码的 UI 还原与测量收敛 | [figma-restore-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/figma-restore-contract.md) |
 
 ## 使用规则
 

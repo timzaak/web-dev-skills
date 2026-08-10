@@ -108,6 +108,7 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 - `t-prd` 只写 `.ai/prd` 和 `.ai/user-stories` 候选需求；`t-prd-publish` 才把仍然成立的长期产品事实合并回 `docs/`。
 - `t-doc` 用于项目文档、上手教程、API 参考、配置和部署说明，不用于 PRD、技术设计或零散文档修改。
 - `t-dream` 默认只读审计 PRD、用户故事、设计/任务、实现事实与项目结构；需要写入 PRD 治理时显式使用 `--govern-prd`。
+- `t-figma <figma-url> <target-file>` 把 Figma 设计还原进已有前端文件并用 getComputedStyle 测量法评估还原度（spec 提取一次固化，已有代码 token/动效/组件强制复用，delta 驱动迭代收敛）。它是独立触发入口，不进入 Decision→Release 主链路；需要 Figma Dev Mode MCP。
 - `t-push` 会基于本次 diff 清理明显低价值注释、总结 commit message，并调用 `${CLAUDE_PLUGIN_ROOT}/scripts/push.py` 运行受影响 CI、提交和推送。
 - 推荐 `t-push` 前先在 Claude Code 中运行 `/code-review --fix` 和 `/simplify`，让代码先经过独立审查与简化再收尾提交；二者与 `t-push` 的差异互相独立，不会相互覆盖。
 

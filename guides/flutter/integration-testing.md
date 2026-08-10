@@ -36,25 +36,28 @@ CI 记录设备、OS、Flutter 版本和实际命令。只有真实硬件能力�
 
 例如 `login-email-input`、`login-submit-button`。动态列表项可使用稳定业务 ID；装饰性控件不加测试 Key。
 
+测试与 Widget 共用的 Key 字符串集中在单一文件（如 `integration_test_keys.dart`），按页面分组后再包成一个总实例，禁止在测试和 Widget 里散落重复字符串：
+
+```dart
+class SignInPageKeys {
+  final emailTextField = const Key('login-email-input');
+  final signInButton = const Key('login-submit-button');
+}
+
+class Keys {
+  final signInPage = SignInPageKeys();
+}
+
+final keys = Keys();
+```
+
 主链路存在多个用例复用时，将 finder/动作提取到 `integration_test/screens/`；断言留在测试文件。不要为单个短用例强制创建 Screen Object。
 
 ## Patrol 4
 
-先读 `pubspec.lock`。以下是 Patrol 4.x 当前写法。
+首次接入或排查原生 runner 时，遵循 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/patrol-initialization.md`。先读目标项目 `pubspec.lock` 并按官方兼容表选择 `patrol_cli`，不要只看 `pubspec.yaml` 的版本约束，也不要在运行时自动升级。
 
-```yaml
-dev_dependencies:
-  patrol: ^<项目锁定版本>
-
-patrol:
-  app_name: <应用名>
-  android:
-    package_name: <applicationId>
-  ios:
-    bundle_id: <bundle-id>
-```
-
-Patrol 4 默认目录为 `patrol_test/`；项目配置 `test_directory` 时从其配置。
+已完成初始化的项目按 Patrol 4.x API 编写：
 
 ```dart
 import 'package:patrol/patrol.dart';
@@ -70,12 +73,11 @@ void main() {
 ```
 
 ```bash
-flutter pub global activate patrol_cli
 patrol doctor
 patrol test --target patrol_test/location_test.dart --device <device-id>
 ```
 
-Patrol UI 测试不能用普通 `flutter test`。原生移动端 API 使用 `$.platform.mobile`；Web 使用 `$.platform.web`。
+Patrol UI 测试不能用普通 `flutter test`。跨 Android/iOS 的原生移动端动作优先使用 `$.platform.mobile`；只有平台专属行为才使用 `$.platform.android` 或 `$.platform.ios`。Web 使用 `$.platform.web`。
 
 ## 门禁
 
