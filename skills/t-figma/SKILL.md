@@ -14,6 +14,7 @@ allowed-tools:
   - mcp__figma__get_design_context
   - mcp__figma__get_screenshot
   - mcp__figma__get_variable_defs
+  - mcp__figma__download_assets
 ---
 
 # Figma UI 还原
@@ -54,16 +55,19 @@ allowed-tools:
 - Figma URL + 目标文件（参数）
 - `${CLAUDE_PLUGIN_ROOT}/protocols/figma-restore-contract.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/figma-restore/index.md`
-- Figma Dev Mode MCP（`get_metadata`/`get_design_context`/`get_screenshot`/`get_variable_defs`）；缺失即终止并提示安装
+- `${CLAUDE_PLUGIN_ROOT}/guides/figma-restore/assets.md`（资产下载与落位执行法）
+- Figma MCP 核心工具（`get_metadata`/`get_design_context`/`get_screenshot`/`get_variable_defs`）；remote MCP 的 `download_assets` 按需使用
 
 ## Output Contract
 
 遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/figma-restore-contract.md`：
 
-- `.ai/figma/<id>/spec.json` — Figma 规格快照
+- `.ai/figma/<id>/spec.json` — Figma 规格快照（含 `assets` 节点清单）
 - `.ai/figma/<id>/baseline.png` — 基准图
-- `.ai/figma/<id>/context.md` — 已有代码上下文（含栈声明）
+- `.ai/figma/<id>/context.md` — 已有代码上下文（含栈声明 + 资产目录声明）
 - `.ai/figma/<id>/conflicts.json` — spec 与项目 token 的机器可读冲突清单
+- `.ai/figma/<id>/raw/` — MCP 临时 URL 对应的原始字节（有资产时创建，可清理）
+- `.ai/figma/<id>/assets-manifest.json` — Figma 资产 → 最终 outputPath + SHA-256 映射
 - `.ai/figma/<id>/actual.png` — 实际渲染截图
 - `.ai/figma/<id>/delta-report.json` — 测量 delta
 - `.ai/quality/figma-restore-<feature>-<YYYYMMDD-HHMMSS>.md` — 验收报告
@@ -76,7 +80,7 @@ allowed-tools:
 
 - 从 URL 正则提取 `fileKey`（`/design/([A-Za-z0-9]+)/`）和 `nodeId`（`node-id=([0-9-]+)`）；失败 → 终止提示用法。
 - 校验 `<target-file>` 存在且在项目内；否则终止。
-- 探测 Figma MCP 工具可用；缺失 → 终止提示安装。
+- 探测 Figma MCP 核心工具可用；缺失 → 终止提示安装。`download_assets` 仅在需要额外导出时按需探测。
 - 建 `.ai/figma/<id>/`（`<id>` = nodeId）。
 
 ### 2. 规格提取（单批次 MCP，后续不重调）
@@ -85,7 +89,8 @@ allowed-tools:
 2. `get_design_context(fileKey, nodeId)` 拿布局/排版/颜色。
 3. `get_screenshot(fileKey, nodeId)` 存 `baseline.png`。
 4. `get_variable_defs(fileKey, nodeId)` 拿当前节点使用的设计令牌。
-5. 合成 `spec.json`（`source` 不写时间元数据），把根节点尺寸固化为 `viewport`。`probeSelectors` 从 nodes 选语义元素，生成 `data-figma='<name>'` selector + expect。
+5. 从 `get_design_context` 返回内容收集本次实现需要的资产 URL，并立即下载到 `.ai/figma/<id>/raw/`；仅在缺少资产或需要节点导出时按需调用 remote-only `download_assets`，再下载其临时 URL。按 `image|svg|gif` 写入 `spec.json.assets`；命名与失败处理见资产 guide。视频源缺失时终止请人类提供，不假定 MCP 可下载原视频。
+6. 合成 `spec.json`（`source` 不写时间元数据），把根节点尺寸固化为 `viewport`。`probeSelectors` 从 nodes 选语义元素，生成 `data-figma='<name>'` selector + expect。
 
 ### 3. 已有代码 context 提取（栈探测）
 
@@ -95,9 +100,12 @@ allowed-tools:
 - **扫 design token**：按探测到的栈找（tailwind.config / CSS `:root` vars / `theme.liquid` / theme 文件 / inline style）。
 - **扫动效**：`transition`/`@keyframes`/动效库变体（framer-motion / motion-one / GSAP / CSS），带来源路径。
 - **扫可复用组件**：同模块优先。
+- **扫资产目录与命名约定**：按 `DESIGN.md`（若存在）→目标文件邻近用法→框架明确约定探测；只有存在资产且多个位置无法裁决时才请人类声明，无资产写「不适用」。
 - 按契约 context.md Structure 落盘；章节缺失写「无」。
 
 这是「参考已有代码」的硬产物。
+
+context 落盘后，把 raw 原始字节按项目约定放入正式资产目录，计算 SHA-256 并写 `assets-manifest.json`。同名同 hash 复用，同名异 hash 停止请人类选择，禁止静默覆盖。默认不转码；项目 `DESIGN.md` 若有明确约定则按项目规范执行。
 
 ### 4. 还原实现（委派 figma-restore）
 
@@ -112,7 +120,7 @@ target_file: <target-file>
 agent_spec: ${CLAUDE_PLUGIN_ROOT}/agents/figma-restore.md
 ```
 
-还原 agent 编辑目标文件，强制复用 context 的 token/动效/组件，为每个 probe 打 `data-figma` 锚点，完成后跑该栈的验证。
+还原 agent 编辑目标文件，强制复用 context 的 token/动效/组件，为每个 probe 打 `data-figma` 锚点，完成后跑该栈的验证。资产按 manifest 的 `outputPath` 和 context 的引用方式使用，不重新下载或造图。
 
 ### 5. 测量收敛（委派 figma-accept）
 
@@ -142,7 +150,7 @@ max_iterations: 5
 
 ### 6. 收尾
 
-报告：结论 / delta 摘要 / baseline 与 actual 路径（视觉辅助）/ CONFLICT 项（交设计师）/ 下一步建议。
+报告：结论 / delta 摘要 / 资产完整性 / baseline 与 actual 路径（资产内容需视觉复核）/ CONFLICT 项（交设计师）/ 下一步建议。
 
 ## 失败处理
 
@@ -153,6 +161,10 @@ max_iterations: 5
 - 栈探测为 `unknown` → 终止，请人类在 context 声明栈。
 - dev server 未起/URL 不可访问 → 终止，提示按 context 声明的方式启动。
 - 目标项目未装 playwright → 终止，提示在 `measure_cwd` 装 playwright。
+- 必需资产 URL 下载失败 → 终止并保留已下载 raw，禁止占位替代。
+- 需要额外导出但 remote `download_assets` 不可用 → 终止并说明所需资产；已有 design-context URL 不受影响。
+- 同名正式资产 hash 不同 → 终止，请人类选择新名称或确认替换。
+- 设计依赖视频但项目没有可用源 → 终止，请人类提供资产或 CDN 地址。
 - 还原 agent 报验证失败 → 不进入测量，证据交人类。
 - 测量连续 MISSING 整批 → 通常 `data-figma` 锚点未打或 selector 错；终止提示检查。
 
@@ -163,4 +175,5 @@ max_iterations: 5
 - 验收 agent：`${CLAUDE_PLUGIN_ROOT}/agents/figma-accept.md`
 - 测量脚本：`${CLAUDE_PLUGIN_ROOT}/scripts/figma-measure.py`
 - 还原规范：`${CLAUDE_PLUGIN_ROOT}/guides/figma-restore/index.md`
+- 资产下载与落位：`${CLAUDE_PLUGIN_ROOT}/guides/figma-restore/assets.md`
 - 测量法：`${CLAUDE_PLUGIN_ROOT}/guides/figma-restore/measurement.md`

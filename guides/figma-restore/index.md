@@ -5,6 +5,7 @@
 | 你要确认的问题 | 对应规范 |
 | --- | --- |
 | 还原工作模式、token 复用、动效对齐、栈适配 | 本页下方 |
+| Figma 资产下载、语义命名、落位与覆盖保护 | [assets.md](${CLAUDE_PLUGIN_ROOT}/guides/figma-restore/assets.md) |
 | getComputedStyle 测量法、探针策略、delta 阈值 | [measurement.md](${CLAUDE_PLUGIN_ROOT}/guides/figma-restore/measurement.md) |
 | 产物结构、source-of-truth、收敛循环 | [figma-restore-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/figma-restore-contract.md) |
 | 还原执行者的执行顺序与门禁 | [figma-restore.md](${CLAUDE_PLUGIN_ROOT}/agents/figma-restore.md) |
