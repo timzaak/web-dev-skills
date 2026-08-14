@@ -16,8 +16,10 @@
 ├── conflicts.json        # 已确认的 spec 与项目 token 冲突（无冲突时为 []）
 ├── raw/                  # 从 MCP 临时 URL 下载的原始字节，中间产物，可手动清理
 ├── assets-manifest.json  # Figma 资产 → 最终 outputPath 映射，供实现与验收使用
-├── actual.png            # 实现后实际渲染截图
-└── delta-report.json     # 测量 delta（最后一次）
+├── actual.png            # 实现后实际渲染截图（主断点；多断点时其余为 actual-<name>.png）
+├── delta-report.json     # 测量 delta（最后一次）
+├── iterations/           # 每轮收敛迭代的 delta-report 归档（iter-<N>.json，可清理）
+└── pixel-diff.png        # 可选：--pixel-diff 时的像素 diff 可视图（advisory）
 ```
 
 验收报告：`.ai/quality/figma-restore-<feature>-<YYYYMMDD-HHMMSS>.md`。
@@ -40,6 +42,8 @@
   "source": { "fileKey": "abc123", "nodeId": "1:2", "url": "https://..." },
   "viewport": { "width": 320, "height": 720, "deviceScaleFactor": 1 },
   "stack": { "framework": "auto", "detected": "react/tailwind" },
+  "probeableNodes": 12,
+  "integrity": { "metadataNodeCount": 12, "specNodeCount": 12 },
   "tokens": {
     "colors": [{ "name": "primary/500", "value": "#1d4ed8" }],
     "spacing": [{ "name": "space-4", "value": "16px" }],
@@ -56,7 +60,8 @@
       "source": "design-context", "rawPath": ".ai/figma/<id>/raw/hero-background.png" }
   ],
   "probeSelectors": [
-    { "name": "title", "selector": "[data-figma='title']", "expect": { "fontSize": 24, "fontWeight": 600 } }
+    { "name": "title", "selector": "[data-figma='title']",
+      "expect": { "fontSize": 24, "fontWeight": 600, "x": 16, "y": 24 } }
   ]
 }
 ```
@@ -66,7 +71,12 @@
 - `source` 不写时间元数据（以 `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md` 为准）。
 - `stack.framework` 默认 `auto`，由 context 提取阶段探测并回填 `stack.detected`；探测失败时为 `unknown`，还原 agent 需在 context 中人工声明。
 - `probeSelectors` 是测量探针声明。selector 优先用 `data-figma='<name>'` 属性（栈无关、稳定）；缺失时回退到目标栈可用的结构化选择器。
-- `viewport` 固化设计节点对应的浏览器视口；缺失时测量脚本回退到根节点布局尺寸，再回退到 `1280×900`。响应式页面不得忽略该字段。
+- **简写展开**：`padding`/`margin`/`gap`/`borderRadius` 简写测量时展开为四边/行列/四角子项分别判定；也可直接写长边属性（`paddingTop`、`rowGap`、`borderTopLeftRadius`…）。
+- **位置探针**：expect 支持 `x`/`y`（viewport 相对坐标，按根节点 `absoluteBoundingBox` 原点换算）；只为根 frame 直接子级等稳定锚点生成，`fixed`/`sticky` 不生成。
+- **不生成不可判定项**：Figma 自动行高不生成 `lineHeight`；渐变/`color(display-p3…)`/`color-mix()` 不生成颜色项（测量端遇到也降级 WARN）。
+- `probeableNodes`：可探针节点总数（文本/容器等有视觉意义），算覆盖率；缺失不计算。
+- `integrity`：`get_metadata` 节点计数与 `spec.nodes` 计数对照；不一致由验收报告标注疑似截断。
+- `viewport` 固化设计节点对应的浏览器视口；缺失时测量脚本回退到根节点布局尺寸，再回退到 `1280×900`。响应式页面不得忽略该字段。**响应式多断点**时写为数组，每项 `{ name?, width, height, deviceScaleFactor?, probes? }`：`name` 用于报告与截图命名（`actual-<name>.png`）；`probes` 缺省复用全局探针，仅断点间 expect 一致时可省略。
 - 每个 probe 的 `name` 必须唯一，`selector` 和 `expect` 必须非空，`expect` 仅使用 Delta Thresholds 中声明的属性。
 - `assets` 只记本次实现需要的资产；`kind` ∈ `image|svg|gif`，`source` ∈ `design-context|download-assets`。`rawPath` 指向规格提取阶段已下载的原始字节，最终路径由 `assets-manifest.json` 声明。
 - Figma 视频不在自动资产能力范围内；设计依赖视频时必须在实现前由人类提供可用源或项目 CDN 地址，不得伪造、截图替代或假定 `download_assets` 能取得原视频。
@@ -168,31 +178,50 @@ markdown 文档，面向还原 agent 直接阅读。固定章节：
 
 ## Delta Thresholds
 
-测量以 `spec.json.probeSelectors` 为探针，脚本输出每项的 spec / actual / delta / status。
+测量以 `spec.json.probeSelectors` 为探针，脚本输出每项的 spec / actual / delta / status（多断点时带 `viewport` 标签）。
 
 | 属性类别 | PASS | WARN | FAIL |
 |---|---|---|---|
-| 数值（fontSize/width/height/padding/margin/gap/borderRadius） | delta < 2px | 2 ≤ delta < 4px | delta ≥ 4px |
-| 颜色（CSS hex/rgb/rgba，含 alpha） | 完全匹配 | — | 不匹配 |
+| 数值（fontSize/width/height/x/y/padding 四边/margin 四边/rowGap/columnGap/borderRadius 四角） | delta < 2px | 2 ≤ delta < 4px | delta ≥ 4px |
+| 颜色（CSS hex/rgb/rgba，含 alpha） | 完全匹配 | 不支持的格式（渐变 / display-p3 / color-mix） | 可解析但不匹配 |
 | 时序（transition/animation duration） | 完全匹配 | delta < 50ms | delta ≥ 50ms |
-| 枚举（font-weight/opacity/lineHeight） | 完全匹配 | — | 不匹配 |
+| 枚举（font-weight/opacity/lineHeight） | 完全匹配 | lineHeight 一边为 `normal` | 不匹配 |
 
-已在 `conflicts.json` 声明且实际值仍与 spec 不同的项目标记为 `CONFLICT`，不计入 FAIL。
+- `x`/`y` 与几何同阈值档；简写 expect 展开为子项分别判定，任一边/角超档即该子项按档判定。
+- 不支持颜色格式与 lineHeight `normal` 判 WARN（带 note 交人工），不阻塞收敛。
+
+已在 `conflicts.json` 声明且实际值仍与 spec 不同的项目标记为 `CONFLICT`，不计入 FAIL。冲突声明可用简写 prop（如 `padding`），对展开后的全部子项生效。
+
+## 测量稳定性
+
+取值前固定时序，保证同一页面多次测量可复现：`document.fonts.ready`（5s 上限）；注入样式冻结 transition/animation 并隐藏 caret（Web Animations 有限动画快进、无限取消；declared duration 不受影响仍可测）；每选择器 attach 等待 3s，消除 SPA 水合假 MISSING；`networkidle` 等待 5s，超时写入 `meta.networkidle`。JS 动效库驱动的元素可能未到终态，靠 meta 与截图人工判断。
+
+## Advisory 信号（不参与收敛）
+
+只进报告，不阻塞收敛、不驱动回环：
+
+- **像素 diff**：`--pixel-diff` 用 pixelmatch（AA 忽略）比对 baseline/actual，输出 `pixelDiff.diffRatio` 与 `pixel-diff.png`。Figma 与浏览器渲染有系统性字体/抗锯齿差异（尺寸不一致时还对齐缩放），故 `diffRatio ≥ 5%` 才标提示。它是代码算数字，不是 LLM 看图，不违反「截图不作 diff 依据」。
+- **探针覆盖率**：`coverage.ratio` = 探针数 / `probeableNodes`；低于 80% 标提示——未覆盖元素机器不校验。
+- **spec 完整性**：`meta.integrity` 计数不一致时标注疑似截断。
+
+## 迭代历史
+
+每轮测量传 `--iteration <N>`（从 1 递增）：报告写入 `delta-report.json` 同时归档 `iterations/iter-<N>.json` 并标记轮次，供复盘「为什么用尽迭代」。`iterations/` 可清理。
 
 收敛判据：
 
-- **收敛成功**：FAIL / MISSING / ERROR 项均为零，且 manifest 资产的路径、SHA-256、页面加载检查均通过。MISSING（探针声明但页面未渲染）和 ERROR（探针或资产异常）同样阻塞，因为验收不完整。
+- **收敛成功**：FAIL / MISSING / ERROR 项均为零（多断点时要求所有断点同时清零），且 manifest 资产的路径、SHA-256、页面加载检查均通过。MISSING（探针声明但页面未渲染）和 ERROR（探针或资产异常）同样阻塞，因为验收不完整。
 - **用尽迭代**：达到 `max-iterations`（默认 5）仍有阻塞项；产出报告交人类。
-- WARN / CONFLICT 不阻塞，但必须在验收报告中列出。
+- WARN / CONFLICT 不阻塞，但必须在验收报告中列出；advisory 信号（像素 diff、覆盖率、完整性）同样只列不阻塞。
 
 ## Convergence Loop
 
 1. 还原 agent 编辑目标文件。
-2. 验收 agent 校验资产完整性并运行测量脚本，输出 `delta-report.json`。
+2. 验收 agent 校验资产完整性并运行测量脚本（带 `--iteration <N>`），输出 `delta-report.json` 并归档到 `iterations/`。
 3. 有 FAIL 项且未达 `max-iterations`：把 FAIL 项作为结构化文本喂回还原 agent，回到 1。
 4. FAIL 清零或用尽迭代：产出验收报告。
 
-回环禁止：把截图作为 diff 依据；重新调 Figma MCP；无 `max-iterations` 上限。
+回环禁止：以截图或像素 diff 结果驱动回环修正（advisory 信号只进报告）；重新调 Figma MCP；无 `max-iterations` 上限。
 
 ## Figma MCP Capability
 

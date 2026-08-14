@@ -61,10 +61,12 @@ py ${CLAUDE_PLUGIN_ROOT}/scripts/figma-measure.py \
   --out .ai/figma/<id>/delta-report.json \
   --conflicts .ai/figma/<id>/conflicts.json \
   --screenshot .ai/figma/<id>/actual.png \
-  --cwd <measure_cwd>
+  --cwd <measure_cwd> \
+  --iteration <当前轮次> \
+  --pixel-diff
 ```
 
-`measure_cwd` 是能 resolve `playwright` 的目录（可能是项目根、frontend 子目录或独立 e2e 目录），由 prompt 指定。
+`measure_cwd` 是能 resolve `playwright` 的目录，由 prompt 指定。`--iteration` 由 prompt 给出（从 1 递增），报告归档到 `iterations/iter-<N>.json`。`--pixel-diff` 是 advisory：prompt 为 `pixel_diff: auto` 时 baseline.png 存在即启用，缺 pixelmatch/Pillow 自动降级 skipped，不阻塞测量。
 
 ### 3. 资产加载检查
 
@@ -76,25 +78,30 @@ py ${CLAUDE_PLUGIN_ROOT}/scripts/figma-measure.py \
 
 ### 5. 解读 delta
 
-按契约 Delta Thresholds：PASS / WARN / FAIL / MISSING / ERROR（定义见契约）。
+按契约 Delta Thresholds：PASS / WARN / FAIL / MISSING / ERROR。多断点结果带 `viewport` 标签，逐断点解读（`viewports` 摘要给各断点收敛状态）。WARN 注明原因：lineHeight 一边为 `normal`；不支持颜色格式（渐变/display-p3/color-mix）。`meta.networkidle` 为 false、`meta.integrity` 计数不一致时标注。
 
 ### 6. 收敛判定
 
-- **CONVERGED**：delta 的 FAIL/MISSING/ERROR 均为零，且资产完整性/加载 ERROR 为零。
+- **CONVERGED**：FAIL/MISSING/ERROR 为零（多断点全部清零），且资产完整性/加载 ERROR 为零。
 - **NOT_CONVERGED**：仍有阻塞项；FAIL 项结构化文本交回 `figma-restore`（CONVERGENCE 模式）。
 - **EXHAUSTED**：达 `max-iterations` 仍未收敛 → 报告交人类。
+- advisory 信号（像素 diff/覆盖率/完整性）不参与收敛判定，只进报告。
 
 ### 7. 产出报告
 
 `.ai/quality/figma-restore-<feature>-<YYYYMMDD-HHMMSS>.md`，必须含：
 
 - **结论**：CONVERGED / NOT_CONVERGED / EXHAUSTED。
-- **delta 摘要**：total/passed/warned/conflicted/failed/missing/errored。
-- **FAIL 项明细表**：name/selector/prop/spec/actual/delta。
+- **delta 摘要**：total/passed/warned/conflicted/failed/missing/errored（多断点分列）。
+- **FAIL 项明细表**：name/selector/prop/spec/actual/delta/viewport。
 - **CONFLICT 项**：spec vs project token 冲突且实现选了 token 的项。
 - **MISSING/ERROR 项**：通常是锚点缺失或 selector 错。
+- **探针覆盖率**：coverage.ratio；低于 80% 标提示。
+- **像素 diff 概览**：diffRatio、图路径、advisory 标记；注明「布局样式以 delta 为准」；skipped 注明原因。
+- **测量稳定性**：meta（networkidle 等）与 integrity 异常标注。
 - **资产完整性**：manifest 总数、路径/hash/页面加载结果及失败明细。
-- **截图对照**：baseline.png 与 actual.png 路径，标注「布局样式以 delta 为准，资产内容需人类复核」。
+- **截图对照**：baseline/actual 路径（多断点列出各 actual-<name>.png），标注「布局样式以 delta 为准，资产内容需人类复核」。
+- **迭代历史**：iterations/ 各轮报告路径。
 - **下一步**：回环（列待修正项）或交人类（列 CONFLICT）。
 
 时间戳仅用于报告文件名，不写入 `delta-report.json`（状态文件禁止时间元数据）。
@@ -103,6 +110,7 @@ py ${CLAUDE_PLUGIN_ROOT}/scripts/figma-measure.py \
 
 - 修改代码（哪怕「顺手」修一个 FAIL 项）。
 - 用截图替代布局/样式的数值判据，或声称 computed style 已证明资产内容一致。
+- 以像素 diff 结果驱动回环修正（advisory 信号只进报告）。
 - 重调 Figma MCP。
 - 未真正运行测量时谎报「已收敛」。
 - 遗漏失败的验证证据。

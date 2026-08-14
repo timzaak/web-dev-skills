@@ -62,14 +62,16 @@ allowed-tools:
 
 遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/figma-restore-contract.md`：
 
-- `.ai/figma/<id>/spec.json` — Figma 规格快照（含 `assets` 节点清单）
+- `.ai/figma/<id>/spec.json` — Figma 规格快照（含 `assets` 节点清单、`probeableNodes`、`integrity`；响应式时 `viewport` 为断点数组）
 - `.ai/figma/<id>/baseline.png` — 基准图
 - `.ai/figma/<id>/context.md` — 已有代码上下文（含栈声明 + 资产目录声明）
 - `.ai/figma/<id>/conflicts.json` — spec 与项目 token 的机器可读冲突清单
 - `.ai/figma/<id>/raw/` — MCP 临时 URL 对应的原始字节（有资产时创建，可清理）
 - `.ai/figma/<id>/assets-manifest.json` — Figma 资产 → 最终 outputPath + SHA-256 映射
-- `.ai/figma/<id>/actual.png` — 实际渲染截图
-- `.ai/figma/<id>/delta-report.json` — 测量 delta
+- `.ai/figma/<id>/actual.png` — 实际渲染截图（主断点；多断点时其余为 `actual-<name>.png`）
+- `.ai/figma/<id>/delta-report.json` — 测量 delta（最后一次；含 coverage/meta/pixelDiff）
+- `.ai/figma/<id>/iterations/` — 每轮收敛迭代的报告归档（`iter-<N>.json`，可清理）
+- `.ai/figma/<id>/pixel-diff.png` — 可选：advisory 像素 diff 可视图（`--pixel-diff` 时）
 - `.ai/quality/figma-restore-<feature>-<YYYYMMDD-HHMMSS>.md` — 验收报告
 
 目标文件代码变更由 `figma-restore` agent 产出。
@@ -90,7 +92,7 @@ allowed-tools:
 3. `get_screenshot(fileKey, nodeId)` 存 `baseline.png`。
 4. `get_variable_defs(fileKey, nodeId)` 拿当前节点使用的设计令牌。
 5. 从 `get_design_context` 返回内容收集本次实现需要的资产 URL，并立即下载到 `.ai/figma/<id>/raw/`；仅在缺少资产或需要节点导出时按需调用 remote-only `download_assets`，再下载其临时 URL。按 `image|svg|gif` 写入 `spec.json.assets`；命名与失败处理见资产 guide。视频源缺失时终止请人类提供，不假定 MCP 可下载原视频。
-6. 合成 `spec.json`（`source` 不写时间元数据），把根节点尺寸固化为 `viewport`。`probeSelectors` 从 nodes 选语义元素，生成 `data-figma='<name>'` selector + expect。
+6. 合成 `spec.json`（`source` 不写时间元数据）。`viewport`：单断点取根节点尺寸；响应式取各断点写成数组（带 `name`，断点间 expect 不同时生成独立 `probes`）。`probeSelectors` 从 nodes 选语义元素，生成 `data-figma='<name>'` selector + expect：稳定布局锚点（根 frame 直接子级）补 `x`/`y`；四边一致用简写、非对称写长边；Figma 自动行高、渐变/display-p3 颜色不生成项。记录 `probeableNodes` 与 `integrity`（metadata 节点数 vs spec 节点数）。
 
 ### 3. 已有代码 context 提取（栈探测）
 
@@ -134,23 +136,25 @@ target_url: <dev-server-url>
 measure_script: ${CLAUDE_PLUGIN_ROOT}/scripts/figma-measure.py
 measure_cwd: <能 resolve playwright 的目录>
 conflicts: .ai/figma/<id>/conflicts.json
+iteration: <当前轮次，从 1 递增；回环复测时 +1>
+pixel_diff: auto
 agent_spec: ${CLAUDE_PLUGIN_ROOT}/agents/figma-accept.md
 max_iterations: 5
 ```
 
-`figma-accept` 跑测量脚本、判收敛。
+`figma-accept` 跑测量脚本（带 `--iteration`，`pixel_diff: auto` 时尽力启用 `--pixel-diff`，缺依赖自动降级）、判收敛。
 
 **收敛循环**：
 
-- 有 FAIL/MISSING/ERROR 且未达上限：FAIL 项结构化文本回传，本 skill 以 `模式: CONVERGENCE` 再委派 `figma-restore` 修正，再复测。
+- 有 FAIL/MISSING/ERROR 且未达上限：FAIL 项结构化文本回传，本 skill 以 `模式: CONVERGENCE` 再委派 `figma-restore` 修正，再复测（iteration +1）。
 - 收敛（阻塞项清零）：产报告（`CONVERGED`），结束。
 - 用尽迭代：产报告（`EXHAUSTED`），交人类，结束。
 
-回环禁止：重调 MCP；截图作为 diff 依据；无迭代上限。
+回环禁止：重调 MCP；以截图或像素 diff 结果驱动回环修正（advisory 信号只进报告）；无迭代上限。
 
 ### 6. 收尾
 
-报告：结论 / delta 摘要 / 资产完整性 / baseline 与 actual 路径（资产内容需视觉复核）/ CONFLICT 项（交设计师）/ 下一步建议。
+报告：结论 / delta 摘要（含各断点） / 覆盖率 / 像素 diff 概览 / 资产完整性 / baseline 与 actual 路径（资产内容需视觉复核）/ CONFLICT 项（交设计师）/ 测量稳定性 meta（networkidle 等）/ 迭代历史路径（`iterations/`）/ 下一步建议。
 
 ## 失败处理
 

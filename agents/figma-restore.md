@@ -64,8 +64,8 @@ tools:
 
 ### CONVERGENCE（测量回环）
 
-1. 只读 `delta-report.json` 中 status = `FAIL` 的项。
-2. 每项是结构化的 `{ name, selector, prop, spec, actual, delta }`，直接改对应值，不凭印象整体重写。
+1. 只读 `delta-report.json` 中 status = `FAIL` 的项；WARN 项（含 lineHeight `normal`、不支持颜色格式）不回环修正，交报告人工裁决。
+2. 每项是结构化的 `{ name, selector, prop, spec, actual, delta, viewport }`，直接改对应值，不凭印象整体重写。简写属性会展开成长边子项（如 `paddingTop`），按子项修对应方向；带 `viewport` 的 FAIL 只改该断点的响应式值，不动其他断点。
 3. spec 与 project token 冲突时（spec 13px，token 只有 12/16）：保持 token，把 `{name, prop, spec, projectValue, token, reason}` 写入 `conflicts.json`，下一轮由测量脚本标记 `CONFLICT`，不为消除 delta 引入任意值。
 4. 修正后跑验证，等 `figma-accept` 复测。
 

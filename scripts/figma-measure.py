@@ -6,8 +6,16 @@ elements with getComputedStyle + getBoundingClientRect, then classifies each
 probe against thresholds defined in
 ${CLAUDE_PLUGIN_ROOT}/protocols/figma-restore-contract.md.
 
-Only depends on the Python standard library. Playwright is invoked through the
-target project's `npx playwright` to avoid adding a plugin-level dependency.
+- shorthand expects (padding/margin/gap/borderRadius) expand to every
+  side/corner; x/y positions are measured when declared;
+- the page is stabilized before probing (webfonts, frozen animations,
+  probe attach wait); networkidle state lands in report meta;
+- spec.viewport may be an array (responsive breakpoints) with optional
+  per-viewport probe overrides;
+- --pixel-diff adds an advisory pixel comparison (never affects
+  convergence); --iteration archives each convergence round.
+
+Python standard library only (pixelmatch/Pillow optional, for --pixel-diff).
 """
 
 from __future__ import annotations
@@ -29,14 +37,39 @@ NUMERIC_PASS_PX = 2.0
 NUMERIC_WARN_PX = 4.0
 DURATION_PASS_MS = 0.0
 DURATION_WARN_MS = 50.0
+PIXEL_DIFF_ADVISORY_RATIO = 0.05
 
 NUMERIC_PROPS = {
-    "fontSize", "width", "height", "padding", "margin", "gap", "borderRadius",
+    "fontSize", "width", "height", "x", "y",
+    "paddingTop", "paddingRight", "paddingBottom", "paddingLeft",
+    "marginTop", "marginRight", "marginBottom", "marginLeft",
+    "rowGap", "columnGap",
+    "borderTopLeftRadius", "borderTopRightRadius",
+    "borderBottomRightRadius", "borderBottomLeftRadius",
 }
 COLOR_PROPS = {"color", "background", "backgroundColor", "borderColor"}
 DURATION_PROPS = {"transitionDuration", "animationDuration"}
 ENUM_PROPS = {"fontWeight", "opacity", "lineHeight"}
-SUPPORTED_PROPS = NUMERIC_PROPS | COLOR_PROPS | DURATION_PROPS | ENUM_PROPS
+
+# Shorthand expect keys expand to every longhand before measuring.
+SHORTHAND_EXPANSION: dict[str, tuple[str, ...]] = {
+    "padding": ("paddingTop", "paddingRight", "paddingBottom", "paddingLeft"),
+    "margin": ("marginTop", "marginRight", "marginBottom", "marginLeft"),
+    "gap": ("rowGap", "columnGap"),
+    "borderRadius": (
+        "borderTopLeftRadius", "borderTopRightRadius",
+        "borderBottomRightRadius", "borderBottomLeftRadius",
+    ),
+}
+SHORTHAND_OF = {
+    longhand: shorthand
+    for shorthand, longhands in SHORTHAND_EXPANSION.items()
+    for longhand in longhands
+}
+SUPPORTED_PROPS = (
+    NUMERIC_PROPS | COLOR_PROPS | DURATION_PROPS | ENUM_PROPS
+    | set(SHORTHAND_EXPANSION)
+)
 
 
 @dataclass
@@ -49,12 +82,14 @@ class ProbeResult:
     delta: float | None
     status: str  # PASS | WARN | CONFLICT | FAIL | MISSING | ERROR
     note: str = ""
+    viewport: str = "default"
 
 
 @dataclass
 class DeltaReport:
     target: str
     converged: bool
+    iteration: int | None = None
     total: int = 0
     passed: int = 0
     warned: int = 0
@@ -63,11 +98,16 @@ class DeltaReport:
     missing: int = 0
     errored: int = 0
     results: list[ProbeResult] = field(default_factory=list)
+    viewports: dict[str, dict[str, Any]] = field(default_factory=dict)
+    meta: dict[str, Any] = field(default_factory=dict)
+    coverage: dict[str, Any] = field(default_factory=dict)
+    pixel_diff: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "target": self.target,
             "converged": self.converged,
+            "iteration": self.iteration,
             "summary": {
                 "total": self.total,
                 "passed": self.passed,
@@ -77,6 +117,10 @@ class DeltaReport:
                 "missing": self.missing,
                 "errored": self.errored,
             },
+            "viewports": self.viewports,
+            "meta": self.meta,
+            "coverage": self.coverage,
+            "pixelDiff": self.pixel_diff,
             "results": [asdict(r) for r in self.results],
         }
 
@@ -116,7 +160,12 @@ def _parse_ms(value: Any) -> float | None:
 
 
 def _norm_color(value: Any) -> tuple[int, int, int, float] | str | None:
-    """Normalize CSS hex/rgb/rgba colors to an RGBA tuple."""
+    """Normalize CSS hex/rgb/rgba colors to an RGBA tuple.
+
+    Returns the lowercased text for values outside sRGB hex/rgb syntax
+    (gradients, color(display-p3 ...), etc.) so callers can tell
+    "unparseable" apart from "parsed".
+    """
     if value is None:
         return None
     text = str(value).strip().lower()
@@ -152,57 +201,73 @@ def _norm_color(value: Any) -> tuple[int, int, int, float] | str | None:
     return text or None
 
 
-def classify_delta(prop: str, spec_value: Any, actual_value: Any) -> tuple[str, float | None]:
+def classify_delta(prop: str, spec_value: Any, actual_value: Any) -> tuple[str, float | None, str]:
     """Classify one probe property against contract thresholds.
 
-    Returns (status, delta). delta is None for non-numeric / missing probes.
-    Status is one of PASS / WARN / FAIL / MISSING.
+    Returns (status, delta, note); delta is None for non-numeric probes.
+    note explains advisory cases (lineHeight 'normal', unsupported colors).
     """
-    if spec_value is None:
-        return "MISSING", None
-    if actual_value is None:
-        return "MISSING", None
+    if spec_value is None or actual_value is None:
+        return "MISSING", None, ""
 
     if prop in NUMERIC_PROPS:
         spec = _parse_px(spec_value)
         actual = _parse_px(actual_value)
         if spec is None or actual is None:
-            return "MISSING", None
+            return "MISSING", None, ""
         delta = abs(actual - spec)
         if delta < NUMERIC_PASS_PX:
-            return "PASS", delta
+            return "PASS", delta, ""
         if delta < NUMERIC_WARN_PX:
-            return "WARN", delta
-        return "FAIL", delta
+            return "WARN", delta, ""
+        return "FAIL", delta, ""
 
     if prop in DURATION_PROPS:
         spec = _parse_ms(spec_value)
         actual = _parse_ms(actual_value)
         if spec is None or actual is None:
-            return "MISSING", None
+            return "MISSING", None, ""
         delta = abs(actual - spec)
         if delta <= DURATION_PASS_MS:
-            return "PASS", delta
+            return "PASS", delta, ""
         if delta < DURATION_WARN_MS:
-            return "WARN", delta
-        return "FAIL", delta
+            return "WARN", delta, ""
+        return "FAIL", delta, ""
 
     if prop in COLOR_PROPS:
         spec_color = _norm_color(spec_value)
         actual_color = _norm_color(actual_value)
+        if isinstance(spec_color, str) or isinstance(actual_color, str):
+            return (
+                "WARN", None,
+                "unsupported color format (gradient / color(display-p3) / color-mix); "
+                "needs human review",
+            )
         if spec_color is not None and spec_color == actual_color:
-            return "PASS", 0.0
-        return "FAIL", None
+            return "PASS", 0.0, ""
+        return "FAIL", None, ""
+
+    if prop == "lineHeight":
+        spec_text = str(spec_value).strip()
+        actual_text = str(actual_value).strip()
+        if spec_text == actual_text:
+            return "PASS", 0.0, ""
+        if "normal" in (spec_text, actual_text):
+            return (
+                "WARN", None,
+                "lineHeight 'normal' vs explicit value; align spec or set explicit line-height",
+            )
+        return "FAIL", None, ""
 
     if prop in ENUM_PROPS:
         if str(spec_value).strip() == str(actual_value).strip():
-            return "PASS", 0.0
-        return "FAIL", None
+            return "PASS", 0.0, ""
+        return "FAIL", None, ""
 
     # Unknown prop: exact-string compare, no delta.
     if str(spec_value).strip() == str(actual_value).strip():
-        return "PASS", 0.0
-    return "FAIL", None
+        return "PASS", 0.0, ""
+    return "FAIL", None, ""
 
 
 def values_equal(prop: str, left: Any, right: Any) -> bool:
@@ -218,9 +283,25 @@ def values_equal(prop: str, left: Any, right: Any) -> bool:
     return str(left).strip() == str(right).strip()
 
 
-def validate_probes(spec: dict[str, Any]) -> list[str]:
-    """Return actionable validation errors for probeSelectors."""
-    probes = spec.get("probeSelectors")
+def expand_expect(expect: dict[str, Any] | None) -> dict[str, Any]:
+    """Expand shorthand expect keys to their longhand equivalents."""
+    expanded: dict[str, Any] = {}
+    for prop, value in (expect or {}).items():
+        if prop in SHORTHAND_EXPANSION:
+            for longhand in SHORTHAND_EXPANSION[prop]:
+                expanded[longhand] = value
+        else:
+            expanded[prop] = value
+    return expanded
+
+
+def expand_probes(probes: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
+    """Return probes with shorthand expects expanded for measurement."""
+    return [{**probe, "expect": expand_expect(probe.get("expect"))} for probe in probes or []]
+
+
+def validate_probes(probes: Any) -> list[str]:
+    """Return actionable validation errors for a probeSelectors list."""
     if not isinstance(probes, list) or not probes:
         return ["probeSelectors must be a non-empty array"]
     errors: list[str] = []
@@ -282,15 +363,17 @@ def validate_conflicts(conflicts: Any, spec: dict[str, Any]) -> list[str]:
 
 def compute_delta(
     spec: dict[str, Any],
-    actuals: dict[str, dict[str, Any]],
+    actuals_by_vp: dict[str, dict[str, Any]],
+    viewports: list[dict[str, Any]],
     *,
     target_url: str = "",
     conflicts: list[dict[str, Any]] | None = None,
 ) -> DeltaReport:
     """Compute a DeltaReport from spec.probeSelectors vs measured actuals.
 
-    spec: parsed spec.json (must contain 'probeSelectors').
-    actuals: { probeName: { prop: value } } from the browser probe.
+    actuals_by_vp: ``{ viewportName: { probeName: { prop: value } } }``.
+    viewports: ``[{ name, probes }]`` entries; probes=None falls back to
+    spec.probeSelectors. Names must match the actuals map.
     """
     target = target_url or str(spec.get("target", ""))
     report = DeltaReport(target=target, converged=False)
@@ -300,123 +383,177 @@ def compute_delta(
         if isinstance(item, dict)
     }
 
-    for probe in spec.get("probeSelectors", []):
-        name = probe.get("name", "")
-        selector = probe.get("selector", "")
-        expect = probe.get("expect", {}) or {}
-        measured = actuals.get(name)
+    for entry in viewports:
+        vp_name = entry.get("name") or "default"
+        vp_summary = report.viewports.setdefault(vp_name, {
+            "total": 0, "passed": 0, "warned": 0, "conflicted": 0,
+            "failed": 0, "missing": 0, "errored": 0,
+        })
+        measured_vp = actuals_by_vp.get(vp_name, {})
+        if not isinstance(measured_vp, dict):
+            measured_vp = {}
+        vp_meta = measured_vp.get("__meta")
+        if isinstance(vp_meta, dict):
+            report.meta.update(vp_meta)
 
-        if measured is None:
+        for probe in entry.get("probes") or spec.get("probeSelectors", []):
+            name = probe.get("name", "")
+            selector = probe.get("selector", "")
+            expect = expand_expect(probe.get("expect"))
+            measured = measured_vp.get(name)
+
+            if measured is None or measured.get("__missing") or measured.get("__error"):
+                status = "MISSING" if measured is None or measured.get("__missing") else "ERROR"
+                note = (
+                    "probe not found in actuals" if measured is None
+                    else str(measured.get("__missing") or measured.get("__error"))
+                )
+                for prop, spec_val in expect.items():
+                    _record(report, vp_summary, ProbeResult(
+                        name=name, selector=selector, prop=prop,
+                        spec=spec_val, actual=None, delta=None,
+                        status=status, note=note, viewport=vp_name,
+                    ))
+                continue
+
             for prop, spec_val in expect.items():
-                report.results.append(ProbeResult(
+                actual_val = measured.get(prop)
+                status, delta, note = classify_delta(prop, spec_val, actual_val)
+                conflict = None
+                for candidate in ((name, prop), (name, SHORTHAND_OF.get(prop))):
+                    if candidate in conflict_map:
+                        conflict = conflict_map[candidate]
+                        break
+                if (
+                    status != "PASS"
+                    and conflict is not None
+                    and values_equal(prop, conflict.get("spec"), spec_val)
+                    and values_equal(prop, conflict.get("projectValue"), actual_val)
+                ):
+                    status = "CONFLICT"
+                _record(report, vp_summary, ProbeResult(
                     name=name, selector=selector, prop=prop,
-                    spec=spec_val, actual=None, delta=None,
-                    status="MISSING", note="probe not found in actuals",
+                    spec=spec_val, actual=actual_val, delta=delta,
+                    status=status, note=note, viewport=vp_name,
                 ))
-                report.total += 1
-                report.missing += 1
-            continue
 
-        if measured.get("__missing"):
-            for prop, spec_val in expect.items():
-                report.results.append(ProbeResult(
-                    name=name, selector=selector, prop=prop,
-                    spec=spec_val, actual=None, delta=None,
-                    status="MISSING", note=str(measured.get("__missing")),
-                ))
-                report.total += 1
-                report.missing += 1
-            continue
-
-        if measured.get("__error"):
-            for prop, spec_val in expect.items():
-                report.results.append(ProbeResult(
-                    name=name, selector=selector, prop=prop,
-                    spec=spec_val, actual=None, delta=None,
-                    status="ERROR", note=str(measured.get("__error")),
-                ))
-                report.total += 1
-                report.errored += 1
-            continue
-
-        for prop, spec_val in expect.items():
-            actual_val = measured.get(prop)
-            status, delta = classify_delta(prop, spec_val, actual_val)
-            conflict = conflict_map.get((name, prop))
-            if (
-                status != "PASS"
-                and conflict is not None
-                and values_equal(prop, conflict.get("spec"), spec_val)
-                and values_equal(prop, conflict.get("projectValue"), actual_val)
-            ):
-                status = "CONFLICT"
-            report.results.append(ProbeResult(
-                name=name, selector=selector, prop=prop,
-                spec=spec_val, actual=actual_val, delta=delta, status=status,
-            ))
-            report.total += 1
-            if status == "PASS":
-                report.passed += 1
-            elif status == "WARN":
-                report.warned += 1
-            elif status == "CONFLICT":
-                report.conflicted += 1
-            elif status == "FAIL":
-                report.failed += 1
-            elif status == "MISSING":
-                report.missing += 1
-            elif status == "ERROR":
-                report.errored += 1
-
+    for vp_summary in report.viewports.values():
+        vp_summary["converged"] = (
+            vp_summary["failed"] == 0
+            and vp_summary["missing"] == 0
+            and vp_summary["errored"] == 0
+        )
     report.converged = (
         report.failed == 0 and report.missing == 0 and report.errored == 0
     )
+
+    probeable = spec.get("probeableNodes")
+    probe_count = len(spec.get("probeSelectors") or [])
+    report.coverage = {
+        "probes": probe_count,
+        "probeableNodes": probeable if isinstance(probeable, int) else None,
+        "ratio": (
+            round(probe_count / probeable, 4)
+            if isinstance(probeable, int) and probeable > 0
+            else None
+        ),
+    }
+    integrity = spec.get("integrity")
+    if isinstance(integrity, dict):
+        report.meta["integrity"] = integrity
     return report
 
 
-def resolve_viewport(
+def _record(report: DeltaReport, vp_summary: dict[str, Any], result: ProbeResult) -> None:
+    report.results.append(result)
+    report.total += 1
+    vp_summary["total"] += 1
+    attr = {
+        "PASS": "passed", "WARN": "warned", "CONFLICT": "conflicted",
+        "FAIL": "failed", "MISSING": "missing", "ERROR": "errored",
+    }.get(result.status)
+    if attr:
+        setattr(report, attr, getattr(report, attr) + 1)
+        vp_summary[attr] += 1
+
+
+def _viewport_name(name: Any) -> str:
+    cleaned = re.sub(r"[^A-Za-z0-9_.-]+", "-", str(name).strip())
+    return cleaned or "default"
+
+
+def _viewport_entry(
+    width: Any, height: Any, scale: Any, probes: Any, name: Any = None,
+) -> dict[str, Any]:
+    try:
+        vp_width = int(round(float(width)))
+        vp_height = int(round(float(height)))
+        vp_scale = float(scale)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"invalid viewport values: {exc}") from exc
+    if vp_width <= 0 or vp_height <= 0 or vp_scale <= 0:
+        raise ValueError("viewport width, height, and deviceScaleFactor must be positive")
+    return {
+        "name": _viewport_name(name or f"{vp_width}x{vp_height}"),
+        "width": vp_width,
+        "height": vp_height,
+        "deviceScaleFactor": vp_scale,
+        "probes": probes,
+    }
+
+
+def resolve_viewports(
     spec: dict[str, Any],
     width: int | None = None,
     height: int | None = None,
     device_scale_factor: float | None = None,
-) -> dict[str, int | float]:
-    """Resolve viewport from CLI overrides, spec.viewport, then root layout."""
-    declared = spec.get("viewport") if isinstance(spec.get("viewport"), dict) else {}
+) -> list[dict[str, Any]]:
+    """Resolve measurement viewports: ``{ name, width, height, deviceScaleFactor, probes }``.
+
+    CLI overrides force a single viewport. spec.viewport may be an object
+    (single) or an array (responsive breakpoints, each optionally carrying
+    its own probe overrides); missing values fall back to the root node
+    layout, then 1280x900.
+    """
+    if width is not None or height is not None or device_scale_factor is not None:
+        declared = spec.get("viewport") if isinstance(spec.get("viewport"), dict) else {}
+        nodes = spec.get("nodes") if isinstance(spec.get("nodes"), list) else []
+        root_layout = nodes[0].get("layout", {}) if nodes and isinstance(nodes[0], dict) else {}
+        return [_viewport_entry(
+            width if width is not None else declared.get("width") or root_layout.get("width") or 1280,
+            height if height is not None else declared.get("height") or root_layout.get("height") or 900,
+            device_scale_factor if device_scale_factor is not None else declared.get("deviceScaleFactor") or 1,
+            None,
+        )]
+
+    declared = spec.get("viewport")
+    if isinstance(declared, list) and declared:
+        return [
+            _viewport_entry(
+                item.get("width"), item.get("height"),
+                item.get("deviceScaleFactor", 1), item.get("probes"),
+                name=item.get("name"),
+            )
+            for item in declared
+        ]
+
+    declared = declared if isinstance(declared, dict) else {}
     nodes = spec.get("nodes") if isinstance(spec.get("nodes"), list) else []
     root_layout = nodes[0].get("layout", {}) if nodes and isinstance(nodes[0], dict) else {}
-    resolved_width = (
-        width if width is not None
-        else declared.get("width") or root_layout.get("width") or 1280
-    )
-    resolved_height = (
-        height if height is not None
-        else declared.get("height") or root_layout.get("height") or 900
-    )
-    scale = (
-        device_scale_factor if device_scale_factor is not None
-        else declared.get("deviceScaleFactor") or 1
-    )
-    try:
-        result = {
-            "width": int(round(float(resolved_width))),
-            "height": int(round(float(resolved_height))),
-            "deviceScaleFactor": float(scale),
-        }
-    except (TypeError, ValueError) as exc:
-        raise ValueError(f"invalid viewport values: {exc}") from exc
-    if result["width"] <= 0 or result["height"] <= 0 or result["deviceScaleFactor"] <= 0:
-        raise ValueError("viewport width, height, and deviceScaleFactor must be positive")
-    return result
+    return [_viewport_entry(
+        declared.get("width") or root_layout.get("width") or 1280,
+        declared.get("height") or root_layout.get("height") or 900,
+        declared.get("deviceScaleFactor") or 1,
+        None,
+    )]
 
 
-def render_measurement_script(spec: dict[str, Any], viewport: dict[str, int | float]) -> str:
-    """Render a self-contained Node script that drives Playwright and prints JSON.
-
-    The script uses the target project's installed `playwright` (required as a
-    peer); it boots chromium, navigates to --url, runs the probe, and prints the
-    actuals object as JSON to stdout.
-    """
-    probes_json = json.dumps(spec.get("probeSelectors", []))
+def render_measurement_script(
+    viewport: dict[str, int | float],
+    probes: list[dict[str, Any]],
+) -> str:
+    """Render a self-contained Node script that drives Playwright and prints JSON."""
+    probes_json = json.dumps(expand_probes(probes), ensure_ascii=False)
     return (
         PROBE_JS_TEMPLATE_WITH_BOOT
         .replace("__PROBES_JSON__", probes_json)
@@ -438,10 +575,33 @@ if (!URL) { console.error('FIGMA_MEASURE_URL env var required'); process.exit(2)
   });
   const page = await ctx.newPage();
   await page.goto(URL, { waitUntil: 'domcontentloaded' });
-  await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
-  const actuals = await page.evaluate((probes) => {
-    const COLOR = new Set(['color','background','backgroundColor','borderColor']);
-    const DURATION = new Set(['transitionDuration','animationDuration']);
+  const networkidle = await page.waitForLoadState('networkidle', { timeout: 5000 })
+    .then(() => true).catch(() => false);
+  await page.evaluate(() => Promise.race([
+    document.fonts.ready,
+    new Promise((resolve) => setTimeout(resolve, 5000)),
+  ]));
+  await Promise.all(PROBES.map((p) =>
+    page.waitForSelector(p.selector, { state: 'attached', timeout: 3000 }).catch(() => null)));
+  const actuals = await page.evaluate(async (probes) => {
+    const RECT_PROPS = new Set(['width', 'height', 'x', 'y']);
+    // Freeze animations/transitions so probes read the settled state; the
+    // freeze keeps declared duration values readable for duration probes.
+    try {
+      const style = document.createElement('style');
+      style.id = '__figma_measure_freeze__';
+      style.textContent = '*{transition-property:none!important;animation-name:none!important;caret-color:transparent!important}';
+      document.documentElement.appendChild(style);
+      for (const anim of document.getAnimations()) {
+        try {
+          const infinite = anim.effect && anim.effect.getTiming
+            && anim.effect.getTiming().iterations === Infinity;
+          if (infinite) anim.cancel(); else if (anim.finish) anim.finish();
+        } catch (e) { /* best effort */ }
+      }
+      await new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    } catch (e) { /* best effort */ }
     const out = {};
     for (const p of probes) {
       try {
@@ -451,17 +611,13 @@ if (!URL) { console.error('FIGMA_MEASURE_URL env var required'); process.exit(2)
         const rect = el.getBoundingClientRect();
         const values = {};
         for (const prop of Object.keys(p.expect || {})) {
-          if (prop === 'width') values.width = rect.width;
-          else if (prop === 'height') values.height = rect.height;
-          else if (prop === 'padding') values.padding = parseFloat(cs.paddingTop);
-          else if (prop === 'margin') values.margin = parseFloat(cs.marginTop);
-          else if (prop === 'gap') values.gap = parseFloat(cs.gap);
-          else if (prop === 'fontSize') values.fontSize = parseFloat(cs.fontSize);
-          else if (prop === 'fontWeight') values.fontWeight = cs.fontWeight;
-          else if (prop === 'lineHeight') values.lineHeight = cs.lineHeight;
-          else if (prop === 'borderRadius') values.borderRadius = parseFloat(cs.borderTopLeftRadius);
-          else if (COLOR.has(prop)) values[prop] = cs[prop === 'background' ? 'backgroundColor' : prop];
-          else if (DURATION.has(prop)) values[prop] = cs[prop];
+          if (RECT_PROPS.has(prop)) values[prop] = rect[prop];
+          else if (prop === 'background') values[prop] = cs.backgroundColor;
+          // gap 'normal' behaves as zero spacing; normalize for numeric delta.
+          else if (prop === 'rowGap' || prop === 'columnGap') {
+            const v = cs[prop];
+            values[prop] = v === 'normal' ? '0px' : v;
+          }
           else values[prop] = cs[prop];
         }
         out[p.name] = values;
@@ -469,6 +625,7 @@ if (!URL) { console.error('FIGMA_MEASURE_URL env var required'); process.exit(2)
     }
     return out;
   }, PROBES);
+  actuals.__meta = { networkidle };
   if (SCREENSHOT) await page.screenshot({ path: SCREENSHOT, fullPage: true });
   await browser.close();
   process.stdout.write(JSON.stringify(actuals));
@@ -481,9 +638,10 @@ def measure(
     spec: dict[str, Any],
     *,
     cwd: Path,
+    viewport: dict[str, int | float],
+    probes: list[dict[str, Any]] | None = None,
     runner: Any = None,
     node_path: str | None = None,
-    viewport: dict[str, int | float] | None = None,
     screenshot: Path | None = None,
 ) -> dict[str, dict[str, Any]]:
     """Run the in-browser probe and return parsed actuals.
@@ -493,6 +651,8 @@ def measure(
 
     runner: injectable for tests; defaults to run_cmd.
     node_path: injectable for tests; defaults to require_executable('node').
+    probes: optional probe override (per-viewport probes); defaults to
+    spec.probeSelectors.
     """
     runner = runner or run_cmd
     try:
@@ -501,7 +661,9 @@ def measure(
         return {"__probe_error__": {
             "__error": f"{exc}. Install Node.js to run the measurement probe."
         }}
-    script = render_measurement_script(spec, viewport or resolve_viewport(spec))
+    script = render_measurement_script(
+        viewport, probes if probes is not None else spec.get("probeSelectors", []),
+    )
     env = os.environ.copy()
     env["FIGMA_MEASURE_URL"] = url
     if screenshot is not None:
@@ -540,6 +702,54 @@ def measure(
     return parsed
 
 
+def pixel_diff(baseline: Path, actual: Path, diff_out: Path) -> dict[str, Any]:
+    """Advisory pixel diff of baseline vs actual via pixelmatch.
+
+    Never raises: missing dependencies or unreadable images return a
+    ``skipped`` entry. Resizes the actual image to the baseline dimensions
+    when they differ, one more reason the result stays advisory-only.
+    """
+    try:
+        from PIL import Image
+        from pixelmatch.contrib.PIL import pixelmatch
+    except ImportError as exc:
+        return {
+            "skipped": (
+                "pixelmatch/Pillow not installed "
+                f"({exc}); pip install pixelmatch Pillow"
+            ),
+        }
+    try:
+        base = Image.open(baseline).convert("RGBA")
+        shot = Image.open(actual).convert("RGBA")
+    except (OSError, ValueError) as exc:
+        return {"skipped": f"cannot read baseline/actual image: {exc}"}
+    resized = False
+    if shot.size != base.size:
+        shot = shot.resize(base.size, Image.Resampling.LANCZOS)
+        resized = True
+    mask = Image.new("RGBA", base.size)
+    diff_pixels = pixelmatch(base, shot, mask, threshold=0.1)
+    total = base.size[0] * base.size[1]
+    ratio = (diff_pixels / total) if total else 0.0
+    try:
+        diff_out.parent.mkdir(parents=True, exist_ok=True)
+        mask.save(diff_out)
+        diff_image = str(diff_out)
+    except OSError:
+        diff_image = None
+    return {
+        "baseline": str(baseline),
+        "actual": str(actual),
+        "diffImage": diff_image,
+        "diffPixels": diff_pixels,
+        "totalPixels": total,
+        "diffRatio": round(ratio, 6),
+        "resized": resized,
+        "advisory": ratio >= PIXEL_DIFF_ADVISORY_RATIO,
+    }
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Measure rendered UI against a Figma spec.json.",
@@ -550,9 +760,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--cwd", default=".", help="Working dir with playwright installed (target project).")
     parser.add_argument("--conflicts", help="Path to conflicts.json; defaults beside spec.json when present.")
     parser.add_argument("--screenshot", help="Actual screenshot path; defaults to actual.png beside --out.")
-    parser.add_argument("--viewport-width", type=int, help="Override spec viewport width.")
-    parser.add_argument("--viewport-height", type=int, help="Override spec viewport height.")
-    parser.add_argument("--device-scale-factor", type=float, help="Override spec device scale factor.")
+    parser.add_argument("--viewport-width", type=int, help="Force a single viewport width (overrides spec).")
+    parser.add_argument("--viewport-height", type=int, help="Force a single viewport height (overrides spec).")
+    parser.add_argument("--device-scale-factor", type=float, help="Force device scale factor (overrides spec).")
+    parser.add_argument("--iteration", type=int, help="Convergence iteration number; archives the report under iterations/ and stamps it.")
+    parser.add_argument("--pixel-diff", action="store_true", help="Advisory pixel diff of baseline vs actual (requires pixelmatch + Pillow).")
+    parser.add_argument("--baseline", help="Baseline image for --pixel-diff; defaults to baseline.png beside --spec.")
     parser.add_argument("--stack", default="web", choices=["web", "flutter"],
                         help="Tech stack. Flutter is reserved and not implemented.")
     return parser
@@ -577,14 +790,14 @@ def main(argv: list[str] | None = None) -> int:
         print(f"invalid spec.json: {exc}", file=sys.stderr)
         return 2
 
-    probe_errors = validate_probes(spec)
+    probe_errors = validate_probes(spec.get("probeSelectors"))
     if probe_errors:
         print(f"invalid spec.json probes: {'; '.join(probe_errors)}", file=sys.stderr)
         return 2
 
     cwd = Path(args.cwd).resolve()
     try:
-        viewport = resolve_viewport(
+        viewports = resolve_viewports(
             spec, args.viewport_width, args.viewport_height, args.device_scale_factor,
         )
     except ValueError as exc:
@@ -607,29 +820,76 @@ def main(argv: list[str] | None = None) -> int:
 
     out_path = Path(args.out)
     screenshot_path = Path(args.screenshot) if args.screenshot else out_path.parent / "actual.png"
-    actuals = measure(
-        args.url, spec, cwd=cwd, viewport=viewport, screenshot=screenshot_path,
+
+    actuals_by_vp: dict[str, dict[str, Any]] = {}
+    for index, vp in enumerate(viewports):
+        vp_errors = validate_probes(vp.get("probes") or spec.get("probeSelectors"))
+        if vp_errors:
+            print(
+                f"invalid probes for viewport {vp['name']}: {'; '.join(vp_errors)}",
+                file=sys.stderr,
+            )
+            return 2
+        vp_screenshot = (
+            screenshot_path if index == 0
+            else out_path.parent / f"actual-{vp['name']}.png"
+        )
+        actuals = measure(
+            args.url, spec, cwd=cwd,
+            viewport={
+                "width": vp["width"], "height": vp["height"],
+                "deviceScaleFactor": vp["deviceScaleFactor"],
+            },
+            screenshot=vp_screenshot, probes=vp.get("probes"),
+        )
+        if "__probe_error__" in actuals:
+            print(
+                f"probe failed for viewport {vp['name']}: "
+                f"{actuals['__probe_error__'].get('__error')}",
+                file=sys.stderr,
+            )
+            return 1
+        actuals_by_vp[vp["name"]] = actuals
+
+    report = compute_delta(
+        spec, actuals_by_vp,
+        [{"name": vp["name"], "probes": vp.get("probes")} for vp in viewports],
+        target_url=args.url, conflicts=conflicts,
     )
+    if args.iteration is not None:
+        report.iteration = args.iteration
+    if args.pixel_diff:
+        baseline = Path(args.baseline) if args.baseline else spec_path.with_name("baseline.png")
+        report.pixel_diff = pixel_diff(
+            baseline, screenshot_path, out_path.parent / "pixel-diff.png",
+        )
 
-    if "__probe_error__" in actuals:
-        print(f"probe failed: {actuals['__probe_error__'].get('__error')}", file=sys.stderr)
-        return 1
-
-    report = compute_delta(spec, actuals, target_url=args.url, conflicts=conflicts)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(
-        json.dumps(report.to_dict(), indent=2, ensure_ascii=False),
-        encoding="utf-8",
-    )
+    payload = json.dumps(report.to_dict(), indent=2, ensure_ascii=False)
+    out_path.write_text(payload, encoding="utf-8")
+    if args.iteration is not None:
+        archive = out_path.parent / "iterations" / f"iter-{args.iteration:02d}.json"
+        archive.parent.mkdir(parents=True, exist_ok=True)
+        archive.write_text(payload, encoding="utf-8")
 
     summary = report.to_dict()["summary"]
     print(
         f"converged={report.converged} "
         f"pass={summary['passed']} warn={summary['warned']} conflict={summary['conflicted']} "
         f"fail={summary['failed']} missing={summary['missing']} "
+        f"viewports={','.join(report.viewports)} "
         f"-> {out_path.as_posix()}",
         file=sys.stderr,
     )
+    if report.pixel_diff is not None:
+        if "skipped" in report.pixel_diff:
+            print(f"pixel diff skipped: {report.pixel_diff['skipped']}", file=sys.stderr)
+        else:
+            print(
+                f"pixel diff advisory={report.pixel_diff['advisory']} "
+                f"ratio={report.pixel_diff['diffRatio']}",
+                file=sys.stderr,
+            )
     return 0 if report.converged else 1
 
 
