@@ -9,13 +9,15 @@
 
 每份报告都必须在开头给出以下字段：
 
-- `problem_code`: `TEST | FRONTEND | BACKEND | ENV | AUTH | DATA`
+- `runtime`: `web | flutter`
+- `problem_code`: `TEST | FRONTEND | FLUTTER | NATIVE | BACKEND | ENV | AUTH | DATA`
 - `severity`: `P0 | P1 | P2`
-- `recommended_agent`: `demo-dev | frontend-dev | backend-dev | manual`
+- `recommended_agent`: `web-demo-dev | flutter-demo-dev | frontend-dev | flutter-dev | backend-dev | manual`
 - `confidence`: `high | medium | low`
 
 字段含义：
 - `problem_code`: 当前失败的唯一主分类
+- `runtime`: 决定 TEST/DATA 应返回对应的 Web 或 Flutter Demo agent
 - `severity`: 对当前修复优先级的判断
 - `recommended_agent`: 推荐处理方；`manual` 表示需要人工处理环境或基础设施问题
 - `confidence`: 对当前诊断结论的把握程度
@@ -76,7 +78,7 @@
 - 证据来源
 
 证据优先级：
-- `playwright-output.log`
+- 当前 runtime 的 `playwright-output.log` 或 `patrol-output.log`
 - unified logs
 - 测试代码 / 前端代码 / 后端日志
 
@@ -121,9 +123,11 @@
 
 | problem_code | 说明 | 推荐处理方 |
 |---|---|---|
-| `TEST` | 测试代码、选择器、断言、等待、流程问题 | `demo-dev` |
-| `DATA` | 测试数据、前置条件、唯一性或初始化问题 | `demo-dev` |
+| `TEST` | 测试代码、选择器、断言、等待、流程问题 | web: `web-demo-dev`; flutter: `flutter-demo-dev` |
+| `DATA` | 测试数据、前置条件、唯一性或初始化问题 | web: `web-demo-dev`; flutter: `flutter-demo-dev` |
 | `FRONTEND` | 前端渲染、交互、路由、可见性、遮挡问题 | `frontend-dev` |
+| `FLUTTER` | Flutter 页面、路由、状态或业务交互实现问题 | `flutter-dev` |
+| `NATIVE` | Android 平台能力、权限或系统 UI 实现问题 | `flutter-dev` |
 | `BACKEND` | 后端接口、查询、服务端异常 | `backend-dev` |
 | `AUTH` | 登录、鉴权、授权、权限配置问题 | `backend-dev` |
 | `ENV` | 环境启动、端口、依赖服务、基础设施问题 | `manual` |
@@ -138,6 +142,6 @@
 
 ## 一致性要求
 
-- `${CLAUDE_PLUGIN_ROOT}/agents/demo-diagnose.md` 必须引用本协议
-- `${CLAUDE_PLUGIN_ROOT}/guides/demo/diagnose-guide.md` 只描述流程、证据优先级和产出时机
-- `${CLAUDE_PLUGIN_ROOT}/guides/demo/templates/diagnose-report-template.md` 只是便捷骨架，不得与本协议冲突
+- `${CLAUDE_PLUGIN_ROOT}/agents/web-demo-diagnose.md` 与 `${CLAUDE_PLUGIN_ROOT}/agents/flutter-demo-diagnose.md` 必须引用本协议
+- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/diagnose-guide.md` 只描述流程、证据优先级和产出时机
+- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/templates/diagnose-report-template.md` 只是便捷骨架，不得与本协议冲突

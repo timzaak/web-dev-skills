@@ -227,7 +227,7 @@ enum XxxError {
 - [前端测试策略]
 
 ### 6.2 Demo / E2E
-- [主故事验收路径]
+- [按交付端声明 Web Playwright 和/或 Android Flutter Patrol 主故事验收路径；无需演示时明确说明]
 
 ### 6.3 回归风险点
 - [需要重点验证的场景]

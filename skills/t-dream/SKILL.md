@@ -49,7 +49,7 @@ PRD 治理模式只保留当前产品规则、用户可见契约、范围边界�
 - 用户故事：`docs/user-stories/**/*.md`、`.ai/user-stories/**/*.md`
 - PRD 草稿：`.ai/prd/**/*.md`
 - 设计与任务：`.ai/design/**/*.md`、`.ai/task/**`
-- Demo 测试：`demo/e2e/**/*.e2e.ts`
+- Demo 测试：Web 为 `demo/e2e/**/*.e2e.ts`，Flutter 为 `patrol_test/**/*_test.dart`
 - 实现代码：按目标项目真实结构定位 backend、frontend、demo 相关实现
 - 项目结构：`docs/`、`.ai/`、backend/frontend/demo/test 目录、README、AGENTS/CLAUDE 类上下文入口、ADR 或架构说明（如存在）
 - PRD 上下文治理：复用 `context-curator` agent
@@ -264,7 +264,7 @@ PRD 治理模式只保留当前产品规则、用户可见契约、范围边界�
 - HTTP/API：Controller 映射、DTO、validator、OpenAPI 注解。
 - Infrastructure：repository、外部集成、持久化约束和事务边界。
 - Frontend：页面、组件、路由、查询/变更、权限可见性。
-- Demo：`demo/e2e/**/*.e2e.ts` 中的场景、注释、断言和日志。
+- Demo：`demo/e2e/**/*.e2e.ts` 或 `patrol_test/**/*_test.dart` 中的场景、注释、断言和日志。
 
 后端模块检查的输入规则：
 - 必须能在 `docs/prd/**/*.md` 中定位与 `[module]` 对应的 PRD。
@@ -402,4 +402,4 @@ agent 失败时记录失败模块为 P1，并继续其他模块（`--all` 模式
 - 评分公式必须可复算，分项分值之和必须等于总分。
 - 报告必须落盘。
 - PRD 只承载产品规则、能力边界和验收目标；接口或路由说明问题作为描述准确性问题单独记录。
-- 阶段质量收口仍由专门命令承担：`/t-prd-check`、`/t-design-check`、`/t-task-check` 是可选质量检查，`/t-demo-accept` 是 Demo 验收。
+- 阶段质量收口仍由专门命令承担：`/t-prd-check`、`/t-design-check`、`/t-task-check` 是可选质量检查，`/t-tools:t-web-demo-accept` / `/t-tools:t-flutter-demo-accept` 分别验收对应 Demo。

@@ -90,10 +90,9 @@ allowed-tools:
 ### 6. 评分计算
 按 `${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md` 计算：
 
-- `PRD Score`
-- `User Story Score`
-- `Consistency Score`
-- `Total Score`
+- `PRD Score`（0–100，维度之和=100）
+- `User Story Score`（0–100，维度之和=100）
+- 一致性门禁结论：`pass` / `fail`（非数值分）
 
 
 ### 7. 输出要求

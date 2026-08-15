@@ -1,7 +1,7 @@
 ---
 name: t-task-check
 description: Validate task plan executability and consistency with a 100-point score and P0/P1/P2 fix list.
-argument-hint: "[任务名称] [--phase <backend|frontend|miniapp|flutter|demo>]"
+argument-hint: "[任务名称] [--phase <backend|frontend|miniapp|flutter|web-demo|flutter-demo>]"
 allowed-tools:
   - AskUserQuestion
   - Read
@@ -35,7 +35,7 @@ allowed-tools:
 
 ## 使用方式
 ```bash
-/t-task-check [feature] [--phase <backend|frontend|miniapp|flutter|demo>]
+/t-task-check [feature] [--phase <backend|frontend|miniapp|flutter|web-demo|flutter-demo>]
 ```
 
 | 参数 | 说明 |
@@ -52,10 +52,10 @@ allowed-tools:
 - 阶段索引：`index.md`
 - slot manifest：
   - backend/frontend/miniapp/flutter: `dev.md`、`test.md`、`accept.md`
-  - demo: `dev.md`、`accept.md`
+  - web-demo / flutter-demo: `dev.md`、`accept.md`
 - item 文件：
   - backend/frontend/miniapp/flutter: `dev/*.md`、`test/*.md`、`accept/*.md`
-  - demo: `dev/*.md`、`accept/*.md`
+  - web-demo / flutter-demo: `dev/*.md`、`accept/*.md`
 
 ## Schema 校验
 `.state.json` 的 schema 要求统一参考：
@@ -85,16 +85,16 @@ allowed-tools:
    - backend/test runner item 必须使用 `agent: general-purpose`，并引用 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md`
    - backend/test 必须有 runner item 覆盖全部相关 authoring item，且 runner 在 manifest 中排在这些 authoring item 之后
    - backend/accept 前的 backend/test slot 必须至少有一个 runner 完成测试执行闭环
-   - frontend/test、miniapp/test、flutter/test 和 demo/dev 涉及测试代码 authoring 时，必须有集中定向执行 item，且在 manifest 中排在其覆盖的全部相关 authoring item 之后
+   - frontend/test、miniapp/test、flutter/test、web-demo/dev 和 flutter-demo/dev 涉及测试代码 authoring 时，必须有集中定向执行 item，且在 manifest 中排在其覆盖的全部相关 authoring item 之后
    - 集中测试执行 item 必须包含 `Expected Test Manifest`，逐项列出测试文件、测试函数/用例标题、来源 authoring item 和 runner 命令
    - 测试执行 item 必须从覆盖来源推导定向命令；如升级全量，必须说明定向范围不足或门禁要求
-   - 对 backend/frontend/miniapp/flutter/demo 的集中测试执行 item，优先运行 `uv run scripts/check-test-runner-coverage.py [feature] --layer [layer]` 做覆盖校验；backend 动态校验失败应记 P1 或 P0（取决于是否导致新增测试无法执行），其他层静态校验失败至少记 P1
-   - 后端测试命令必须使用目标项目内脚本入口 `uv run scripts/backend-test.py -- [filter]`；即使没有 filter，也必须写为 `uv run scripts/backend-test.py --`。不得写成 `${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py` 或省略 `--`。需要串行执行时使用 `uv run scripts/backend-test.py -- [filter]` 并说明串行原因。若测试 item 使用 `mvn spring-boot:run`、裸 `mvn test`、插件根路径或省略 `--` 的后端测试命令，记 P1，并改为统一入口。
+   - 对 backend/frontend/miniapp/flutter/web-demo/flutter-demo 的集中测试执行 item，优先运行 `uv run scripts/check-test-runner-coverage.py [feature] --layer [layer]` 做覆盖校验；backend 动态校验失败应记 P1 或 P0（取决于是否导致新增测试无法执行），其他层静态校验失败至少记 P1
+   - 后端测试命令必须使用目标项目内脚本入口 `uv run scripts/backend-test.py -- [filter]`；即使没有 filter，也必须写为 `uv run scripts/backend-test.py --`。不得写成 `${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py` 或省略 `--`。若测试 item 使用 `mvn spring-boot:run`、裸 `mvn test`、插件根路径或省略 `--` 的后端测试命令，记 P1，并改为统一入口。
    - 不得把完整 slot 内容塞进一个 item
    - 超过拆分阈值，或职责、验证边界可疑时，必须有合理说明，否则记 P1
    - `Goal` 或 `Work` 中包含两个可独立交付、独立验证的主交付物时，必须拆分，否则记 P1
    - 单个 HTTP/API item 覆盖超过 10 个 endpoint，或混合不同资源域、读写操作、状态操作、配置类接口时，必须拆分，否则记 P1
-   - 单个 demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流时，必须拆分，否则记 P1
+   - 单个 web-demo / flutter-demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流时，必须拆分，否则记 P1
 - 核对设计文档与任务文档的一致性；纯技术方案任务可只追溯设计文档中的技术预研来源，不得因缺少 PRD/用户故事扣 P0。
 - 若任务或设计引用 `.ai/user-stories`，确认其为 draft 候选来源且路径存在；不得要求先发布到 `docs/user-stories` 才能进入 `/t-run`。
 - 通过 `Agent` tool 调度当前阶段对应 subagent 做专业校验。每个 subagent 独立启动，传入 prompt 包含：该 agent/slot 相关 item 的文件路径、关键字段摘要、必要 item 全文或片段、设计文档相关节、验证范围、`${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md` 中的 agent 评审边界、输出格式要求（score/findings/fixes/summary）。可并行调度同阶段多个 subagent。
@@ -102,12 +102,13 @@ allowed-tools:
    - dev agent 默认只接收 dev item 与直接影响实现的跨 slot 摘要。
    - test agent 默认只接收 test item、相关 dev `Handoff/Files` 摘要和集中定向测试执行闭环约束。
    - accept agent 默认只接收 accept item、顺序中相关 runner/dev `Handoff` 摘要和验收闭环约束。
-   - demo 阶段按 dev/accept slot 同样做最小分发。
+   - web-demo / flutter-demo 阶段按 dev/accept slot 同样做最小分发。
    - backend: subagent_type="backend-dev", "backend-test", "backend-accept"
    - frontend: subagent_type="frontend-dev", "frontend-test", "frontend-accept"
    - miniapp: subagent_type="miniapp-dev", "miniapp-test", "miniapp-accept"
    - flutter: subagent_type="flutter-dev", "flutter-test", "flutter-accept"
-   - demo: subagent_type="demo-dev", "demo-accept"
+   - web-demo: subagent_type="web-demo-dev", "web-demo-accept"
+   - flutter-demo: subagent_type="flutter-demo-dev", "flutter-demo-accept"
 - 聚合 agent 结果并进行主流程复核：同类问题合并，P0/P1 必须补齐任务文档证据和真源证据。
 - 若复核后存在 `${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md` 定义的 `needs_user_answer`，先查 Decision Log；仍未解决时立即使用 `AskUserQuestion`。回答前不得给出可进入 `/t-run` 的结论；回答后先更新 Decision Log 和拥有该事实的设计/任务文档，再重新扫描和评分。
 - 按评分体系生成评分与问题清单。
@@ -134,7 +135,7 @@ agent finding 不直接作为最终裁决；主流程必须按 rubric 完成证�
 | `STATE_FILE_MISSING` | 任务目录或 `.state.json` 缺失 | 状态文件不存在 | 运行 `/t-task [feature] --phase backend` 重建 |
 | `STATE_JSON_INVALID` | `.state.json` 格式错误 | 状态文件解析失败 | 修复 JSON 后重试；或重建任务目录 |
 | `TASK_SCHEMA_INVALID` | 缺少 `phase/phases/tasks/status/manifest/items` 字段 | 任务状态结构不完整 | 运行 `/t-task [feature] --phase [phase]` 重建 |
-| `PHASE_INVALID` | `--phase` 不是 `backend|frontend|miniapp|flutter|demo` | 非法阶段，仅支持 backend/frontend/miniapp/flutter/demo | 使用合法参数后重试 |
+| `PHASE_INVALID` | `--phase` 不是 `backend|frontend|miniapp|flutter|web-demo|flutter-demo` | 非法阶段 | 使用合法参数后重试 |
 | `PHASE_NOT_ACTIVE` | `--phase` 不在当前任务 active phases 中 | 当前项目未启用该阶段 | 使用 `.state.json.phases` 中存在的阶段，或重新运行 `/t-task` 生成该阶段 |
 | `PHASE_DIR_MISSING` | 阶段目录不存在 | 找不到阶段目录 | 运行 `/t-task [feature] --phase [phase]` 生成 |
 | `ITEM_SEQUENCE_INVALID` | manifest 未覆盖全部 item、包含重复 item，或 item 表格无法确定从上到下的执行顺序 | 子任务执行顺序非法 | 修复或重新生成该阶段 |

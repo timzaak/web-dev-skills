@@ -54,4 +54,4 @@ test('search returns users', () async {
 
 测试目录镜像 `lib/`，公共 fake/helper 分别放项目既有的 `test/fakes/`、`test/helpers/`。不要因已有 E2E 删除能快速定位失败或覆盖边界的测试。
 
-演示测试见 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/integration-testing.md`；验证命令见 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/validation.md`。
+普通集成测试见 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/integration-testing.md`；用户故事演示见 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/demo-testing.md`；验证命令见 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/validation.md`。

@@ -70,7 +70,7 @@ tools:
 - 组件只是原样转发 prop callback 时的 `clicking X calls vi.fn()`
 - 纯 UI 包装组件、常量文件、纯类型导出文件
 
-Demo 相关测试由 `demo-dev` 负责。
+Demo 相关测试由 `web-demo-dev` 负责。
 
 ## 必做门禁
 

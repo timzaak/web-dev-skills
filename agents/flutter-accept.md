@@ -12,7 +12,7 @@ tools: [Read, Grep, Glob, Bash, Write]
 只读执行：
 
 1. 核对设计范围、架构、Riverpod、生成物、主题/本地化、无障碍和平台影响。
-2. 复核格式、analyze、单元/widget、相关 integration/Patrol、构建与重复代码证据。
+2. 复核格式、analyze、单元/widget、相关 integration/Patrol 技术门禁、构建与重复代码证据；用户故事演示证据由 `flutter-demo-accept` 独立收口。
 3. 输出 `.ai/quality/check-[date].md`，结论为 `ACCEPTED`、`REJECTED` 或 `ACCEPTED_WITH_IMPROVEMENTS`。
 
 每条结论包含文件/命令证据，并记录版本、设备和未执行门禁。未经授权不修改实现；不以 debug 观感作性能结论。

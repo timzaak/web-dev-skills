@@ -121,7 +121,7 @@ cd miniapp && npm run starter:ci-gate -- --target taro-react-taroify-tailwind
 
 ## 结构化输出
 
-当 miniapp-dev 用于修复 `t-demo-run` 失败时，`task_completion` 必须返回：
+当 miniapp-dev 用于修复 `t-web-demo-run` 失败时，`task_completion` 必须返回：
 
 - `change_scope`
 - `tests_to_run`

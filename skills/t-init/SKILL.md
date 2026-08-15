@@ -91,7 +91,7 @@ allowed-tools:
 
 ### Step 3: 生成后端（backend-dev subagent）
 
-按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 使用 Agent 工具调度 `t-tools:backend-dev` subagent。后续 `frontend-dev` / `demo-dev` 调用同理。
+按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 使用 Agent 工具调度 `t-tools:backend-dev` subagent。后续 `frontend-dev` / `web-demo-dev` 调用同理。
 
 Subagent prompt 必须要求：
 - 读取后端模板文件 `${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/backend-template.md`
@@ -112,7 +112,7 @@ Subagent prompt 必须要求：
 
 必须通过 CLI 生成的 UI 组件仍由 CLI 生成，不手写覆盖。
 
-### Step 5: 生成 Demo E2E 测试（demo-dev subagent）
+### Step 5: 生成 Demo E2E 测试（web-demo-dev subagent）
 
 沿用 [references/demo-template.md](references/demo-template.md)。默认后端基础 URL 为 `http://localhost:8080`，健康检查优先使用 `/actuator/health`，兼容 `/health`。
 
@@ -128,12 +128,12 @@ Subagent prompt 必须要求：
 - `test-stop.py`
 - `demo-start.py`
 - `demo-stop.py`
-- `demo-test-runner.py`
-- `demo-run-all.py`
+- `web-demo-test-runner.py`
+- `web-demo-run-all.py`
 - `debug-test.py`
 - `cleanup-demo.py`
 - `cleanup-test-logs.py`
-- `demo-failure-summary.py`
+- `web-demo-failure-summary.py`
 - `lib/*.py`
 
 复制后按当前项目调整脚本默认配置：
@@ -191,14 +191,14 @@ Subagent prompt 必须要求：
 - [ ] `scripts/backend-test.py`
 - [ ] `scripts/test-start.py`
 - [ ] `scripts/test-stop.py`
-- [ ] `scripts/demo-test-runner.py`
-- [ ] `scripts/demo-run-all.py`
+- [ ] `scripts/web-demo-test-runner.py`
+- [ ] `scripts/web-demo-run-all.py`
 - [ ] `scripts/demo-start.py`
 - [ ] `scripts/demo-stop.py`
 - [ ] `scripts/debug-test.py`
 - [ ] `scripts/cleanup-demo.py`
 - [ ] `scripts/cleanup-test-logs.py`
-- [ ] `scripts/demo-failure-summary.py`
+- [ ] `scripts/web-demo-failure-summary.py`
 - [ ] `scripts/lib/*.py`
 - [ ] `README.md`
 

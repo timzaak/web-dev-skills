@@ -44,7 +44,7 @@ npx jscpd src/
 Demo 验证（仓库根目录）：
 
 ```bash
-uv run scripts/demo-test-runner.py demo/e2e/ --mode fast
+uv run scripts/web-demo-test-runner.py demo/e2e/ --mode fast
 ```
 
 ## 5. API 一致性检查

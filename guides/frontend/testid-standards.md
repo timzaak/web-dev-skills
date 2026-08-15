@@ -1,7 +1,7 @@
 # data-testid 编写规范（Agent 主规范）
 
 **定位**：本文件是前端 `data-testid` 的唯一主规范。  
-**适用对象**：frontend-dev、demo-dev、前端研发人员。
+**适用对象**：frontend-dev、web-demo-dev、前端研发人员。
 
 ## 核心原则
 
@@ -98,4 +98,4 @@
 ## 与选择器策略协同
 
 - 测试优先使用语义化定位；当语义不足或不稳定时使用 `getByTestId`。
-- 具体策略见：[Demo 选择器策略主规范](${CLAUDE_PLUGIN_ROOT}/guides/demo/selector-strategy.md)
+- 具体策略见：[Demo 选择器策略主规范](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/selector-strategy.md)

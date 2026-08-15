@@ -7,7 +7,9 @@
 具体验收细则已下沉到：
 - `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/quality.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/demo/quality.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/quality.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/flutter/quality.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/flutter/demo-testing.md`
 
 ## 1. 设计与追踪
 
@@ -47,7 +49,8 @@
 
 - 后端验收细则：`${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md`
 - 前端验收细则：`${CLAUDE_PLUGIN_ROOT}/guides/frontend/quality.md`
-- Demo 验收细则：`${CLAUDE_PLUGIN_ROOT}/guides/demo/quality.md`
+- Web Demo 验收细则：`${CLAUDE_PLUGIN_ROOT}/guides/web-demo/quality.md`
+- Flutter Demo 验收细则：`${CLAUDE_PLUGIN_ROOT}/guides/flutter/demo-testing.md`
 
 ## 5. 执行约束
 

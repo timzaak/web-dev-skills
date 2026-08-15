@@ -62,6 +62,7 @@ allowed-tools:
 - `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md` — 后端开发规范
 - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md` — 前端开发规范
 - `${CLAUDE_PLUGIN_ROOT}/guides/flutter/development.md` — Flutter 开发规范（目标项目启用 Flutter 时）
+- `${CLAUDE_PLUGIN_ROOT}/guides/flutter/demo-testing.md` — Android Patrol 用户故事演示规范（设计要求 Flutter Demo 时）
 - `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md` — 质量规范
 
 ## Output Contract

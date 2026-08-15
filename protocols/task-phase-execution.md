@@ -2,14 +2,15 @@
 
 ## Phases
 
-`supported_phases` 固定为 `backend`, `frontend`, `miniapp`, `flutter`, `demo`。
+`supported_phases` 固定为 `backend`, `frontend`, `miniapp`, `flutter`, `web-demo`, `flutter-demo`。
 
-`active_phases` 只包含当前 feature 需要生成和执行的阶段。`miniapp` 仅在项目根目录存在 `miniapp/`，或设计文档明确包含小程序交付时启用。`flutter` 仅在目标项目/子目录的 `pubspec.yaml` 声明 Flutter SDK，或设计文档明确包含 Flutter 交付时启用。
+`active_phases` 只包含当前 feature 需要生成和执行的阶段。`miniapp` 仅在项目根目录存在 `miniapp/`，或设计文档明确包含小程序交付时启用。`flutter` 仅在目标项目/子目录的 `pubspec.yaml` 声明 Flutter SDK，或设计文档明确包含 Flutter 交付时启用。`web-demo` 仅在设计要求 Web 用户故事演示且项目存在 Web 交付端时启用；`flutter-demo` 仅在设计要求 Flutter 用户故事演示且项目声明 Flutter SDK 时启用。普通 integration test 或 Patrol 技术门禁本身不自动启用 `flutter-demo`。
 
 默认顺序：
 
-- Web 项目：`backend -> frontend -> demo`
-- 多端项目：`backend -> frontend/miniapp/flutter -> demo`，中间阶段只包含实际交付端，固定排序为 `frontend -> miniapp -> flutter`
+- Web 项目：`backend -> frontend -> web-demo`
+- Flutter 项目：`backend -> flutter -> flutter-demo`
+- 多端项目：`backend -> frontend/miniapp/flutter -> web-demo/flutter-demo`，只包含实际交付端，固定排序为 `frontend -> miniapp -> flutter -> web-demo -> flutter-demo`
 
 ## Slot Order
 
@@ -17,14 +18,15 @@
 - frontend: `dev -> test -> accept`
 - miniapp: `dev -> test -> accept`
 - flutter: `dev -> test -> accept`
-- demo: `dev -> accept`
+- web-demo: `dev -> accept`
+- flutter-demo: `dev -> accept`
 
 ## Execution Unit
 
 `/t-run` 只执行以下 item 文件：
 
 - `{backend,frontend,miniapp,flutter}/{dev,test,accept}/*.md`
-- `demo/{dev,accept}/*.md`
+- `{web-demo,flutter-demo}/{dev,accept}/*.md`
 
 不直接执行 `index.md`, `dev.md`, `test.md`, `accept.md`。
 
@@ -55,7 +57,7 @@
 
 每个 item 必须能让 `/t-run` 单独恢复执行，并包含：
 
-- `id`: 稳定 ID，例如 `BE-D01`, `FE-T02`, `MA-A01`, `FL-T01`, `DE-A01`
+- `id`: 稳定 ID，例如 `BE-D01`, `FE-T02`, `MA-A01`, `FL-T01`, `WD-D01`, `FD-A01`
 - `title`
 - `agent`
 
@@ -77,7 +79,7 @@ backend/test item 还必须符合 [Backend Test Item Types](#backend-test-item-t
 - 不合并弱相关、验证命令不同或失败归因会互相污染的主交付物。
 - 测试代码编写与测试运行/修复闭环必须拆开。
 - 不把大范围跨模块重构、多个页面域或多个完整用户故事塞进同一 item。
-- 验证命令必须来自目标项目实际脚本、package 名或配置。涉及 Maven module 时，item 中任何带 `--module <name>` 的命令的 `<name>` 必须是 `backend/` 下实际存在的 Maven reactor module（见父 `pom.xml` 的 `<modules>` 段或对应子目录的 `pom.xml`）；不得假设 module 名等于目录名。生成 item 前先 `Read` 对应 `pom.xml` 核对，再写入 validation 或 steps。
+- validation 必须来自目标项目实际脚本、package 名或配置。涉及 Maven module 时，item 中任何带 `--module <name>` 的命令的 `<name>` 必须是 `backend/` 下实际存在的 Maven reactor module（见父 `pom.xml` 的 `<modules>` 段或对应子目录的 `pom.xml`）；不得假设 module 名等于目录名。生成 item 前先 `Read` 对应 `pom.xml` 核对，再写入 validation 或 steps。
 
 ## Refactor And Legacy Cleanup
 
@@ -112,7 +114,7 @@ backend/test item 还必须符合 [Backend Test Item Types](#backend-test-item-t
 | test | 2 |
 | accept | 2 |
 
-demo 阶段的 `accept` slot 同样适用 `accept` 上限。
+web-demo / flutter-demo 阶段的 `accept` slot 同样适用 `accept` 上限。
 
 超过上限时的处理规则：
 
@@ -137,7 +139,7 @@ demo 阶段的 `accept` slot 同样适用 `accept` 上限。
 - 单个 item 文件预计超过 30KB，且不是验收清单。
 - `Goal` 或 `Work` 包含两个弱相关、可独立交付、独立验证的主交付物。
 - 单个 HTTP/API item 覆盖超过 10 个 endpoint，或混合不同资源域、读写操作、状态操作、配置类接口，导致验证命令、失败归因或 review 边界不清。
-- 单个 demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流，导致失败时无法区分测试基础设施问题和故事流程问题。
+- 单个 web-demo / flutter-demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流，导致失败时无法区分测试基础设施问题和故事流程问题。
 
 推荐拆分维度：
 
@@ -147,10 +149,11 @@ demo 阶段的 `accept` slot 同样适用 `accept` 上限。
 - frontend dev：按页面域、用户流程、可复用组件族或数据闭环拆分；同一页面闭环内的 API/type、schema/query/store、主流程、状态与错误处理、权限与空态可合并。
 - miniapp dev：按页面域、平台能力或模板/主题闭环拆分；页面注册、组件主流程、主题接线、token/icon 集成在同一闭环内可合并。
 - flutter dev：按 feature、用户流程、平台能力或数据闭环拆分；同一 feature 内的 View、Notifier、Repository 适配与关键状态可合并。
-- demo dev：按用户故事、业务状态流或测试基础设施闭环拆分；同一故事内强相关的 fixture/helper/Page Object authoring 可合并。
+- web-demo dev：按用户故事、业务状态流或 Playwright 测试基础设施闭环拆分。
+- flutter-demo dev：按用户故事、业务状态流或 Patrol 测试基础设施闭环拆分；一个文件默认只承载一个用户故事或强耦合状态流。
 - accept：design consistency、public API contract、business rules、permission/security、test evidence、demo readiness；纯技术方案聚焦技术目标、兼容性、公共契约、迁移/配置影响、测试证据和回归风险。
 
-backend/test、frontend/test、miniapp/test、flutter/test、demo/dev 的测试拆分与执行见 [Test Execution Consolidation](#test-execution-consolidation) 与 [Backend Test Item Types](#backend-test-item-types)。
+backend/test、frontend/test、miniapp/test、flutter/test、web-demo/dev、flutter-demo/dev 的测试拆分与执行见 [Test Execution Consolidation](#test-execution-consolidation) 与 [Backend Test Item Types](#backend-test-item-types)。
 
 ## Test Execution Consolidation
 
@@ -160,8 +163,8 @@ backend/test、frontend/test、miniapp/test、flutter/test、demo/dev 的测试�
 - runner 必须排在其覆盖的全部相关 authoring item 之后，并记录覆盖来源。
 - runner 必须包含 `Expected Test Manifest`：测试文件、测试函数/用例标题、来源 authoring item、预期 runner 命令。
 - runner 只运行覆盖来源所需的最小可靠定向测试、类型检查或构建命令；全量测试只在定向范围无法覆盖风险，或发布/验收门禁要求时使用，并说明原因。
-- Java/Maven 编译、TypeScript 编译、Vite/Vitest 预构建、Taro 构建或 Playwright 项目启动等等待成本允许存在，但 item 必须记录实际命令和失败/耗时证据。
-- 可用 `uv run scripts/check-test-runner-coverage.py <feature> --layer <backend|frontend|miniapp|flutter|demo>` 校验 runner 覆盖关系；backend 做动态命中校验，frontend/miniapp/flutter/demo 默认做静态命令覆盖校验。
+- 编译、预构建、项目启动等等待成本允许存在，但 item 必须记录实际命令和失败/耗时证据。
+- 可用 `uv run scripts/check-test-runner-coverage.py <feature> --layer <backend|frontend|miniapp|flutter|web-demo|flutter-demo>` 校验 runner 覆盖关系。
 
 适用阶段：
 
@@ -169,7 +172,8 @@ backend/test、frontend/test、miniapp/test、flutter/test、demo/dev 的测试�
 - frontend/test：全部 Vitest/MSW authoring 后执行定向 `npm run test:run -- [pattern]`，按需加 `type-check`。
 - miniapp/test：测试或验证资产完成后执行相关 `typecheck`、构建或专项 gate。
 - flutter/test：单元/widget 测试资产完成后执行相关定向 `flutter test`；按改动范围执行 integration_test、Patrol、analyze 或构建门禁。
-- demo/dev：Demo/E2E、fixture、Page Object 完成后执行相关 `demo-test-runner.py [test-file] --grep [pattern]` 或少量相关文件。
+- web-demo/dev：Playwright Demo、fixture、Page Object 完成后执行相关 `web-demo-test-runner.py [test-file] --grep [pattern]` 或少量相关文件。
+- flutter-demo/dev：Patrol 测试、screen/helper 完成后执行相关 `flutter-demo-test-runner.py [test-file] --device [android-id]`；首版 runner 按文件执行，不规划不存在的标题 grep。
 
 ## Backend Test Item Types
 

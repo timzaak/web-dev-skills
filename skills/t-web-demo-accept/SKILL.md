@@ -1,0 +1,99 @@
+---
+name: t-web-demo-accept
+description: Validate demo tests cover user stories, compile and pass, and output structured acceptance reports.
+argument-hint: "[测试文件路径|角色名|all]"
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash
+  - Write
+---
+
+# Demo 测试验收
+
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
+
+## 目标
+- 验证测试是否覆盖用户故事。
+- 验证测试是否可编译、可运行且全部通过。
+- 输出结构化验收报告到 `.ai/quality/`。
+
+## 参数
+```bash
+/t-tools:t-web-demo-accept [target]
+```
+
+`target` 说明：
+- 测试文件路径：`demo/e2e/<role>/<scenario>.e2e.ts`
+- 角色名：按目标项目 `demo/e2e/` 下的实际角色目录匹配
+- `all` 或留空：验收全部 Demo 测试
+
+## 执行流程
+- 识别目标测试文件。
+- 若是文件路径：仅处理该文件。
+- 若是角色名：匹配 `demo/e2e/**` 下对应文件。
+- 若是 `all` 或空：扫描 `demo/e2e/**/*.e2e.ts`，排除 `fixtures/`、`templates/`、`verification/`。
+
+- 用户故事一致性检查（必须）。
+- 读取测试文件顶部注释中的用户故事路径。
+- 校验用户故事文件存在；交付测试文件只允许引用 `docs/user-stories/...`，不接受 `.ai/user-stories/...`（见 `${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md`）。
+- 核对场景覆盖、角色匹配、关键断言与验收标准。
+
+- 编译检查（必须）。
+```bash
+cd demo && npm run build
+```
+
+- 测试执行检查（必须）。
+```bash
+uv run scripts/web-demo-test-runner.py "[测试文件]" --mode fast --log-level mini
+```
+- 若任一测试失败、超时或编译失败，直接判定该文件 `REJECTED`。
+
+- 代码质量检查。
+```bash
+grep -n "verifyTestEnvironment\|cleanupDemoTestData" [测试文件路径]
+grep -n "UnifiedLogger\|logger\." [测试文件路径]
+grep -n "waitForTimeout" [测试文件路径]
+grep -n "data-testid\|getByRole\|getByText" [测试文件路径]
+npx jscpd --pattern "**/*.ts" --reporters console demo/e2e
+wc -l [测试文件路径]
+```
+
+- 生成报告。
+- 单文件：`.ai/quality/web-demo-accept-[name]-[YYYYMMDD-HHMMSS].md`
+- 批量：同时生成汇总 `.ai/quality/web-demo-accept-summary-[YYYYMMDD-HHMMSS].md`
+- 短报告：结论、门禁摘要、P0/P1/P2 单行清单、日志路径。
+
+## 输出格式
+每个文件产出：
+- 状态：`ACCEPTED` / `ACCEPTED_WITH_IMPROVEMENTS` / `REJECTED`
+- 分数：0-100
+- 门禁摘要：用户故事映射、编译、执行、隔离/日志、重复代码
+- 问题清单：P0 / P1 / P2，每条单行
+- 证据路径
+
+日志路径统一使用仓库相对路径：
+- `log/backend-demo.log`
+- `log/frontend-demo.log`
+- `demo/test-results/`
+
+## 失败处理
+- 用户故事不存在（`docs/user-stories` 未找到，或测试文件引用的是已被/将被删除的 `.ai/user-stories` 草稿）：直接拒绝验收。
+- 编译失败：直接拒绝验收。
+- 测试失败或超时：直接拒绝验收。
+- 批量模式下：记录失败并继续处理后续文件。
+
+## 质量门禁
+P0 必须全部通过：
+- 用户故事映射有效
+- 编译成功
+- 测试全部通过
+- 存在环境验证与数据清理
+- 使用 UnifiedLogger
+
+允许 `ACCEPTED_WITH_IMPROVEMENTS` 的前提：
+- 所有测试通过
+- 无 P0 问题

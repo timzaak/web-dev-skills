@@ -9,7 +9,7 @@
     "backend": "Java / Spring Boot",
     "frontend": "React / TanStack Router & Query / Tailwind / Radix UI",
     "mobile": "Flutter / Riverpod / go_router / integration_test / Patrol",
-    "testing": "JUnit / Maven / Vitest / Flutter Test / Playwright / Patrol"
+    "testing": "JUnit / Maven / Vitest / Flutter Test / Web Demo (Playwright) / Flutter Demo (Android Patrol)"
   },
-  "requiredMcpServers": ["context7"]
+  "requiredMcpServers": ["context7", "figma"]
 }

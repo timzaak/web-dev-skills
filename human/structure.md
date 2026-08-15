@@ -36,7 +36,7 @@ t-decision
 
 t-design -> [t-design-check] -> t-task -> [t-task-check]
 -> t-run
--> t-demo-run -> t-demo-accept
+-> t-web-demo-run / t-flutter-demo-run -> 对应 demo accept
 -> t-prd-publish -> t-push -> t-release
 ```
 
@@ -51,7 +51,8 @@ Subagent 按工程角色拆分，而不是让一个 agent 同时承担所有职�
 - `backend-dev` / `frontend-dev` / `miniapp-dev`：实现。
 - `backend-test` / `frontend-test` / `miniapp-test`：测试。
 - `backend-accept` / `frontend-accept` / `miniapp-accept`：默认只读验收并输出证据。
-- `demo-dev` / `demo-accept` / `demo-diagnose`：维护、验收和诊断 Playwright Demo/E2E。
+- `web-demo-dev` / `web-demo-accept` / `web-demo-diagnose`：维护、验收和诊断 Playwright Demo/E2E。
+- `flutter-demo-dev` / `flutter-demo-accept` / `flutter-demo-diagnose`：维护、验收和诊断 Android Patrol 用户故事演示。
 - `context-curator` / `structure-review` / `backend-consistency`：上下文、结构和实现一致性审计。
 - `html-show`：把 Markdown 转成 HTML Preview。
 
@@ -79,7 +80,8 @@ Subagent 按工程角色拆分，而不是让一个 agent 同时承担所有职�
 - `backend/`：后端架构、开发、测试、验证、TDD 和质量门禁。
 - `frontend/`：前端开发模式、测试策略、`data-testid` 和质量门禁。
 - `miniapp/`：小程序开发、测试、验证和质量门禁。
-- `demo/`：E2E、选择器、Page Object、诊断和常见失败处理。
+- `web-demo/`：Playwright E2E、选择器、Page Object、诊断和常见失败处理。
+- `flutter/`：Flutter 开发、测试以及 Android Patrol 用户故事演示。
 - `product/`：产品文档和用户故事规范。
 - `core/`：环境配置和通用质量标准。
 
@@ -119,9 +121,9 @@ AI 可以补流程和边界，但“好的 UX”是品味和取舍，不能默�
 
 Demo 阶段不是后端或前端测试的重复。它用 Playwright E2E 按用户故事验证真实路径，并把测试代码本身纳入验收。
 
-- `demo-dev` 把用户故事转换成可执行 Demo 测试。
-- `demo-accept` 检查测试覆盖、角色、场景、断言、执行结果和证据。
-- `demo-diagnose` 在失败时判断责任属于 Demo 测试、前端实现还是后端实现，再 handoff 给对应 agent。
+- `web-demo-dev` / `flutter-demo-dev` 把用户故事转换成对应运行时的可执行演示。
+- 对应 `*-demo-accept` 检查测试覆盖、角色、场景、断言、执行结果和证据。
+- 对应 `*-demo-diagnose` 在失败时判断责任属于测试资产、客户端、后端或环境，再 handoff 给对应 agent。
 
 它验证的是交付可演示性和用户故事闭环，而不只是代码能不能编译。
 

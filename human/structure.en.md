@@ -36,7 +36,7 @@ t-decision
 
 t-design -> [t-design-check] -> t-task -> [t-task-check]
 -> t-run
--> t-demo-run -> t-demo-accept
+-> t-web-demo-run / t-flutter-demo-run -> matching demo accept
 -> t-prd-publish -> t-push -> t-release
 ```
 
@@ -51,7 +51,8 @@ Subagents are split by engineering role instead of making one agent own every re
 - `backend-dev` / `frontend-dev` / `miniapp-dev`: implementation.
 - `backend-test` / `frontend-test` / `miniapp-test`: testing.
 - `backend-accept` / `frontend-accept` / `miniapp-accept`: read-only acceptance with evidence.
-- `demo-dev` / `demo-accept` / `demo-diagnose`: Playwright Demo/E2E maintenance, acceptance, and diagnosis.
+- `web-demo-dev` / `web-demo-accept` / `web-demo-diagnose`: Playwright Demo/E2E maintenance, acceptance, and diagnosis.
+- `flutter-demo-dev` / `flutter-demo-accept` / `flutter-demo-diagnose`: Android Patrol user-story demo maintenance, acceptance, and diagnosis.
 - `context-curator` / `structure-review` / `backend-consistency`: context, structure, and implementation consistency audits.
 - `html-show`: converts Markdown into HTML Preview.
 
@@ -79,7 +80,8 @@ Shared rules should be changed in protocols first, not copied across multiple sk
 - `backend/`: backend architecture, development, testing, validation, TDD, and quality gates.
 - `frontend/`: frontend development patterns, testing strategy, `data-testid`, and quality gates.
 - `miniapp/`: miniapp development, testing, validation, and quality gates.
-- `demo/`: E2E, selectors, Page Objects, diagnosis, and common failure handling.
+- `web-demo/`: Playwright E2E, selectors, Page Objects, diagnosis, and common failure handling.
+- `flutter/`: Flutter development, testing, and Android Patrol user-story demos.
 - `product/`: product documents and user story standards.
 - `core/`: environment configuration and general quality standards.
 
@@ -119,9 +121,9 @@ AI can fill flows and boundaries, but "good UX" is a matter of taste and tradeof
 
 The Demo stage is not a duplicate of backend or frontend testing. It uses Playwright E2E to validate real user paths against user stories, and treats the test code itself as part of acceptance.
 
-- `demo-dev` turns user stories into executable demo tests.
-- `demo-accept` checks coverage, roles, scenarios, assertions, execution results, and evidence.
-- `demo-diagnose` identifies whether a failure belongs to demo tests, frontend implementation, or backend implementation, then hands off to the matching agent.
+- Runtime-specific demo dev agents turn user stories into executable demos.
+- Matching demo accept agents check coverage, roles, scenarios, assertions, execution results, and evidence.
+- Matching demo diagnose agents attribute failures to test assets, clients, backend, or environment before handoff.
 
 It verifies deliverable demonstrability and user story closure, not only whether code compiles.
 
