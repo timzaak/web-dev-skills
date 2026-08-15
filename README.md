@@ -110,7 +110,12 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 - `t-dream` 默认只读审计 PRD、用户故事、设计/任务、实现事实与项目结构；需要写入 PRD 治理时显式使用 `--govern-prd`。
 - `t-figma <figma-url> <target-file>` 把 Figma 设计还原进已有前端文件并用 getComputedStyle 测量法评估还原度（spec 提取一次固化，已有代码 token/动效/组件强制复用，delta 驱动迭代收敛）。它是独立触发入口，不进入 Decision→Release 主链路；需要 Figma MCP。资产默认保存 Figma 返回的原始字节并沿用项目目录约定，项目级 `DESIGN.md` 若存在则优先。
 - `t-push` 会基于本次 diff 清理明显低价值注释、总结 commit message，并调用 `${CLAUDE_PLUGIN_ROOT}/scripts/push.py` 运行受影响 CI、提交和推送。
-- 推荐 `t-push` 前先在 Claude Code 中运行 `/code-review --fix` 和 `/simplify`，让代码先经过独立审查与简化再收尾提交；二者与 `t-push` 的差异互相独立，不会相互覆盖。
+- `t-simplify` 对本次 git 变更做复用、简化、效率、抽象层级四个角度的并行只读审查，去重后直接应用修复；只做质量清理，不找正确性缺陷（那属于 `/code-review` 和各阶段 accept）。Agent tool 不可用时降级为主会话单遍审查并在报告中如实声明。
+- 推荐 `t-push` 前先在 Claude Code 中运行 `/code-review --fix` 和 `/t-tools:t-simplify`，让代码先经过独立审查与简化再收尾提交；二者与 `t-push` 的注释清理互相独立，不会相互覆盖。
+
+### `t-simplify` 来源说明
+
+`t-simplify` 复刻自 Claude Code 内置 `/simplify` 命令的提示词，原文由 [Piebald-AI/claude-code-system-prompts](https://github.com/Piebald-AI/claude-code-system-prompts)（MIT）从 Claude Code 二进制提取：主流程来自 v2.1.154 的 slash command 提示词，Agent tool 不可用时的单遍降级来自 v2.1.213 的 inline 模式提示词。原文中四个审查角度的指引是运行时注入变量、未随提取发布，本插件按公开行为还原补全，落在 [`protocols/simplify-cleanup-contract.md`](protocols/simplify-cleanup-contract.md)；并按本插件约定补充了 `simplify-reviewer` subagent 角色规范和 `.ai/quality/simplify-*.md` 报告产物。
 
 PRD、技术预研和设计阶段需要人的明确校准。不会口播时，直接打开 [莫要偷懒](human/speech-template.md)，按里面的标题念：起步、用户故事梳理、UI/UX 梳理、第三方对接梳理、第三方库引入和结尾。AI 吞吐这段口播后，应先输出重点理解，评估可执行性、可行性和遗漏点，必要时联网查类似产品和最佳实践，再把内容与答案写入 `.ai/future/[feature].md`，并生成或修正 PRD、技术预研和设计输入。`/t-tools:t-prd` 后，先脱离生成物口述你认可的 PRD，再让 AI 对照修正。`/t-tools:t-design` 后，从用户视角明确 UX 入口、路径、反馈、默认值和错误状态，再让 AI 修正技术设计。
 
