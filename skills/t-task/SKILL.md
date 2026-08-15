@@ -26,10 +26,11 @@ allowed-tools:
 ## Input Contract
 
 上游输入（来自 `/t-design` 产出）：
-- `.ai/design/[feature].md` — 技术设计文档（必须存在）
-  - 必须包含：目标、范围、API 接口设计、数据库设计、测试策略
-  - 应包含：现有实现分析、用户故事/PRD/技术预研引用、文件影响范围
+- `.ai/design/[feature].md` — 设计主文档（必须存在）
+  - 必须包含：目标、范围、交付端范围、跨端契约摘要、测试与验收汇总、文件影响范围全量汇总
+  - 应包含：现有实现分析概览、用户故事/PRD/技术预研引用、Decision Trace
   - 纯技术方案设计可只包含技术预研引用，但必须声明不涉及业务逻辑、产品规则、用户可见流程或验收目标变动
+- `.ai/design/[feature]/backend.md`、`.ai/design/[feature]/frontend.md`、`.ai/design/[feature]/flutter.md` — 分端设计文档；主文档 §4.2 标记适用时必须存在，生成对应 phase 时必须读取（API 契约、数据库设计等分端细节以分端文档为准）
 - `.ai/decision-log/[feature].md` — 跨阶段决策账本（存在时必须读取；本阶段不得采用 Superseded Decision）
 
 可选输入：
@@ -81,7 +82,7 @@ allowed-tools:
 - 解析 `[feature]` 和 `--phase`；根据 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 检测 active phases；未传 `--phase` 时选择第一个 active phase。
 - 按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 校验当前 phase 是否启用和 slot 顺序；未启用的 phase 不参与生成。
 - 若设计文档或 Decision Log 存在会影响任务拆分、交付范围、权限/安全边界、数据模型、兼容性策略、验收标准或测试闭环的未决问题，先按 Topic 检查既有决定；仍未解决时使用 `AskUserQuestion` 获取用户答案。回答后先更新 Decision Log 和设计文档；完成前不得生成或更新 `.ai/task/[feature]/`。
-- 按当前 phase 提取设计文档最小相关上下文；未命中相关章节时记录警告，但不得编造设计事实。
+- 按当前 phase 提取设计文档最小相关上下文：主文档（目标范围、交付端范围、跨端契约、测试汇总、文件影响范围）加当前 phase 对应的分端设计文档（backend phase 读 `backend.md`，frontend phase 读 `frontend.md`，flutter/web-demo/flutter-demo phase 读对应端文档，缺失时读主文档可用部分）；未命中相关章节时记录警告，但不得编造设计事实。
 - 调度 slot agent 前，先要求其识别当前 slot 的责任闭环：业务能力、接口能力、页面主流程、组件族、测试资产闭环或验收闭环；技术层、文件类型和实现步骤只作为拆分的辅助线索。
 - 按当前阶段 slot 串行调度相应 agent。每个 slot agent 必须按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 通过 `Agent` tool 启动，`subagent_type` 按 Agent Dispatch Mapping 映射。
 - 传入 agent prompt 的内容保持精简：阶段设计摘要、上游 handoff、目标 guide/protocol 路径、责任闭环识别要求、输出字段要求、`needs_user_answer` 规则；不得复制 guide、protocol 或 agent 文档中的长篇规则。

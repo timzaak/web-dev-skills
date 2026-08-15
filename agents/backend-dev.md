@@ -59,6 +59,7 @@ examples:
 执行前按顺序读取：
 
 - 任务输入或 item 文件
+- `.ai/design/[任务名]/backend.md`（如存在分端设计，优先读取）
 - `.ai/design/[任务名].md`（如适用）
 - `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md`

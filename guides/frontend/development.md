@@ -31,6 +31,7 @@ Frontend 主规范。它定义插件级稳定约束；目标项目的真实路�
 - TanStack Router
 - TanStack Query
 - TanStack Form
+- Zustand（客户端/UI 状态）
 - Zod
 - Tailwind CSS
 - Radix UI
@@ -55,6 +56,7 @@ Frontend 主规范。它定义插件级稳定约束；目标项目的真实路�
 - API 类型和客户端调用优先复用目标项目现有生成目录。
 - API 契约变化后，先刷新 OpenAPI 生成物，再继续写页面逻辑。
 - 页面级查询与缓存行为优先复用现有 QueryClient 配置、query options 和 hooks。
+- 状态分工：服务端数据（查询、缓存、失效、重新获取）由 TanStack Query 独占管理，只存在于 Query 缓存中，不进入 Zustand。Zustand 只承载全局客户端/UI 状态（开关、草稿、跨页面交互状态）。需要跨组件记住某条服务端数据的选中态时，在 Zustand 存 ID 引用，不复制数据对象。组件通过 selector 订阅最小所需状态，订阅对象/数组时做浅比较。
 - 优先复用 `components/ui/` 与已有共享组件；不要为一次性页面逻辑平行造一套全局框架。
 - `data-testid` 命名与覆盖范围只看专项规范，不在本页重复定义。
 

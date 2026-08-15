@@ -106,6 +106,7 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 - PRD、技术预研和设计交付时必须满足 `needs_user_answer=0`。影响范围、业务规则、权限、安全、兼容性、显著成本、验收或风险接受的问题必须先询问用户，不得静默写成“待确认”、假设或风险后继续。
 - `t-prd` 与 `t-tech-research` 没有全局固定顺序：技术未知会改变范围时先预研，产品边界决定技术选择时先写 PRD 草稿；后续结论改变产品语义时必须重跑 `t-prd` 更新草稿，二者在进入 `t-design` 前必须收敛且不存在未解释冲突。
 - `t-prd` 只写 `.ai/prd` 和 `.ai/user-stories` 候选需求；`t-prd-publish` 才把仍然成立的长期产品事实合并回 `docs/`。
+- `t-design` 产出"主文档 + 分端设计"：主文档 `.ai/design/<feature>.md` 承载目标范围、跨端契约摘要、测试与风险汇总和全量文件影响范围；后端、前端、Flutter 各自的深入设计在 `.ai/design/<feature>/` 下由对应设计 agent 生成。后端设计先行并拥有 API 契约单一来源，前端与 Flutter 设计只消费契约不重新定义。
 - `t-doc` 用于项目文档、上手教程、API 参考、配置和部署说明，不用于 PRD、技术设计或零散文档修改。
 - `t-dream` 默认只读审计 PRD、用户故事、设计/任务、实现事实与项目结构；需要写入 PRD 治理时显式使用 `--govern-prd`。
 - `t-figma <figma-url> <target-file>` 把 Figma 设计还原进已有前端文件并用 getComputedStyle 测量法评估还原度（spec 提取一次固化，已有代码 token/动效/组件强制复用，delta 驱动迭代收敛）。它是独立触发入口，不进入 Decision→Release 主链路；需要 Figma MCP。资产默认保存 Figma 返回的原始字节并沿用项目目录约定，项目级 `DESIGN.md` 若存在则优先。

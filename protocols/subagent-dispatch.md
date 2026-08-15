@@ -31,7 +31,7 @@
 
 ## 适用范围
 
-适用于所有调用 `Agent` tool 的 skill，包括但不限于：`t-run`、`t-task`、`t-task-check`、`t-web-demo-run`、`t-flutter-demo-run`、`t-init`、`t-dream`、`t-html-show`、`t-prd`、`t-decision`、`t-doc`、`t-simplify`。
+适用于所有调用 `Agent` tool 的 skill，包括但不限于：`t-run`、`t-task`、`t-task-check`、`t-design`、`t-web-demo-run`、`t-flutter-demo-run`、`t-init`、`t-dream`、`t-html-show`、`t-prd`、`t-decision`、`t-doc`、`t-simplify`。
 
 `general-purpose` / `general_agent` 等内置通用 agent 无 `agents/*.md` 定义，跳过注入步骤。
 
