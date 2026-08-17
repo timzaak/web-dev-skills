@@ -1,5 +1,7 @@
 # Agent Task Output Contract
 
+实现、修复、测试和验收类 agent 按下述结构返回。设计类 agent 改用 `${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`；不得混用。
+
 ## Success Envelope
 
 默认返回：

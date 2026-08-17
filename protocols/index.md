@@ -8,6 +8,8 @@
 | 产品立项决策简报结构、结论和下游承接规则 | [decision-brief-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/decision-brief-contract.md) |
 | 跨阶段决策账本、用户决策暴露和消费追踪 | [decision-continuity-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md) |
 | 实现类 agent 的通用结构化输出 | [agent-task-output-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md) |
+| 设计类 agent 的结构化输出与跨端契约摘要 | [design-agent-output-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md) |
+| `.ai/design/.../.state.json` 的生成状态 | [design-state-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/design-state-contract.md) |
 | 子 agent 调用前的角色规范注入 | [subagent-dispatch.md](${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md) |
 | 修复后补测集合的字段与允许命令 | [tests-to-run-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md) |
 | `.ai/task/.../.state.json` 的唯一结构真相 | [task-state-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md) |

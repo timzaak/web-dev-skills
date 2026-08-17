@@ -36,9 +36,9 @@
 
 ### 4.1 接口清单
 
-| 方法 | 路径 | 用途 | 权限/身份 | 调用方 |
-|---|---|---|---|---|
-| [GET/POST/PUT/DELETE] | `/api/...` | [用途] | [如 realm admin / user / internal] | [frontend/flutter/sdk/internal] |
+| Operation ID | 方法 | 路径 | 用途 | 权限/身份 | 调用方 |
+|---|---|---|---|---|---|
+| [operationId] | [GET/POST/PUT/DELETE] | `/api/...` | [用途] | [如 realm admin / user / internal] | [frontend/flutter/sdk/internal] |
 
 ### 4.2 关键接口详情
 
@@ -176,7 +176,7 @@ enum XxxError {
 
 ## 12. 文件影响范围（后端文件）
 
-> 只列后端文件；全量汇总以主文档 §8 为准。路径必须为仓库真实路径。
+> 只列后端文件；全量汇总以主文档 §8 为准。MODIFY/DELETE 路径必须存在；CREATE 路径的父目录必须存在并说明命名依据。
 
 | 文件 | 操作 | 说明 |
 |---|---|---|

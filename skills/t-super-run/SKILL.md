@@ -20,6 +20,7 @@ allowed-tools:
 把任务规划与阶段执行合并为一个可恢复闭环。只做 `phase -> task` 目标级规划，由当前主会话直接完成实现、测试、修复和验收，不调用 subagent。
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+设计生成状态统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-state-contract.md`
 
 需求与决策边界统一参考：
 
@@ -40,6 +41,7 @@ allowed-tools:
 ## Preconditions
 
 - `.ai/design/[feature].md` 必须存在。
+- 运行 `python ${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py ".ai/design/[feature].md" --require-complete --json`；失败时停止，不创建或恢复 super-run。
 - 只支持 `backend | frontend | web-demo | flutter | flutter-demo`。miniapp 使用 `/t-task`、可选 `/t-task-check` 与 `/t-run`。
 - 不读取或修改 `.ai/task/[feature]/` 作为 super-run 状态。
 
@@ -47,11 +49,12 @@ allowed-tools:
 
 在规划或恢复前：
 
-1. 读取目标项目 `.ai/design/[feature].md` 和现有 `.ai/super-run/[feature]/`。
-2. 读取相关 `.ai/prd/**/*.md`、`docs/prd/**/*.md`、`.ai/user-stories/**/*.md` 与 `docs/user-stories/**/*.md`，保留 draft/published 来源边界。
-3. 在任何提问前读取 `.ai/decision-log/[feature].md`；存在时按需读取 `.ai/decision/[feature].md` 与 `.ai/tech-research/[feature].md`。
-4. 检查设计引用、Decision Trace、目标项目代码和配置，确定 active phases、真实验证入口和当前实现事实。
-5. 把事实缺口、工程决策、用户决策和验证动作按 Decision Exposure Gate 分类；`needs_user_answer` 未解决时不得进入实现。
+1. 读取 `check-design.py` 返回的全部 `design_documents`、`design_fingerprint` 和现有 `.ai/super-run/[feature]/`。
+2. 按 phase 确认设计输入：backend 读 `backend.md`；frontend/web-demo 读 `frontend.md`；flutter/flutter-demo 读 `flutter.md`；客户端依赖后端契约时同时读 `backend.md`。
+3. 读取相关 `.ai/prd/**/*.md`、`docs/prd/**/*.md`、`.ai/user-stories/**/*.md` 与 `docs/user-stories/**/*.md`，保留 draft/published 来源边界。
+4. 在任何提问前读取 `.ai/decision-log/[feature].md`；存在时按需读取 `.ai/decision/[feature].md` 与 `.ai/tech-research/[feature].md`。
+5. 从设计覆盖矩阵、Operation ID、文件影响表、Decision Trace、代码和配置确定 active phases、task 闭环与真实验证入口。
+6. 按 Decision Exposure Gate 分类缺口；`needs_user_answer` 未解决时不得进入实现。
 
 不要无差别加载所有 PRD、用户故事或 guide。先通过 feature 名、设计引用和内容检索定位相关文件，再读取全文。
 
@@ -62,7 +65,9 @@ allowed-tools:
   - `.ai/super-run/[feature]/[phase].md`
 - backend/frontend/flutter 固定规划 `dev -> test -> accept`，web-demo/flutter-demo 固定规划 `dev -> accept`。
 - 每个 task 只规划一个责任闭环，不生成 item。
+- 把校验结果的 `design_documents` 和 `design_fingerprint` 写入 super-run state；恢复规则见共享协议。
 - 计划必须写明每个 task 要读取的 agent 规范及其关联文档的具体路径。
+- 每个 task 的关联文档必须包含设计主文档和当前 phase 分端设计；消费后端契约时同时包含 `backend.md`。
 - web-demo/dev 的关联文档必须包含 `${CLAUDE_PLUGIN_ROOT}/agents/web-demo-diagnose.md`，用于把 Playwright 失败归因到测试资产、frontend 或 backend 后再切换对应规范修复。
 - flutter-demo/dev 的关联文档必须包含 `${CLAUDE_PLUGIN_ROOT}/agents/flutter-demo-diagnose.md`，用于把 Patrol 失败归因到测试资产、Flutter 或 backend 后再切换对应规范修复。
 - 首次写入后或恢复到未完成 phase 后，主动调用 `/goal` 或运行时等价 Goal API；Goal 的 outcome、constraints 和 verification 必须符合共享协议。
@@ -73,12 +78,13 @@ allowed-tools:
 
 循环执行直到 phase 完成或进入真正阻塞：
 
-1. 按状态选择顺序中的第一个 `pending | in_progress | failed` task。
-2. 读取该 task 的 agent 规范全文及计划列出的关联文档，把它们作为主会话当前角色边界。
-3. 写入 `in_progress`，执行交付、最小可靠验证和必要修复。
-4. 写入 `completed` 与证据，重新聚合 phase，继续下一个 task。
-5. 失败时先写 `failed` 与证据；能够基于新证据修复时继续闭环，否则写 `blocked` 并暂停 Goal。
-6. accept 拒绝时按共享协议重新打开 dev 或 test，再次测试和验收。
+1. 重新运行设计校验并比较指纹；变化时先按共享协议重规划。
+2. 按状态选择顺序中的第一个 `pending | in_progress | failed` task。
+3. 读取该 task 的 agent 规范全文及计划列出的关联文档，把它们作为主会话当前角色边界。
+4. 写入 `in_progress`，执行交付、最小可靠验证和必要修复。
+5. 写入 `completed` 与证据，重新聚合 phase，继续下一个 task。
+6. 失败时先写 `failed` 与证据；能够基于新证据修复时继续闭环，否则写 `blocked` 并暂停 Goal。
+7. accept 拒绝时按共享协议重新打开 dev 或 test，再次测试和验收。
 
 每次显著步骤后把完成内容、验证证据、剩余工作和 handoff 写入状态或 phase 计划，确保上下文压缩后能从文件恢复。
 
@@ -95,6 +101,7 @@ allowed-tools:
 只有同时满足以下条件才完成 Goal：
 
 - 当前 phase 的全部 task 为 `completed | skipped`。
+- 当前设计校验通过且指纹与 `sources.design.fingerprint` 一致。
 - 计划中的验证已经执行并有证据。
 - accept task 给出允许进入下游的结论；整个 phase 为 `skipped` 时必须有明确不适用证据。
 - `.state.json` 已按最终结果聚合。

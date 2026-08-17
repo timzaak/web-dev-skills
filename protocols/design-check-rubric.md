@@ -12,7 +12,7 @@
 | 前端设计完整性 | 15 | `frontend.md`：页面/组件、线框说明、状态与数据流、关键状态、契约依赖 |
 | Flutter 设计完整性 | 15 | `flutter.md`：分层架构、状态管理、页面与导航、可测试性 |
 | 测试与验收策略 | 10 | 各端测试入口和主验收路径明确 |
-| 决策闭合与跨端一致性 | 10 | `needs_user_answer=0`，决策追踪完整，契约消费一致，主文档 §8 全量汇总 |
+| 决策闭合与跨端一致性 | 10 | `needs_user_answer=0`，决策追踪和覆盖矩阵完整，契约消费一致，主文档 §8 全量汇总 |
 
 归一化规则：
 
@@ -36,7 +36,7 @@
 评分前必须对主文档和全部适用分端文档运行：
 
 ```bash
-python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py .ai/design/<feature>.md .ai/design/<feature>/backend.md .ai/design/<feature>/frontend.md .ai/design/<feature>/flutter.md
+python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py ".ai/design/<feature>.md" ".ai/design/<feature>/backend.md" ".ai/design/<feature>/frontend.md" ".ai/design/<feature>/flutter.md"
 ```
 
 （仅扫描实际存在的文档。）
@@ -52,9 +52,10 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py .ai/design/<featu
 - 涉及前端但 `frontend.md` 缺少页面/交互说明；涉及 Flutter 但 `flutter.md` 缺少页面/分层说明（适用端）
 - `frontend.md` / `flutter.md` 的 API 依赖与契约源（`backend.md` 或现有接口）冲突
 - 主文档 §8 文件影响范围未全量汇总适用端的文件影响表
+- 主文档缺少设计覆盖矩阵，或 P0 requirement/story 没有设计、测试和文件影响落点
 - 业务功能设计目标与 PRD/用户故事明显冲突
 - 纯技术方案设计目标与引用的技术预研明显冲突
-- 使用不存在的仓库路径作为依据
+- 使用不存在的路径作为现状依据，或 MODIFY/DELETE 路径不存在；CREATE 路径父目录不存在或没有命名依据
 
 ### P1
 
@@ -114,16 +115,19 @@ Flutter（`flutter.md`）：
 跨端一致性：
 
 - 主文档 §4.3 契约源声明明确，摘要与 `backend.md` 一致
-- `frontend.md` / `flutter.md` 的 `contract_dependencies` 与契约源不冲突
+- `frontend.md` / `flutter.md` 的 API 依赖表与契约源不冲突
 - 主文档 §6 测试汇总覆盖全部适用端的测试入口与 Demo 主路径
+- 主文档设计覆盖矩阵逐项连接 Requirement/Story、设计落点、契约或组件、测试验收和文件影响；不得复制需求正文
 
 文档结构：
 
 - 主文档 §8 文件影响范围必须存在，表格包含 `文件 | 操作 | 说明` 三列（可含来源分端列），操作列使用 CREATE/MODIFY/DELETE，且全量覆盖各分端文档的文件影响表
-- 适用分端文档的详细设计章节必须存在（即使内容是"不适用"），用于放置具体数据结构与函数签名
+- backend 详细设计包含必要的数据结构、公开签名、错误类型或算法骨架
+- frontend 详细设计包含页面状态转换、关键事件/副作用和公开 hook/schema/query/store 边界
+- Flutter 详细设计包含状态转换、Notifier 事件/副作用和 provider/repository/service/路由边界
 - 风险与验证动作只记录方向已经确定的风险和不需要用户选择的验证动作，包含风险项、等级、缓解或验证动作、负责人、完成条件
 - 完整 Decision Trace 在主文档 §2.4；分端文档只追踪影响本端的 DEC 子集
-- 所有文件路径必须为仓库真实路径，不得出现 `backend/src/...` 这类未验证的示例路径
+- 现状依据及 MODIFY/DELETE 路径必须存在；CREATE 路径允许尚不存在，但父目录必须存在，并给出相邻实现或项目规范作为命名依据
 
 ## Report Requirements
 
@@ -142,3 +146,15 @@ Flutter（`flutter.md`）：
 - `75-89`: 良好，建议先修 P1
 - `60-74`: 需改进，必须修 P0
 - `<60`: 不合格，建议重写关键章节
+
+## Pass Gate
+
+只在以下条件全部满足时报告 `PASS`：
+
+- 总分至少 90。
+- P0 为 0。
+- `needs_user_answer=0`。
+- 决策闭合扫描和 `check-design.py` 均通过。
+- `.ai/design/<feature>/.state.json` 不存在（兼容旧产物）或状态为 `complete`。
+
+总分达到 75、P0 为 0 且不存在用户阻塞问题时可报告 `CONDITIONAL PASS`，但必须列出 P1 修复项；其他情况报告 `FAIL`。检查是否可选不改变上述结论语义。

@@ -18,6 +18,7 @@ allowed-tools:
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
 决策连续性和用户决策暴露统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`
+设计生成状态统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-state-contract.md`
 
 任务拆分必须服务于边界清楚、验证闭环明确的执行；如果设计文档、guide 或 protocol 冲突，停止并说明冲突。
 
@@ -31,6 +32,7 @@ allowed-tools:
   - 应包含：现有实现分析概览、用户故事/PRD/技术预研引用、Decision Trace
   - 纯技术方案设计可只包含技术预研引用，但必须声明不涉及业务逻辑、产品规则、用户可见流程或验收目标变动
 - `.ai/design/[feature]/backend.md`、`.ai/design/[feature]/frontend.md`、`.ai/design/[feature]/flutter.md` — 分端设计文档；主文档 §4.2 标记适用时必须存在，生成对应 phase 时必须读取（API 契约、数据库设计等分端细节以分端文档为准）
+- `.ai/design/[feature]/.state.json` — 设计生成状态；存在时必须为 `complete`
 - `.ai/decision-log/[feature].md` — 跨阶段决策账本（存在时必须读取；本阶段不得采用 Superseded Decision）
 
 可选输入：
@@ -67,6 +69,7 @@ allowed-tools:
 
 ## Preconditions
 - `.ai/design/[feature].md` 必须存在。
+- `.ai/design/[feature]/.state.json` 存在时必须为 `complete`；`in_progress` 或 `failed` 时停止并提示恢复 `/t-design [feature]`。没有状态文件时兼容旧设计产物。
 - active phases、miniapp 启用规则和 slot 顺序统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`
 
 ## Output Layout

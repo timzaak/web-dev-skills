@@ -16,6 +16,7 @@ examples:
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 决策连续性统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`
+返回结构统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`
 
 ## 职责
 
@@ -32,7 +33,7 @@ examples:
 
 后端设计的价值排序，按最佳实践固定为：
 
-1. **API 契约**：接口清单（方法、路径、用途、权限/身份、调用方）、关键接口请求/响应字段与错误响应、DTO 新增/复用边界、与 OpenAPI/SDK 的关系、版本与兼容策略。路径参数占位符使用 camelCase。
+1. **API 契约**：接口清单（operation ID、方法、路径、用途、权限/身份、调用方）、关键接口请求/响应字段与错误响应、DTO 新增/复用边界、与 OpenAPI/SDK 的关系、版本与兼容策略。路径参数占位符使用 camelCase。
 2. **数据模型与迁移**：表/字段变更达到可建表/可迁移粒度，主键、唯一约束、必要索引、外键、时间字段齐全；迁移策略说明回填、部署顺序与兼容性影响。遵循"尽量简洁、当前必需、避免过度审计设计"。
 3. **领域逻辑**：核心业务规则与流程、输入校验、事务边界、幂等与并发处理。
 4. **权限与安全**：权限模型、鉴权要求、敏感数据处理。
@@ -49,31 +50,13 @@ examples:
 
 ## 质量清单
 
-- API 接口清单五要素齐全（方法、路径、用途、权限/身份、调用方），关键接口有字段表和错误响应
+- API 接口清单包含 operation ID、方法、路径、用途、权限/身份、调用方，关键接口有字段表和错误响应
 - DTO 边界明确：哪些新增、哪些复用、对 OpenAPI/SDK 的影响
 - 数据库设计可建表/可迁移，迁移与兼容性影响明确，无过度设计
 - 领域逻辑覆盖核心规则、校验、事务与幂等
-- 文件路径全部为仓库真实路径
+- 现状依据及 MODIFY/DELETE 路径真实存在；CREATE 路径父目录存在且有命名依据
 - 不包含需要用户回答的问题；此类缺口已整理进 `needs_user_answer`
 
 ## 返回结构
 
-```json
-{
-  "status": "success|partial|failed",
-  "doc_path": ".ai/design/[feature]/backend.md",
-  "contract_summary": [
-    { "method": "GET", "path": "/api/...", "callers": ["frontend"] }
-  ],
-  "decisions_applied": ["DEC-[feature]-001"],
-  "needs_user_answer": [
-    {
-      "question": "问题",
-      "evidence": "证据",
-      "decision_point": "需要用户决定什么",
-      "blocked_action": "阻塞的后续动作"
-    }
-  ],
-  "summary": "设计摘要与关键取舍"
-}
-```
+严格使用 `${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`。后端必须返回完整 `contract_summary`；不返回 `contract_dependencies` 内容。

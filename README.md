@@ -100,7 +100,7 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 
 - 本 README 统一使用 `/t-tools:t-*` 作为标准调用形式。
 - 所有 `t-*` skill 都是手工触发入口，不允许模型根据语义自动触发。
-- `t-super-run` 读取既有 agent 规范作为当前角色指南，但不启动 subagent，并用目标级状态、阶段 handoff 和 Goal 支持长程执行及中断恢复。
+- `t-super-run` 读取既有 agent 规范作为当前角色指南，但不启动 subagent；启动和恢复前必须通过完整设计状态与结构校验，读取对应分端设计，并用设计指纹识别变更后重新规划受影响 task。
 - `t-decision` 是 PRD 与技术预研前的产品立项门禁，输出 `.ai/decision/<feature>.md`；`Proceed` 根据主要未知项进入 `t-prd` 或 `t-tech-research`，`Research First` 先进入 `t-tech-research`。
 - 已确认决策、已解决问题和显式延期问题跨阶段写入 `.ai/decision-log/<feature>.md`，使用稳定 DEC/Q ID；任何阶段提问前必须先查账本，避免重复询问或采用已被替代的决定。
 - PRD、技术预研和设计交付时必须满足 `needs_user_answer=0`。影响范围、业务规则、权限、安全、兼容性、显著成本、验收或风险接受的问题必须先询问用户，不得静默写成“待确认”、假设或风险后继续。

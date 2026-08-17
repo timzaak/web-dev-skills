@@ -19,6 +19,8 @@ allowed-tools:
 需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
 跨阶段决策连续性和用户决策暴露统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`
 子 agent 调用规范统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md`
+设计 agent 输出统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`
+设计生成状态统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-state-contract.md`
 
 设计生成应保持简单、当前必需、可追溯；如果需求、spec、代码或本 skill 冲突，停止并说明冲突。
 
@@ -44,6 +46,7 @@ allowed-tools:
 - `.ai/design/$ARGUMENTS/backend.md` — 后端分端设计（适用时）
 - `.ai/design/$ARGUMENTS/frontend.md` — 前端分端设计（适用时）
 - `.ai/design/$ARGUMENTS/flutter.md` — Flutter 分端设计（适用时）
+- `.ai/design/$ARGUMENTS/.state.json` — 本轮设计生成状态；只有 `complete` 可被下游消费
 - `.ai/decision-log/$ARGUMENTS.md` — 复用上游决策并记录本阶段新 D2 决策或已解决问题
 
 不适用端不创建分端文档，只在主文档 §4.2 标记"不适用"及原因。
@@ -90,6 +93,7 @@ allowed-tools:
 - `.ai/design/$ARGUMENTS/backend.md` — 后端分端设计（适用时），包含 API 契约（唯一设计源）、数据库设计、领域逻辑、权限安全、详细设计、后端测试策略
 - `.ai/design/$ARGUMENTS/frontend.md` — 前端分端设计（适用时），包含页面/组件/线框、状态与数据流、交互与关键状态、性能、测试与 Demo 策略
 - `.ai/design/$ARGUMENTS/flutter.md` — Flutter 分端设计（适用时），包含分层架构、状态管理、页面与导航、可测试性、测试与 Patrol Demo 策略
+- `.ai/design/$ARGUMENTS/.state.json` — 设计生成状态；结构见 `${CLAUDE_PLUGIN_ROOT}/protocols/design-state-contract.md`
 
 ## 核心约束
 
@@ -110,7 +114,7 @@ allowed-tools:
 - API 契约的单一设计源是 backend 分端文档；frontend/flutter 分端文档只声明依赖的接口与字段，不得复制或另立契约；后端不适用时以现有 OpenAPI/SDK 或接口为契约源
 - 主文档不承载 API 字段表、数据库表结构和页面线框等分端细节；细节只活在对应分端文档，主文档保留摘要与链接
 - 数据库设计遵循"尽量简洁、当前必需、避免过度审计设计"
-- 文档中的文件路径必须使用仓库真实路径，不允许使用不存在的示例路径
+- 现状依据及 MODIFY/DELETE 路径必须真实存在；CREATE 路径可以尚不存在，但父目录必须真实存在，并给出相邻实现或项目规范作为命名依据
 - 分端文档由对应设计 subagent 生成；主会话不得绕过 subagent 代写分端设计，除非该端不适用
 
 ## 先读这些文件
@@ -136,6 +140,8 @@ allowed-tools:
 - 文件名仅允许中文、英文、数字、空格、下划线、连字符
 
 如果 `.ai/design/$ARGUMENTS.md` 或 `.ai/design/$ARGUMENTS/` 下任一分端文档已存在，先询问是否覆盖。
+
+用户确认覆盖后，先重新判定适用端，删除上一轮存在但本轮不适用的分端文档。调度前按输出协议写入 `.ai/design/$ARGUMENTS/.state.json`，状态为 `in_progress`。
 
 ### 2. 收集最小必要输入
 
@@ -244,15 +250,18 @@ allowed-tools:
   - 需求来源文件路径清单（用户故事/PRD/技术预研）与关键摘要
   - Decision Log 路径及影响本端的 Active Decision 摘要
   - 现有实现分析结论（本端相关部分）
-  - 契约源：backend 适用时传 `.ai/design/$ARGUMENTS/backend.md` 路径及 `contract_summary`；否则传现有接口清单
+  - 契约源：backend 适用时传 `.ai/design/$ARGUMENTS/backend.md` 路径及 `design_result.contract_summary`；否则传现有接口清单
   - 分端模板路径（按上方映射表传入对应 template 文件）与对应 guide 路径
+  - `${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`
 - 不复制 guide、protocol 或 agent 文档中的长篇规则
 
 处理子 agent 返回：
-- `needs_user_answer` 非空 → 按 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md` 检查 Decision Log；仍未解决时使用 `AskUserQuestion` 向用户提问，回答后先更新 Decision Log，再重新调度该端
-- `status=failed` → 终止该端并报告失败原因；不得写入该端成功状态
-- frontend/flutter 的 `contract_dependencies` 与 backend `contract_summary` 冲突（字段缺失、路径不一致）→ 以 backend 契约为准，修正客户端端设计后重新调度该端；属于产品语义冲突时使用 `AskUserQuestion` 裁决
-- 全部适用端 `status=success` 后进入合并
+- 只读取 `task_completion.status` 和 `design_result`，拒绝旧的顶层 `status/doc_path/contract_summary` 返回结构
+- `design_result.needs_user_answer` 非空 → 按 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md` 检查 Decision Log；仍未解决时使用 `AskUserQuestion` 向用户提问，回答后先更新 Decision Log，再重新调度该端
+- `task_completion.status=partial` 或 `design_result.self_check` 未通过 → 不进入合并；修复输入后重新调度，无法恢复时把生成状态写为 `failed`
+- `task_completion.status=failed` → 终止该端并把生成状态写为 `failed`；不得写入该端成功状态
+- frontend/flutter 的 `design_result.contract_dependencies` 必须按输出协议逐项对比 backend 的 `design_result.contract_summary`；operation、method/path、字段子集或调用方冲突时重新调度客户端设计，属于产品语义冲突时使用 `AskUserQuestion` 裁决
+- 每个端成功后更新 `completed_stacks`；全部适用端 `task_completion.status=success` 后进入合并
 
 ### 7. 合并生成主文档
 
@@ -260,8 +269,8 @@ allowed-tools:
 
 - 目标、范围、需求来源与完整 Decision Trace（主会话编写；分端文档只保留本端 DEC 子集）
 - 跨端现状概览、总体设计与关键取舍、交付端范围
-- 跨端契约摘要（来自 backend `contract_summary` 或现有接口）与契约源声明
-- 分端设计摘要（来自各端 `summary`，每端 3-5 行）
+- 跨端契约摘要（来自 backend `design_result.contract_summary` 或现有接口）与契约源声明
+- 分端设计摘要（来自各端 `task_completion.summary`，每端 3-5 行）
 - 测试与验收策略跨端汇总（来自各分端文档测试章节）
 - 风险与验证动作汇总
 - §8 文件影响范围：逐行合并各分端文档的文件影响表，标注来源分端；此表是 `/t-task` 的唯一拆分依据，必须覆盖全部适用端
@@ -271,27 +280,31 @@ allowed-tools:
 写入后对所有设计文档运行：
 
 ```bash
-python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py .ai/design/$ARGUMENTS.md .ai/design/$ARGUMENTS/backend.md .ai/design/$ARGUMENTS/frontend.md .ai/design/$ARGUMENTS/flutter.md
+python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py ".ai/design/$ARGUMENTS.md" ".ai/design/$ARGUMENTS/backend.md" ".ai/design/$ARGUMENTS/frontend.md" ".ai/design/$ARGUMENTS/flutter.md"
 ```
 
 （仅扫描实际生成的文档。）
 
 扫描命中时按 Decision Exposure Gate 分类并处理；重新扫描通过前不得交付设计或建议进入 `/t-task`。
 
+随后运行确定性结构校验：
+
+```bash
+python ${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py ".ai/design/$ARGUMENTS.md"
+```
+
+结构校验检查章节、模板占位符、适用端文档、契约 operation、文件影响汇总和路径操作。两项扫描全部通过后，才把 `.state.json` 写为 `complete`。
+
+高风险、跨端或长文档设计在完成前额外调度一个无原会话背景的通用只读 agent，只提供全部设计文档和以下问题：实现入口、契约唯一来源、失败/权限/兼容路径、测试入口、文件影响范围。若读者无法从文档稳定回答或发现矛盾，修正文档并重新执行两项扫描；简单设计跳过时在收尾说明。
+
 ### 8. 分端设计要求
 
-各端深度要求的单一事实源是 `${CLAUDE_PLUGIN_ROOT}/agents/backend-design.md`、`${CLAUDE_PLUGIN_ROOT}/agents/frontend-design.md` 和 `${CLAUDE_PLUGIN_ROOT}/agents/flutter-design.md` 的"着重点"章节；主会话在合并时按以下底线验收，不在此复制完整清单：
+逐项按对应 `agents/*-design.md` 的“着重点”和质量清单验收。额外拒绝以下结果：
 
-- backend：API 接口清单五要素齐全（方法、路径、用途、权限/身份、调用方）；关键接口有请求/响应字段与错误响应；DTO 新增/复用边界与 OpenAPI/SDK 关系明确；数据库设计可建表/可迁移且有迁移策略；领域逻辑覆盖核心规则、校验、事务与幂等
-- frontend：涉及用户可见交互时以用户体验描述为主（入口、操作路径、系统反馈、默认值、错误状态与恢复），技术实现只做承载体验所需的最小映射；页面/路由/组件清单与层级边界明确；状态分工遵循 TanStack Query（服务端数据）/ Zustand（客户端 UI 状态）约定，服务端数据不复制进 store；API 依赖只引用契约源；不规定具体 props/state 细节
-- flutter：涉及用户可见交互时以用户体验描述为主，技术实现只做最小映射；UI/data 分层职责与数据流向明确（不过度分层）；状态管理遵循 Riverpod 技术线（以 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/constitution.md` 为准），notifier 划分、生命周期与订阅范围明确；页面与导航承接明确；依赖注入与可测试边界明确
-- 所有端：只记录方向已确定的风险；文件路径为仓库真实路径
-
-禁止：
-- 只给示例 JSON，不说明字段含义
-- 只写"复用现有接口"但不指出具体路径或边界
-- 使用与仓库规范冲突的 snake_case 路径参数
-- 在 frontend/flutter 分端文档中单列或复制 API 契约字段表
+- API 缺少 operation ID、字段语义或具体契约源。
+- frontend/flutter 复制 API 字段定义，或客户端状态方案偏离对应 guide。
+- CREATE 路径缺少父目录和命名依据；MODIFY/DELETE 路径不存在。
+- 风险仍包含需要用户裁决的问题。
 
 ### 9. 收尾输出
 
@@ -300,40 +313,22 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py .ai/design/$ARGUM
 - Decision Log 路径和本轮新增/复用/替代的 DEC/Q ID
 - 本次设计覆盖的核心范围与适用端
 - 关键风险和验证动作
+- 无上下文读者测试：`passed` 或 `skipped` 及原因
 - 延期问题：明确说明“无”，或列出已告知用户、写入 Decision Log 且尚未到最迟解决阶段的 Q ID
 - 下一步命令：高风险或复杂设计建议运行 `/t-design-check $ARGUMENTS`；简单设计可直接进入 `/t-task $ARGUMENTS`
 - 如文档内容较多或结构复杂，可使用 `/t-html-show .ai/design/$ARGUMENTS.md` 生成 HTML 可视化预览
 
-## 用户故事引用规则
-
-正确：
-- 引用故事 ID、标题、优先级、来源文件
-- 总结场景名和核心约束
-
-错误：
-- 大段复制完整用户故事
-- 粘贴完整 Gherkin
-- 把用户故事改写成与原意冲突的需求
-
 ## 质量检查清单
 
-生成前逐项自检：
-- 是否遵循 `.ai/prd + docs/prd + .ai/user-stories + docs/user-stories 混合验证 / .ai/tech-research -> ${CLAUDE_PLUGIN_ROOT}/guides/ -> code` 的信息优先级
-- 如果没有 PRD/用户故事，是否明确声明这是纯技术方案设计且不涉及业务逻辑变动
-- 是否使用真实文件路径
-- 是否避免过度设计
-- 是否与现有代码架构一致
-- 每个适用端是否都有分端文档，且由对应设计 agent 生成
-- backend 分端设计是否满足 API、数据库、领域逻辑底线要求
-- frontend/flutter 分端设计是否只消费契约、不重新定义契约
-- frontend/flutter 分端设计的用户可见交互是否以用户体验描述为主，技术实现是否保持最小映射
-- 主文档 §8 是否全量汇总各端文件影响范围且无遗漏
-- 数据库设计是否遵循"尽量简洁，不默认展开审计"
-- 是否包含测试策略和风险
-- 是否仅把不需要用户选择的证据限制写入“已确认假设与证据限制”
-- 是否 `needs_user_answer=0`
-- 是否所有影响设计的 Active Decision 均在主文档 Decision Trace 中有 Applied / Not Applicable / Superseded 结论
-- 是否通过 `check-decision-closure.py`（主文档与全部分端文档）
+交付前确认：
+
+- 需求来源混合验证完成；纯技术方案已声明业务边界。
+- 设计复用现有架构，没有未解释的新抽象。
+- 每个适用端均由对应 agent 生成并通过其质量清单。
+- 主文档覆盖全部 Active Decision、Requirement/Story 和分端文件影响。
+- `needs_user_answer=0`。
+- `check-decision-closure.py` 与 `check-design.py` 通过。
+- `.state.json` 已写为 `complete`。
 
 ## 失败处理
 
@@ -342,7 +337,7 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py .ai/design/$ARGUM
 - 无法创建输出目录或写文件：终止并报告
 - 未找到足够需求文档：若影响设计判断，使用 `AskUserQuestion` 补齐并停止；不影响时只记录不需要用户选择的证据限制
 - 子 agent 返回 `needs_user_answer`：按 Topic 查 Decision Log；未解决时提问并停止，回答后更新 Decision Log 并重新调度该端
-- 子 agent 失败或超时：终止该端，不写入该端成功状态，报告失败 agent 与原因；其余端可继续
+- 子 agent 返回 `partial`、失败或超时：允许继续收集其他端诊断，但不得合并主文档；无法在本轮恢复时把 `.state.json` 写为 `failed` 并报告失败 agent 与原因
 - 跨端契约冲突：以 backend 契约为准修正客户端分端设计；产品语义级冲突升级为 `AskUserQuestion`
 - 决策闭合扫描失败：按 Decision Exposure Gate 分类；需要用户裁决时提问并停止，修正后重新扫描
 - 代码分析失败：继续，但标记"现有实现分析不完整"

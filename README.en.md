@@ -100,7 +100,7 @@ Each phase starts with `/t-tools:t-task <feature> --phase <phase>`, may run `/t-
 
 - This README consistently uses `/t-tools:t-*` as the standard invocation format.
 - All `t-*` skills are manual command entries and must not be invoked automatically by the model.
-- `t-super-run` reads existing agent specifications as role guides without starting subagents, and uses outcome-level state, staged handoffs, and Goal mode for long-running execution and interruption recovery.
+- `t-super-run` reads existing agent specifications as role guides without starting subagents. Before starting or resuming, it requires a complete, structurally valid design, loads the relevant per-stack design, and uses a design fingerprint to replan tasks affected by design changes.
 - `t-decision` is the product decision gate before PRD and technical research. It writes `.ai/decision/<feature>.md`; `Proceed` routes to `t-prd` or `t-tech-research` according to the main unknown, while `Research First` routes to `t-tech-research`.
 - Confirmed decisions, resolved questions, and explicitly deferred questions persist across stages in `.ai/decision-log/<feature>.md` with stable DEC/Q IDs. Every stage must consult the log before asking, so it does not repeat a resolved question or apply a superseded decision.
 - A completed PRD, technical research report, or design must have `needs_user_answer=0`. Questions that affect scope, business rules, permissions, security, compatibility, significant cost, acceptance, or risk acceptance must be asked before delivery, not silently stored as pending items, assumptions, or risks.

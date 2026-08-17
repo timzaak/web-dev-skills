@@ -129,7 +129,7 @@ docs/tutorials/
 - 信息收集：按上面的来源扫描，用批量搜索建立项目事实；使用 `docs-web/` 时同时确认页面格式、路由、导航和验证命令。
 - 确认大纲：告诉用户准备写哪些章节、各章覆盖什么，等用户确认或调整。
 - 逐章编写：确认后按章节写入目标目录。
-- 自检修订：按 [references/writing-style.md](${CLAUDE_PLUGIN_ROOT}/skills/t-doc/references/writing-style.md) 检查所有文件，改掉 AI 味、空话和不可验证内容；使用 `docs-web/` 时运行站点已有的类型检查或构建命令，确认页面可生成且导航可达。
+- 自检修订：按 [references/writing-style.md](${CLAUDE_PLUGIN_ROOT}/skills/t-doc/references/writing-style.md) 检查所有文件，改掉 AI 味、空话和不可验证内容；修订只动文风，不新增项目文件里不存在的事实，也不丢仍然成立的主张；使用 `docs-web/` 时运行站点已有的类型检查或构建命令，确认页面可生成且导航可达。
 
 不要跳过大纲确认。先确认再写，避免整套文档返工。
 

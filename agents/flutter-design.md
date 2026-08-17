@@ -16,6 +16,7 @@ examples:
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 决策连续性统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`
+返回结构统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`
 
 ## 职责
 
@@ -57,26 +58,9 @@ Flutter 设计的价值排序，按官方架构指南与项目技术线固定为
 - 页面/导航清单齐全，关键状态覆盖加载、空态、错误、权限受限
 - API 依赖只引用契约源，未单列或复制契约字段表
 - 依赖注入与可测试边界已说明；Patrol Demo 主路径已声明（如涉及）
-- 文件路径全部为仓库真实路径
+- 现状依据及 MODIFY/DELETE 路径真实存在；CREATE 路径父目录存在且有命名依据
 - 不包含需要用户回答的问题；此类缺口已整理进 `needs_user_answer`
 
 ## 返回结构
 
-```json
-{
-  "status": "success|partial|failed",
-  "doc_path": ".ai/design/[feature]/flutter.md",
-  "contract_dependencies": [
-    { "method": "GET", "path": "/api/...", "fields": ["fieldA"], "assumption": "依赖说明或假设" }
-  ],
-  "decisions_applied": ["DEC-[feature]-001"],
-  "needs_user_answer": [
-    {
-      "question": "问题",
-      "evidence": "证据",
-      "decision_point": "需要用户决定什么",
-      "blocked_action": "阻塞的后续动作"
-    }
-  ],
-  "summary": "设计摘要与关键取舍"
-}
+严格使用 `${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`。Flutter 必须返回可与后端逐字段比对的 `contract_dependencies`；不返回 `contract_summary` 内容。

@@ -167,9 +167,13 @@ def update_package_json(path: Path, version: str) -> FileChange | None:
 def update_version_files(version: str) -> list[FileChange]:
     changes: list[FileChange] = []
 
-    cargo_change = update_cargo_version(REPO_ROOT / "backend" / "Cargo.toml", version)
-    if cargo_change:
-        changes.append(cargo_change)
+    for cargo_path in (
+        REPO_ROOT / "backend" / "Cargo.toml",
+        REPO_ROOT / "Cargo.toml",
+    ):
+        cargo_change = update_cargo_version(cargo_path, version)
+        if cargo_change:
+            changes.append(cargo_change)
 
     for package_path in (
         REPO_ROOT / "frontend" / "package.json",
@@ -195,10 +199,13 @@ def command_exists(command: str) -> bool:
 def run_validation() -> None:
     commands: list[tuple[list[str], Path]] = []
 
-    backend_dir = REPO_ROOT / "backend"
-    if (backend_dir / "Cargo.toml").is_file():
+    cargo_dir = next(
+        (d for d in (REPO_ROOT / "backend", REPO_ROOT) if (d / "Cargo.toml").is_file()),
+        None,
+    )
+    if cargo_dir is not None:
         cargo = require_executable("cargo")
-        commands.append(([cargo, "check"], backend_dir))
+        commands.append(([cargo, "check"], cargo_dir))
 
     npm = None
     if command_exists("npm"):
@@ -229,6 +236,8 @@ def run_validation() -> None:
 def commit_tag_and_push(version: str, push: bool) -> str:
     release_tag = f"v{version}"
     release_paths = [
+        "Cargo.toml",
+        "Cargo.lock",
         "backend/Cargo.toml",
         "backend/Cargo.lock",
         "frontend/package.json",
