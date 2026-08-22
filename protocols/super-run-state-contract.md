@@ -1,6 +1,6 @@
 # Super Run State And Execution Contract
 
-本协议定义 `/t-super-run` 的目标级计划、持久化状态、主会话执行顺序和 Goal 闭环。单一主会话按 task 切换角色规范，通过状态文件保存检查点，不调用 subagent。
+按 task 切换角色规范，用 `.state.json` 恢复执行；不得调用 subagent。
 
 super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相互独立，不得互相迁移、覆盖或推导。
 
@@ -81,7 +81,15 @@ super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相
     }
   },
   "sources": {
-    "design": ".ai/design/sample-feature.md",
+    "design": {
+      "main": ".ai/design/sample-feature.md",
+      "documents": [
+        ".ai/design/sample-feature.md",
+        ".ai/design/sample-feature/backend.md",
+        ".ai/design/sample-feature/frontend.md"
+      ],
+      "fingerprint": "sha256:..."
+    },
     "requirements": [],
     "decisions": [],
     "research": []
@@ -97,6 +105,22 @@ Task 必填字段：
 - `evidence`
 
 失败或阻塞时增加 `last_error`。`.state.json` 不记录时间类元数据。
+
+## Design Source Gate
+
+首次规划和每次恢复都运行：
+
+```bash
+python ${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py ".ai/design/<feature>.md" --require-complete --json
+```
+
+- 校验失败：停止，不执行 task。
+- 首次规划：把 `design_documents` 和 `design_fingerprint` 写入 `sources.design`。
+- 指纹相同：继续恢复。
+- 指纹变化：重读设计覆盖矩阵、Operation ID、文件影响和 Decision Trace；更新 phase 计划，重新打开受影响的 dev/test/accept task，再写入新指纹。无法确定影响范围时停止并请求用户裁决。
+- 旧状态的 `sources.design` 是字符串：转换为对象；重新校验所有未完成 phase，并按当前证据判断是否需要重新打开已完成 task。
+
+不得仅因文件路径相同而跳过指纹比较。
 
 ## Status Rules
 
@@ -118,12 +142,12 @@ Task 必填字段：
 `<phase>.md` 只包含：
 
 - phase 目标、范围和完成条件。
-- Source Trace：本轮实际读取的设计、PRD、用户故事、Decision Brief、Decision Log、技术预研和项目事实。
+- Source Trace：本轮实际读取的设计文件与指纹、PRD、用户故事、Decision Brief、Decision Log、技术预研和项目事实。
 - Decision Trace：影响当前 phase 的 Active Decision 及应用位置。
 - task 表：`task | goal | agent spec | related documents | deliverable | validation`。
 - 必要的恢复说明和上游 handoff。
 
-每个 task 固定为一个目标级责任闭环，不继续拆 item。`related documents` 必须列出执行前要读取的真实路径，包括 agent 规范中的 Read Order 和本 feature 相关文档；不得只写“按需阅读相关指南”。
+每个 task 固定为一个目标级责任闭环，不继续拆 item。`related documents` 必须包含设计主文档、当前 phase 分端设计、消费后端契约时的 `backend.md`，以及 agent Read Order 中实际需要的文件；不得只写“按需阅读相关指南”。
 
 计划采用 outcome-first 结构：明确当前层级、完成条件、约束、工具/证据入口和停止规则，不预先规定可从仓库事实判断的逐步操作。阶段切换时记录简短 handoff；例行工具调用不写成长篇过程日志。
 
@@ -156,7 +180,7 @@ Agent 规范在这里是主会话执行指南，不适用 `${CLAUDE_PLUGIN_ROOT}
 
 - outcome：完成 `<feature>/<phase>` 计划。
 - constraints：不调用 subagent；持续更新 `.state.json`；遵守计划中的 agent 规范和来源边界。
-- verification：全部 task 为 `completed | skipped`，必要测试通过，accept 给出允许进入下游的结论。
+- verification：设计校验通过且指纹未变化；全部 task 为 `completed | skipped`；必要测试通过；accept 允许进入下游。
 
 推荐目标：
 
@@ -169,12 +193,13 @@ Agent 规范在这里是主会话执行指南，不适用 `${CLAUDE_PLUGIN_ROOT}
 
 - 已存在同一 feature/phase 的 Goal 时复用或恢复，不重复创建。
 - 存在无关的活动 Goal 时不得静默覆盖；停止并请用户先编辑、完成或清除现有 Goal。
-- Goal 只在 phase 聚合为 `completed | skipped` 后完成。accept 的 `ACCEPTED`，或没有 P0/P1 的 `ACCEPTED_WITH_IMPROVEMENTS`，可作为通过结论。
+- Goal 只在设计指纹与 state 一致且 phase 聚合为 `completed | skipped` 后完成。accept 的 `ACCEPTED`，或没有 P0/P1 的 `ACCEPTED_WITH_IMPROVEMENTS`，可作为通过结论。
 - `blocked` 不等于完成；保留状态并等待用户或外部条件后恢复。
 
 ## Failure Rules
 
 - 设计文档缺失：终止并提示先运行 `/t-design <feature>`。
+- 设计状态未完成或 `check-design.py` 失败：终止并提示恢复 `/t-design <feature>`。
 - 状态 JSON 损坏或结构非法：停止并报告具体字段，不覆盖原文件。
 - 需求来源或 Active Decision 冲突：写入 `blocked`，按 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md` 处理。
 - 验证命令不存在：先从目标项目配置和脚本查明真实入口；无法查明时标记 `blocked`，不得编造命令。

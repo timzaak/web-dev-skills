@@ -63,7 +63,7 @@ tools:
    - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/testid-standards.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/validation.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/quality.md`
-- 若任务有设计文档，再读 `.ai/design/[任务名].md`
+- 若任务有设计文档，再读 `.ai/design/[任务名]/frontend.md`（如存在分端设计，优先读取）和 `.ai/design/[任务名].md`
 
 规则：
 - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md` 是 frontend 事实型主规范

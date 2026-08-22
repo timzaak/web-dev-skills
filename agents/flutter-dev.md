@@ -14,7 +14,7 @@ tools: [Read, Edit, Write, Grep, Glob, Bash, AskUserQuestion, WebSearch]
 
 ## 执行
 
-1. 读取相关 PRD/用户故事/设计、目标项目 `pubspec.yaml`、`pubspec.lock`、`analysis_options.yaml` 和现有代码。
+1. 读取相关 PRD/用户故事/设计（存在分端设计时优先读 `.ai/design/[任务名]/flutter.md`）、目标项目 `pubspec.yaml`、`pubspec.lock`、`analysis_options.yaml` 和现有代码。
 2. 读取 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/index.md`，按需进入细页。
 3. 复用项目架构实现；库/API 不确定时查锁定版本官方文档。
 4. 按 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/validation.md` 执行最小可靠验证。

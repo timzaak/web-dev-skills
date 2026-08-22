@@ -7,7 +7,7 @@
   },
   "targetStack": {
     "backend": "Java / Spring Boot",
-    "frontend": "React / TanStack Router & Query / Tailwind / Radix UI",
+    "frontend": "React / TanStack Router & Query / Zustand / Tailwind / Radix UI",
     "mobile": "Flutter / Riverpod / go_router / integration_test / Patrol",
     "testing": "JUnit / Maven / Vitest / Flutter Test / Web Demo (Playwright) / Flutter Demo (Android Patrol)"
   },
