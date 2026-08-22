@@ -28,8 +28,7 @@ tools:
 调度方 prompt 必须包含：
 
 1. 角度指令段：`${CLAUDE_PLUGIN_ROOT}/protocols/simplify-cleanup-contract.md` 中对应角度的完整指引。
-2. 审查范围：变更文件清单和获取完整 diff 的命令（或 diff 内容本身）。
-3. focus 提示（如有）：用户指定的侧重点，仅用于调整优先级，不缩小审查范围。
+2. 审查范围：变更文件清单和获取完整 diff 的命令（或 diff 内容本身）；用户指定 `<target>` 时已是替换后的目标范围。
 
 ## 审查规则
 

@@ -111,13 +111,13 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 - `t-dream` 默认只读审计 PRD、用户故事、设计/任务、实现事实与项目结构；需要写入 PRD 治理时显式使用 `--govern-prd`。
 - `t-figma <figma-url> <target-file>` 把 Figma 设计还原进已有前端文件并用 getComputedStyle 测量法评估还原度（spec 提取一次固化，已有代码 token/动效/组件强制复用，delta 驱动迭代收敛）。它是独立触发入口，不进入 Decision→Release 主链路；需要 Figma MCP。资产默认保存 Figma 返回的原始字节并沿用项目目录约定，项目级 `DESIGN.md` 若存在则优先。
 - `t-push` 会基于本次 diff 清理明显低价值注释、总结 commit message，并调用 `${CLAUDE_PLUGIN_ROOT}/scripts/push.py` 运行受影响 CI、提交和推送。
-- `t-simplify` 对本次 git 变更做复用、简化、效率、抽象层级四个角度的并行只读审查，去重后直接应用修复；只做质量清理，不找正确性缺陷（那属于 `/code-review` 和各阶段 accept）。Agent tool 不可用时降级为主会话单遍审查并在报告中如实声明。
+- `t-simplify` 对变更代码（默认为上游区间加未提交变更，也可指定 PR / 分支 / 文件目标）做复用、简化、效率、抽象层级四个角度的并行只读审查，去重后直接应用修复；只做质量清理，不找正确性缺陷（那属于 `/code-review` 和各阶段 accept）。Agent tool 不可用时降级为主会话单遍审查并在报告中如实声明。
 - `t-security-review` 对当前分支待提交变更做聚焦安全审查：1 个识别 sub agent 找本次变更新引入的高置信度安全漏洞，N 个过滤 sub agent 并行剔除误报，只有置信度 >= 8 的发现进入报告；只审查不修复。Agent tool 不可用时降级为主会话两遍审查并在报告中如实声明。
 - 推荐 `t-push` 前先在 Claude Code 中运行 `/code-review --fix`、`/t-tools:t-simplify` 和 `/t-tools:t-security-review`，让代码先经过独立审查、简化与安全审查再收尾提交；它们与 `t-push` 的注释清理互相独立，不会相互覆盖。
 
 ### `t-simplify` 来源说明
 
-`t-simplify` 复刻自 Claude Code 内置 `/simplify` 命令的提示词，原文由 [Piebald-AI/claude-code-system-prompts](https://github.com/Piebald-AI/claude-code-system-prompts)（MIT）从 Claude Code 二进制提取：主流程来自 v2.1.154 的 slash command 提示词，Agent tool 不可用时的单遍降级来自 v2.1.213 的 inline 模式提示词。原文中四个审查角度的指引是运行时注入变量、未随提取发布，本插件按公开行为还原补全，落在 [`protocols/simplify-cleanup-contract.md`](protocols/simplify-cleanup-contract.md)；并按本插件约定补充了 `simplify-reviewer` subagent 角色规范和 `.ai/quality/simplify-*.md` 报告产物。
+`t-simplify` 复刻自 Claude Code 内置 `/simplify` 命令的提示词：主流程与 inline 降级来自 [Piebald-AI/claude-code-system-prompts](https://github.com/Piebald-AI/claude-code-system-prompts)（MIT）对 v2.1.154 slash command 与 v2.1.213 inline 模式的二进制提取。v2.1.154 中四个审查角度的指引还是运行时注入变量、未随提取发布，本插件最初按公开行为还原；v2.1.232 已把它们内嵌进二进制，本插件随即按本机二进制提取逐字校准了四个角度、Phase 0 变更收集（上游区间 + 未提交变更）和 `<target>` 参数语义，落在 [`protocols/simplify-cleanup-contract.md`](protocols/simplify-cleanup-contract.md)；并按本插件约定补充了 `simplify-reviewer` subagent 角色规范和 `.ai/quality/simplify-*.md` 报告产物。
 
 ### `t-security-review` 来源说明
 
