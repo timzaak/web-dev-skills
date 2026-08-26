@@ -6,10 +6,17 @@
 
 - 决策账本：`.ai/decision-log/<feature>.md`
 - Decision Brief 仍负责立项、Scope Direction 和初始 D0/D1 决策。
-- 决策账本负责整个 feature 生命周期中已确认决策、已解决问题和显式延期问题的连续性。
+- 决策账本以人的决策为主，只保存用户已确认决策、重要的跨阶段 AI 决策以及已解决或延期的问题。
 - PRD、Tech Research、Design 和 Task 保留自身领域事实；账本只保存足以避免重复提问和追踪覆盖关系的决策摘要，不复制整份上游文档。
 
-旧 feature 没有决策账本时，首个读取到现有 Decision Brief、PRD 或 Tech Research 的阶段必须从其中已确认决策初始化账本。不得把 Open Questions、假设或风险自动升级为已确认决策。
+旧 feature 没有决策账本时，从已有产物中的用户已确认决策初始化。历史 AI 决策也必须符合下述入账条件；事实、Open Questions、假设和风险不得当作决策迁入。
+
+## Entry Gate
+
+- 用户确认的 D0/D1 决策必须入账；用户回答后同步更新对应 DEC/Q。
+- AI 的 D2 决策默认留在所属产物。只有影响多个后续阶段、反转代价高或解决架构级分歧时才入账，并在 `Rationale` 和 `Affects` 中说明原因与影响。
+- 如果决策改变产品语义、风险接受、显著成本或兼容承诺，必须由用户确认，不属于 AI 自主决策。
+- 可查明的事实和命名、局部实现、一般测试组织等日常取舍不入账。
 
 ## Stable IDs
 
@@ -27,7 +34,7 @@
 
 | ID | Level | Topic | Decision | Rationale | Decided By | Source | Affects | Reopen When | Supersedes |
 |---|---|---|---|---|---|---|---|---|---|
-| DEC-...-001 | D0/D1/D2 | stable.topic.key | ... | ... | user/agent/repository-fact | path#section | prd/design/task/test | ... / — | — |
+| DEC-...-001 | D0/D1/D2 | stable.topic.key | ... | ... | user/agent | path#section | prd/design/task/test | ... / — | — |
 
 ## Resolved Questions
 
@@ -56,7 +63,7 @@
 | 类型 | 判定 | 必须动作 |
 |---|---|---|
 | `fact_lookup` | 可从仓库、既有文档或外部权威来源查明 | 先调查，不询问用户，不写成待确认 |
-| `agent_decision` | D2 工程取舍，且不改变产品语义、风险接受、显著成本或兼容承诺 | agent 明确选择，记录 DEC、依据和影响 |
+| `agent_decision` | D2 工程取舍，且不改变需由用户确认的边界 | agent 明确选择并记录在所属产物；符合 Entry Gate 时才回写账本 |
 | `needs_user_answer` | 影响目标、范围、业务规则、权限/安全边界、显著成本、兼容性、用户流程、验收目标或风险接受 | 先查账本；未解决时立即使用 `AskUserQuestion`，回答前停止写入或交付 |
 | `verification_action` | 当前方向已确定，只缺不需要用户选择的外部证据 | 记录验证对象、负责人、完成条件和失败影响，不写成待确认决策 |
 
@@ -88,7 +95,7 @@ PRD、Tech Research、Design 和 Task 必须包含或在其现有决策章节中
 - 所有对当前阶段有影响的 Active Decision 必须逐项标记。
 - `Not Applicable` 必须说明原因。
 - 不得引用 Superseded Decision 作为当前依据。
-- 新增的 D1/D2 决策必须回写账本；D0/D1 产品决策由用户确认，D2 仅在不改变产品语义、风险接受、显著成本或兼容承诺时可由 agent 决定。
+- 新增的 D0/D1 用户决策必须回写账本；D2 只有符合 Entry Gate 时才回写，其余留在所属产物。
 
 ## Closure Scan
 
@@ -101,7 +108,7 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py <artifact-path>
 扫描结果只是候选未决表达，不代替语义分类：
 
 - 命中用户决策 → 标记 `needs_user_answer`，提问并停止。
-- 命中 agent 授权范围内的 D2 → 作出决定并记录依据。
+- 命中 agent 授权范围内的 D2 → 作出决定并记录在所属产物；通过 Entry Gate 时才同步至 Decision Log。
 - 命中事实缺口 → 调查。
 - 命中外部验证 → 改写为明确验证动作。
 - 只有重新扫描通过后才可交付产物。

@@ -47,7 +47,7 @@ allowed-tools:
 - `.ai/design/$ARGUMENTS/frontend.md` — 前端分端设计（适用时）
 - `.ai/design/$ARGUMENTS/flutter.md` — Flutter 分端设计（适用时）
 - `.ai/design/$ARGUMENTS/.state.json` — 本轮设计生成状态；只有 `complete` 可被下游消费
-- `.ai/decision-log/$ARGUMENTS.md` — 复用上游决策并记录本阶段新 D2 决策或已解决问题
+- `.ai/decision-log/$ARGUMENTS.md` — 复用上游决策；仅在产生用户决策、问题状态变化或重要 AI 决策时更新
 
 不适用端不创建分端文档，只在主文档 §4.2 标记"不适用"及原因。
 
@@ -157,7 +157,7 @@ allowed-tools:
 
 若缺失或冲突会影响目标范围、业务规则、权限/安全边界、API 契约、数据模型、迁移/兼容性、验收标准、显著成本、风险接受或测试策略，必须在继续设计前使用 `AskUserQuestion` 获取答案；不得把它写入风险、验证动作或假设后继续。
 
-用户回答后，先更新 Decision Log，再更新拥有该事实的 PRD、Tech Research 或 Design。D2 工程取舍若不改变产品语义、风险接受、显著成本或兼容承诺，由设计阶段明确选择并记录 DEC，不得写成“待确认”。
+用户回答后，先更新 Decision Log，再更新对应产物。D2 工程取舍由设计阶段明确选择并写入 Design；符合 Decision Continuity Contract 的 Entry Gate 时才回写 Decision Log。
 
 ### 3. 搜索需求来源
 
