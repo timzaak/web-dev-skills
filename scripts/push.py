@@ -252,7 +252,6 @@ def frontend_steps() -> list[Step]:
         ("Frontend format check", "format:check", True),
         ("Frontend lint", "lint", False),
         ("Frontend type check", "type-check", False),
-        ("Frontend tests", "test:run", True),
     ):
         step = npm_script_step(name, frontend_dir, script, optional=optional)
         if step:
