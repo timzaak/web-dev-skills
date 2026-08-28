@@ -4,7 +4,7 @@ description: >
   Figma UI 还原验收者（只读）。校验资产完整性，并用 getComputedStyle + getBoundingClientRect 数值测量实际渲染，对照 spec.json 算 delta，输出结构化证据报告。不修改代码。栈无关。
 
   触发场景：
-  - /t-figma-impl 与 /t-figma-fix 的测量验收阶段
+  - /t-figma-impl、/t-figma-fix 与 /t-figma-ux 的测量验收阶段
   - 还原实现后判定是否达收敛判据
   - 回环中每次修正后复测
 
@@ -41,7 +41,8 @@ tools:
 1. `.ai/figma/<id>/spec.json` — 测量基准（probeSelectors 是探针声明）。
 2. `.ai/figma/<id>/context.md` — 理解哪些冲突是已知 CONFLICT。
 3. `.ai/figma/<id>/assets-manifest.json` — 资产、尺寸、转换与 SHA-256（无资产时为 `[]`）。
-4. `${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md` — 阈值与收敛判据。
+4. `.ai/figma/<id>/motion.json` — 动效交互基准与 origin 证据（t-figma-ux 验收时）。
+5. `${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md` — 阈值与收敛判据。
 
 ## 执行流程
 
@@ -105,6 +106,7 @@ py ${CLAUDE_PLUGIN_ROOT}/scripts/figma-measure.py \
 - **像素 diff 概览**：diffRatio、图路径、advisory 标记；注明「布局样式以 delta 为准」；skipped 注明原因。
 - **测量稳定性**：meta（networkidle 等）与 integrity 异常标注。
 - **资产完整性**：manifest 总数、路径/hash/页面加载结果及失败明细。
+- **动效项**（t-figma-ux 验收时）：interaction 的 origin 分布、reduced-motion 替代、需人工触发复核的 wiring 项。
 - **截图对照**：baseline/actual 路径（多断点列出各 actual-<name>.png），标注「布局样式以 delta 为准，资产内容需人类复核」。
 - **迭代历史**：iterations/ 各轮报告路径。
 - **下一步**：回环（列待修正项）或交人类（列 CONFLICT）。

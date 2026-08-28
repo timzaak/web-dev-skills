@@ -8,6 +8,9 @@ ${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md.
 
 - shorthand expects (padding/margin/gap/borderRadius) expand to every
   side/corner; x/y positions are measured when declared;
+- motion probes (duration/delay/timing function/transitionProperty)
+  normalize keyword easings against their cubic-bezier equivalents and
+  collapse uniform computed lists ("0.2s, 0.2s");
 - the page is stabilized before probing (webfonts, frozen animations,
   probe attach wait); networkidle state lands in report meta;
 - spec.viewport may be an array (responsive breakpoints) with optional
@@ -51,8 +54,11 @@ NUMERIC_PROPS = {
     "borderBottomRightRadius", "borderBottomLeftRadius",
 }
 COLOR_PROPS = {"color", "background", "backgroundColor", "borderColor"}
-DURATION_PROPS = {"transitionDuration", "animationDuration"}
-ENUM_PROPS = {"fontWeight", "opacity", "lineHeight"}
+DURATION_PROPS = {
+    "transitionDuration", "animationDuration", "transitionDelay", "animationDelay",
+}
+TIMING_PROPS = {"transitionTimingFunction", "animationTimingFunction"}
+ENUM_PROPS = {"fontWeight", "opacity", "lineHeight", "transitionProperty"}
 
 # Shorthand expect keys expand to every longhand before measuring.
 SHORTHAND_EXPANSION: dict[str, tuple[str, ...]] = {
@@ -70,7 +76,7 @@ SHORTHAND_OF = {
     for longhand in longhands
 }
 SUPPORTED_PROPS = (
-    NUMERIC_PROPS | COLOR_PROPS | DURATION_PROPS | ENUM_PROPS
+    NUMERIC_PROPS | COLOR_PROPS | DURATION_PROPS | ENUM_PROPS | TIMING_PROPS
     | set(SHORTHAND_EXPANSION)
 )
 
@@ -164,6 +170,105 @@ def _parse_ms(value: Any) -> float | None:
         return None
 
 
+def _split_top_level(text: str) -> list[str]:
+    """Split on commas outside parentheses (cubic-bezier/steps contain commas)."""
+    parts: list[str] = []
+    current: list[str] = []
+    depth = 0
+    for char in text:
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+        if char == "," and depth == 0:
+            parts.append("".join(current).strip())
+            current = []
+        else:
+            current.append(char)
+    parts.append("".join(current).strip())
+    return parts
+
+
+def _collapse_uniform(value: Any, single: Any) -> Any:
+    """Collapse computed multi-value lists ('0.2s, 0.2s') when entries are equal.
+
+    Non-uniform lists and unparseable entries return None so callers can
+    classify them instead of comparing raw strings.
+    """
+    text = str(value).strip()
+    if "," not in text:
+        return single(text)
+    parts = [single(part) for part in _split_top_level(text)]
+    if any(part is None for part in parts) or len(set(parts)) != 1:
+        return None
+    return parts[0]
+
+
+def _format_timing_number(value: float) -> str:
+    return f"{value:g}"
+
+
+TIMING_KEYWORD_BEZIERS = {
+    "linear": (0.0, 0.0, 1.0, 1.0),
+    "ease": (0.25, 0.1, 0.25, 1.0),
+    "ease-in": (0.42, 0.0, 1.0, 1.0),
+    "ease-out": (0.0, 0.0, 0.58, 1.0),
+    "ease-in-out": (0.42, 0.0, 0.58, 1.0),
+}
+TIMING_STEP_TERMS = (
+    "jump-start", "jump-end", "jump-none", "jump-both", "start", "end",
+)
+
+
+def _norm_timing_single(text: str) -> str | None:
+    """Normalize one CSS timing function to a canonical comparable string."""
+    value = re.sub(r"\s+", "", text).lower()
+    if value in TIMING_KEYWORD_BEZIERS:
+        x1, y1, x2, y2 = TIMING_KEYWORD_BEZIERS[value]
+        return "cubic-bezier({}, {}, {}, {})".format(
+            _format_timing_number(x1), _format_timing_number(y1),
+            _format_timing_number(x2), _format_timing_number(y2),
+        )
+    if value.startswith("cubic-bezier(") and value.endswith(")"):
+        parts = value[len("cubic-bezier("):-1].split(",")
+        if len(parts) != 4:
+            return None
+        try:
+            x1, y1, x2, y2 = (float(part) for part in parts)
+        except ValueError:
+            return None
+        return "cubic-bezier({}, {}, {}, {})".format(
+            _format_timing_number(x1), _format_timing_number(y1),
+            _format_timing_number(x2), _format_timing_number(y2),
+        )
+    if value.startswith("steps(") and value.endswith(")"):
+        parts = value[len("steps("):-1].split(",")
+        if len(parts) not in {1, 2} or not parts[0].isdigit():
+            return None
+        term = parts[1] if len(parts) == 2 else "end"
+        if term not in TIMING_STEP_TERMS:
+            return None
+        return f"steps({parts[0]},{term})"
+    return None
+
+
+def norm_timing(value: Any) -> str | None:
+    """Normalize a (possibly comma-list) timing function; None if unsupported."""
+    if value is None:
+        return None
+    return _collapse_uniform(value, _norm_timing_single)
+
+
+def _norm_transition_property(value: Any) -> str | None:
+    """Normalize transitionProperty to 'a, b' form; None if unparseable."""
+    if value is None:
+        return None
+    parts = _split_top_level(str(value).strip())
+    if not parts or any(not part for part in parts):
+        return None
+    return ", ".join(parts)
+
+
 def _norm_color(value: Any) -> tuple[int, int, int, float] | str | None:
     """Normalize CSS hex/rgb/rgba colors to an RGBA tuple.
 
@@ -228,8 +333,8 @@ def classify_delta(prop: str, spec_value: Any, actual_value: Any) -> tuple[str, 
         return "FAIL", delta, ""
 
     if prop in DURATION_PROPS:
-        spec = _parse_ms(spec_value)
-        actual = _parse_ms(actual_value)
+        spec = _collapse_uniform(spec_value, _parse_ms)
+        actual = _collapse_uniform(actual_value, _parse_ms)
         if spec is None or actual is None:
             return "MISSING", None, ""
         delta = abs(actual - spec)
@@ -264,6 +369,28 @@ def classify_delta(prop: str, spec_value: Any, actual_value: Any) -> tuple[str, 
             )
         return "FAIL", None, ""
 
+    if prop in TIMING_PROPS:
+        spec_fn = norm_timing(spec_value)
+        actual_fn = norm_timing(actual_value)
+        if spec_fn is None or actual_fn is None:
+            return (
+                "WARN", None,
+                "unsupported timing function format (spring / linear()); "
+                "needs human review",
+            )
+        if spec_fn == actual_fn:
+            return "PASS", 0.0, ""
+        return "FAIL", None, ""
+
+    if prop == "transitionProperty":
+        spec_prop = _norm_transition_property(spec_value)
+        actual_prop = _norm_transition_property(actual_value)
+        if spec_prop is None or actual_prop is None:
+            return "MISSING", None, ""
+        if spec_prop == actual_prop:
+            return "PASS", 0.0, ""
+        return "FAIL", None, ""
+
     if prop in ENUM_PROPS:
         if str(spec_value).strip() == str(actual_value).strip():
             return "PASS", 0.0, ""
@@ -281,8 +408,17 @@ def values_equal(prop: str, left: Any, right: Any) -> bool:
         left_value, right_value = _parse_px(left), _parse_px(right)
         return left_value is not None and right_value is not None and left_value == right_value
     if prop in DURATION_PROPS:
-        left_value, right_value = _parse_ms(left), _parse_ms(right)
+        left_value = _collapse_uniform(left, _parse_ms)
+        right_value = _collapse_uniform(right, _parse_ms)
         return left_value is not None and right_value is not None and left_value == right_value
+    if prop in TIMING_PROPS:
+        return norm_timing(left) is not None and norm_timing(left) == norm_timing(right)
+    if prop == "transitionProperty":
+        left_value = _norm_transition_property(left)
+        return (
+            left_value is not None
+            and left_value == _norm_transition_property(right)
+        )
     if prop in COLOR_PROPS:
         return _norm_color(left) is not None and _norm_color(left) == _norm_color(right)
     return str(left).strip() == str(right).strip()

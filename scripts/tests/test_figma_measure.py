@@ -97,6 +97,92 @@ class ClassifyDurationTests(unittest.TestCase):
         status, _, _ = figma_measure.classify_delta("transitionDuration", "200ms", "230ms")
         self.assertEqual(status, "WARN")
 
+    def test_delay_matches_duration_thresholds(self) -> None:
+        status, _, _ = figma_measure.classify_delta("transitionDelay", "0.1s", "100ms")
+        self.assertEqual(status, "PASS")
+        status, _, _ = figma_measure.classify_delta("transitionDelay", "0ms", "80ms")
+        self.assertEqual(status, "FAIL")
+
+    def test_uniform_computed_list_collapses(self) -> None:
+        status, _, _ = figma_measure.classify_delta(
+            "transitionDuration", "200ms", "0.2s, 0.2s"
+        )
+        self.assertEqual(status, "PASS")
+
+    def test_non_uniform_computed_list_is_missing(self) -> None:
+        status, delta, _ = figma_measure.classify_delta(
+            "transitionDuration", "200ms", "0.2s, 0.3s"
+        )
+        self.assertEqual(status, "MISSING")
+        self.assertIsNone(delta)
+
+
+class ClassifyTimingTests(unittest.TestCase):
+    def test_keyword_matches_cubic_bezier(self) -> None:
+        status, _, _ = figma_measure.classify_delta(
+            "transitionTimingFunction",
+            "ease-in-out",
+            "cubic-bezier(0.42, 0, 0.58, 1)",
+        )
+        self.assertEqual(status, "PASS")
+
+    def test_bezier_spacing_and_zeros_normalized(self) -> None:
+        status, _, _ = figma_measure.classify_delta(
+            "transitionTimingFunction",
+            "cubic-bezier(.42,0,.58,1)",
+            "cubic-bezier(0.42, 0, 0.58, 1)",
+        )
+        self.assertEqual(status, "PASS")
+
+    def test_mismatch_is_fail(self) -> None:
+        status, _, _ = figma_measure.classify_delta(
+            "transitionTimingFunction",
+            "ease-out",
+            "cubic-bezier(0.42, 0, 0.58, 1)",
+        )
+        self.assertEqual(status, "FAIL")
+
+    def test_unsupported_format_is_advisory_warn(self) -> None:
+        status, _, note = figma_measure.classify_delta(
+            "transitionTimingFunction",
+            "linear(0 50%, 1 100%)",
+            "linear(0 50%, 1 100%)",
+        )
+        self.assertEqual(status, "WARN")
+        self.assertIn("unsupported timing function", note)
+
+    def test_steps_default_term_normalized(self) -> None:
+        status, _, _ = figma_measure.classify_delta(
+            "animationTimingFunction", "steps(4)", "steps(4, end)"
+        )
+        self.assertEqual(status, "PASS")
+
+    def test_uniform_timing_list_collapses(self) -> None:
+        status, _, _ = figma_measure.classify_delta(
+            "transitionTimingFunction",
+            "ease-out",
+            "cubic-bezier(0, 0, 0.58, 1), cubic-bezier(0, 0, 0.58, 1)",
+        )
+        self.assertEqual(status, "PASS")
+
+
+class ClassifyTransitionPropertyTests(unittest.TestCase):
+    def test_spacing_normalized(self) -> None:
+        status, _, _ = figma_measure.classify_delta(
+            "transitionProperty", "transform,opacity", "transform, opacity"
+        )
+        self.assertEqual(status, "PASS")
+
+    def test_mismatch_is_fail(self) -> None:
+        status, _, _ = figma_measure.classify_delta(
+            "transitionProperty", "transform", "all"
+        )
+        self.assertEqual(status, "FAIL")
+
+    def test_empty_is_missing(self) -> None:
+        status, _, _ = figma_measure.classify_delta("transitionProperty", "transform", "")
+        self.assertEqual(status, "MISSING")
+
 
 class ClassifyColorTests(unittest.TestCase):
     def test_hex_match(self) -> None:

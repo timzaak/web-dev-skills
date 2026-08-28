@@ -1,6 +1,6 @@
 # Figma UI 工程工作流契约
 
-本契约是 `/t-tools:t-figma-assets`、`/t-tools:t-figma-impl`、`/t-tools:t-figma-fix` 与内部 Figma agents 的共享真相源。它覆盖目标项目中的工作区关联、Figma 原始快照、二次规格、资产清单、规则记忆和验收门禁。
+本契约是 `/t-tools:t-figma-assets`、`/t-tools:t-figma-impl`、`/t-tools:t-figma-fix`、`/t-tools:t-figma-ux` 与内部 Figma agents 的共享真相源。它覆盖目标项目中的工作区关联、Figma 原始快照、二次规格、资产清单、动效规格、规则记忆和验收门禁。
 
 ## Command Contract
 
@@ -8,14 +8,16 @@
 /t-tools:t-figma-assets <figma-url> <target-file> [--asset-url <figma-node-url> ...] [--video-source <node-id>=<url-or-local-path> ...]
 /t-tools:t-figma-impl <figma-url> <target-file>
 /t-tools:t-figma-fix <figma-node-url> <target-file> <问题、状态或断点描述>
+/t-tools:t-figma-ux <figma-url> <target-file>
 ```
 
 - `<target-file>` 必须已存在、位于目标项目内且路径中不得含 `..`。
 - `figma-url` 必须能解析 `fileKey` 与 `nodeId`。assets/impl 的 URL 指向整页或主 frame；fix 的 URL 指向待精修节点。
-- 三个命令以规范化后的项目相对 `target-file` 关联工作区。一个目标文件同时命中多个活动工作区时必须请开发者选择，不得按时间或目录顺序猜测。
+- 四个命令以规范化后的项目相对 `target-file` 关联工作区。一个目标文件同时命中多个活动工作区时必须请开发者选择，不得按时间或目录顺序猜测。
 - assets/impl 命中 session 后必须校验 URL 的 `fileKey + mainNodeId` 一致；不一致时请开发者选择归档旧 session 或回到原主稿，不得复用旧 spec。fix 允许 nodeId 不同，但 fileKey 必须与 session 一致。
 - `t-figma-impl` 要求 assets 阶段已经完成；无素材页面也必须存在空的 `assets-manifest.json`。
 - `t-figma-fix` 要求已有 impl 工作区和二次规格，不承担从零整页实现。
+- `t-figma-ux` 的 URL 与 assets/impl 相同，指向整页或主 frame，`fileKey + mainNodeId` 校验一致；要求 session stage 已达 `implemented`。它只补充动效交互，不修复静态视觉偏差（impl/fix 职责），不下载素材。
 
 ## Workspace and Identity
 
@@ -29,10 +31,12 @@
     ├── source/
     │   ├── metadata.xml
     │   ├── design-context.md
+    │   ├── motion-context.md
     │   ├── variables.json
     │   └── baseline[-<node-name>].png
     ├── raw/
     ├── spec.json
+    ├── motion.json
     ├── context.md
     ├── assets-manifest.json
     ├── conflicts.json
@@ -57,8 +61,8 @@
 ```
 
 - target key 使用相对项目根、`/` 分隔、消除 `.` 后的路径；Windows 上匹配时不区分大小写，落盘保持真实大小写。
-- `status` 只允许 `active|archived`。一个 target 只有一个 active session 时自动使用；零个时 assets/impl 可创建、fix 必须停止；多个时必须询问。
-- `session.json` 保存主 URL、fileKey、mainNodeId、targetFile、当前 stage（`assets|implemented|fixing|accepted`）和 `specRevision`。状态文件不写时间元数据。
+- `status` 只允许 `active|archived`。一个 target 只有一个 active session 时自动使用；零个时 assets/impl 可创建、fix/ux 必须停止；多个时必须询问。
+- `session.json` 保存主 URL、fileKey、mainNodeId、targetFile、当前 stage（`assets|implemented|motion|fixing|accepted`）和 `specRevision`。状态文件不写时间元数据。
 
 ## Source of Truth and Reconstruction
 
@@ -144,6 +148,40 @@
 - 同名同 SHA-256 复用；同名异内容必须停止，请开发者改名或明确允许替换。
 - manifest 只记录已成功落位且校验通过的资产；失败时不得写半成功条目。
 
+## Motion and Interaction
+
+`t-figma-ux` 产出 session `motion.json`，作为动效交互的当前基准；数值验收复用 `spec.json` 探针。
+
+```json
+{
+  "version": 1,
+  "interactions": [
+    {
+      "id": "nav-drawer-open",
+      "trigger": "click",
+      "selector": "[data-figma='nav-drawer']",
+      "motion": {
+        "kind": "transition",
+        "durationMs": 240,
+        "easing": "cubic-bezier(0.42, 0, 0.58, 1)",
+        "properties": ["transform"]
+      },
+      "origin": "prototype",
+      "evidence": "design context: reaction -> SMART_ANIMATE 240ms EASE_IN_OUT",
+      "reducedMotion": "fade"
+    }
+  ]
+}
+```
+
+- `trigger` 允许 `hover|focus|press|click|enter|exit|scroll|state`；`kind` 允许 `transition|animation|spring`。
+- `easing` 统一记录 CSS computed 形式，Figma 名称映射见 `${CLAUDE_PLUGIN_ROOT}/guides/figma/motion.md`。spring 无 CSS 等价，`easing` 记录 `{stiffness, damping, mass}` 参数对象，不生成数值探针，验收靠实现声明与人工复核。
+- `origin` 允许 `prototype|project-pattern|principle-default|user-decision`。`prototype` 和 `project-pattern` 必须附 evidence；`principle-default` 仅限不影响用户流程感知的微反馈；首屏转场、跨页转场、破坏性操作反馈等缺口必须取得开发者裁决后标 `user-decision`。
+- 原型证据优先从既有 `source/design-context.md` 读取；需重新提取时保存为 `source/motion-context.md`，不覆盖既有快照。
+- 动效数值探针（`transitionDuration`、`transitionTimingFunction`、`transitionDelay`、`transitionProperty` 及 animation 等价属性）追加到 `spec.json.probeSelectors` 并增加 revision（scope=motion）。触发后才开始的行为 wiring 无法用静态 computed style 证明，accept 报告必须把它列为人工触发复核项。同一元素存在多个不同 duration/easing 的过渡时探针按 MISSING 处理，探针应指向单一动效声明的元素。
+- 每个含位移或持续循环的 interaction 必须声明 `reducedMotion` 替代方式；替代是否生效由 ux agent 在栈验证中检查并在 accept 报告中列出证据。
+- stage：进入 ux 时设为 `motion`；验收收敛后设为 `accepted`，未收敛保持 `motion` 并回环，达上限 `EXHAUSTED`。
+
 ## Project Rule Memory
 
 每个命令开始前读取目标代码、`docs/figma-rules.md` 和当前 session 候选；fix 还必须读取历史 delta 与当前区域代码。
@@ -166,6 +204,9 @@
 | 数值（fontSize/width/height/x/y/padding/margin/gap/radius） | delta < 2px | 2 ≤ delta < 4px | delta ≥ 4px |
 | sRGB 颜色 | 完全匹配 | 不支持格式 | 可解析但不匹配 |
 | transition/animation duration | 完全匹配 | delta < 50ms | delta ≥ 50ms |
+| transitionDelay/animationDelay | 完全匹配 | delta < 50ms | delta ≥ 50ms |
+| timing function（transitionTimingFunction/animationTimingFunction） | 归一化后完全匹配 | 不支持格式（spring、linear() 函数） | 归一化后不匹配 |
+| transitionProperty | 归一化后完全匹配 | — | 不匹配 |
 | font-weight/opacity/lineHeight | 完全匹配 | lineHeight 一边为 normal | 不匹配 |
 
 - FAIL/MISSING/ERROR、资产路径/hash/加载错误、视频 Range 错误均阻塞收敛。
@@ -178,5 +219,6 @@
 
 - MCP 核心能力、ffmpeg/ffprobe、栈、dev server 或 Playwright 缺失时给出可操作提示并停止。
 - 原始快照不完整、必要素材无法下载、视频无来源、候选素材有歧义或同名内容冲突时，不进入实现。
+- 动效缺口影响用户流程感知或品牌调性而开发者未裁决时，不得用原则默认继续；spring 动效缺项目动效库支撑时停止询问。
 - 规则冲突不得静默覆盖；报告冲突来源并等待开发者裁决。
 - impl/fix 验证失败时不得宣称收敛；accept 不得代替实现 agent 修代码。
