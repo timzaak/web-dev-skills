@@ -109,7 +109,7 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 - `t-design` 产出"主文档 + 分端设计"：主文档 `.ai/design/<feature>.md` 承载目标范围、跨端契约摘要、测试与风险汇总和全量文件影响范围；后端、前端、Flutter 各自的深入设计在 `.ai/design/<feature>/` 下由对应设计 agent 生成。后端设计先行并拥有 API 契约单一来源，前端与 Flutter 设计只消费契约不重新定义。
 - `t-doc` 用于项目文档、上手教程、API 参考、配置和部署说明，不用于 PRD、技术设计或零散文档修改。
 - `t-dream` 默认只读审计 PRD、用户故事、设计/任务、实现事实与项目结构；需要写入 PRD 治理时显式使用 `--govern-prd`。
-- `t-figma <figma-url> <target-file>` 把 Figma 设计还原进已有前端文件并用 getComputedStyle 测量法评估还原度（spec 提取一次固化，已有代码 token/动效/组件强制复用，delta 驱动迭代收敛）。它是独立触发入口，不进入 Decision→Release 主链路；需要 Figma MCP。资产默认保存 Figma 返回的原始字节并沿用项目目录约定，项目级 `DESIGN.md` 若存在则优先。
+- Figma 工作流拆为三个独立入口，不进入 Decision→Release 主链路：先用 `/t-tools:t-figma-assets <figma-url> <target-file>` 发现、下载并转换零散图片/视频素材，再用 `/t-tools:t-figma-impl <figma-url> <target-file>` 二次重建设计结构并还原整页；需要局部精修时运行 `/t-tools:t-figma-fix <figma-node-url> <target-file> <问题描述>`。三个命令按目标文件共享 `.ai/figma/` session，读取并凝练项目 `docs/figma-rules.md`；旧 `t-figma` 已移除。
 - `t-push` 会基于本次 diff 清理明显低价值注释、总结 commit message，并调用 `${CLAUDE_PLUGIN_ROOT}/scripts/push.py` 运行受影响 CI、提交和推送。
 - `t-simplify` 对变更代码（默认为上游区间加未提交变更，也可指定 PR / 分支 / 文件目标）做复用、简化、效率、抽象层级四个角度的并行只读审查，去重后直接应用修复；只做质量清理，不找正确性缺陷（那属于 `/code-review` 和各阶段 accept）。Agent tool 不可用时降级为主会话单遍审查并在报告中如实声明。
 - 推荐 `t-push` 前先在 Claude Code 中运行 `/code-review --fix` 和 `/t-tools:t-simplify`，让代码先经过独立审查与简化再收尾提交；它们与 `t-push` 的注释清理互相独立，不会相互覆盖。
@@ -135,6 +135,8 @@ claude --plugin-dir /path/to/skills
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI 能正常使用
 - MCP Server [`context7`](https://github.com/upstash/context7) 已配置
+- 使用 Figma 工作流时，官方 [Figma MCP Server](https://developers.figma.com/docs/figma-mcp-server/) 已配置
+- 使用 Figma 素材转换时，`ffmpeg` 与 `ffprobe` 已安装并可从 PATH 调用
 
 使用 Codex、ZCode 等不支持 `claude --plugin-dir` 的工具时，见 [在其它 AI 编程工具中使用 t-tools](human/use-in-other-agents.md)：通过在 `~/.agents/skills/` 下放置路由 skill，把 `/t-tool <skill>` 指向克隆后的仓库目录。
 

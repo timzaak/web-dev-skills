@@ -5,6 +5,7 @@ import json
 import sys
 import tempfile
 import unittest
+from email.message import Message
 from dataclasses import dataclass
 from pathlib import Path
 from unittest.mock import patch
@@ -326,6 +327,12 @@ class ComputeDeltaTests(unittest.TestCase):
         report = compute(spec, {"title": {"fontSize": 24}})
         self.assertEqual(report.meta["integrity"]["specNodeCount"], 9)
 
+    def test_spec_revision_lands_in_meta(self) -> None:
+        spec = make_spec([{"name": "a", "selector": ".a", "expect": {"fontSize": 12}}])
+        spec["revision"] = 3
+        report = compute(spec, {"a": {"fontSize": 12}})
+        self.assertEqual(report.meta["specRevision"], 3)
+
     def test_coverage_ratio_computed_when_probeable_nodes_declared(self) -> None:
         spec = make_spec([
             {"name": "a", "selector": ".a", "expect": {"fontSize": 24}},
@@ -584,6 +591,24 @@ class MeasureTests(unittest.TestCase):
         self.assertIn('"width": 390', captured["script"])
         self.assertIn("page.screenshot", captured["script"])
 
+    def test_measure_passes_scope_selector_for_element_screenshot(self) -> None:
+        spec = make_spec([])
+        captured = {}
+
+        def fake_runner(cmd, *, cwd=None, env=None, capture=False):
+            captured["env"] = env
+            captured["script"] = (Path(cwd) / ".ai" / "figma" / "_probe.js").read_text(encoding="utf-8")
+            return FakeCompleted(0, "{}", "")
+
+        with tempfile.TemporaryDirectory() as temp:
+            figma_measure.measure(
+                "http://x", spec, cwd=Path(temp), viewport=VIEWPORT,
+                runner=fake_runner, node_path="node", screenshot=Path(temp) / "scope.png",
+                scope_selector="[data-figma='hero']",
+            )
+        self.assertEqual(captured["env"]["FIGMA_MEASURE_SCOPE"], "[data-figma='hero']")
+        self.assertIn("scope.screenshot", captured["script"])
+
     def test_measure_reports_install_hint_when_node_missing(self) -> None:
         spec = make_spec([])
 
@@ -627,6 +652,41 @@ class PixelDiffTests(unittest.TestCase):
             "pixelmatch" in result["skipped"] or "cannot read" in result["skipped"],
             result["skipped"],
         )
+
+
+class MediaRangeTests(unittest.TestCase):
+    class Response:
+        def __init__(self, status: int, content_range: str) -> None:
+            self.status = status
+            self.headers = Message()
+            self.headers["Content-Range"] = content_range
+
+        def getcode(self):
+            return self.status
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+    def test_video_range_passes_on_206(self) -> None:
+        def opener(request, timeout=0):
+            self.assertEqual(request.headers["Range"], "bytes=0-1")
+            return self.Response(206, "bytes 0-1/100")
+
+        result = figma_measure.check_media_ranges(
+            "http://localhost/page", [{"kind": "video", "name": "hero", "publicUrl": "/assets/hero.mp4"}],
+            opener=opener,
+        )
+        self.assertEqual(result[0]["status"], "PASS")
+
+    def test_video_without_public_url_is_error(self) -> None:
+        result = figma_measure.check_media_ranges("http://localhost/page", [{"kind": "video", "name": "hero"}])
+        self.assertEqual(result[0]["status"], "ERROR")
+
+    def test_images_are_ignored(self) -> None:
+        self.assertEqual(figma_measure.check_media_ranges("http://localhost", [{"kind": "image"}]), [])
 
 
 class MainTests(unittest.TestCase):

@@ -29,6 +29,8 @@
 
 PRD、用户故事和技术预研的正式来源与候选来源边界见 `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`。跨阶段已确认决策、已解决问题和延期问题写入目标项目 `.ai/decision-log/`，结构与门禁见 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`。
 
+Figma 调试中尚未验证的规则候选写入 `.ai/figma/<session>/rule-candidates.md`；通过 Figma 验收并满足复用门禁后，才可凝练到项目 `docs/figma-rules.md` 成为长期工程事实。具体门禁见 `${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md`。
+
 ## Script Entry Rules
 
 运行环境、测试和 Demo 脚本时：

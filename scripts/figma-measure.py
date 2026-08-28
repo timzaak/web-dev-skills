@@ -4,7 +4,7 @@
 Renders the target page via the host project's Playwright, probes declared
 elements with getComputedStyle + getBoundingClientRect, then classifies each
 probe against thresholds defined in
-${CLAUDE_PLUGIN_ROOT}/protocols/figma-restore-contract.md.
+${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md.
 
 - shorthand expects (padding/margin/gap/borderRadius) expand to every
   side/corner; x/y positions are measured when declared;
@@ -25,6 +25,9 @@ import json
 import os
 import re
 import sys
+import urllib.error
+import urllib.parse
+import urllib.request
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from typing import Any
@@ -32,7 +35,7 @@ from typing import Any
 from lib.cli import require_executable, run_cmd
 
 
-# --- thresholds (mirror figma-restore-contract.md Delta Thresholds) ---------
+# --- thresholds (mirror figma-workflow-contract.md Measurement) ------------
 NUMERIC_PASS_PX = 2.0
 NUMERIC_WARN_PX = 4.0
 DURATION_PASS_MS = 0.0
@@ -102,6 +105,7 @@ class DeltaReport:
     meta: dict[str, Any] = field(default_factory=dict)
     coverage: dict[str, Any] = field(default_factory=dict)
     pixel_diff: dict[str, Any] | None = None
+    media_ranges: list[dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -121,6 +125,7 @@ class DeltaReport:
             "meta": self.meta,
             "coverage": self.coverage,
             "pixelDiff": self.pixel_diff,
+            "mediaRanges": self.media_ranges,
             "results": [asdict(r) for r in self.results],
         }
 
@@ -461,6 +466,8 @@ def compute_delta(
     integrity = spec.get("integrity")
     if isinstance(integrity, dict):
         report.meta["integrity"] = integrity
+    if isinstance(spec.get("revision"), int):
+        report.meta["specRevision"] = spec["revision"]
     return report
 
 
@@ -566,6 +573,7 @@ const PROBES = __PROBES_JSON__;
 const VIEWPORT = __VIEWPORT_JSON__;
 const URL = process.env.FIGMA_MEASURE_URL;
 const SCREENSHOT = process.env.FIGMA_MEASURE_SCREENSHOT;
+const SCOPE = process.env.FIGMA_MEASURE_SCOPE;
 if (!URL) { console.error('FIGMA_MEASURE_URL env var required'); process.exit(2); }
 (async () => {
   const browser = await chromium.launch();
@@ -626,7 +634,15 @@ if (!URL) { console.error('FIGMA_MEASURE_URL env var required'); process.exit(2)
     return out;
   }, PROBES);
   actuals.__meta = { networkidle };
-  if (SCREENSHOT) await page.screenshot({ path: SCREENSHOT, fullPage: true });
+  if (SCREENSHOT) {
+    if (SCOPE) {
+      const scope = page.locator(SCOPE).first();
+      await scope.waitFor({ state: 'visible', timeout: 3000 });
+      await scope.screenshot({ path: SCREENSHOT });
+    } else {
+      await page.screenshot({ path: SCREENSHOT, fullPage: true });
+    }
+  }
   await browser.close();
   process.stdout.write(JSON.stringify(actuals));
 })().catch((e) => { console.error(String(e)); process.exit(1); });
@@ -643,6 +659,7 @@ def measure(
     runner: Any = None,
     node_path: str | None = None,
     screenshot: Path | None = None,
+    scope_selector: str | None = None,
 ) -> dict[str, dict[str, Any]]:
     """Run the in-browser probe and return parsed actuals.
 
@@ -670,6 +687,8 @@ def measure(
         screenshot = screenshot.resolve()
         screenshot.parent.mkdir(parents=True, exist_ok=True)
         env["FIGMA_MEASURE_SCREENSHOT"] = str(screenshot)
+    if scope_selector:
+        env["FIGMA_MEASURE_SCOPE"] = scope_selector
     probe_file = cwd / ".ai" / "figma" / "_probe.js"
     probe_file.parent.mkdir(parents=True, exist_ok=True)
     probe_file.write_text(script, encoding="utf-8")
@@ -750,6 +769,43 @@ def pixel_diff(baseline: Path, actual: Path, diff_out: Path) -> dict[str, Any]:
     }
 
 
+def check_media_ranges(
+    target_url: str,
+    manifest: list[dict[str, Any]],
+    *,
+    opener: Any = urllib.request.urlopen,
+) -> list[dict[str, Any]]:
+    """Verify that public video URLs support HTTP byte-range delivery."""
+    results: list[dict[str, Any]] = []
+    for asset in manifest:
+        if not isinstance(asset, dict) or asset.get("kind") != "video":
+            continue
+        name = str(asset.get("name") or asset.get("id") or "video")
+        public_url = asset.get("publicUrl")
+        if not isinstance(public_url, str) or not public_url.strip():
+            results.append({
+                "name": name, "status": "ERROR",
+                "reason": "video manifest entry requires publicUrl for Range verification",
+            })
+            continue
+        url = urllib.parse.urljoin(target_url, public_url)
+        request = urllib.request.Request(url, headers={"Range": "bytes=0-1"})
+        try:
+            with opener(request, timeout=10) as response:
+                status = getattr(response, "status", response.getcode())
+                content_range = response.headers.get("Content-Range", "")
+            passed = status == 206 and content_range.lower().startswith("bytes 0-1/")
+            results.append({
+                "name": name, "url": url,
+                "status": "PASS" if passed else "ERROR",
+                "httpStatus": status, "contentRange": content_range,
+                "reason": "" if passed else "server must return 206 and Content-Range for bytes=0-1",
+            })
+        except (OSError, urllib.error.URLError, urllib.error.HTTPError) as exc:
+            results.append({"name": name, "url": url, "status": "ERROR", "reason": str(exc)})
+    return results
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Measure rendered UI against a Figma spec.json.",
@@ -766,6 +822,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--iteration", type=int, help="Convergence iteration number; archives the report under iterations/ and stamps it.")
     parser.add_argument("--pixel-diff", action="store_true", help="Advisory pixel diff of baseline vs actual (requires pixelmatch + Pillow).")
     parser.add_argument("--baseline", help="Baseline image for --pixel-diff; defaults to baseline.png beside --spec.")
+    parser.add_argument("--scope-selector", help="Crop screenshots to this DOM selector (for t-figma-fix).")
+    parser.add_argument("--assets-manifest", help="Assets manifest; verifies HTTP Range for video publicUrl entries.")
     parser.add_argument("--stack", default="web", choices=["web", "flutter"],
                         help="Tech stack. Flutter is reserved and not implemented.")
     return parser
@@ -841,6 +899,7 @@ def main(argv: list[str] | None = None) -> int:
                 "deviceScaleFactor": vp["deviceScaleFactor"],
             },
             screenshot=vp_screenshot, probes=vp.get("probes"),
+            scope_selector=args.scope_selector,
         )
         if "__probe_error__" in actuals:
             print(
@@ -863,6 +922,23 @@ def main(argv: list[str] | None = None) -> int:
         report.pixel_diff = pixel_diff(
             baseline, screenshot_path, out_path.parent / "pixel-diff.png",
         )
+
+    if args.assets_manifest:
+        manifest_path = Path(args.assets_manifest)
+        if not manifest_path.is_file():
+            print(f"assets manifest not found: {manifest_path}", file=sys.stderr)
+            return 2
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            print(f"invalid assets manifest: {exc}", file=sys.stderr)
+            return 2
+        if not isinstance(manifest, list):
+            print("invalid assets manifest: root must be an array", file=sys.stderr)
+            return 2
+        report.media_ranges = check_media_ranges(args.url, manifest)
+        if any(item.get("status") == "ERROR" for item in report.media_ranges):
+            report.converged = False
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     payload = json.dumps(report.to_dict(), indent=2, ensure_ascii=False)

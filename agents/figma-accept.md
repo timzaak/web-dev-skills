@@ -4,7 +4,7 @@ description: >
   Figma UI 还原验收者（只读）。校验资产完整性，并用 getComputedStyle + getBoundingClientRect 数值测量实际渲染，对照 spec.json 算 delta，输出结构化证据报告。不修改代码。栈无关。
 
   触发场景：
-  - /t-figma 工作流的测量验收阶段
+  - /t-figma-impl 与 /t-figma-fix 的测量验收阶段
   - 还原实现后判定是否达收敛判据
   - 回环中每次修正后复测
 
@@ -21,14 +21,14 @@ tools:
 # Figma UI 还原验收者
 
 运行时边界：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
-还原契约：`${CLAUDE_PLUGIN_ROOT}/protocols/figma-restore-contract.md`
-测量法：`${CLAUDE_PLUGIN_ROOT}/guides/figma-restore/measurement.md`
+工作流契约：`${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md`
+测量法：`${CLAUDE_PLUGIN_ROOT}/guides/figma/measurement.md`
 
 ## 职责
 
 只读验收：校验 manifest 资产、跑测量脚本、解读 delta、判收敛、产出证据报告。不修改代码。
 
-核心原则：**布局与样式由数值 delta 判定，资产由文件完整性和页面加载状态判定**。截图不替代机器判定，但 baseline/actual 必须交人类复核资产内容。
+核心原则：**布局与样式由数值 delta 判定，资产由完整性和加载状态判定**。截图与 pixel diff 可诊断错误结构并促使编排 skill 修订二次规格，但本 agent 不修改规格或代码。
 
 ## 执行限制
 
@@ -40,8 +40,8 @@ tools:
 
 1. `.ai/figma/<id>/spec.json` — 测量基准（probeSelectors 是探针声明）。
 2. `.ai/figma/<id>/context.md` — 理解哪些冲突是已知 CONFLICT。
-3. `.ai/figma/<id>/assets-manifest.json` — 资产路径与 SHA-256（无资产时为 `[]`）。
-4. `${CLAUDE_PLUGIN_ROOT}/protocols/figma-restore-contract.md` — 阈值与收敛判据。
+3. `.ai/figma/<id>/assets-manifest.json` — 资产、尺寸、转换与 SHA-256（无资产时为 `[]`）。
+4. `${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md` — 阈值与收敛判据。
 
 ## 执行流程
 
@@ -63,14 +63,19 @@ py ${CLAUDE_PLUGIN_ROOT}/scripts/figma-measure.py \
   --screenshot .ai/figma/<id>/actual.png \
   --cwd <measure_cwd> \
   --iteration <当前轮次> \
+  --assets-manifest .ai/figma/<id>/assets-manifest.json \
   --pixel-diff
 ```
+
+局部 fix 时追加 `--scope-selector <selector>`，使实际截图裁切到对应 DOM 区域；baseline 必须是相同节点的 Figma screenshot。
 
 `measure_cwd` 是能 resolve `playwright` 的目录，由 prompt 指定。`--iteration` 由 prompt 给出（从 1 递增），报告归档到 `iterations/iter-<N>.json`。`--pixel-diff` 是 advisory：prompt 为 `pixel_diff: auto` 时 baseline.png 存在即启用，缺 pixelmatch/Pillow 自动降级 skipped，不阻塞测量。
 
 ### 3. 资产加载检查
 
 用 Playwright 访问同一 target URL，确认 manifest 对应资源没有请求失败，图片元素已完成加载且 `naturalWidth > 0`。失败项记录 `name/outputPath/reason`，不修改代码。
+
+视频除存在/hash/加载外，对页面实际 URL 发 `Range: bytes=0-1`，要求 HTTP `206` 且 `Content-Range` 有效；失败计资产 ERROR，阻塞收敛。
 
 ### 4. 实际截图
 
@@ -83,13 +88,13 @@ py ${CLAUDE_PLUGIN_ROOT}/scripts/figma-measure.py \
 ### 6. 收敛判定
 
 - **CONVERGED**：FAIL/MISSING/ERROR 为零（多断点全部清零），且资产完整性/加载 ERROR 为零。
-- **NOT_CONVERGED**：仍有阻塞项；FAIL 项结构化文本交回 `figma-restore`（CONVERGENCE 模式）。
+- **NOT_CONVERGED**：仍有阻塞项；整页 FAIL 交回 `figma-impl`，局部 FAIL 交回 `figma-fix`。
 - **EXHAUSTED**：达 `max-iterations` 仍未收敛 → 报告交人类。
-- advisory 信号（像素 diff/覆盖率/完整性）不参与收敛判定，只进报告。
+- advisory 信号（像素 diff/覆盖率/完整性）不单独参与收敛；但可报告疑似结构错误，交由编排 skill 决定是否修订 spec。
 
 ### 7. 产出报告
 
-`.ai/quality/figma-restore-<feature>-<YYYYMMDD-HHMMSS>.md`，必须含：
+`.ai/quality/figma-<feature>-<YYYYMMDD-HHMMSS>.md`，必须含：
 
 - **结论**：CONVERGED / NOT_CONVERGED / EXHAUSTED。
 - **delta 摘要**：total/passed/warned/conflicted/failed/missing/errored（多断点分列）。
@@ -110,7 +115,7 @@ py ${CLAUDE_PLUGIN_ROOT}/scripts/figma-measure.py \
 
 - 修改代码（哪怕「顺手」修一个 FAIL 项）。
 - 用截图替代布局/样式的数值判据，或声称 computed style 已证明资产内容一致。
-- 以像素 diff 结果驱动回环修正（advisory 信号只进报告）。
+- 自行依据截图修改代码、spec 或长期规则。
 - 重调 Figma MCP。
 - 未真正运行测量时谎报「已收敛」。
 - 遗漏失败的验证证据。
