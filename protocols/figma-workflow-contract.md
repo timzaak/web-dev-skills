@@ -17,8 +17,6 @@
 - `t-figma-impl` 要求 assets 阶段已经完成；无素材页面也必须存在空的 `assets-manifest.json`。
 - `t-figma-fix` 要求已有 impl 工作区和二次规格，不承担从零整页实现。
 
-旧 `/t-tools:t-figma` 不保留兼容入口。
-
 ## Workspace and Identity
 
 目标项目使用以下结构：

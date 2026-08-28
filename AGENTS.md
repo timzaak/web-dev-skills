@@ -1,42 +1,53 @@
-# AGENTS.md
+# Skill 编写规范
 
-这个仓库是 Claude Code plugin `t-tools` 的源码仓库，不是业务项目。它的作用是把 AI 编程组织成可执行、可恢复、可验收的工程工作流，用 skill 编排阶段，用 subagent 分工执行，用 protocol 固化共享契约，用 guide 承载工程规范。
+本仓库用于开发 Claude Code plugin `t-tools`。在这里修改的是可触发、可执行、可恢复、可验收的 AI 工程工作流，不是目标项目的业务代码。
 
-## 工作定位
+## 规则归属
 
-- 面向目标项目使用时，标准入口是 `/t-tools:t-*` 命令，而不是让模型自由选择流程。
-- 插件主链路是 `Decision -> PRD Draft / Tech Research（按主要未知项选择，可回环）-> [PRD Check] -> Design -> [Design Check] -> Task -> [Task Check] -> Run -> Web/Flutter Demo Run -> 对应 Demo Accept -> PRD Publish -> Release`，方括号内为可选质量检查；纯技术且不改变业务逻辑的方案可由 Tech Research 直接进入 Design。
-- 这个 plugin 的核心价值是统筹 AI 编程：把需求、设计、任务、实现、测试、验收和 Demo 交付拆成有边界、有状态、有门禁的阶段。
-- 不要把本仓库当成目标项目来生成业务代码。目标项目运行时事实主要落在目标项目的 `docs/` 和 `.ai/` 中。
+- `skills/` 负责阶段编排、前置校验、状态推进、产物写入和失败恢复。
+- `agents/` 负责单一角色的具体执行或只读验收，不承担跨阶段编排。
+- `protocols/` 是跨 skill 和 agent 的共享契约源；状态结构、输出结构、评分规则和调度规则只在这里定义。
+- `guides/` 承载工程规范和领域实践；skill 只说明何时读取，不复制大段内容。
+- `scripts/` 承载需要重复执行或必须保持确定性的操作。
+- 同一规则只维护一份。先确定规则归属，再通过语义路径引用它。
 
-## 仓库职责边界
+## 编写 Skill
 
-- `.claude-plugin/plugin.json` 是插件清单，描述插件名、目标技术栈和依赖。
-- `skills/` 是工作流入口，负责阶段编排、前置校验、状态推进、产物写入和失败恢复。
-- `agents/` 是 Claude Code subagent 角色定义，负责具体执行或只读验收。
-- `protocols/` 是跨 skill 和 agent 共享的单一契约源，状态结构、输出结构、评分规则优先在这里维护。
-- `guides/` 是工程规范和领域实践，不要把大段 guide 规则复制到 agent 或 skill 文档里。
-- `scripts/` 是插件提供给目标项目或流程复用的脚本；改脚本时要关注调用入口和跨平台路径处理。
-- `packages/playwright-unified-logger/` 是插件内置的 Playwright 日志辅助包，改动时按独立 npm package 对待。
+- 一个 skill 只负责一个边界清晰的阶段或能力。不要把相邻阶段的实现、测试和验收揉进同一个入口。
+- `name` 使用稳定的 kebab-case；`description` 同时说明“做什么”和“何时使用”，并与容易混淆的相邻 skill 明确消歧。
+- 只写会改变 AI 决策或执行结果的内容。删除通用知识、仓库文件系统已经显而易见的信息和没有实际约束力的说明。
+- 根据风险控制自由度：开放性工作给出目标和判断标准；脆弱、可破坏或必须一致的操作才规定固定顺序、命令或脚本。
+- `SKILL.md` 保留入口所需的目标、适用范围、核心流程、门禁、失败处理和资源路由。详细契约放入 `protocols/`，工程知识放入 `guides/`，可执行逻辑放入 `scripts/`。
+- 引用必须说明何时读取或执行。避免深层引用链，也不要默认加载当前任务不需要的所有参考文件。
+- 涉及阶段产物时，明确输入来源、输出位置、成功条件和下游消费条件。
+- 涉及持久化状态时，明确状态转换、可恢复点、重复执行行为以及失败后由谁继续。
+- 需要用户裁决的缺口必须暴露给用户；不要把未确认假设写入产物后继续推进。
+- 面向目标项目引用插件内部文件时使用 `${CLAUDE_PLUGIN_ROOT}`，不要依赖插件安装位置或当前工作目录。
 
-## 修改原则
+## 编排与角色边界
 
-- 修改共享规则时，优先判断它属于 `protocols/`、`guides/`、`skills/` 还是 `agents/`，避免把同一规则复制到多个地方。
-- 如果变更影响命令调用、skill 名称、完整工作流或安装方式，同步更新 `README.md` 和 `README.en.md`。
-- 如果变更影响插件暴露能力或依赖，同步检查 `.claude-plugin/plugin.json`。
-- 如果变更影响目标项目运行时文件结构，优先检查 `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md` 和 `${CLAUDE_PLUGIN_ROOT}/skills/t-init/` 相关模板。
-- Agent 文档应保持角色边界清晰：dev 可以实现，test 专注测试，accept 默认只读验收并输出证据。
-- `t-prd-check`、`t-design-check`、`t-task-check` 是可选质量检查；复杂、高风险、多人协作或 AI 输出不稳定时推荐运行。accept 阶段仍是实现后的验收收口，不要弱化验收职责。
+- Skill 负责决定下一步、选择 agent、传递必要上下文并汇总结果；不要在 skill 和 agent 中重复实现同一判断逻辑。
+- Dev agent 可以实现；test agent 专注测试；accept agent 默认只读验收并输出可复核证据。
+- Agent 输入、输出或评分被多个入口使用时，抽取为 `protocols/` 契约，不在各调用方分别描述。
+- `t-prd-check`、`t-design-check`、`t-task-check` 是可选质量检查。可以在高风险或 AI 输出不稳定时推荐，但不得悄悄变成主链路的强制前置条件。
+- Accept 是实现后的验收收口。增加前置检查不能替代或弱化 accept 的职责。
+- 纯技术且不改变业务逻辑、产品规则、用户流程或验收目标的方案，才可以绕过 PRD 直接从技术预研进入设计。
 
-## 质量与验证
+## 修改前后检查
 
-- Markdown 链接检查使用 `${CLAUDE_PLUGIN_ROOT}/scripts/check-markdown-links.py`。
-- 发布流程由 `${CLAUDE_PLUGIN_ROOT}/scripts/release.py` 和 `/t-tools:t-release` 约束，语义版本文件不带 `v`，git tag 使用 `v` 前缀。
-- `packages/playwright-unified-logger/` 的验证应在该 package 目录内运行 npm 脚本。
-- 当前仓库可能存在用户未提交改动；不要回滚与当前任务无关的文件。
+- 修改 skill 前先搜索它引用的 protocol、guide、agent、script，以及引用该 skill 或其产物的下游入口。
+- 修改共享状态、输出、评分或调度规则时，更新对应 `protocols/`，并检查所有消费者；不要只修当前调用方。
+- 修改目标项目运行时文件结构时，先检查 `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md` 和 `${CLAUDE_PLUGIN_ROOT}/skills/t-init/` 的相关模板。
+- 修改命令调用、skill 名称、公开工作流或安装方式时，同步更新 `README.md` 和 `README.en.md`。
+- 修改插件暴露能力或依赖时，同步检查 `.claude-plugin/plugin.json`。
+- 中文文档是主说明；存在对应英文文档时保持语义一致。
 
-## 写作约定
+## 验证
 
-- 中文文档是主说明，英文文档需要与中文文档保持语义一致。
-- 文档应面向已经会使用 AI 编程工具的读者，直接说明边界、契约、流程和门禁；避免解释模型自己能从文件系统看到的目录枚举。
-- 引用插件内部文件时，在面向目标项目的文档中优先使用 `${CLAUDE_PLUGIN_ROOT}` 语义路径。
+- 把 skill 文本视为行为代码验证，不以 Markdown 可读性代替行为正确性。
+- 按变更风险验证正常路径、前置条件缺失、下游门禁、失败恢复和重复执行；只验证受影响的场景，不编造无关测试。
+- 新增或修改脚本时直接运行脚本，并覆盖本次变更涉及的错误路径。
+- Markdown 链接使用 `${CLAUDE_PLUGIN_ROOT}/scripts/check-markdown-links.py` 检查。
+- `packages/playwright-unified-logger/` 的改动在该 package 目录内运行对应 npm 脚本。
+- 发布仍由 `${CLAUDE_PLUGIN_ROOT}/scripts/release.py` 和 `/t-tools:t-release` 约束：语义版本不带 `v`，git tag 使用 `v` 前缀。
+- 仓库可能有用户未提交改动；不要回滚或覆盖与当前任务无关的内容。
