@@ -14,10 +14,10 @@
 - `<target-file>` 必须已存在、位于目标项目内且路径中不得含 `..`。
 - `figma-url` 必须能解析 `fileKey` 与 `nodeId`。assets/impl 的 URL 指向整页或主 frame；fix 的 URL 指向待精修节点。
 - 四个命令以规范化后的项目相对 `target-file` 关联工作区。一个目标文件同时命中多个活动工作区时必须请开发者选择，不得按时间或目录顺序猜测。
-- assets/impl 命中 session 后必须校验 URL 的 `fileKey + mainNodeId` 一致；不一致时请开发者选择归档旧 session 或回到原主稿，不得复用旧 spec。fix 允许 nodeId 不同，但 fileKey 必须与 session 一致。
+- assets/impl 命中 session 后必须校验 URL 的 `fileKey + mainNodeId` 一致；不一致时请开发者选择归档旧 session 或回到原主稿，不得复用旧 spec。fix/ux 附着时允许 nodeId 不同，但 fileKey 必须与 session 一致。
 - `t-figma-impl` 要求 assets 阶段已经完成；无素材页面也必须存在空的 `assets-manifest.json`。
 - `t-figma-fix` 要求已有 impl 工作区和二次规格，不承担从零整页实现。
-- `t-figma-ux` 的 URL 与 assets/impl 相同，指向整页或主 frame，`fileKey + mainNodeId` 校验一致；要求 session stage 已达 `implemented`。它只补充动效交互，不修复静态视觉偏差（impl/fix 职责），不下载素材。
+- `t-figma-ux` 是独立的动效精修入口，不要求 assets/impl 先行：URL 可指向整页或待精修节点，只精修该范围内的动效交互，不修复静态视觉偏差（impl/fix 职责），不下载素材。目标文件必须已有对应实现（无论来自 impl 还是手写）。
 
 ## Workspace and Identity
 
@@ -61,7 +61,7 @@
 ```
 
 - target key 使用相对项目根、`/` 分隔、消除 `.` 后的路径；Windows 上匹配时不区分大小写，落盘保持真实大小写。
-- `status` 只允许 `active|archived`。一个 target 只有一个 active session 时自动使用；零个时 assets/impl 可创建、fix/ux 必须停止；多个时必须询问。
+- `status` 只允许 `active|archived`。一个 target 只有一个 active session 时自动使用；零个时 assets/impl/ux 可创建、fix 必须停止；多个时必须询问。
 - `session.json` 保存主 URL、fileKey、mainNodeId、targetFile、当前 stage（`assets|implemented|motion|fixing|accepted`）和 `specRevision`。状态文件不写时间元数据。
 
 ## Source of Truth and Reconstruction
@@ -175,12 +175,13 @@
 ```
 
 - `trigger` 允许 `hover|focus|press|click|enter|exit|scroll|state`；`kind` 允许 `transition|animation|spring`。
+- 附着与独立两种模式：命中同 fileKey 的 active session 时附着，复用其 spec/context/candidates 与规则记忆；无 active session 时以 `create --stage motion` 独立创建，session 只承载动效产物。ambiguous 时必须询问，不得按顺序猜测。
+- 原型证据：附着模式优先从既有 `source/design-context.md` 读取；独立模式或既有快照无原型信息时，在 MCP 窗口提取并保存为 `source/motion-context.md`，不覆盖既有快照。
 - `easing` 统一记录 CSS computed 形式，Figma 名称映射见 `${CLAUDE_PLUGIN_ROOT}/guides/figma/motion.md`。spring 无 CSS 等价，`easing` 记录 `{stiffness, damping, mass}` 参数对象，不生成数值探针，验收靠实现声明与人工复核。
 - `origin` 允许 `prototype|project-pattern|principle-default|user-decision`。`prototype` 和 `project-pattern` 必须附 evidence；`principle-default` 仅限不影响用户流程感知的微反馈；首屏转场、跨页转场、破坏性操作反馈等缺口必须取得开发者裁决后标 `user-decision`。
-- 原型证据优先从既有 `source/design-context.md` 读取；需重新提取时保存为 `source/motion-context.md`，不覆盖既有快照。
-- 动效数值探针（`transitionDuration`、`transitionTimingFunction`、`transitionDelay`、`transitionProperty` 及 animation 等价属性）追加到 `spec.json.probeSelectors` 并增加 revision（scope=motion）。触发后才开始的行为 wiring 无法用静态 computed style 证明，accept 报告必须把它列为人工触发复核项。同一元素存在多个不同 duration/easing 的过渡时探针按 MISSING 处理，探针应指向单一动效声明的元素。
+- 动效数值探针（`transitionDuration`、`transitionTimingFunction`、`transitionDelay`、`transitionProperty` 及 animation 等价属性）：附着模式追加到 `spec.json.probeSelectors` 并增加 revision（scope=motion）；独立模式生成只含 `source`、`probeSelectors` 和 `revision` 的最小 `spec.json`（revision 1，scope=motion），并写空 `assets-manifest.json` 保持 accept 前置一致，不承担静态结构基准。触发后才开始的行为 wiring 无法用静态 computed style 证明，accept 报告必须把它列为人工触发复核项。同一元素存在多个不同 duration/easing 的过渡时探针按 MISSING 处理，探针应指向单一动效声明的元素。
 - 每个含位移或持续循环的 interaction 必须声明 `reducedMotion` 替代方式；替代是否生效由 ux agent 在栈验证中检查并在 accept 报告中列出证据。
-- stage：进入 ux 时设为 `motion`；验收收敛后设为 `accepted`，未收敛保持 `motion` 并回环，达上限 `EXHAUSTED`。
+- stage：附着模式进入时设为 `motion`，独立模式创建即 `motion`；验收收敛后设为 `accepted`，未收敛保持 `motion` 并回环，达上限 `EXHAUSTED`。
 
 ## Project Rule Memory
 

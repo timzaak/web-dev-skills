@@ -11,7 +11,7 @@
 
 ## 工作模式
 
-标准顺序是 `t-figma-assets -> t-figma-impl -> t-figma-ux（按需）-> t-figma-fix（按需）`。四个命令共享由目标文件关联的 session，但职责不互相吞并：assets 不改 UI，impl 负责整页，ux 只补动效交互，fix 只精修明确节点。
+标准还原顺序是 `t-figma-assets -> t-figma-impl -> t-figma-fix（按需）`。`t-figma-ux` 是独立的动效精修入口：不要求 assets/impl 先行，可附着既有 session，也可对任何已有实现独立运行。各命令职责不互相吞并：assets 不改 UI，impl 负责整页，ux 只精修动效交互，fix 只精修明确节点的视觉。
 
 Figma MCP 的 metadata、design context 和截图都是证据，不是生产 DOM。设计师按 Photoshop 式平面排版时，必须先按视觉边界、现有代码和项目规则做二次重建，再进入实现。
 

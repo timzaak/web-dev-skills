@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 import tempfile
 import unittest
@@ -38,6 +39,33 @@ class SessionTests(unittest.TestCase):
             self.assertTrue(created["created"])
             self.assertEqual(result["status"], "unique")
             self.assertEqual(result["session"]["sessionId"], "abc-1-2")
+
+    def test_create_defaults_to_assets_stage(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp)
+            target_path = project / "page.tsx"
+            target_path.write_text("", encoding="utf-8")
+            figma_session.create_session(
+                project, "page.tsx", file_key="abc", node_id="1:2", url="https://figma/x",
+            )
+            session = json.loads(
+                (project / ".ai" / "figma" / "abc-1-2" / "session.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(session["stage"], "assets")
+
+    def test_create_with_motion_stage(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp)
+            target_path = project / "page.tsx"
+            target_path.write_text("", encoding="utf-8")
+            figma_session.create_session(
+                project, "page.tsx", file_key="abc", node_id="1:2",
+                url="https://figma/x", stage="motion",
+            )
+            session = json.loads(
+                (project / ".ai" / "figma" / "abc-1-2" / "session.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(session["stage"], "motion")
 
     def test_multiple_active_sessions_are_ambiguous(self) -> None:
         index = {
