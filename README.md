@@ -12,7 +12,7 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 
 推荐先读 [human/structure.md](human/structure.md)，理解 skill、subagent、protocol 如何协同；做需求前可用 [human/speech-template.md](human/speech-template.md) 先口述一遍真实意图。
 
-![T-Tools 知识图谱](knowledge-graph.png)
+![T-Tools 工程工作流知识图谱](knowledge-graph.zh-CN.webp)
 
 ## 快速上手
 

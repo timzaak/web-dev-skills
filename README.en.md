@@ -12,7 +12,7 @@ T-Tools is designed for projects that already have a delivery chain across produ
 
 Recommended first reading: [human/structure.en.md](human/structure.en.md) to understand how skills, subagents, and protocols work together. Before shaping a requirement, use [human/speech-template.en.md](human/speech-template.en.md) to speak through the real intent first.
 
-![T-Tools knowledge graph](knowledge-graph.png)
+![T-Tools engineering workflow knowledge graph](knowledge-graph.en.webp)
 
 ## Quick Start
 
