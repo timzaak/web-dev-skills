@@ -10,6 +10,7 @@
 | 目标项目 `AGENTS.md` / `CLAUDE.md` | 项目级执行约束 |
 | 目标项目 `docs/` | 已发布的长期产品、设计和使用事实 |
 | 目标项目 `.ai/` | 当前工作流的草稿、状态、质量报告和预览产物 |
+| 目标项目 `memo/` | Figma 工作流的 session、原始证据、二次规格和候选规则记忆 |
 | 目标项目 `scripts/` | 环境、测试和 Demo 的本地执行入口 |
 | `${CLAUDE_PLUGIN_ROOT}/protocols/` | 跨 skill 和 agent 的共享契约 |
 | `${CLAUDE_PLUGIN_ROOT}/guides/` | 默认工程规范和领域实践 |
@@ -29,7 +30,7 @@
 
 PRD、用户故事和技术预研的正式来源与候选来源边界见 `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`。跨阶段已确认决策、已解决问题和延期问题写入目标项目 `.ai/decision-log/`，结构与门禁见 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`。
 
-Figma 调试中尚未验证的规则候选写入 `.ai/figma/<session>/rule-candidates.md`；通过 Figma 验收并满足复用门禁后，才可凝练到项目 `docs/figma-rules.md` 成为长期工程事实。具体门禁见 `${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md`。
+Figma 调试中尚未验证的规则候选写入 `memo/figma/<session>/rule-candidates.md`；通过 Figma 验收并满足复用门禁后，才可凝练到项目 `docs/figma-rules.md` 成为长期工程事实。具体门禁见 `${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md`。
 
 ## Script Entry Rules
 

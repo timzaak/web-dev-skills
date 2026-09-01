@@ -34,7 +34,7 @@ class SessionTests(unittest.TestCase):
             created = figma_session.create_session(
                 project, target, file_key="abc", node_id="1:2", url="https://figma/x",
             )
-            index = figma_session.load_index(project / ".ai" / "figma" / "index.json")
+            index = figma_session.load_index(project / "memo" / "figma" / "index.json")
             result = figma_session.resolve(index, target)
             self.assertTrue(created["created"])
             self.assertEqual(result["status"], "unique")
@@ -49,7 +49,7 @@ class SessionTests(unittest.TestCase):
                 project, "page.tsx", file_key="abc", node_id="1:2", url="https://figma/x",
             )
             session = json.loads(
-                (project / ".ai" / "figma" / "abc-1-2" / "session.json").read_text(encoding="utf-8")
+                (project / "memo" / "figma" / "abc-1-2" / "session.json").read_text(encoding="utf-8")
             )
             self.assertEqual(session["stage"], "assets")
 
@@ -63,7 +63,7 @@ class SessionTests(unittest.TestCase):
                 url="https://figma/x", stage="motion",
             )
             session = json.loads(
-                (project / ".ai" / "figma" / "abc-1-2" / "session.json").read_text(encoding="utf-8")
+                (project / "memo" / "figma" / "abc-1-2" / "session.json").read_text(encoding="utf-8")
             )
             self.assertEqual(session["stage"], "motion")
 
@@ -92,7 +92,7 @@ class SessionTests(unittest.TestCase):
                 project, "page.tsx", file_key="abc", node_id="1:2", url="https://figma/x",
             )
             result = figma_session.archive_session(project, "page.tsx", "abc-1-2")
-            index = figma_session.load_index(project / ".ai" / "figma" / "index.json")
+            index = figma_session.load_index(project / "memo" / "figma" / "index.json")
             self.assertTrue(result["archived"])
             self.assertEqual(figma_session.resolve(index, "page.tsx")["status"], "missing")
 

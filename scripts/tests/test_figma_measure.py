@@ -558,7 +558,7 @@ class MeasureTests(unittest.TestCase):
 
         def fake_runner(cmd, *, cwd=None, env=None, capture=False):
             captured["env"] = env
-            probe_file = Path(str(cwd)) / ".ai" / "figma" / "_probe.js"
+            probe_file = Path(str(cwd)) / "memo" / "figma" / "_probe.js"
             captured["script"] = probe_file.read_text(encoding="utf-8")
             return FakeCompleted(0, json.dumps({"title": {"fontSize": 24}}), "")
 
@@ -580,7 +580,7 @@ class MeasureTests(unittest.TestCase):
         captured = {}
 
         def fake_runner(cmd, *, cwd=None, env=None, capture=False):
-            probe_file = Path(str(cwd)) / ".ai" / "figma" / "_probe.js"
+            probe_file = Path(str(cwd)) / "memo" / "figma" / "_probe.js"
             captured["script"] = probe_file.read_text(encoding="utf-8")
             return FakeCompleted(0, "{}", "")
 
@@ -599,7 +599,7 @@ class MeasureTests(unittest.TestCase):
         captured = {}
 
         def fake_runner(cmd, *, cwd=None, env=None, capture=False):
-            probe_file = Path(str(cwd)) / ".ai" / "figma" / "_probe.js"
+            probe_file = Path(str(cwd)) / "memo" / "figma" / "_probe.js"
             captured["script"] = probe_file.read_text(encoding="utf-8")
             return FakeCompleted(0, "{}", "")
 
@@ -651,7 +651,7 @@ class MeasureTests(unittest.TestCase):
                 "http://x", spec, cwd=cwd, viewport=VIEWPORT,
                 runner=fake_runner, node_path="/usr/bin/node",
             )
-            self.assertFalse((cwd / ".ai" / "figma" / "_probe.js").exists())
+            self.assertFalse((cwd / "memo" / "figma" / "_probe.js").exists())
 
     def test_measure_passes_viewport_and_screenshot_to_probe(self) -> None:
         spec = make_spec([])
@@ -659,7 +659,7 @@ class MeasureTests(unittest.TestCase):
 
         def fake_runner(cmd, *, cwd=None, env=None, capture=False):
             captured["env"] = env
-            captured["script"] = (Path(cwd) / ".ai" / "figma" / "_probe.js").read_text(
+            captured["script"] = (Path(cwd) / "memo" / "figma" / "_probe.js").read_text(
                 encoding="utf-8"
             )
             return FakeCompleted(0, "{}", "")
@@ -683,7 +683,7 @@ class MeasureTests(unittest.TestCase):
 
         def fake_runner(cmd, *, cwd=None, env=None, capture=False):
             captured["env"] = env
-            captured["script"] = (Path(cwd) / ".ai" / "figma" / "_probe.js").read_text(encoding="utf-8")
+            captured["script"] = (Path(cwd) / "memo" / "figma" / "_probe.js").read_text(encoding="utf-8")
             return FakeCompleted(0, "{}", "")
 
         with tempfile.TemporaryDirectory() as temp:

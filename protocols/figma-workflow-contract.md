@@ -24,7 +24,7 @@
 目标项目使用以下结构：
 
 ```text
-.ai/figma/
+memo/figma/
 ├── index.json
 └── <session-id>/
     ├── session.json
@@ -214,7 +214,7 @@
 - WARN、已声明 token CONFLICT、探针覆盖率和 pixel diff 不单独阻塞，但必须进入报告。
 - screenshot/pixel diff 可以用于定位错误分组、裁切和 stacking，并据此修订二次规格；不得只凭模糊视觉印象改任意数值。
 - `max-iterations` 默认 5。每轮归档 `iterations/iter-<N>.json`；达到上限仍未收敛则 `EXHAUSTED`。
-- accept 只写 `.ai/figma/**` 测量产物和 `.ai/quality/figma-*.md` 报告，不修改代码、正式资产或长期规则。
+- accept 只写 `memo/figma/**` 测量产物和 `.ai/quality/figma-*.md` 报告，不修改代码、正式资产或长期规则。
 
 ## Failure Rules
 

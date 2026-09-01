@@ -1,7 +1,7 @@
 ---
 name: t-super-run
-description: Plan and execute a backend, frontend, web-demo, flutter, or flutter-demo phase in one persistent main-session Goal with outcome-level status, role-guide switching, validation, recovery, and acceptance loops, without dispatching subagents.
-argument-hint: "[任务名称] [--phase <backend|frontend|web-demo|flutter|flutter-demo>]"
+description: Plan and execute the explicitly requested backend, frontend, web-demo, flutter, or flutter-demo phase in one persistent main-session Goal with outcome-level status, role-guide switching, validation, recovery, and acceptance loops, without dispatching subagents; each invocation runs exactly one phase and stops before the next.
+argument-hint: "[任务名称] --phase <backend|frontend|web-demo|flutter|flutter-demo>"
 allowed-tools:
   - AskUserQuestion
   - Read
@@ -17,7 +17,7 @@ allowed-tools:
 
 # Super Run
 
-把任务规划与阶段执行合并为一个可恢复闭环。只做 `phase -> task` 目标级规划，由当前主会话直接完成实现、测试、修复和验收，不调用 subagent。
+把任务规划与阶段执行合并为一个可恢复闭环。只做 `phase -> task` 目标级规划，由当前主会话直接完成实现、测试、修复和验收，不调用 subagent。每次调用只执行 `--phase` 显式指定的一个 phase；该 phase 完成后停止并报告剩余未完成 phase，不自动进入下一个 phase。
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 设计生成状态统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-state-contract.md`
@@ -36,14 +36,16 @@ allowed-tools:
 | 参数 | 说明 |
 | --- | --- |
 | `[feature]` | 必填；允许中文、英文、数字、空格、下划线和连字符 |
-| `--phase <backend\|frontend\|web-demo\|flutter\|flutter-demo>` | 可选；未传时选择首个适用且未完成的 phase |
+| `--phase <backend\|frontend\|web-demo\|flutter\|flutter-demo>` | 必填；本次调用只执行该 phase，完成后停止 |
 
 ## Preconditions
 
+- `--phase` 缺失或不在支持列表内时终止，提示 `--phase <backend|frontend|web-demo|flutter|flutter-demo>` 用法。
 - `.ai/design/[feature].md` 必须存在。
 - 运行 `python ${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py ".ai/design/[feature].md" --require-complete --json`；失败时停止，不创建或恢复 super-run。
-- 只支持 `backend | frontend | web-demo | flutter | flutter-demo`。miniapp 使用 `/t-task`、可选 `/t-task-check` 与 `/t-run`。
+- 只支持 `backend | frontend | web-demo | flutter | flutter-demo`；请求的 phase 不在设计与需求来源识别出的真实交付端内时终止，不得为满足命令而编造交付范围。miniapp 使用 `/t-task`、可选 `/t-task-check` 与 `/t-run`。
 - 不读取或修改 `.ai/task/[feature]/` 作为 super-run 状态。
+- 已有状态且请求的 phase 为 `completed | skipped` 时，直接报告结果，不重新执行，也不选择其他 phase。
 
 ## Source Loading
 
@@ -70,7 +72,7 @@ allowed-tools:
 - 每个 task 的关联文档必须包含设计主文档和当前 phase 分端设计；消费后端契约时同时包含 `backend.md`。
 - web-demo/dev 的关联文档必须包含 `${CLAUDE_PLUGIN_ROOT}/agents/web-demo-diagnose.md`，用于把 Playwright 失败归因到测试资产、frontend 或 backend 后再切换对应规范修复。
 - flutter-demo/dev 的关联文档必须包含 `${CLAUDE_PLUGIN_ROOT}/agents/flutter-demo-diagnose.md`，用于把 Patrol 失败归因到测试资产、Flutter 或 backend 后再切换对应规范修复。
-- 首次写入后或恢复到未完成 phase 后，主动调用 `/goal` 或运行时等价 Goal API；Goal 的 outcome、constraints 和 verification 必须符合共享协议。
+- 首次写入后或恢复到未完成的请求 phase 后，主动调用 `/goal` 或运行时等价 Goal API；Goal 的 outcome、constraints 和 verification 必须符合共享协议，且只为请求的 phase 创建或恢复 Goal。
 
 规划写清目标、成功标准、权限边界、当前角色、证据入口和停止条件，具体实现路径根据仓库事实决定。不要把 `t-task` 的细粒度 item 换一种格式复制进来，也不要用长篇过程指令占用持续 Goal 的上下文。
 
@@ -91,6 +93,7 @@ allowed-tools:
 ## Forbidden
 
 - 调用 `Agent`、并行 subagent 或任何以 subagent 做上下文隔离的调度。
+- 自动进入、规划或恢复未被本次调用显式请求的 phase，或为其创建 Goal。
 - 生成 `.ai/task/` 的 manifest/item，或修改 `t-task/t-run` 状态。
 - 把 accept 角色改为实现角色，或让 accept 直接修复代码。
 - 跳过测试、弱化断言、忽略失败或把 `blocked` 当作 Goal 完成。
@@ -106,4 +109,4 @@ allowed-tools:
 - accept task 给出允许进入下游的结论；整个 phase 为 `skipped` 时必须有明确不适用证据。
 - `.state.json` 已按最终结果聚合。
 
-输出当前 phase、task 状态、主要变更、验证证据和下一未完成 phase。若全部 active phases 已完成，明确报告 feature 的 super-run 已完成。
+输出当前 phase、task 状态、主要变更、验证证据和剩余未完成 phase，然后停止本次调用；剩余 phase 由用户再次显式传入 `--phase` 启动。若全部 active phases 已完成，明确报告 feature 的 super-run 已完成。

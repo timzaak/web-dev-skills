@@ -22,7 +22,7 @@ super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相
 
 ## Supported Phases And Tasks
 
-`supported_phases` 固定为 `backend | frontend | web-demo | flutter | flutter-demo`。默认顺序为 `backend -> frontend -> flutter -> web-demo -> flutter-demo`；一个 feature 通常只命中单一端栈，`active_phases` 由真实交付端收窄。miniapp 仍使用分阶段的 `t-task -> t-run` 工作流。
+`supported_phases` 固定为 `backend | frontend | web-demo | flutter | flutter-demo`。一个 feature 通常只命中单一端栈，`active_phases` 由真实交付端确定。miniapp 仍使用分阶段的 `t-task -> t-run` 工作流。
 
 | phase | task 顺序 | agent 规范 |
 | --- | --- | --- |
@@ -32,15 +32,13 @@ super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相
 | web-demo | `dev -> accept` | `web-demo-dev -> web-demo-accept` |
 | flutter-demo | `dev -> accept` | `flutter-demo-dev -> flutter-demo-accept` |
 
-`active_phases` 只包含设计、PRD 或明确用户要求中的真实交付端。显式传入的 phase 不适用时终止，不得为满足命令而编造交付范围。
+`--phase` 必填，每次调用只执行显式请求的一个 phase。`active_phases` 只包含设计、PRD 或明确用户要求中的真实交付端，用于校验请求 phase 的适用性并报告剩余工作。执行规则：
 
-`phases` 只包含 active phase。`current_phase` 执行时指向当前 phase；当前 phase 完成后切换到下一个未完成 active phase，全部完成时写为 `null`。
+1. 首次规划时从设计与需求来源识别 `active_phases`；请求的 phase 不在其中时终止，不得为满足命令而编造交付范围。
+2. 已有状态且请求 phase 为 `completed | skipped` 时直接报告结果，不重新执行，也不选择其他 phase。
+3. 请求 phase 完成后结束本次调用与对应 Goal，报告剩余未完成 phase；剩余 phase 由用户再次显式请求启动。
 
-未传 `--phase` 时：
-
-1. 首次运行从设计与需求来源识别 `active_phases`。
-2. 已有状态时按默认顺序选择首个不是 `completed | skipped` 的 active phase。
-3. 所有 active phase 均完成时返回已完成，不创建新 Goal。
+`phases` 只包含 active phase。`current_phase` 指向本次执行的请求 phase；该 phase 聚合为 `completed | skipped` 后写为 `null`，不自动进入下一个 phase。
 
 ## State Shape
 
@@ -192,12 +190,14 @@ Agent 规范在这里是主会话执行指南，不适用 `${CLAUDE_PLUGIN_ROOT}
 ```
 
 - 已存在同一 feature/phase 的 Goal 时复用或恢复，不重复创建。
+- 只为本次请求的 phase 创建或恢复 Goal；请求 phase 完成后结束 Goal，不为其他 phase 自动创建。
 - 存在无关的活动 Goal 时不得静默覆盖；停止并请用户先编辑、完成或清除现有 Goal。
 - Goal 只在设计指纹与 state 一致且 phase 聚合为 `completed | skipped` 后完成。accept 的 `ACCEPTED`，或没有 P0/P1 的 `ACCEPTED_WITH_IMPROVEMENTS`，可作为通过结论。
 - `blocked` 不等于完成；保留状态并等待用户或外部条件后恢复。
 
 ## Failure Rules
 
+- `--phase` 缺失或不合法：终止并提示 `--phase <backend|frontend|web-demo|flutter|flutter-demo>` 用法。
 - 设计文档缺失：终止并提示先运行 `/t-design <feature>`。
 - 设计状态未完成或 `check-design.py` 失败：终止并提示恢复 `/t-design <feature>`。
 - 状态 JSON 损坏或结构非法：停止并报告具体字段，不覆盖原文件。

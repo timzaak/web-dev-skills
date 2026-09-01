@@ -19,7 +19,7 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 前置条件：
 
 - 已按 [安装](#安装) 加载插件
-- 目标项目具备 `docs/` 和 `.ai/` 运行时目录
+- 目标项目具备 `docs/`、`.ai/` 和 `memo/` 运行时目录
 - 已配置 [`context7`](https://github.com/upstash/context7)
 
 最短闭环：
@@ -94,7 +94,7 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 
 每个 phase 都先运行 `/t-tools:t-task <feature> --phase <phase>`，随后可按风险选择运行 `/t-tools:t-task-check <feature> --phase <phase>`，再用 `/t-tools:t-run <feature> --phase <phase>` 串行执行 item。README 的快速上手只展开 backend 作为示例；其他 active phase 重复同样闭环。
 
-`/t-tools:t-super-run <feature> [--phase backend|frontend|web-demo|flutter|flutter-demo]` 是针对 GPT-5.6 Sol（`gpt-5.6-sol`）及同等级强模型优化的单主会话执行路径：它合并任务规划与执行，不调用 subagent，只按 backend/frontend/flutter 的 `dev -> test -> accept` 或 web-demo/flutter-demo 的 `dev -> accept` 记录目标级状态。miniapp 使用 `t-task -> [t-task-check] -> t-run`。
+`/t-tools:t-super-run <feature> --phase <backend|frontend|web-demo|flutter|flutter-demo>` 是针对 GPT-5.6 Sol（`gpt-5.6-sol`）及同等级强模型优化的单主会话执行路径：它合并任务规划与执行，不调用 subagent，只按 backend/frontend/flutter 的 `dev -> test -> accept` 或 web-demo/flutter-demo 的 `dev -> accept` 记录目标级状态。`--phase` 必填，每次调用只执行指定的一个 phase，完成后停止并报告剩余未完成 phase，由用户再次调用启动。miniapp 使用 `t-task -> [t-task-check] -> t-run`。
 
 ## 关键使用规则
 
@@ -109,8 +109,8 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 - `t-design` 产出"主文档 + 分端设计"：主文档 `.ai/design/<feature>.md` 承载目标范围、跨端契约摘要、测试与风险汇总和全量文件影响范围；后端、前端、Flutter 各自的深入设计在 `.ai/design/<feature>/` 下由对应设计 agent 生成。后端设计先行并拥有 API 契约单一来源，前端与 Flutter 设计只消费契约不重新定义。
 - `t-doc` 用于项目文档、上手教程、API 参考、配置和部署说明，不用于 PRD、技术设计或零散文档修改。
 - `t-dream` 默认只读审计 PRD、用户故事、设计/任务、实现事实与项目结构；需要写入 PRD 治理时显式使用 `--govern-prd`。
-- Figma 还原工作流包含三个独立入口，不进入 Decision→Release 主链路：先用 `/t-tools:t-figma-assets <figma-url> <target-file>` 发现、下载并转换零散图片/视频素材，再用 `/t-tools:t-figma-impl <figma-url> <target-file>` 二次重建设计结构并还原整页；需要局部精修时运行 `/t-tools:t-figma-fix <figma-node-url> <target-file> <问题描述>`。三个命令按目标文件共享 `.ai/figma/` session，读取并凝练项目 `docs/figma-rules.md`。
-- `/t-tools:t-figma-ux <figma-url> <target-file>` 是独立的动效精修入口，不属于还原主链路：对任何已有实现（不要求先跑 impl）以 Figma 原型证据和提炼自迪士尼十二原则的动效基准精修动效交互，可附着既有 `.ai/figma/` session 也可独立创建。
+- Figma 还原工作流包含三个独立入口，不进入 Decision→Release 主链路：先用 `/t-tools:t-figma-assets <figma-url> <target-file>` 发现、下载并转换零散图片/视频素材，再用 `/t-tools:t-figma-impl <figma-url> <target-file>` 二次重建设计结构并还原整页；需要局部精修时运行 `/t-tools:t-figma-fix <figma-node-url> <target-file> <问题描述>`。三个命令按目标文件共享 `memo/figma/` session，读取并凝练项目 `docs/figma-rules.md`。
+- `/t-tools:t-figma-ux <figma-url> <target-file>` 是独立的动效精修入口，不属于还原主链路：对任何已有实现（不要求先跑 impl）以 Figma 原型证据和提炼自迪士尼十二原则的动效基准精修动效交互，可附着既有 `memo/figma/` session 也可独立创建。
 - `t-push` 会基于本次 diff 清理明显低价值注释、总结 commit message，并调用 `${CLAUDE_PLUGIN_ROOT}/scripts/push.py` 运行受影响 CI、提交和推送。
 - `t-simplify` 对变更代码（默认为上游区间加未提交变更，也可指定 PR / 分支 / 文件目标）做复用、简化、效率、抽象层级四个角度的并行只读审查，去重后直接应用修复；只做质量清理，不找正确性缺陷（那属于 `/code-review` 和各阶段 accept）。Agent tool 不可用时降级为主会话单遍审查并在报告中如实声明。
 - 推荐 `t-push` 前先在 Claude Code 中运行 `/code-review --fix` 和 `/t-tools:t-simplify`，让代码先经过独立审查与简化再收尾提交；它们与 `t-push` 的注释清理互相独立，不会相互覆盖。
