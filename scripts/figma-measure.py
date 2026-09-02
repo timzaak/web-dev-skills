@@ -799,7 +799,7 @@ def measure(
 ) -> dict[str, dict[str, Any]]:
     """Run the in-browser probe and return parsed actuals.
 
-    The probe script is written under ``cwd/memo/figma/_probe.js`` so Node can
+    The probe script is written under ``cwd/.ai/figma/_probe.js`` so Node can
     resolve the target project's installed ``playwright`` package.
 
     runner: injectable for tests; defaults to run_cmd.
@@ -825,7 +825,7 @@ def measure(
         env["FIGMA_MEASURE_SCREENSHOT"] = str(screenshot)
     if scope_selector:
         env["FIGMA_MEASURE_SCOPE"] = scope_selector
-    probe_file = cwd / "memo" / "figma" / "_probe.js"
+    probe_file = cwd / ".ai" / "figma" / "_probe.js"
     probe_file.parent.mkdir(parents=True, exist_ok=True)
     probe_file.write_text(script, encoding="utf-8")
     try:

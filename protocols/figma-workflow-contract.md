@@ -24,7 +24,7 @@
 目标项目使用以下结构：
 
 ```text
-memo/figma/
+.ai/figma/
 ├── index.json
 └── <session-id>/
     ├── session.json
@@ -61,6 +61,7 @@ memo/figma/
 ```
 
 - target key 使用相对项目根、`/` 分隔、消除 `.` 后的路径；Windows 上匹配时不区分大小写，落盘保持真实大小写。
+- session 脚本仅发现旧 `memo/figma/` 时，将其整体迁移到 `.ai/figma/` 后继续；新旧目录同时存在时必须停止并要求开发者显式合并，不得静默覆盖。
 - `status` 只允许 `active|archived`。一个 target 只有一个 active session 时自动使用；零个时 assets/impl/ux 可创建、fix 必须停止；多个时必须询问。
 - `session.json` 保存主 URL、fileKey、mainNodeId、targetFile、当前 stage（`assets|implemented|motion|fixing|accepted`）和 `specRevision`。状态文件不写时间元数据。
 
@@ -214,7 +215,7 @@ memo/figma/
 - WARN、已声明 token CONFLICT、探针覆盖率和 pixel diff 不单独阻塞，但必须进入报告。
 - screenshot/pixel diff 可以用于定位错误分组、裁切和 stacking，并据此修订二次规格；不得只凭模糊视觉印象改任意数值。
 - `max-iterations` 默认 5。每轮归档 `iterations/iter-<N>.json`；达到上限仍未收敛则 `EXHAUSTED`。
-- accept 只写 `memo/figma/**` 测量产物和 `.ai/quality/figma-*.md` 报告，不修改代码、正式资产或长期规则。
+- accept 只写 `.ai/figma/**` 测量产物和 `.ai/quality/figma-*.md` 报告，不修改代码、正式资产或长期规则。
 
 ## Failure Rules
 

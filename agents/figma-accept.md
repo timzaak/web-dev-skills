@@ -38,10 +38,10 @@ tools:
 
 ## 先读什么
 
-1. `memo/figma/<id>/spec.json` — 测量基准（probeSelectors 是探针声明）。
-2. `memo/figma/<id>/context.md` — 理解哪些冲突是已知 CONFLICT。
-3. `memo/figma/<id>/assets-manifest.json` — 资产、尺寸、转换与 SHA-256（无资产时为 `[]`）。
-4. `memo/figma/<id>/motion.json` — 动效交互基准与 origin 证据（t-figma-ux 验收时）。
+1. `.ai/figma/<id>/spec.json` — 测量基准（probeSelectors 是探针声明）。
+2. `.ai/figma/<id>/context.md` — 理解哪些冲突是已知 CONFLICT。
+3. `.ai/figma/<id>/assets-manifest.json` — 资产、尺寸、转换与 SHA-256（无资产时为 `[]`）。
+4. `.ai/figma/<id>/motion.json` — 动效交互基准与 origin 证据（t-figma-ux 验收时）。
 5. `${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md` — 阈值与收敛判据。
 
 ## 执行流程
@@ -58,13 +58,13 @@ tools:
 ```bash
 py ${CLAUDE_PLUGIN_ROOT}/scripts/figma-measure.py \
   --url <target-url> \
-  --spec memo/figma/<id>/spec.json \
-  --out memo/figma/<id>/delta-report.json \
-  --conflicts memo/figma/<id>/conflicts.json \
-  --screenshot memo/figma/<id>/actual.png \
+  --spec .ai/figma/<id>/spec.json \
+  --out .ai/figma/<id>/delta-report.json \
+  --conflicts .ai/figma/<id>/conflicts.json \
+  --screenshot .ai/figma/<id>/actual.png \
   --cwd <measure_cwd> \
   --iteration <当前轮次> \
-  --assets-manifest memo/figma/<id>/assets-manifest.json \
+  --assets-manifest .ai/figma/<id>/assets-manifest.json \
   --pixel-diff
 ```
 
@@ -80,7 +80,7 @@ py ${CLAUDE_PLUGIN_ROOT}/scripts/figma-measure.py \
 
 ### 4. 实际截图
 
-测量脚本同时用 Playwright 输出 `memo/figma/<id>/actual.png`。布局与样式仍以 delta 为准；资产内容无法仅靠 computed style 证明，报告必须明确要求人类对照 baseline/actual 复核。
+测量脚本同时用 Playwright 输出 `.ai/figma/<id>/actual.png`。布局与样式仍以 delta 为准；资产内容无法仅靠 computed style 证明，报告必须明确要求人类对照 baseline/actual 复核。
 
 ### 5. 解读 delta
 

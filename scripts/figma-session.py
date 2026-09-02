@@ -12,6 +12,26 @@ from pathlib import Path
 from typing import Any
 
 
+RUNTIME_DIR = Path(".ai") / "figma"
+LEGACY_RUNTIME_DIR = Path("memo") / "figma"
+
+
+def runtime_dir(project: Path) -> Path:
+    current = project / RUNTIME_DIR
+    legacy = project / LEGACY_RUNTIME_DIR
+    if not legacy.exists():
+        return current
+    if not legacy.is_dir():
+        raise ValueError(f"legacy Figma runtime path is not a directory: {legacy}")
+    if current.exists():
+        raise ValueError(
+            "both legacy memo/figma and .ai/figma exist; merge them explicitly before continuing"
+        )
+    current.parent.mkdir(parents=True, exist_ok=True)
+    legacy.replace(current)
+    return current
+
+
 def normalize_target(project: Path, target: Path) -> str:
     root = project.resolve()
     resolved = (root / target).resolve() if not target.is_absolute() else target.resolve()
@@ -74,7 +94,8 @@ def create_session(
     url: str,
     stage: str = "assets",
 ) -> dict[str, Any]:
-    index_path = project / "memo" / "figma" / "index.json"
+    runtime = runtime_dir(project)
+    index_path = runtime / "index.json"
     index = load_index(index_path)
     session_id = clean_session_id(file_key, node_id)
     entries = index["targets"].setdefault(target, [])
@@ -83,7 +104,7 @@ def create_session(
     if any(entry.get("sessionId") == session_id for entry in entries if isinstance(entry, dict)):
         return {"sessionId": session_id, "created": False}
     entries.append({"sessionId": session_id, "status": "active"})
-    session_dir = project / "memo" / "figma" / session_id
+    session_dir = runtime / session_id
     session_dir.mkdir(parents=True, exist_ok=True)
     session = {
         "version": 1,
@@ -104,7 +125,7 @@ def create_session(
 
 
 def archive_session(project: Path, target: str, session_id: str) -> dict[str, Any]:
-    index_path = project / "memo" / "figma" / "index.json"
+    index_path = runtime_dir(project) / "index.json"
     index = load_index(index_path)
     entries = target_entries(index, target)
     matched = False
@@ -121,7 +142,7 @@ def archive_session(project: Path, target: str, session_id: str) -> dict[str, An
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Manage memo/figma target/session associations.")
+    parser = argparse.ArgumentParser(description="Manage .ai/figma target/session associations.")
     parser.add_argument("--project", default=".")
     sub = parser.add_subparsers(dest="command", required=True)
     resolve_parser = sub.add_parser("resolve")
@@ -146,7 +167,7 @@ def main(argv: list[str] | None = None) -> int:
     project = Path(args.project).resolve()
     try:
         target = normalize_target(project, Path(args.target))
-        index_path = project / "memo" / "figma" / "index.json"
+        index_path = runtime_dir(project) / "index.json"
         if args.command == "resolve":
             result = resolve(load_index(index_path), target)
         elif args.command == "create":

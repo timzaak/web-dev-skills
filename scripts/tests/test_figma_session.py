@@ -17,6 +17,28 @@ SPEC.loader.exec_module(figma_session)
 
 
 class SessionTests(unittest.TestCase):
+    def test_runtime_dir_migrates_legacy_session_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp)
+            legacy = project / "memo" / "figma"
+            legacy.mkdir(parents=True)
+            (legacy / "index.json").write_text('{"version": 1, "targets": {}}', encoding="utf-8")
+
+            runtime = figma_session.runtime_dir(project)
+
+            self.assertEqual(runtime, project / ".ai" / "figma")
+            self.assertTrue((runtime / "index.json").is_file())
+            self.assertFalse(legacy.exists())
+
+    def test_runtime_dir_rejects_conflicting_legacy_and_current_directories(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp)
+            (project / "memo" / "figma").mkdir(parents=True)
+            (project / ".ai" / "figma").mkdir(parents=True)
+
+            with self.assertRaisesRegex(ValueError, "both legacy memo/figma and .ai/figma exist"):
+                figma_session.runtime_dir(project)
+
     def test_normalize_target_rejects_outside_project(self) -> None:
         with tempfile.TemporaryDirectory() as temp, tempfile.TemporaryDirectory() as outside:
             path = Path(outside) / "page.tsx"
@@ -34,7 +56,7 @@ class SessionTests(unittest.TestCase):
             created = figma_session.create_session(
                 project, target, file_key="abc", node_id="1:2", url="https://figma/x",
             )
-            index = figma_session.load_index(project / "memo" / "figma" / "index.json")
+            index = figma_session.load_index(project / ".ai" / "figma" / "index.json")
             result = figma_session.resolve(index, target)
             self.assertTrue(created["created"])
             self.assertEqual(result["status"], "unique")
@@ -49,7 +71,7 @@ class SessionTests(unittest.TestCase):
                 project, "page.tsx", file_key="abc", node_id="1:2", url="https://figma/x",
             )
             session = json.loads(
-                (project / "memo" / "figma" / "abc-1-2" / "session.json").read_text(encoding="utf-8")
+                (project / ".ai" / "figma" / "abc-1-2" / "session.json").read_text(encoding="utf-8")
             )
             self.assertEqual(session["stage"], "assets")
 
@@ -63,7 +85,7 @@ class SessionTests(unittest.TestCase):
                 url="https://figma/x", stage="motion",
             )
             session = json.loads(
-                (project / "memo" / "figma" / "abc-1-2" / "session.json").read_text(encoding="utf-8")
+                (project / ".ai" / "figma" / "abc-1-2" / "session.json").read_text(encoding="utf-8")
             )
             self.assertEqual(session["stage"], "motion")
 
@@ -92,7 +114,7 @@ class SessionTests(unittest.TestCase):
                 project, "page.tsx", file_key="abc", node_id="1:2", url="https://figma/x",
             )
             result = figma_session.archive_session(project, "page.tsx", "abc-1-2")
-            index = figma_session.load_index(project / "memo" / "figma" / "index.json")
+            index = figma_session.load_index(project / ".ai" / "figma" / "index.json")
             self.assertTrue(result["archived"])
             self.assertEqual(figma_session.resolve(index, "page.tsx")["status"], "missing")
 

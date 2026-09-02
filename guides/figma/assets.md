@@ -12,7 +12,7 @@
 
 ## 图片转换
 
-1. 临时 URL 立即下载到 `memo/figma/<session>/raw/`。
+1. 临时 URL 立即下载到 `.ai/figma/<session>/raw/`。
 2. PNG/JPEG 照片转 quality 82 WebP；透明或含文字合成图转 lossless WebP。
 3. 用 ffprobe 读取最终宽高，约分成 `W/H`；不要从 CSS 或 Figma 标注猜比例。
 4. 按节点语义识别 mobile/desktop 变体并写入 manifest。没有移动版本时 impl 不生成多余 `<picture>` wrapper。
