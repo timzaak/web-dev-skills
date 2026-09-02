@@ -5,6 +5,7 @@ import json
 import sys
 import tempfile
 import unittest
+from email.message import Message
 from dataclasses import dataclass
 from pathlib import Path
 from unittest.mock import patch
@@ -95,6 +96,92 @@ class ClassifyDurationTests(unittest.TestCase):
     def test_under_50ms_delta_is_warn(self) -> None:
         status, _, _ = figma_measure.classify_delta("transitionDuration", "200ms", "230ms")
         self.assertEqual(status, "WARN")
+
+    def test_delay_matches_duration_thresholds(self) -> None:
+        status, _, _ = figma_measure.classify_delta("transitionDelay", "0.1s", "100ms")
+        self.assertEqual(status, "PASS")
+        status, _, _ = figma_measure.classify_delta("transitionDelay", "0ms", "80ms")
+        self.assertEqual(status, "FAIL")
+
+    def test_uniform_computed_list_collapses(self) -> None:
+        status, _, _ = figma_measure.classify_delta(
+            "transitionDuration", "200ms", "0.2s, 0.2s"
+        )
+        self.assertEqual(status, "PASS")
+
+    def test_non_uniform_computed_list_is_missing(self) -> None:
+        status, delta, _ = figma_measure.classify_delta(
+            "transitionDuration", "200ms", "0.2s, 0.3s"
+        )
+        self.assertEqual(status, "MISSING")
+        self.assertIsNone(delta)
+
+
+class ClassifyTimingTests(unittest.TestCase):
+    def test_keyword_matches_cubic_bezier(self) -> None:
+        status, _, _ = figma_measure.classify_delta(
+            "transitionTimingFunction",
+            "ease-in-out",
+            "cubic-bezier(0.42, 0, 0.58, 1)",
+        )
+        self.assertEqual(status, "PASS")
+
+    def test_bezier_spacing_and_zeros_normalized(self) -> None:
+        status, _, _ = figma_measure.classify_delta(
+            "transitionTimingFunction",
+            "cubic-bezier(.42,0,.58,1)",
+            "cubic-bezier(0.42, 0, 0.58, 1)",
+        )
+        self.assertEqual(status, "PASS")
+
+    def test_mismatch_is_fail(self) -> None:
+        status, _, _ = figma_measure.classify_delta(
+            "transitionTimingFunction",
+            "ease-out",
+            "cubic-bezier(0.42, 0, 0.58, 1)",
+        )
+        self.assertEqual(status, "FAIL")
+
+    def test_unsupported_format_is_advisory_warn(self) -> None:
+        status, _, note = figma_measure.classify_delta(
+            "transitionTimingFunction",
+            "linear(0 50%, 1 100%)",
+            "linear(0 50%, 1 100%)",
+        )
+        self.assertEqual(status, "WARN")
+        self.assertIn("unsupported timing function", note)
+
+    def test_steps_default_term_normalized(self) -> None:
+        status, _, _ = figma_measure.classify_delta(
+            "animationTimingFunction", "steps(4)", "steps(4, end)"
+        )
+        self.assertEqual(status, "PASS")
+
+    def test_uniform_timing_list_collapses(self) -> None:
+        status, _, _ = figma_measure.classify_delta(
+            "transitionTimingFunction",
+            "ease-out",
+            "cubic-bezier(0, 0, 0.58, 1), cubic-bezier(0, 0, 0.58, 1)",
+        )
+        self.assertEqual(status, "PASS")
+
+
+class ClassifyTransitionPropertyTests(unittest.TestCase):
+    def test_spacing_normalized(self) -> None:
+        status, _, _ = figma_measure.classify_delta(
+            "transitionProperty", "transform,opacity", "transform, opacity"
+        )
+        self.assertEqual(status, "PASS")
+
+    def test_mismatch_is_fail(self) -> None:
+        status, _, _ = figma_measure.classify_delta(
+            "transitionProperty", "transform", "all"
+        )
+        self.assertEqual(status, "FAIL")
+
+    def test_empty_is_missing(self) -> None:
+        status, _, _ = figma_measure.classify_delta("transitionProperty", "transform", "")
+        self.assertEqual(status, "MISSING")
 
 
 class ClassifyColorTests(unittest.TestCase):
@@ -325,6 +412,12 @@ class ComputeDeltaTests(unittest.TestCase):
         spec["integrity"] = {"metadataNodeCount": 12, "specNodeCount": 9}
         report = compute(spec, {"title": {"fontSize": 24}})
         self.assertEqual(report.meta["integrity"]["specNodeCount"], 9)
+
+    def test_spec_revision_lands_in_meta(self) -> None:
+        spec = make_spec([{"name": "a", "selector": ".a", "expect": {"fontSize": 12}}])
+        spec["revision"] = 3
+        report = compute(spec, {"a": {"fontSize": 12}})
+        self.assertEqual(report.meta["specRevision"], 3)
 
     def test_coverage_ratio_computed_when_probeable_nodes_declared(self) -> None:
         spec = make_spec([
@@ -584,6 +677,24 @@ class MeasureTests(unittest.TestCase):
         self.assertIn('"width": 390', captured["script"])
         self.assertIn("page.screenshot", captured["script"])
 
+    def test_measure_passes_scope_selector_for_element_screenshot(self) -> None:
+        spec = make_spec([])
+        captured = {}
+
+        def fake_runner(cmd, *, cwd=None, env=None, capture=False):
+            captured["env"] = env
+            captured["script"] = (Path(cwd) / ".ai" / "figma" / "_probe.js").read_text(encoding="utf-8")
+            return FakeCompleted(0, "{}", "")
+
+        with tempfile.TemporaryDirectory() as temp:
+            figma_measure.measure(
+                "http://x", spec, cwd=Path(temp), viewport=VIEWPORT,
+                runner=fake_runner, node_path="node", screenshot=Path(temp) / "scope.png",
+                scope_selector="[data-figma='hero']",
+            )
+        self.assertEqual(captured["env"]["FIGMA_MEASURE_SCOPE"], "[data-figma='hero']")
+        self.assertIn("scope.screenshot", captured["script"])
+
     def test_measure_reports_install_hint_when_node_missing(self) -> None:
         spec = make_spec([])
 
@@ -627,6 +738,41 @@ class PixelDiffTests(unittest.TestCase):
             "pixelmatch" in result["skipped"] or "cannot read" in result["skipped"],
             result["skipped"],
         )
+
+
+class MediaRangeTests(unittest.TestCase):
+    class Response:
+        def __init__(self, status: int, content_range: str) -> None:
+            self.status = status
+            self.headers = Message()
+            self.headers["Content-Range"] = content_range
+
+        def getcode(self):
+            return self.status
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+    def test_video_range_passes_on_206(self) -> None:
+        def opener(request, timeout=0):
+            self.assertEqual(request.headers["Range"], "bytes=0-1")
+            return self.Response(206, "bytes 0-1/100")
+
+        result = figma_measure.check_media_ranges(
+            "http://localhost/page", [{"kind": "video", "name": "hero", "publicUrl": "/assets/hero.mp4"}],
+            opener=opener,
+        )
+        self.assertEqual(result[0]["status"], "PASS")
+
+    def test_video_without_public_url_is_error(self) -> None:
+        result = figma_measure.check_media_ranges("http://localhost/page", [{"kind": "video", "name": "hero"}])
+        self.assertEqual(result[0]["status"], "ERROR")
+
+    def test_images_are_ignored(self) -> None:
+        self.assertEqual(figma_measure.check_media_ranges("http://localhost", [{"kind": "image"}]), [])
 
 
 class MainTests(unittest.TestCase):

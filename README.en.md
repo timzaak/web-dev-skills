@@ -12,7 +12,7 @@ T-Tools is designed for projects that already have a delivery chain across produ
 
 Recommended first reading: [human/structure.en.md](human/structure.en.md) to understand how skills, subagents, and protocols work together. Before shaping a requirement, use [human/speech-template.en.md](human/speech-template.en.md) to speak through the real intent first.
 
-![T-Tools knowledge graph](knowledge-graph.png)
+![T-Tools engineering workflow knowledge graph](knowledge-graph.en.webp)
 
 ## Quick Start
 
@@ -79,7 +79,7 @@ Minimal end-to-end loop:
 /t-tools:t-prd-publish user-management
 ```
 
-`t-prd-check`, `t-design-check`, and `t-task-check` are optional quality checks. Run them for high-risk requirements, complex designs, multi-person work, long-lived changes, or unstable AI output; simple changes may continue directly to the next stage. `accept` remains the implementation acceptance closure and is not part of this optional-check change.
+`t-prd-check`, `t-design-check`, and `t-task-check` are optional quality checks. Run them for high-risk requirements, complex designs, multi-person work, long-lived changes, or unstable AI output; simple changes may continue directly to the next stage. `accept` remains the implementation acceptance closure and is separate from these optional checks.
 
 ## Phase Split
 
@@ -94,7 +94,7 @@ Minimal end-to-end loop:
 
 Each phase starts with `/t-tools:t-task <feature> --phase <phase>`, may run `/t-tools:t-task-check <feature> --phase <phase>` depending on risk, and then `/t-tools:t-run <feature> --phase <phase>` executes items serially. Repeat the loop for every active phase.
 
-`/t-tools:t-super-run <feature> [--phase backend|frontend|web-demo|flutter|flutter-demo]` is the single-main-session path for backend, frontend, Web Demo, Flutter, and Flutter Demo. It merges planning and execution without dispatching subagents, recording outcome-level state as `dev -> test -> accept` for backend/frontend/flutter or `dev -> accept` for web-demo/flutter-demo. Miniapp uses `t-task -> [t-task-check] -> t-run`.
+`/t-tools:t-super-run <feature> --phase <backend|frontend|web-demo|flutter|flutter-demo>` is the single-main-session path for backend, frontend, Web Demo, Flutter, and Flutter Demo. It merges planning and execution without dispatching subagents, recording outcome-level state as `dev -> test -> accept` for backend/frontend/flutter or `dev -> accept` for web-demo/flutter-demo. `--phase` is required; each invocation executes exactly the one specified phase, then stops and reports the remaining unfinished phases for the user to start explicitly. Miniapp uses `t-task -> [t-task-check] -> t-run`.
 
 ## Key Rules
 
@@ -102,21 +102,22 @@ Each phase starts with `/t-tools:t-task <feature> --phase <phase>`, may run `/t-
 - All `t-*` skills are manual command entries and must not be invoked automatically by the model.
 - `t-super-run` reads existing agent specifications as role guides without starting subagents. Before starting or resuming, it requires a complete, structurally valid design, loads the relevant per-stack design, and uses a design fingerprint to replan tasks affected by design changes.
 - `t-decision` is the product decision gate before PRD and technical research. It writes `.ai/decision/<feature>.md`; `Proceed` routes to `t-prd` or `t-tech-research` according to the main unknown, while `Research First` routes to `t-tech-research`.
-- Confirmed decisions, resolved questions, and explicitly deferred questions persist across stages in `.ai/decision-log/<feature>.md` with stable DEC/Q IDs. Every stage must consult the log before asking, so it does not repeat a resolved question or apply a superseded decision.
+- `.ai/decision-log/<feature>.md` is primarily a record of human decisions: it persists user-confirmed decisions, resolved questions, and explicitly deferred questions across stages. AI-made D2 choices stay in their owning artifacts by default; only important choices that constrain multiple stages or would be costly to reverse enter the log with stable DEC IDs. Every stage must consult the log before asking, so it does not repeat a resolved question or apply a superseded decision.
 - A completed PRD, technical research report, or design must have `needs_user_answer=0`. Questions that affect scope, business rules, permissions, security, compatibility, significant cost, acceptance, or risk acceptance must be asked before delivery, not silently stored as pending items, assumptions, or risks.
 - `t-prd` and `t-tech-research` have no globally fixed order. Start with research when technical unknowns may change scope; start with a PRD draft when product boundaries determine the technical choice. If later findings change product semantics, rerun `t-prd`; both artifacts must converge without unexplained conflicts before `t-design`.
 - `t-prd` only writes candidate requirements under `.ai/prd` and `.ai/user-stories`; `t-prd-publish` merges still-valid long-term product facts back into `docs/`.
 - `t-design` produces a master design plus per-stack designs: the master `.ai/design/<feature>.md` owns goals and scope, the cross-stack API contract summary, aggregated tests and risks, and the full file impact table; the backend, frontend, and Flutter deep designs live under `.ai/design/<feature>/` and are generated by their own design agents. Backend runs first and owns the single source of the API contract; frontend and Flutter designs consume the contract without redefining it.
 - `t-doc` is for project documentation, onboarding tutorials, API references, configuration, and deployment notes. It is not for PRDs, technical designs, or small document edits.
 - `t-dream` defaults to a read-only audit of PRDs, user stories, design/tasks, implementation facts, and project structure; use `--govern-prd` explicitly when PRD governance should write changes.
-- `t-figma <figma-url> <target-file>` restores a Figma design into an existing frontend file and evaluates fidelity via getComputedStyle measurement (spec extracted once and frozen, existing code tokens/animations/components are force-reused, convergence is delta-driven). It is a standalone entry point outside the Decision→Release main chain and requires the Figma MCP. Assets preserve the bytes returned by Figma and follow the project's asset conventions; a project-level `DESIGN.md`, when present, takes precedence.
+- The Figma restoration workflow has three standalone commands outside the Decision→Release chain: run `/t-tools:t-figma-assets <figma-url> <target-file>` to discover, download, flatten, and convert scattered image/video assets; run `/t-tools:t-figma-impl <figma-url> <target-file>` to reconstruct unreliable flat-canvas structure and implement the complete UI; then use `/t-tools:t-figma-fix <figma-node-url> <target-file> <issue-description>` for scoped visual refinement. The three commands share a target-file-associated `.ai/figma/` session and distill validated project rules into `docs/figma-rules.md`.
+- `/t-tools:t-figma-ux <figma-url> <target-file>` is a standalone motion-refinement entry outside the restoration chain: it polishes interaction and animation of any already-implemented UI (no prior impl run required), guided by prototype evidence and animation principles distilled from Disney's twelve; it either attaches to an existing `.ai/figma/` session or creates its own.
 - `t-push` cleans clearly low-value comments from the current diff, summarizes a commit message, then calls `${CLAUDE_PLUGIN_ROOT}/scripts/push.py` to run affected CI, commit, and push.
-- `t-simplify` reviews the changed code — by default the upstream range plus uncommitted changes, or a given PR / branch / file target — from four parallel read-only angles: reuse, simplification, efficiency, and altitude. It then applies the deduplicated fixes directly. It is quality cleanup only and does not hunt for correctness bugs (those belong to `/code-review` and the per-phase accept stages). When the Agent tool is unavailable it falls back to a single-pass review in the main session and states so in the report.
+- `t-simplify` reviews changed code from four read-only angles — reuse, simplification, efficiency, and altitude — and applies the fixes directly. It is quality cleanup only and does not hunt for correctness bugs (those belong to `/code-review` and the per-phase accept stages).
 - Before running `t-push`, it is recommended to first run `/code-review --fix` and `/t-tools:t-simplify` in Claude Code, so the code is independently reviewed and simplified before the final commit; their cleanup is independent of `t-push`'s comment cleaning and will not overwrite each other.
 
-### `t-simplify` Origin
+### `t-simplify` Source and Implementation
 
-`t-simplify` is a replica of the prompt behind Claude Code's built-in `/simplify` command: the main flow and the inline fallback come from [Piebald-AI/claude-code-system-prompts](https://github.com/Piebald-AI/claude-code-system-prompts) (MIT) binary extractions of the v2.1.154 slash-command prompt and the v2.1.213 inline-mode prompt. In v2.1.154 the four review-angle guides were runtime-injected variables and not part of the extraction, so this plugin first reconstructed them from public behavior; v2.1.232 later embedded them in the binary, and the plugin has since calibrated the four angles, the Phase 0 diff gathering (upstream range plus uncommitted changes), and the `<target>` argument semantics verbatim against the local binary extraction in [`protocols/simplify-cleanup-contract.md`](protocols/simplify-cleanup-contract.md). Following this plugin's conventions it also adds a `simplify-reviewer` subagent role spec and a `.ai/quality/simplify-*.md` report artifact.
+`t-simplify` is based on the Claude Code built-in `/simplify` prompts extracted by [Piebald-AI/claude-code-system-prompts](https://github.com/Piebald-AI/claude-code-system-prompts) (MIT). Its current plugin workflow provides four review angles, change gathering, `<target>` semantics, the `simplify-reviewer` subagent, and `.ai/quality/simplify-*.md` reports. See [`protocols/simplify-cleanup-contract.md`](protocols/simplify-cleanup-contract.md) for the current behavior contract.
 
 PRD, technical research, and design stages need explicit human calibration. If you are not sure how to do the spoken walkthrough, open [Do Not Shortcut the Intent](human/speech-template.en.md) and follow its headings: getting started, user story walkthrough, UI/UX walkthrough, third-party integration walkthrough, third-party library introduction, and closing. After ingesting that walkthrough, AI should first output its key understanding, evaluate executability, feasibility, and missing details, search the web for similar products and best practices when needed, write the content and answers into `.ai/future/[feature].md`, then generate or revise PRD, technical research, and design inputs. After `/t-tools:t-prd`, first step away from the generated artifact and state the PRD you would accept, then ask the AI to revise against it. After `/t-tools:t-design`, review the UX from the user's perspective: entry points, paths, feedback, defaults, and error states, then ask the AI to revise the technical design.
 
@@ -135,6 +136,8 @@ Prerequisites:
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI is installed and logged in
 - MCP Server [`context7`](https://github.com/upstash/context7) is configured
+- The official [Figma MCP Server](https://developers.figma.com/docs/figma-mcp-server/) is configured when using the Figma workflow
+- `ffmpeg` and `ffprobe` are installed and available on PATH when converting Figma media assets
 
 For tools that do not support `claude --plugin-dir` (Codex, ZCode, etc.), see [Using t-tools in Other AI Coding Tools](human/use-in-other-agents.en.md): place a dispatcher skill under `~/.agents/skills/` that routes `/t-tool <skill>` to the cloned repository directory.
 

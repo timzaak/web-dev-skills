@@ -28,7 +28,7 @@ allowed-tools:
 
 输出文件：
 - `.ai/tech-research/<file-name>.md`（file-name 取自 `$ARGUMENTS` 第一个空格前的部分）
-- `.ai/decision-log/<file-name>.md`（复用上游决策并记录本阶段技术决策或已解决问题）
+- `.ai/decision-log/<file-name>.md`（复用上游决策；仅在产生用户决策、问题状态变化或重要 AI 决策时更新）
 
 如果未传 feature 名称，立即终止并提示：
 `请提供 feature 名称。例如：/t-tech-research user-management`
@@ -97,7 +97,7 @@ allowed-tools:
 
 只有非阻塞缺口才可在写报告前转为 §6.2 显式假设。报告中不得留下"待确认"/"需确认"/"待定"/"TBD"等未决项。
 
-用户回答后先更新 Decision Log，再更新 Tech Research。D2 技术取舍若不改变产品语义、风险接受、显著成本或兼容承诺，由本阶段明确选择并记录 DEC，不得留成备选路线。
+用户回答后先更新 Decision Log，再更新 Tech Research。D2 技术取舍由本阶段明确选择并写入 Tech Research；符合 Decision Continuity Contract 的 Entry Gate 时才回写 Decision Log。
 
 ### 2. 建立本地上下文
 

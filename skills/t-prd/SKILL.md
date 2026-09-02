@@ -25,7 +25,7 @@ allowed-tools:
 输出文件：
 - `.ai/prd/<domain>/[feature].md`
 - `.ai/user-stories/<domain>/[feature].md`（如需新增或补齐用户故事）
-- `.ai/decision-log/[feature].md`（存在或产生决策、已解决问题、延期问题时创建或更新）
+- `.ai/decision-log/[feature].md`（存在，或产生用户决策、问题状态变化或重要 AI 决策时创建或更新）
 
 
 ## 参数要求

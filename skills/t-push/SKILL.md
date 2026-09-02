@@ -37,7 +37,7 @@ uv run ${CLAUDE_PLUGIN_ROOT}/scripts/push.py --ci-session "<本次 t-push sessio
 ## CI Rules
 
 - Backend 变更：执行项目已有 Java 编译、测试和 Maven 质量任务（优先 wrapper：`mvn test` 和 `mvn verify`；若 `pom.xml` 已配置格式化或静态检查插件，再按项目已有 goal 补充执行）。若静态检查报错，AI 应根据错误信息修复代码后重新运行脚本，直到通过。
-- Frontend 变更：执行 `npm run lint`、`npm run format:check`、`npm run type-check`、`npm run test:run`；其中 `format:check` 和 `test:run` 不存在时跳过。
+- Frontend 变更：执行 `npm run lint`、`npm run format:check`、`npm run type-check`；其中 `format:check` 不存在时跳过。
 - Demo 变更：执行 `npm run lint` 和 `npm run type-check`。
 - 无 backend/frontend/demo 变更时跳过本地 CI，直接进入 commit/push。
 

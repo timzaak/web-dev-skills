@@ -140,6 +140,7 @@ def update_version_files(version: str) -> list[FileChange]:
     for package_path in (
         REPO_ROOT / "frontend" / "package.json",
         REPO_ROOT / "demo" / "package.json",
+        REPO_ROOT / "sdk-js" / "package.json",
     ):
         package_change = update_package_json(package_path, version)
         if package_change:
@@ -199,6 +200,8 @@ def commit_tag_and_push(version: str, push: bool) -> str:
         "frontend/package-lock.json",
         "demo/package.json",
         "demo/package-lock.json",
+        "sdk-js/package.json",
+        "sdk-js/package-lock.json",
     ]
     existing_paths = [path for path in release_paths if (REPO_ROOT / path).exists()]
     add = git("add", *existing_paths)

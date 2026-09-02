@@ -4,10 +4,13 @@
 Renders the target page via the host project's Playwright, probes declared
 elements with getComputedStyle + getBoundingClientRect, then classifies each
 probe against thresholds defined in
-${CLAUDE_PLUGIN_ROOT}/protocols/figma-restore-contract.md.
+${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md.
 
 - shorthand expects (padding/margin/gap/borderRadius) expand to every
   side/corner; x/y positions are measured when declared;
+- motion probes (duration/delay/timing function/transitionProperty)
+  normalize keyword easings against their cubic-bezier equivalents and
+  collapse uniform computed lists ("0.2s, 0.2s");
 - the page is stabilized before probing (webfonts, frozen animations,
   probe attach wait); networkidle state lands in report meta;
 - spec.viewport may be an array (responsive breakpoints) with optional
@@ -25,6 +28,9 @@ import json
 import os
 import re
 import sys
+import urllib.error
+import urllib.parse
+import urllib.request
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from typing import Any
@@ -32,7 +38,7 @@ from typing import Any
 from lib.cli import require_executable, run_cmd
 
 
-# --- thresholds (mirror figma-restore-contract.md Delta Thresholds) ---------
+# --- thresholds (mirror figma-workflow-contract.md Measurement) ------------
 NUMERIC_PASS_PX = 2.0
 NUMERIC_WARN_PX = 4.0
 DURATION_PASS_MS = 0.0
@@ -48,8 +54,11 @@ NUMERIC_PROPS = {
     "borderBottomRightRadius", "borderBottomLeftRadius",
 }
 COLOR_PROPS = {"color", "background", "backgroundColor", "borderColor"}
-DURATION_PROPS = {"transitionDuration", "animationDuration"}
-ENUM_PROPS = {"fontWeight", "opacity", "lineHeight"}
+DURATION_PROPS = {
+    "transitionDuration", "animationDuration", "transitionDelay", "animationDelay",
+}
+TIMING_PROPS = {"transitionTimingFunction", "animationTimingFunction"}
+ENUM_PROPS = {"fontWeight", "opacity", "lineHeight", "transitionProperty"}
 
 # Shorthand expect keys expand to every longhand before measuring.
 SHORTHAND_EXPANSION: dict[str, tuple[str, ...]] = {
@@ -67,7 +76,7 @@ SHORTHAND_OF = {
     for longhand in longhands
 }
 SUPPORTED_PROPS = (
-    NUMERIC_PROPS | COLOR_PROPS | DURATION_PROPS | ENUM_PROPS
+    NUMERIC_PROPS | COLOR_PROPS | DURATION_PROPS | ENUM_PROPS | TIMING_PROPS
     | set(SHORTHAND_EXPANSION)
 )
 
@@ -102,6 +111,7 @@ class DeltaReport:
     meta: dict[str, Any] = field(default_factory=dict)
     coverage: dict[str, Any] = field(default_factory=dict)
     pixel_diff: dict[str, Any] | None = None
+    media_ranges: list[dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -121,6 +131,7 @@ class DeltaReport:
             "meta": self.meta,
             "coverage": self.coverage,
             "pixelDiff": self.pixel_diff,
+            "mediaRanges": self.media_ranges,
             "results": [asdict(r) for r in self.results],
         }
 
@@ -157,6 +168,105 @@ def _parse_ms(value: Any) -> float | None:
         return float(text) * factor
     except ValueError:
         return None
+
+
+def _split_top_level(text: str) -> list[str]:
+    """Split on commas outside parentheses (cubic-bezier/steps contain commas)."""
+    parts: list[str] = []
+    current: list[str] = []
+    depth = 0
+    for char in text:
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+        if char == "," and depth == 0:
+            parts.append("".join(current).strip())
+            current = []
+        else:
+            current.append(char)
+    parts.append("".join(current).strip())
+    return parts
+
+
+def _collapse_uniform(value: Any, single: Any) -> Any:
+    """Collapse computed multi-value lists ('0.2s, 0.2s') when entries are equal.
+
+    Non-uniform lists and unparseable entries return None so callers can
+    classify them instead of comparing raw strings.
+    """
+    text = str(value).strip()
+    if "," not in text:
+        return single(text)
+    parts = [single(part) for part in _split_top_level(text)]
+    if any(part is None for part in parts) or len(set(parts)) != 1:
+        return None
+    return parts[0]
+
+
+def _format_timing_number(value: float) -> str:
+    return f"{value:g}"
+
+
+TIMING_KEYWORD_BEZIERS = {
+    "linear": (0.0, 0.0, 1.0, 1.0),
+    "ease": (0.25, 0.1, 0.25, 1.0),
+    "ease-in": (0.42, 0.0, 1.0, 1.0),
+    "ease-out": (0.0, 0.0, 0.58, 1.0),
+    "ease-in-out": (0.42, 0.0, 0.58, 1.0),
+}
+TIMING_STEP_TERMS = (
+    "jump-start", "jump-end", "jump-none", "jump-both", "start", "end",
+)
+
+
+def _norm_timing_single(text: str) -> str | None:
+    """Normalize one CSS timing function to a canonical comparable string."""
+    value = re.sub(r"\s+", "", text).lower()
+    if value in TIMING_KEYWORD_BEZIERS:
+        x1, y1, x2, y2 = TIMING_KEYWORD_BEZIERS[value]
+        return "cubic-bezier({}, {}, {}, {})".format(
+            _format_timing_number(x1), _format_timing_number(y1),
+            _format_timing_number(x2), _format_timing_number(y2),
+        )
+    if value.startswith("cubic-bezier(") and value.endswith(")"):
+        parts = value[len("cubic-bezier("):-1].split(",")
+        if len(parts) != 4:
+            return None
+        try:
+            x1, y1, x2, y2 = (float(part) for part in parts)
+        except ValueError:
+            return None
+        return "cubic-bezier({}, {}, {}, {})".format(
+            _format_timing_number(x1), _format_timing_number(y1),
+            _format_timing_number(x2), _format_timing_number(y2),
+        )
+    if value.startswith("steps(") and value.endswith(")"):
+        parts = value[len("steps("):-1].split(",")
+        if len(parts) not in {1, 2} or not parts[0].isdigit():
+            return None
+        term = parts[1] if len(parts) == 2 else "end"
+        if term not in TIMING_STEP_TERMS:
+            return None
+        return f"steps({parts[0]},{term})"
+    return None
+
+
+def norm_timing(value: Any) -> str | None:
+    """Normalize a (possibly comma-list) timing function; None if unsupported."""
+    if value is None:
+        return None
+    return _collapse_uniform(value, _norm_timing_single)
+
+
+def _norm_transition_property(value: Any) -> str | None:
+    """Normalize transitionProperty to 'a, b' form; None if unparseable."""
+    if value is None:
+        return None
+    parts = _split_top_level(str(value).strip())
+    if not parts or any(not part for part in parts):
+        return None
+    return ", ".join(parts)
 
 
 def _norm_color(value: Any) -> tuple[int, int, int, float] | str | None:
@@ -223,8 +333,8 @@ def classify_delta(prop: str, spec_value: Any, actual_value: Any) -> tuple[str, 
         return "FAIL", delta, ""
 
     if prop in DURATION_PROPS:
-        spec = _parse_ms(spec_value)
-        actual = _parse_ms(actual_value)
+        spec = _collapse_uniform(spec_value, _parse_ms)
+        actual = _collapse_uniform(actual_value, _parse_ms)
         if spec is None or actual is None:
             return "MISSING", None, ""
         delta = abs(actual - spec)
@@ -259,6 +369,28 @@ def classify_delta(prop: str, spec_value: Any, actual_value: Any) -> tuple[str, 
             )
         return "FAIL", None, ""
 
+    if prop in TIMING_PROPS:
+        spec_fn = norm_timing(spec_value)
+        actual_fn = norm_timing(actual_value)
+        if spec_fn is None or actual_fn is None:
+            return (
+                "WARN", None,
+                "unsupported timing function format (spring / linear()); "
+                "needs human review",
+            )
+        if spec_fn == actual_fn:
+            return "PASS", 0.0, ""
+        return "FAIL", None, ""
+
+    if prop == "transitionProperty":
+        spec_prop = _norm_transition_property(spec_value)
+        actual_prop = _norm_transition_property(actual_value)
+        if spec_prop is None or actual_prop is None:
+            return "MISSING", None, ""
+        if spec_prop == actual_prop:
+            return "PASS", 0.0, ""
+        return "FAIL", None, ""
+
     if prop in ENUM_PROPS:
         if str(spec_value).strip() == str(actual_value).strip():
             return "PASS", 0.0, ""
@@ -276,8 +408,17 @@ def values_equal(prop: str, left: Any, right: Any) -> bool:
         left_value, right_value = _parse_px(left), _parse_px(right)
         return left_value is not None and right_value is not None and left_value == right_value
     if prop in DURATION_PROPS:
-        left_value, right_value = _parse_ms(left), _parse_ms(right)
+        left_value = _collapse_uniform(left, _parse_ms)
+        right_value = _collapse_uniform(right, _parse_ms)
         return left_value is not None and right_value is not None and left_value == right_value
+    if prop in TIMING_PROPS:
+        return norm_timing(left) is not None and norm_timing(left) == norm_timing(right)
+    if prop == "transitionProperty":
+        left_value = _norm_transition_property(left)
+        return (
+            left_value is not None
+            and left_value == _norm_transition_property(right)
+        )
     if prop in COLOR_PROPS:
         return _norm_color(left) is not None and _norm_color(left) == _norm_color(right)
     return str(left).strip() == str(right).strip()
@@ -461,6 +602,8 @@ def compute_delta(
     integrity = spec.get("integrity")
     if isinstance(integrity, dict):
         report.meta["integrity"] = integrity
+    if isinstance(spec.get("revision"), int):
+        report.meta["specRevision"] = spec["revision"]
     return report
 
 
@@ -566,6 +709,7 @@ const PROBES = __PROBES_JSON__;
 const VIEWPORT = __VIEWPORT_JSON__;
 const URL = process.env.FIGMA_MEASURE_URL;
 const SCREENSHOT = process.env.FIGMA_MEASURE_SCREENSHOT;
+const SCOPE = process.env.FIGMA_MEASURE_SCOPE;
 if (!URL) { console.error('FIGMA_MEASURE_URL env var required'); process.exit(2); }
 (async () => {
   const browser = await chromium.launch();
@@ -626,7 +770,15 @@ if (!URL) { console.error('FIGMA_MEASURE_URL env var required'); process.exit(2)
     return out;
   }, PROBES);
   actuals.__meta = { networkidle };
-  if (SCREENSHOT) await page.screenshot({ path: SCREENSHOT, fullPage: true });
+  if (SCREENSHOT) {
+    if (SCOPE) {
+      const scope = page.locator(SCOPE).first();
+      await scope.waitFor({ state: 'visible', timeout: 3000 });
+      await scope.screenshot({ path: SCREENSHOT });
+    } else {
+      await page.screenshot({ path: SCREENSHOT, fullPage: true });
+    }
+  }
   await browser.close();
   process.stdout.write(JSON.stringify(actuals));
 })().catch((e) => { console.error(String(e)); process.exit(1); });
@@ -643,6 +795,7 @@ def measure(
     runner: Any = None,
     node_path: str | None = None,
     screenshot: Path | None = None,
+    scope_selector: str | None = None,
 ) -> dict[str, dict[str, Any]]:
     """Run the in-browser probe and return parsed actuals.
 
@@ -670,6 +823,8 @@ def measure(
         screenshot = screenshot.resolve()
         screenshot.parent.mkdir(parents=True, exist_ok=True)
         env["FIGMA_MEASURE_SCREENSHOT"] = str(screenshot)
+    if scope_selector:
+        env["FIGMA_MEASURE_SCOPE"] = scope_selector
     probe_file = cwd / ".ai" / "figma" / "_probe.js"
     probe_file.parent.mkdir(parents=True, exist_ok=True)
     probe_file.write_text(script, encoding="utf-8")
@@ -750,6 +905,43 @@ def pixel_diff(baseline: Path, actual: Path, diff_out: Path) -> dict[str, Any]:
     }
 
 
+def check_media_ranges(
+    target_url: str,
+    manifest: list[dict[str, Any]],
+    *,
+    opener: Any = urllib.request.urlopen,
+) -> list[dict[str, Any]]:
+    """Verify that public video URLs support HTTP byte-range delivery."""
+    results: list[dict[str, Any]] = []
+    for asset in manifest:
+        if not isinstance(asset, dict) or asset.get("kind") != "video":
+            continue
+        name = str(asset.get("name") or asset.get("id") or "video")
+        public_url = asset.get("publicUrl")
+        if not isinstance(public_url, str) or not public_url.strip():
+            results.append({
+                "name": name, "status": "ERROR",
+                "reason": "video manifest entry requires publicUrl for Range verification",
+            })
+            continue
+        url = urllib.parse.urljoin(target_url, public_url)
+        request = urllib.request.Request(url, headers={"Range": "bytes=0-1"})
+        try:
+            with opener(request, timeout=10) as response:
+                status = getattr(response, "status", response.getcode())
+                content_range = response.headers.get("Content-Range", "")
+            passed = status == 206 and content_range.lower().startswith("bytes 0-1/")
+            results.append({
+                "name": name, "url": url,
+                "status": "PASS" if passed else "ERROR",
+                "httpStatus": status, "contentRange": content_range,
+                "reason": "" if passed else "server must return 206 and Content-Range for bytes=0-1",
+            })
+        except (OSError, urllib.error.URLError, urllib.error.HTTPError) as exc:
+            results.append({"name": name, "url": url, "status": "ERROR", "reason": str(exc)})
+    return results
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Measure rendered UI against a Figma spec.json.",
@@ -766,6 +958,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--iteration", type=int, help="Convergence iteration number; archives the report under iterations/ and stamps it.")
     parser.add_argument("--pixel-diff", action="store_true", help="Advisory pixel diff of baseline vs actual (requires pixelmatch + Pillow).")
     parser.add_argument("--baseline", help="Baseline image for --pixel-diff; defaults to baseline.png beside --spec.")
+    parser.add_argument("--scope-selector", help="Crop screenshots to this DOM selector (for t-figma-fix).")
+    parser.add_argument("--assets-manifest", help="Assets manifest; verifies HTTP Range for video publicUrl entries.")
     parser.add_argument("--stack", default="web", choices=["web", "flutter"],
                         help="Tech stack. Flutter is reserved and not implemented.")
     return parser
@@ -841,6 +1035,7 @@ def main(argv: list[str] | None = None) -> int:
                 "deviceScaleFactor": vp["deviceScaleFactor"],
             },
             screenshot=vp_screenshot, probes=vp.get("probes"),
+            scope_selector=args.scope_selector,
         )
         if "__probe_error__" in actuals:
             print(
@@ -863,6 +1058,23 @@ def main(argv: list[str] | None = None) -> int:
         report.pixel_diff = pixel_diff(
             baseline, screenshot_path, out_path.parent / "pixel-diff.png",
         )
+
+    if args.assets_manifest:
+        manifest_path = Path(args.assets_manifest)
+        if not manifest_path.is_file():
+            print(f"assets manifest not found: {manifest_path}", file=sys.stderr)
+            return 2
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            print(f"invalid assets manifest: {exc}", file=sys.stderr)
+            return 2
+        if not isinstance(manifest, list):
+            print("invalid assets manifest: root must be an array", file=sys.stderr)
+            return 2
+        report.media_ranges = check_media_ranges(args.url, manifest)
+        if any(item.get("status") == "ERROR" for item in report.media_ranges):
+            report.converged = False
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     payload = json.dumps(report.to_dict(), indent=2, ensure_ascii=False)

@@ -135,6 +135,7 @@ PRD 文档额外传入 `--type prd`。
 - `preview_path`
 - `source_doc_path`
 - `doc_type`: `prd | decision | tech-research | design | task | generic`
+- `mode`: `create | update`
 - `visualization_type`: `prd-review | decision-map | research-map | design-change-map | task-execution-map | answer-board | interactive-preview | backend-flow | state-diagram | dependency-graph | timeline | swimlane | pipeline | hub-map | capability-matrix | acceptance-matrix | document-reader`
 - `files_modified`
 - `assumptions`

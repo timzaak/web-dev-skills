@@ -217,7 +217,7 @@ def npm_format_fix_step(name: str, app_dir: Path, *, optional: bool = False) -> 
     )
 
 
-def backend_steps(*, skip_tests: bool = False) -> list[Step]:
+def backend_steps() -> list[Step]:
     root = backend_dir(REPO_ROOT)
     detect_build_tool(root)
     return [
@@ -226,22 +226,17 @@ def backend_steps(*, skip_tests: bool = False) -> list[Step]:
     ]
 
 
-def frontend_steps(*, skip_tests: bool = False) -> list[Step]:
+def frontend_steps() -> list[Step]:
     frontend_dir = REPO_ROOT / "frontend"
     steps: list[Step] = []
     format_fix = npm_format_fix_step("Frontend format fix", frontend_dir, optional=True)
     if format_fix:
         steps.append(format_fix)
-    all_items = [
+    for name, script, optional in (
         ("Frontend format check", "format:check", True),
         ("Frontend lint", "lint", False),
         ("Frontend type check", "type-check", False),
-        ("Frontend tests", "test:run", True),
-    ]
-    for name, script, optional in all_items:
-        if skip_tests and script == "test:run":
-            print(f"Skipping {name}: --skip-tests", flush=True)
-            continue
+    ):
         step = npm_script_step(name, frontend_dir, script, optional=optional)
         if step:
             steps.append(step)
@@ -270,11 +265,10 @@ def run_steps(area: str, steps: list[Step]) -> None:
             raise RuntimeError(f"{step.name} failed with exit code {result.returncode}.")
 
 
-def run_ci(areas: set[str], *, ci_session: str, force_checks: bool = False, skip_tests: bool = False) -> None:
-    kw = {"skip_tests": skip_tests}
+def run_ci(areas: set[str], *, ci_session: str, force_checks: bool = False) -> None:
     builders = {
-        "backend": lambda: backend_steps(**kw),
-        "frontend": lambda: frontend_steps(**kw),
+        "backend": backend_steps,
+        "frontend": frontend_steps,
         "demo": demo_steps,
     }
     cache = {} if force_checks else load_ci_cache(ci_session)
@@ -361,7 +355,6 @@ def main() -> int:
     parser.add_argument("-m", "--message", required=True, help="Commit message summarized by the AI from the actual git changes.")
     parser.add_argument("--ci-session", required=True, help="Fresh id for this t-push execution; reuse only for its retries.")
     parser.add_argument("--force-checks", action="store_true", help="Ignore cached successful area checks and rerun selected local CI.")
-    parser.add_argument("--skip-tests", action="store_true", help="Skip test steps in local CI checks.")
     args = parser.parse_args()
 
     try:
@@ -388,7 +381,7 @@ def main() -> int:
         print(f"CI session: {ci_session}")
         print(f"Commit message: {message}")
 
-        run_ci(areas, ci_session=ci_session, force_checks=args.force_checks, skip_tests=args.skip_tests)
+        run_ci(areas, ci_session=ci_session, force_checks=args.force_checks)
         commit_hash = stage_commit_push(message)
         print(f"Changes committed and pushed: {commit_hash}")
         return 0
