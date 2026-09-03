@@ -76,7 +76,7 @@ class CommandConstructionTests(unittest.TestCase):
         self.assertIn("-lossless", ffmpeg_call)
         self.assertEqual(result["conversion"]["mode"], "webp-lossless")
 
-    def test_photo_uses_quality_82(self) -> None:
+    def test_photo_uses_quality_100(self) -> None:
         calls: list[list[str]] = []
 
         def runner(command, **kwargs):
@@ -91,7 +91,7 @@ class CommandConstructionTests(unittest.TestCase):
             source.write_bytes(b"jpg")
             figma_assets.convert_image(source, Path(temp) / "a.webp", ffmpeg_bin="ffmpeg", ffprobe_bin="probe", runner=runner)
         ffmpeg_call = next(call for call in calls if call[0] == "ffmpeg")
-        self.assertEqual(ffmpeg_call[ffmpeg_call.index("-quality") + 1], "82")
+        self.assertEqual(ffmpeg_call[ffmpeg_call.index("-quality") + 1], "100")
 
 
 if __name__ == "__main__":

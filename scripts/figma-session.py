@@ -14,6 +14,7 @@ from typing import Any
 
 RUNTIME_DIR = Path(".ai") / "figma"
 LEGACY_RUNTIME_DIR = Path("memo") / "figma"
+SESSION_STAGES = ("assets", "motion", "fixing")
 
 
 def runtime_dir(project: Path) -> Path:
@@ -94,6 +95,8 @@ def create_session(
     url: str,
     stage: str = "assets",
 ) -> dict[str, Any]:
+    if stage not in SESSION_STAGES:
+        raise ValueError(f"invalid initial Figma session stage: {stage}")
     runtime = runtime_dir(project)
     index_path = runtime / "index.json"
     index = load_index(index_path)
@@ -153,8 +156,11 @@ def build_parser() -> argparse.ArgumentParser:
     create_parser.add_argument("--node-id", required=True)
     create_parser.add_argument("--url", required=True)
     create_parser.add_argument(
-        "--stage", choices=["assets", "motion"], default="assets",
-        help="initial session stage; assets for restore chain, motion for standalone t-figma-ux",
+        "--stage", choices=SESSION_STAGES, default="assets",
+        help=(
+            "initial session stage; assets for restore chain, motion for standalone "
+            "t-figma-ux, fixing for standalone t-figma-fix"
+        ),
     )
     archive_parser = sub.add_parser("archive")
     archive_parser.add_argument("--target", required=True)

@@ -35,9 +35,9 @@ allowed-tools:
 
 1. 同一 MCP 窗口内保存主节点 metadata、design context、screenshot、variables 到 session `source/`；这些文件后续不得覆盖。
 2. 从主节点收集素材。缺失时用无 nodeId metadata 列 pages，再按 metadata 筛选同文件候选；显式 `--asset-url` 直接加入。匹配不唯一时展示 page/node/name/size 询问，不盲选。
-3. 图片上存在文字时检查最小共同视觉父节点。无交互、动态或本地化语义则通过 `download_assets` 导出父节点并标记 flattened；否则询问。
-4. MCP 临时 URL 立即下载到 raw。视频没有 MCP 源时按 node id 使用 `--video-source`；缺失则停止并要求 URL 或项目内本地文件。
-5. 按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 注入并委派 `figma-assets`，完成转换、落位、hash 和 manifest。
+3. 图片上存在文字时检查最小共同视觉父节点。无交互、动态或本地化语义则选定该父节点并标记 flattened；否则询问。
+4. 确认图片、图标或合成父节点后，必须调用 Figma MCP `download_assets` 导出；不得把 `get_design_context` 返回的素材 URL 直接作为下载源。`defaultScale` 默认传 `3`，banner、hero 和主要内容图保持 3 倍；仅明确属于小型、非关键的图标或装饰素材时传 `2`。将 `download_assets` 返回的临时 URL 立即下载到 raw。视频没有 MCP 源时按 node id 使用 `--video-source`；缺失则停止并要求 URL 或项目内本地文件。
+5. 按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 注入并委派 `figma-assets`，完成转换、落位、hash 和 manifest；由 `download_assets` 导出的条目将 manifest `source` 记录为 `download-assets`。
 6. 无素材时也写 `[]`。全部成功后把 session stage 设为 `assets`，更新 index。
 
 ## 门禁

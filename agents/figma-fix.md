@@ -1,6 +1,6 @@
 ---
 name: figma-fix
-description: Figma 局部精修执行者。只修改指定节点对应区域，依据修订后的 spec 和历史 delta 做最小修复并返回规则候选证据。
+description: Figma 局部精修执行者。只修改指定节点对应区域，依据修订后的 spec 和当前局部 delta 做最小修复并返回规则候选证据。
 tools:
   - Read
   - Grep

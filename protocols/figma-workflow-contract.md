@@ -16,7 +16,7 @@
 - 四个命令以规范化后的项目相对 `target-file` 关联工作区。一个目标文件同时命中多个活动工作区时必须请开发者选择，不得按时间或目录顺序猜测。
 - assets/impl 命中 session 后必须校验 URL 的 `fileKey + mainNodeId` 一致；不一致时请开发者选择归档旧 session 或回到原主稿，不得复用旧 spec。fix/ux 附着时允许 nodeId 不同，但 fileKey 必须与 session 一致。
 - `t-figma-impl` 要求 assets 阶段已经完成；无素材页面也必须存在空的 `assets-manifest.json`。
-- `t-figma-fix` 要求已有 impl 工作区和二次规格，不承担从零整页实现。
+- `t-figma-fix` 要求目标节点已有代码实现，但不要求运行过 `t-figma-impl`：可附着同 fileKey 的既有 session，也可为手写或其他方式产生的实现创建独立 fixing session，并生成局部二次规格；不承担从零整页实现。
 - `t-figma-ux` 是独立的动效精修入口，不要求 assets/impl 先行：URL 可指向整页或待精修节点，只精修该范围内的动效交互，不修复静态视觉偏差（impl/fix 职责），不下载素材。目标文件必须已有对应实现（无论来自 impl 还是手写）。
 
 ## Workspace and Identity
@@ -62,7 +62,7 @@
 
 - target key 使用相对项目根、`/` 分隔、消除 `.` 后的路径；Windows 上匹配时不区分大小写，落盘保持真实大小写。
 - session 脚本仅发现旧 `memo/figma/` 时，将其整体迁移到 `.ai/figma/` 后继续；新旧目录同时存在时必须停止并要求开发者显式合并，不得静默覆盖。
-- `status` 只允许 `active|archived`。一个 target 只有一个 active session 时自动使用；零个时 assets/impl/ux 可创建、fix 必须停止；多个时必须询问。
+- `status` 只允许 `active|archived`。一个 target 只有一个 active session 时自动使用；零个时 assets/impl/ux 可创建，fix 在确认目标节点已有实现后也可创建；多个时必须询问。
 - `session.json` 保存主 URL、fileKey、mainNodeId、targetFile、当前 stage（`assets|implemented|motion|fixing|accepted`）和 `specRevision`。状态文件不写时间元数据。
 
 ## Source of Truth and Reconstruction
@@ -82,6 +82,15 @@
 - 每次修正增加 `spec.revision`，并在 `revisions[]` 写 `{revision, scope, reason, evidence}`，不得写时间字段。
 
 `spec.json` 至少包含 `source`、`revision`、`revisions`、`viewport`、`nodes`、`assets`、`probeSelectors`、`probeableNodes` 和 `integrity`。probe 规则和 delta 阈值沿用本契约后文。
+
+### Fix Attachment and Bootstrap
+
+- 命中同 fileKey 的 active session 时，fix 附着并复用其中实际存在的 source、context、spec、manifest、candidates 和 delta；nodeId 可以不同，不得要求这些产物必须由 impl 生成。
+- 无 active session 时，fix 只有在 URL 对应范围已有代码实现时才以 `create --stage fixing` 创建独立 session；没有实现则停止，不得扩大为整页实现。
+- 缺少 `context.md` 时，fix 从项目和目标区域代码生成。独立 session 或无 spec 的附着 session，由 fix 从节点 MCP 证据与当前代码生成 revision 1 局部 `spec.json` 和稳定 probes；所附 session 已有 spec 但缺少当前 scope 时，增加 revision 后补入局部规格。当前代码作为修复前基线，不要求 impl 历史。
+- 无已准备素材时允许写空 `assets-manifest.json`，表示本次 fix 不引入资产；若修复需要新增、替换或加工素材，必须先运行 assets，不得用空 manifest 绕过资产门禁。
+- 当前 session 没有该 scope 的可用 delta 时，fix 必须先按局部验收参数对修复前实现做一次只读测量，再把生成的 delta 交给实现 agent；不得要求 impl 历史，也不得用非结构化视觉描述代替 delta。
+- fix 进入修改前 stage 设为 `fixing`；验收收敛后设为 `accepted`，未收敛保持 `fixing`。
 
 ## Asset Discovery and Processing
 
@@ -103,8 +112,11 @@
 
 ### Images
 
-- MCP 临时 URL 必须立即下载到 session `raw/`，不得写入正式代码。
-- PNG/JPEG 转 WebP；照片使用 quality 82，透明图和 `flattened: true` 的含文字合成图使用 lossless WebP。
+- 已确认的图片、图标和合成父节点必须通过 Figma MCP `download_assets` 导出；不得使用 `get_design_context` 返回的素材 URL 代替下载。
+- `download_assets.defaultScale` 默认使用 `3`；banner、hero 和主要内容图保持 3 倍，仅明确的小型非关键图标或装饰素材使用 `2`。
+- `download_assets` 返回的临时 URL 必须立即下载到 session `raw/`，不得写入正式代码或 manifest。
+- 由 `download_assets` 导出的 manifest 条目必须将 `source` 记录为 `download-assets`。
+- PNG/JPEG 转 WebP；照片使用 quality 100，透明图和 `flattened: true` 的含文字合成图使用 lossless WebP。
 - SVG、已有 WebP 和 GIF 默认保留；项目长期规则可覆盖默认策略。
 - 使用 ffprobe 提取最终宽高，并以最大公约数记录 `aspectRatio`。移动/桌面变体必须在 manifest 的同一 `variants` 组关联。
 - assets 阶段不编辑 UI 源码；impl/fix 根据 manifest 生成 `<picture>`、`srcset` 或目标栈等价表达，并写入真实 aspect-ratio。

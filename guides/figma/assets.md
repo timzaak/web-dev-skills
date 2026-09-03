@@ -10,13 +10,22 @@
 
 当图片、装饰和文字共同构成不可拆的营销素材时，找到覆盖它们的最小父节点并导出该节点。检查父节点是否混入按钮、动态价格、本地化文案或其它 live UI；存在这些情况先询问。合成后记录文字摘要供 alt 文本和审计使用，页面不得再重复渲染同一文字。
 
+## 下载原始素材
+
+节点确认后必须通过 Figma MCP `download_assets` 导出原始素材。`get_design_context` 中的素材 URL 只用于识别和理解设计，不作为下载源。
+
+- `defaultScale` 默认使用 `3`；banner、hero 和主要内容图均保持 3 倍导出。
+- 只有明确属于小型、非关键的图标或装饰素材时，才将 `defaultScale` 降为 `2`。
+- 按目标素材类型设置导出格式：需要位图处理的素材导出 PNG/JPEG，矢量素材导出 SVG。
+- `download_assets` 返回的临时 URL 必须立即下载到 `.ai/figma/<session>/raw/`，不得直接写入正式代码或 manifest。
+- 这类素材在 manifest 中的 `source` 记录为 `download-assets`，不要标记为 `design-context` 或 `url`。
+
 ## 图片转换
 
-1. 临时 URL 立即下载到 `.ai/figma/<session>/raw/`。
-2. PNG/JPEG 照片转 quality 82 WebP；透明或含文字合成图转 lossless WebP。
-3. 用 ffprobe 读取最终宽高，约分成 `W/H`；不要从 CSS 或 Figma 标注猜比例。
-4. 按节点语义识别 mobile/desktop 变体并写入 manifest。没有移动版本时 impl 不生成多余 `<picture>` wrapper。
-5. 正式路径先查 hash，同名异内容停止，禁止静默覆盖。
+1. PNG/JPEG 照片转 quality 100 WebP；透明或含文字合成图转 lossless WebP。
+2. 用 ffprobe 读取最终宽高，约分成 `W/H`；不要从 CSS 或 Figma 标注猜比例。
+3. 按节点语义识别 mobile/desktop 变体并写入 manifest。没有移动版本时 impl 不生成多余 `<picture>` wrapper。
+4. 正式路径先查 hash，同名异内容停止，禁止静默覆盖。
 
 ## 视频转换
 

@@ -89,6 +89,31 @@ class SessionTests(unittest.TestCase):
             )
             self.assertEqual(session["stage"], "motion")
 
+    def test_create_with_fixing_stage(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp)
+            target_path = project / "page.tsx"
+            target_path.write_text("", encoding="utf-8")
+            figma_session.create_session(
+                project, "page.tsx", file_key="abc", node_id="1:2",
+                url="https://figma/x", stage="fixing",
+            )
+            session = json.loads(
+                (project / ".ai" / "figma" / "abc-1-2" / "session.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(session["stage"], "fixing")
+
+    def test_create_rejects_unknown_stage(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp)
+            target_path = project / "page.tsx"
+            target_path.write_text("", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "invalid initial Figma session stage"):
+                figma_session.create_session(
+                    project, "page.tsx", file_key="abc", node_id="1:2",
+                    url="https://figma/x", stage="unknown",
+                )
+
     def test_multiple_active_sessions_are_ambiguous(self) -> None:
         index = {
             "version": 1,

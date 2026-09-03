@@ -80,6 +80,8 @@ def kill_demo_log_holders(quiet: bool) -> None:
             ["taskkill", "/PID", str(pid), "/F", "/T"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             check=False,
         )
         if result.returncode == 0:

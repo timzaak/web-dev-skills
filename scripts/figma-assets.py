@@ -130,7 +130,7 @@ def convert_image(
     *,
     flattened: bool = False,
     lossless: bool = False,
-    quality: int = 82,
+    quality: int = 100,
     ffmpeg_bin: str,
     ffprobe_bin: str,
     runner: Runner = subprocess.run,
@@ -208,7 +208,7 @@ def build_parser() -> argparse.ArgumentParser:
     image.add_argument("output")
     image.add_argument("--flattened", action="store_true", help="Use lossless WebP for text-composited exports.")
     image.add_argument("--lossless", action="store_true")
-    image.add_argument("--quality", type=int, default=82)
+    image.add_argument("--quality", type=int, default=100)
 
     video = subparsers.add_parser("video", help="Convert a video to progressive MP4.")
     video.add_argument("source")
