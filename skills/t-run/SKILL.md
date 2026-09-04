@@ -39,20 +39,20 @@ allowed-tools:
   - item 失败后写入 `last_error`
 - item agent 执行产生的代码文件变更（由各 agent 自行产出）
 
-## Purpose
+## 目标
 - 读取 `.ai/task/[feature]/.state.json`。
 - 按当前 phase 的 slot 和 manifest 顺序选择可执行 item，并始终串行调度单个 sub agent。
 - `/t-run` 的执行单元、slot 顺序、失败处理、所需上下文统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`。
 - `index.md` 和 slot manifest 不作为直接执行单元；slot manifest 同时是 slot 内 item 执行顺序的真源。
 - backend 的 OpenAPI 导出与前端 API 生成验收由 `backend-accept` 负责。
 
-## Args
+## 参数
 | 参数 | 说明 |
 |---|---|
 | `[feature]` | 功能名 |
 | `--phase <backend\|frontend\|miniapp\|flutter\|web-demo\|flutter-demo>` | 仅执行指定阶段；未指定时执行 `.state.json` 的当前阶段 |
 
-## Preconditions
+## 前置条件
 - `.ai/task/[feature]/.state.json` 必须存在且可解析。
 - 目标阶段必须是 supported phase，且存在于当前任务 active phases 中；未启用 miniapp/Flutter 的项目不得执行对应 phase。
 - 目标阶段必须已规划，且 `phases[phase]`、`tasks[phase]` 和当前阶段目录存在。
@@ -62,12 +62,12 @@ allowed-tools:
   - 对应 slot manifest：backend/frontend/miniapp/flutter 为 `dev.md`, `test.md`, `accept.md`；web-demo/flutter-demo 为 `dev.md`, `accept.md`
   - 对应 item 目录和 item 文件
 
-## Shared Contracts
+## 共享契约
 
 - 状态结构与聚合规则：`${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md`
 - phase/slot/item 执行规则：`${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`
 
-## Item Selection
+## item 选择
 按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 选择可执行 item：
 
 - 首次选择前，先按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 将目标 phase 的 `generated` item 启动归一化为 `pending` 并写回状态
@@ -89,10 +89,27 @@ backend/test 特例：
 - `authoring`：只编写或调整场景测试并做编译验证。
 - `runner`：按 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md` 执行；它必须在 manifest 中排在全部相关 authoring item 之后，再集中执行定向测试、失败分类、生产代码修复委派和重测。
 - `runner` 执行前必须从 `Expected Test Manifest`、变更文件和 package/module/test name 推导最小可靠定向命令；item 只给出全量 `uv run scripts/backend-test.py --` 且没有升级原因时，拒绝执行并提示重新运行 `/t-task-check` 或修正 item。
-- 同一 item 同时包含“写新场景测试”和“修复生产代码直到通过”时拒绝执行。
+- 同一 item 同时包含"写新场景测试"和"修复生产代码直到通过"时拒绝执行。
 - item 正文使用 `Goal / Work / Files / Validation / Handoff` 五个章节；执行 agent 以这些章节作为目标、动作、路径、验证和交接依据。
 
-## State Transition
+### 最小上下文示例
+
+```text
+# 调用 backend-dev item 时的最小上下文
+feature: sample-feature
+phase: backend
+slot: dev
+item_id: BE-D02
+agent: backend-dev
+agent_spec: ${CLAUDE_PLUGIN_ROOT}/agents/backend-dev.md
+item_file: .ai/task/sample-feature/backend/dev/BE-D02-domain-models.md
+slot_manifest: .ai/task/sample-feature/backend/dev.md
+phase_index: .ai/task/sample-feature/backend/index.md
+previous_items:
+  BE-D01: completed, file=.ai/task/sample-feature/backend/dev/BE-D01-domain-models.md, handoff=<必要片段>
+```
+
+## 状态推进
 - 读取状态并确定执行范围。
 - 依据 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 校验状态与执行顺序。
 - 完成状态、目录、manifest/item 和执行顺序校验后，在启动任何 agent 前，将目标 phase 中全部 `generated` item 改为 `pending`，重新聚合对应 slot/phase 并一次性写回 `.state.json`；保留其他状态不变。
@@ -110,7 +127,7 @@ backend/test 特例：
 - 若当前 item 成功且仍有可执行 item，则返回 Item Selection，继续串行选择下一个 item。
 - backend 阶段在 `accept` slot 全部 completed 后聚合为 completed。
 
-## Forbidden
+## 禁止事项
 - 直接执行 `dev.md`、`test.md`、`accept.md`。
 - 只传 `index.md` 或 slot manifest 就开始执行。
 - 忽略 manifest 顺序，按文件名或 `.state.json` 对象顺序执行。
@@ -120,7 +137,7 @@ backend/test 特例：
 - 对 `backend-test` 直接下发"先跑全量 `uv run scripts/backend-test.py --`"而不做变更分析。
 - backend/test runner 在未证明定向范围不可靠或门禁要求时执行全量 `uv run scripts/backend-test.py --`。
 
-## Failure
+## 失败处理
 - 状态文件缺失/损坏：终止并提示先运行 `/t-task [feature] --phase [phase]`。
 - 前序 item 失败：停止当前 phase，修复后从该 item 恢复。
 - 状态写入失败：重试一次，失败则终止。
@@ -130,18 +147,3 @@ backend/test 特例：
 - item 文件缺失或 manifest 顺序非法：提示重建该阶段任务目录。
 - item 缺少 `Goal/Work/Files/Validation/Handoff` 五章节：提示重新运行 `/t-task-check`；若确认为旧格式任务，重新运行 `/t-task [feature] --phase [phase]` 生成。
 
-
-```text
-# 调用 backend-dev item 时的最小上下文
-feature: sample-feature
-phase: backend
-slot: dev
-item_id: BE-D02
-agent: backend-dev
-agent_spec: ${CLAUDE_PLUGIN_ROOT}/agents/backend-dev.md
-item_file: .ai/task/sample-feature/backend/dev/BE-D02-domain-models.md
-slot_manifest: .ai/task/sample-feature/backend/dev.md
-phase_index: .ai/task/sample-feature/backend/index.md
-previous_items:
-  BE-D01: completed, file=.ai/task/sample-feature/backend/dev/BE-D01-domain-models.md, handoff=<必要片段>
-```

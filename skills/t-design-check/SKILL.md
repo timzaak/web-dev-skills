@@ -14,10 +14,10 @@ allowed-tools:
 
 # 技术设计质量检查
 
-运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
-需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
-决策连续性和用户决策暴露统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`
-设计生成状态统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-state-contract.md`
+运行时边界：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`（判断产物写入位置或脚本入口与插件默认冲突时读）
+需求来源边界：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`（区分草稿与已发布需求来源或处理两者冲突时读）
+决策连续性和用户决策暴露：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`（提问、更新决策账本或处理决策暴露门禁时读）
+设计生成状态：`${CLAUDE_PLUGIN_ROOT}/protocols/design-state-contract.md`（校验设计 .state.json 时读）
 
 ## 目标
 - 评估技术设计文档的可实施性、完整性与一致性。
@@ -26,7 +26,7 @@ allowed-tools:
 - 给出明确的设计质量检查结论；本检查为可选，不作为 `/t-task` 的硬性前置。
 - 发现必须由用户裁决的设计问题时，使用 `AskUserQuestion` 阻塞式提问，不得只写入问题清单后继续。
 
-评分维度、严重级别和报告要求统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-check-rubric.md`
+评分维度、严重级别和报告要求：`${CLAUDE_PLUGIN_ROOT}/protocols/design-check-rubric.md`（评分或生成分级结论前读）
 
 ## 输入范围
 - 设计主文档：`.ai/design/[feature].md`

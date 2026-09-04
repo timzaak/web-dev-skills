@@ -1,15 +1,6 @@
 ---
 name: t-doc
-description: |
-  Generate project tutorial documentation that reads like a human wrote it, not like AI output.
-  Scans the codebase, extracts architecture/APIs/config/deployment details, and writes
-  structured tutorial docs in the project's documentation target, preferring an existing
-  docs-web site over docs/tutorials/. Use this skill whenever the user asks to
-  write project docs, tutorials, getting-started guides, API references, deployment guides,
-  onboarding docs, or any kind of project walkthrough. Also trigger when they say "write
-  documentation", "generate docs", "create a tutorial", "onboarding guide", "write a guide",
-  or want help producing readable documentation for a project or module — even if they don't
-  explicitly say "tutorial."
+description: Generate human-readable project documentation — tutorials, getting-started guides, architecture overviews, API references, deployment or onboarding docs — by scanning the codebase for real facts. Output prefers an existing docs-web site over docs/tutorials/. Use when the user asks to write project docs, tutorials, guides, onboarding material, or a module walkthrough. Not for PRDs, technical designs, or API schema generation.
 argument-hint: "[项目或模块名]"
 allowed-tools:
   - AskUserQuestion

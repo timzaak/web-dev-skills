@@ -171,20 +171,13 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py .ai/tech-research
 ## 质量门禁
 
 生成前自检：
-- 是否基于真实依赖文件做盘点
-- 是否优先从现有依赖和代码中寻找方案
-- 外部库调研是否覆盖核心 API、集成方式和已知限制
-- 是否已收敛为单一明确技术路线
-- 是否移除了方案对比、候选排序和开放式选择
-- 报告是否不含任何"待确认"/"需确认"/"待定"/"TBD"等未决项；阻塞性未确认信息是否已通过 `AskUserQuestion` 解决，非阻塞缺口是否已转为显式假设
-- 是否 `needs_user_answer=0`、通过决策闭合扫描，并对相关 Active Decision 提供 Decision Trace
-- PRD 创建/更新建议是否明确可执行；如不涉及业务逻辑变动，是否说明可直接进入 `/t-design`
-- 如存在 Decision Brief，是否没有偏离其目标用户、范围方向和已确认产品决策
-- 如存在 PRD 草稿或 published baseline，是否已读取且没有静默改写产品语义；需要改变产品语义时是否明确交回 `/t-prd` 更新
-- 影响分析中的路径是否真实存在
-- 可行性判定是否明确
-- 风险评估是否区分 P0/P1/P2
-- 是否避免替代 `/t-design` 和 `/t-task` 的职责
+- 基于真实依赖文件（`Cargo.toml`、`package.json`、lock 文件）做盘点，并优先从现有依赖和代码中寻找方案
+- 已收敛为单一明确技术路线；方案对比、候选排序和“可选/视情况”表达已移除
+- 报告不含“待确认”/“需确认”/“待定”/“TBD”等未决项；阻塞性未确认信息已通过 `AskUserQuestion` 解决，非阻塞缺口已转为显式假设
+- `needs_user_answer=0`、决策闭合扫描通过，并对相关 Active Decision 提供 Decision Trace
+- 如存在 Decision Brief，未偏离其目标用户、范围方向和已确认产品决策
+- 如存在 PRD 草稿或 published baseline，已读取且未静默改写产品语义；需要改变产品语义时已明确交回 `/t-prd` 更新
+- 影响分析中的路径真实存在；可行性判定明确；风险区分 P0/P1/P2
 
 ## 失败处理
 

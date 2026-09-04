@@ -18,9 +18,9 @@ allowed-tools:
 
 # Figma 局部精修
 
-共享契约：`${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md`
-二次重建：`${CLAUDE_PLUGIN_ROOT}/guides/figma/reconstruction.md`
-规则记忆：`${CLAUDE_PLUGIN_ROOT}/guides/figma/rules.md`
+共享契约：`${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md`（生成或修订 spec、写 assets-manifest、判读 delta 分级或晋升长期规则前读）
+二次重建：`${CLAUDE_PLUGIN_ROOT}/guides/figma/reconstruction.md`（判断偏差是否属于 spec 分组问题或修订二次规格前读）
+规则记忆：`${CLAUDE_PLUGIN_ROOT}/guides/figma/rules.md`（写候选或晋升长期规则前读）
 
 独立精修节点 URL 指向的已有实现；可以附着 `t-figma-impl` 等既有 session，也可以为手写或其他方式产生的代码自行建立局部基准。文字描述用于补充 hover、移动端、异常状态或代码问题。不得借机重做整页。
 

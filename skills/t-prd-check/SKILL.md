@@ -13,9 +13,9 @@ allowed-tools:
 
 # PRD 草稿与 User Story Quality Check
 
-运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
-需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
-决策连续性和用户决策暴露统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`
+运行时边界：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`（判断产物写入位置或脚本入口与插件默认冲突时读）
+需求来源边界：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`（区分草稿与已发布需求来源或处理两者冲突时读）
+决策连续性和用户决策暴露：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`（提问、更新决策账本或处理决策暴露门禁时读）
 
 ## 目标
 - 验证 `.ai/prd` PRD 草稿完整性和规范性
@@ -28,7 +28,7 @@ allowed-tools:
 - 输出量化评分和修复清单
 - 明确检查结论与风险；通过后建议进入 `/t-design [feature]`，未运行或未通过时用户仍可自行决定是否继续；若有修复，建议重新运行 `/t-prd-check [feature]`
 
-评分、扣分和问题分级统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md`
+评分、扣分和问题分级：`${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md`（评分或分级前读）
 
 
 ## 输入范围

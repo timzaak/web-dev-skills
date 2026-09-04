@@ -18,10 +18,10 @@ allowed-tools:
 
 # Figma 整页实现
 
-运行时边界：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
-共享契约：`${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md`
-二次重建：`${CLAUDE_PLUGIN_ROOT}/guides/figma/reconstruction.md`
-验收方法：`${CLAUDE_PLUGIN_ROOT}/guides/figma/measurement.md`
+运行时边界：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`（判断产物写入位置或项目事实与插件默认冲突时读）
+共享契约：`${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md`（写 context/spec、判读 delta 分级或晋升长期规则前读）
+二次重建：`${CLAUDE_PLUGIN_ROOT}/guides/figma/reconstruction.md`（写 spec revision 1 或修订 MCP 结构前读）
+验收方法：`${CLAUDE_PLUGIN_ROOT}/guides/figma/measurement.md`（生成探针、委派 accept 或判读 delta 报告前读）
 
 负责完整 UI 稿的结构重建、代码实现和有界验收；不重新承担素材下载和转换。
 

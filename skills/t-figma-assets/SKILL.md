@@ -19,9 +19,9 @@ allowed-tools:
 
 # Figma 素材准备
 
-运行时边界：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
-共享契约：`${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md`
-执行方法：`${CLAUDE_PLUGIN_ROOT}/guides/figma/assets.md`
+运行时边界：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`（判断产物写入位置或项目事实与插件默认冲突时读）
+共享契约：`${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md`（校验 session、决定素材扁平化或写 manifest 前读）
+执行方法：`${CLAUDE_PLUGIN_ROOT}/guides/figma/assets.md`（进入素材发现、下载或转换前读）
 
 只负责素材发现、下载、合成导出、转换、落位与 manifest；不得实现或精修 UI。
 

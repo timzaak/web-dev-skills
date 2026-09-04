@@ -1,6 +1,6 @@
 # Simplify Cleanup Contract
 
-t-simplify 的审查角度、finding 结构、去重/跳过/修复边界和报告结构的单一事实源。复刻来源见 `skills/t-simplify/SKILL.md` 的来源说明。
+t-simplify 的审查角度、finding 结构、去重/跳过/修复边界和报告结构的单一事实源。
 
 本契约只做代码质量清理，不找正确性缺陷；正确性缺陷属于 `/code-review` 与各阶段 accept 的职责。
 
@@ -78,3 +78,4 @@ findings:
 ```
 
 inline 降级模式（Agent tool 不可用）的报告必须在结论中声明：这是单主会话单遍审查，不是 4-agent 并行审查，读者不应对审查强度产生误判。
+

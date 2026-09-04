@@ -18,8 +18,8 @@ allowed-tools:
 
 # Figma 动效精修
 
-共享契约：`${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md`
-原则基准：`${CLAUDE_PLUGIN_ROOT}/guides/figma/motion.md`
+共享契约：`${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md`（写 motion.json 或动效探针、区分附着/独立模式或晋升长期规则前读）
+原则基准：`${CLAUDE_PLUGIN_ROOT}/guides/figma/motion.md`（生成动效候选、取时长档位或做 Figma→CSS easing 映射前读）
 
 独立动效精修入口：对目标文件中已有实现（impl 产出或手写）提取原型证据、生成动效基准并实现验收。不修复静态视觉偏差（`t-figma-fix` 职责），不做结构实现，不下载素材。
 

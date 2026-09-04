@@ -15,12 +15,12 @@ allowed-tools:
 
 # 技术设计文档生成
 
-运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
-需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
-跨阶段决策连续性和用户决策暴露统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`
-子 agent 调用规范统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md`
-设计 agent 输出统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`
-设计生成状态统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-state-contract.md`
+运行时边界：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`（判断产物写入位置或项目事实与插件默认冲突时读）
+需求来源边界：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`（区分草稿与已发布需求来源、处理两者并存裁决时读）
+决策连续性和用户决策暴露：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`（提问、更新决策账本或处理决策暴露门禁时读）
+子 agent 调用：`${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md`（调度设计 agent 前 read 其对应角色规范）
+设计 agent 输出：`${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`（解析 subagent 返回前读）
+设计生成状态：`${CLAUDE_PLUGIN_ROOT}/protocols/design-state-contract.md`（写入或校验 `.state.json` 时读）
 
 设计生成应保持简单、当前必需、可追溯；如果需求、spec、代码或本 skill 冲突，停止并说明冲突。
 
@@ -39,15 +39,7 @@ allowed-tools:
 
 基于用户故事、PRD 草稿、已发布 PRD 基线、技术预研、用户已准备的仓库内资料和现有代码，生成可实施、可追踪、可用于 `/t-task` 的技术设计。`/t-prd-check` 是推荐的可选上游检查；未运行时，本 skill 必须自行完成关键需求来源混合验证。
 
-后端、前端、Flutter 的着重点不同，设计拆分为一份主文档加按端拆分的分端设计文档；每个适用端由对应设计 subagent 生成，主会话负责编排、跨端裁决和汇总。
-
-输出文件：
-- `.ai/design/$ARGUMENTS.md` — 主文档：目标范围、需求来源、跨端契约、测试与风险汇总、全量文件影响范围
-- `.ai/design/$ARGUMENTS/backend.md` — 后端分端设计（适用时）
-- `.ai/design/$ARGUMENTS/frontend.md` — 前端分端设计（适用时）
-- `.ai/design/$ARGUMENTS/flutter.md` — Flutter 分端设计（适用时）
-- `.ai/design/$ARGUMENTS/.state.json` — 本轮设计生成状态；只有 `complete` 可被下游消费
-- `.ai/decision-log/$ARGUMENTS.md` — 复用上游决策；仅在产生用户决策、问题状态变化或重要 AI 决策时更新
+后端、前端、Flutter 的着重点不同，设计拆分为一份主文档加按端拆分的分端设计文档；每个适用端由对应设计 subagent 生成，主会话负责编排、跨端裁决和汇总。输出文件见 Output Contract。
 
 不适用端不创建分端文档，只在主文档 §4.2 标记"不适用"及原因。
 
@@ -56,7 +48,7 @@ allowed-tools:
 
 ## Input Contract
 
-上游输入（按设计类型选择）：
+上游输入（按设计类型选择；读取顺序：先索引，再 `.ai/decision` / `.ai/decision-log`，再需求来源，最后 guides）：
 - 业务功能设计：
   - `.ai/decision/<feature>.md` — 产品立项决策简报（如存在，作为 PRD 之前的方向约束）
   - `.ai/decision-log/<feature>.md` — 跨阶段决策账本（存在时必须读取）
@@ -64,7 +56,7 @@ allowed-tools:
   - `docs/prd/<domain>/<feature>.md` — 已发布 PRD 基线（如存在，作为正式需求基线）
   - `.ai/user-stories/**/*.md` — draft 用户故事（如存在，作为当前候选需求）
   - `docs/user-stories/**/*.md` — 已发布相关用户故事
-  - `docs/prd/00-index.md` — PRD 索引
+  - `docs/prd/00-index.md`、`docs/user-stories/00-index.md` — 索引
 - 纯技术方案设计：
   - `.ai/tech-research/<feature>.md` — 技术预研报告，可作为唯一上游需求来源
   - 仅适用于不涉及业务逻辑、产品规则、用户可见流程或验收目标变动的设计
@@ -93,44 +85,23 @@ allowed-tools:
 - `.ai/design/$ARGUMENTS/backend.md` — 后端分端设计（适用时），包含 API 契约（唯一设计源）、数据库设计、领域逻辑、权限安全、详细设计、后端测试策略
 - `.ai/design/$ARGUMENTS/frontend.md` — 前端分端设计（适用时），包含页面/组件/线框、状态与数据流、交互与关键状态、性能、测试与 Demo 策略
 - `.ai/design/$ARGUMENTS/flutter.md` — Flutter 分端设计（适用时），包含分层架构、状态管理、页面与导航、可测试性、测试与 Patrol Demo 策略
-- `.ai/design/$ARGUMENTS/.state.json` — 设计生成状态；结构见 `${CLAUDE_PLUGIN_ROOT}/protocols/design-state-contract.md`
+- `.ai/design/$ARGUMENTS/.state.json` — 设计生成状态；结构见 `${CLAUDE_PLUGIN_ROOT}/protocols/design-state-contract.md`，只有 `complete` 可被下游消费
+- `.ai/decision-log/$ARGUMENTS.md` — 复用上游决策；仅在产生用户决策、问题状态变化或重要 AI 决策时更新
 
 ## 核心约束
 
-- 业务功能设计必须混合验证 `.ai/prd` 草稿与 `docs/prd` 正式 PRD：草稿是当前候选需求，正式 PRD 是已发布基线；两者存在未说明冲突时停止并要求修正草稿，必要时运行 `/t-prd-check [feature]`
-- 业务功能设计必须混合验证 `.ai/user-stories` draft 与 `docs/user-stories` 已发布故事：draft story 是当前候选需求，正式 story 是已发布基线；两者存在未说明冲突时停止并要求修正草稿，必要时运行 `/t-prd-check [feature]`
+- 业务功能设计必须混合验证 `.ai/prd` 草稿与 `docs/prd` 正式 PRD、`.ai/user-stories` draft 与 `docs/user-stories` 已发布故事；并存时的裁决规则（一致/增量继续、冲突停止、无草稿用基线、默认基于草稿）统一按 `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md` 的"同一 feature 草稿与正式来源并存的裁决"执行
 - 若存在 `.ai/decision/<feature>.md`，设计必须尊重其中目标用户、Scope Direction、D0/D1 产品决策和 Handoff；不得用技术方案静默改变立项结论
 - 若存在 `.ai/decision-log/<feature>.md`，必须逐项承接影响设计的 Active Decision；不得重复询问 Resolved Question，也不得使用 Superseded Decision
-- 若存在 `.ai/prd` 草稿且内容会影响设计，默认基于草稿继续设计，并在设计文档中标记是否已找到对应 PRD Check 报告；不得要求先发布到 `docs/prd`
-- 若存在 `.ai/user-stories` draft 且内容会影响设计，默认基于 draft story 继续设计，并在设计文档中保留 `.ai/user-stories/...` 来源路径；不得要求先发布到 `docs/user-stories`
-- 若没有 `.ai/prd` 草稿但存在 `docs/prd` 正式 PRD，可基于正式 PRD 继续设计，并在设计文档中标记"未发现 PRD 草稿"
-- 纯技术方案没有 PRD/用户故事时，以 `.ai/tech-research/<feature>.md` 中的技术目标、约束和影响范围为准；执行流程与质量门禁以 `${CLAUDE_PLUGIN_ROOT}/guides/` 为准
-- 没有 PRD/用户故事时，必须在主文档中声明"纯技术方案设计，不涉及业务逻辑变动"，并引用对应 `.ai/tech-research/<feature>.md`
-- 先读索引，再读相关明细
+- 纯技术方案没有 PRD/用户故事时，以 `.ai/tech-research/<feature>.md` 中的技术目标、约束和影响范围为准；必须在主文档中声明"纯技术方案设计，不涉及业务逻辑变动"，并引用对应技术预研报告；执行流程与质量门禁以 `${CLAUDE_PLUGIN_ROOT}/guides/` 为准
 - 只引用用户故事，不粘贴完整故事正文或整段 Gherkin
 - 优先复用现有实现，不凭空设计新架构
-- 默认不搜索额外资料；人类在进入 `/t-design` 前应已准备好相关资料
-- 只有在人类明确要求补充外部依据时，才可将外部资料作为附加参考
+- 默认不搜索额外资料；人类在进入 `/t-design` 前应已准备好相关资料。只有在人类明确要求补充外部依据时，才可将外部资料作为附加参考
 - API 契约的单一设计源是 backend 分端文档；frontend/flutter 分端文档只声明依赖的接口与字段，不得复制或另立契约；后端不适用时以现有 OpenAPI/SDK 或接口为契约源
 - 主文档不承载 API 字段表、数据库表结构和页面线框等分端细节；细节只活在对应分端文档，主文档保留摘要与链接
 - 数据库设计遵循"尽量简洁、当前必需、避免过度审计设计"
 - 现状依据及 MODIFY/DELETE 路径必须真实存在；CREATE 路径可以尚不存在，但父目录必须真实存在，并给出相邻实现或项目规范作为命名依据
 - 分端文档由对应设计 subagent 生成；主会话不得绕过 subagent 代写分端设计，除非该端不适用
-
-## 先读这些文件
-
-按以下顺序建立上下文：
-- `docs/user-stories/00-index.md`
-- `.ai/user-stories/$ARGUMENTS.md` 或 `.ai/user-stories/**/$ARGUMENTS.md`（如存在）
-- `docs/prd/00-index.md`
-- `.ai/decision/$ARGUMENTS.md`（如存在）
-- `.ai/decision-log/$ARGUMENTS.md`（如存在；必须在任何提问之前读取）
-- `.ai/prd/$ARGUMENTS.md` 或 `.ai/prd/**/$ARGUMENTS.md`（如存在）
-- `docs/prd/**/$ARGUMENTS.md`（如存在）
-- `.ai/tech-research/$ARGUMENTS.md`（如存在）
-- `${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md`、`${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md` 和/或 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/development.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md`
 
 ## 工作流程
 
@@ -167,40 +138,21 @@ allowed-tools:
 - `.ai/prd/**/*.md`
 - `docs/prd/**/*.md`
 - `.ai/tech-research/**/*.md`
-- `docs/design/**/*.md`（如果存在相关先例）
-- `.ai/design/**/*.md`（如果存在相关先例）
+- `docs/design/**/*.md`、`.ai/design/**/*.md`（如果存在相关先例）
 
-优先做法：
-- 先从索引定位候选文档
-- 再对候选文档做 `Grep`
-- 最后 `Read` 真正相关的少量文件
+优先做法：先从索引定位候选文档，再对候选文档做 `Grep`，最后 `Read` 真正相关的少量文件。
 
-业务功能设计至少提取这些内容：
-- 用户故事 ID、标题、优先级、来源文件
-- 场景概述或验收目标的简短摘要
-- PRD 草稿中的当前候选业务边界、规则、非功能要求
-- 已发布 PRD 中的正式基线，以及草稿相对基线的目标、范围、规则、状态和验收目标差异
-- draft 用户故事相对已发布故事的新增或变更场景，以及未说明冲突
-- Decision Log 中影响设计的 Active Decisions、已解决问题和本阶段到期的 Deferred Questions
+业务功能设计至少提取：用户故事 ID/标题/优先级/来源文件、场景概述或验收目标摘要、PRD 草稿中的当前候选业务边界/规则/非功能要求、已发布 PRD 基线及草稿相对基线的差异、draft 用户故事相对已发布故事的新增或变更场景、Decision Log 中影响设计的 Active Decisions / 已解决问题 / 本阶段到期的 Deferred Questions。
 
-如果同时存在草稿和正式 PRD：
-- 草稿与正式 PRD 一致或明确是增量/替换 → 继续设计，并在"需求来源"中同时引用两者和差异摘要
-- 草稿与正式 PRD 在核心业务边界、权限规则或验收目标上冲突，且无法从草稿确认覆盖关系 → 停止并提示修正草稿，必要时运行 `/t-prd-check [feature]`
-
-如果同时存在 draft 用户故事和已发布用户故事：
-- draft story 与已发布 story 一致或明确是增量/替换 → 继续设计，并在"需求来源"中同时引用两者和差异摘要
-- draft story 与已发布 story 在核心角色、权限规则或验收目标上冲突，且无法确认覆盖关系 → 停止并提示修正 draft story，必要时运行 `/t-prd-check [feature]`
+草稿与正式 PRD、draft 与已发布用户故事的并存处理按核心约束引用的裁决规则执行；冲突无法确认覆盖关系时停止并提示修正草稿，必要时运行 `/t-prd-check [feature]`。
 
 如果没有找到足够的用户故事或 PRD：
 - 优先检查是否存在 `.ai/tech-research/$ARGUMENTS.md`
 - 如果存在且内容足以支撑纯技术方案，继续生成设计，并在需求来源中标记 PRD/用户故事不适用
 - 如果不存在或技术预研不足，且缺失会影响方案判断，使用 `AskUserQuestion` 要求用户补齐目标、范围或来源后再继续
-- 只有不需要用户选择、且不影响方案方向、实现边界和验收结论的证据限制，才可在设计文档中记录为“已确认假设与证据限制”
+- 只有不需要用户选择、且不影响方案方向、实现边界和验收结论的证据限制，才可在设计文档中记录为"已确认假设与证据限制"
 
-纯技术方案设计至少提取这些内容：
-- 技术目标、当前约束、选定技术路线
-- 依赖或版本变化
-- 影响范围、风险和不涉及业务逻辑变动的边界声明
+纯技术方案设计至少提取：技术目标、当前约束、选定技术路线、依赖或版本变化、影响范围、风险和不涉及业务逻辑变动的边界声明。
 
 ### 4. 分析现有实现
 
@@ -299,7 +251,7 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py ".ai/design/$ARGUMENTS.md"
 
 ### 8. 分端设计要求
 
-逐项按对应 `agents/*-design.md` 的“着重点”和质量清单验收。额外拒绝以下结果：
+逐项按对应 `agents/*-design.md` 的"着重点"和质量清单验收。额外拒绝以下结果：
 
 - API 缺少 operation ID、字段语义或具体契约源。
 - frontend/flutter 复制 API 字段定义，或客户端状态方案偏离对应 guide。
@@ -314,7 +266,7 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py ".ai/design/$ARGUMENTS.md"
 - 本次设计覆盖的核心范围与适用端
 - 关键风险和验证动作
 - 无上下文读者测试：`passed` 或 `skipped` 及原因
-- 延期问题：明确说明“无”，或列出已告知用户、写入 Decision Log 且尚未到最迟解决阶段的 Q ID
+- 延期问题：明确说明"无"，或列出已告知用户、写入 Decision Log 且尚未到最迟解决阶段的 Q ID
 - 下一步命令：高风险或复杂设计建议运行 `/t-design-check $ARGUMENTS`；简单设计可直接进入 `/t-task $ARGUMENTS`
 - 如文档内容较多或结构复杂，可使用 `/t-html-show .ai/design/$ARGUMENTS.md` 生成 HTML 可视化预览
 

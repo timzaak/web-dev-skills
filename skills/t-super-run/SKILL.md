@@ -31,14 +31,14 @@ allowed-tools:
 
 - `${CLAUDE_PLUGIN_ROOT}/protocols/super-run-state-contract.md`
 
-## Args
+## 参数
 
 | 参数 | 说明 |
 | --- | --- |
 | `[feature]` | 必填；允许中文、英文、数字、空格、下划线和连字符 |
 | `--phase <backend\|frontend\|web-demo\|flutter\|flutter-demo>` | 必填；本次调用只执行该 phase，完成后停止 |
 
-## Preconditions
+## 前置条件
 
 - `--phase` 缺失或不在支持列表内时终止，提示 `--phase <backend|frontend|web-demo|flutter|flutter-demo>` 用法。
 - `.ai/design/[feature].md` 必须存在。
@@ -47,7 +47,7 @@ allowed-tools:
 - 不读取或修改 `.ai/task/[feature]/` 作为 super-run 状态。
 - 已有状态且请求的 phase 为 `completed | skipped` 时，直接报告结果，不重新执行，也不选择其他 phase。
 
-## Source Loading
+## 来源加载
 
 在规划或恢复前：
 
@@ -60,7 +60,7 @@ allowed-tools:
 
 不要无差别加载所有 PRD、用户故事或 guide。先通过 feature 名、设计引用和内容检索定位相关文件，再读取全文。
 
-## Plan And State
+## 计划与状态
 
 - 按 `${CLAUDE_PLUGIN_ROOT}/protocols/super-run-state-contract.md` 创建或更新：
   - `.ai/super-run/[feature]/.state.json`
@@ -76,7 +76,7 @@ allowed-tools:
 
 规划写清目标、成功标准、权限边界、当前角色、证据入口和停止条件，具体实现路径根据仓库事实决定。不要把 `t-task` 的细粒度 item 换一种格式复制进来，也不要用长篇过程指令占用持续 Goal 的上下文。
 
-## Execute
+## 执行
 
 循环执行直到 phase 完成或进入真正阻塞：
 
@@ -90,7 +90,7 @@ allowed-tools:
 
 每次显著步骤后把完成内容、验证证据、剩余工作和 handoff 写入状态或 phase 计划，确保上下文压缩后能从文件恢复。
 
-## Forbidden
+## 禁止事项
 
 - 调用 `Agent`、并行 subagent 或任何以 subagent 做上下文隔离的调度。
 - 自动进入、规划或恢复未被本次调用显式请求的 phase，或为其创建 Goal。
@@ -99,7 +99,7 @@ allowed-tools:
 - 跳过测试、弱化断言、忽略失败或把 `blocked` 当作 Goal 完成。
 - 在无真实兼容约束时保留被设计明确替换的旧路径。
 
-## Completion
+## 完成条件
 
 只有同时满足以下条件才完成 Goal：
 
