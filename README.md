@@ -12,6 +12,8 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 
 推荐先读 [human/structure.md](human/structure.md)，理解 skill、subagent、protocol 如何协同；做需求前可用 [human/speech-template.md](human/speech-template.md) 先口述一遍真实意图。
 
+本项目迭代的开发日志记录在 [linux.do](https://linux.do/t/topic/1988118/4)。
+
 ![T-Tools 工程工作流知识图谱](knowledge-graph.zh-CN.webp)
 
 ## 快速上手
@@ -141,6 +143,6 @@ claude --plugin-dir /path/to/skills
 
 - [Herald](https://github.com/timzaak/herald) — 多租户认证与授权系统
 - [RMQTT-Things](https://github.com/timzaak/rmqtt-things) — 基于 RMQTT 的物联网物模型管理平台
-- [RWiki](https://github.com/timzaak/rwiki) — 基于 Wiki.js 数据的 AI 增强知识库
+- [RWiki](https://github.com/timzaak/rwiki) — 基于 RAG 的知识库问答，单二进制、零外部数据库
 
 > Java 后端支持见 `java` 分支。

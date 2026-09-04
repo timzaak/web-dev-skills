@@ -12,6 +12,8 @@ T-Tools is designed for projects that already have a delivery chain across produ
 
 Recommended first reading: [human/structure.en.md](human/structure.en.md) to understand how skills, subagents, and protocols work together. Before shaping a requirement, use [human/speech-template.en.md](human/speech-template.en.md) to speak through the real intent first.
 
+The development log of this project's iterations is kept on [linux.do](https://linux.do/t/topic/1988118/4) (in Chinese).
+
 ![T-Tools engineering workflow knowledge graph](knowledge-graph.en.webp)
 
 ## Quick Start
@@ -141,6 +143,6 @@ For tools that do not support `claude --plugin-dir` (Codex, ZCode, etc.), see [U
 
 - [Herald](https://github.com/timzaak/herald) — A multi-tenant authentication and authorization system
 - [RMQTT-Things](https://github.com/timzaak/rmqtt-things) — An IoT thing-model management platform built on RMQTT
-- [RWiki](https://github.com/timzaak/rwiki) — An AI-enhanced knowledge base built on Wiki.js data
+- [RWiki](https://github.com/timzaak/rwiki) — RAG-powered knowledge base Q&A in a single binary, zero external databases
 
 > For Java backend support, see the `java` branch.
