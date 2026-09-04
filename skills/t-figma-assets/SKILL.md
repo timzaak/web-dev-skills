@@ -27,7 +27,7 @@ allowed-tools:
 
 ## 输入和关联
 
-解析主 Figma URL、已存在的目标文件、重复 `--asset-url` 和 `--video-source nodeId=source`。调用 `${CLAUDE_PLUGIN_ROOT}/scripts/figma-session.py resolve` 校验并规范化 target-file：唯一 active session 且 fileKey/mainNodeId 一致时复用；不一致时询问，确认后用 `archive` 归档旧 session 再 `create`；没有则以主 URL调 `create`；返回 ambiguous 时 AskUserQuestion 选择。
+解析主 Figma URL、已存在的目标文件、重复 `--asset-url` 和 `--video-source nodeId=source`。调用 `${CLAUDE_PLUGIN_ROOT}/scripts/figma-session.py resolve` 校验并规范化 target-file，session 复用/归档/创建/多选决策按共享契约的 Session Resolve 表执行。
 
 开始前读取目标项目 `AGENTS.md`/`CLAUDE.md`、目标文件邻近资产用法、`DESIGN.md`（若有）、`docs/figma-rules.md`（若有）和当前 session 候选。探测正式资产目录、命名和引用方式；存在多个同等合理目录时询问。
 

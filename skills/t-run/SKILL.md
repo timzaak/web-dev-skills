@@ -23,121 +23,78 @@ allowed-tools:
 
 执行时以当前 item 的成功标准和最小必要验证为目标；遇到冲突、缺失上下文或无法判断的语义问题时停止并说明。
 
-## Input Contract
+## 前置条件
 
-上游输入（来自 `/t-task` 产出）：
-- `.ai/task/[feature]/.state.json` — 任务状态文件（必须存在且可解析）
-  - 目标阶段必须已规划（`phases[phase]`、`tasks[phase]` 和对应阶段目录存在）
-- `.ai/task/[feature]/<phase>/index.md` — 阶段总览
-- `.ai/task/[feature]/<phase>/<slot>.md` — Slot manifest
-- `.ai/task/[feature]/<phase>/<slot>/<ITEM-ID>-*.md` — Item 文件
+- `.ai/task/[feature]/.state.json` 必须存在且可解析；目标阶段必须是 supported phase 且存在于当前任务 active phases（未启用 miniapp/Flutter 的项目不得执行对应 phase），并已规划（`phases[phase]`、`tasks[phase]` 和对应阶段目录存在）。
+- 当前阶段目录必须包含：`index.md`、对应 slot manifest（backend/frontend/miniapp/flutter 为 `dev.md`, `test.md`, `accept.md`；web-demo/flutter-demo 为 `dev.md`, `accept.md`）、对应 item 目录和 item 文件。
 
-## Output Contract
+## 共享契约
 
-下游产出：
-- 更新的 `.state.json` — item/slot/phase 状态变更
-  - item 失败后写入 `last_error`
-- item agent 执行产生的代码文件变更（由各 agent 自行产出）
+执行单元、slot 顺序、item 选择（含启动归一化）、agent 最小上下文、backend/test 特殊规则和失败处理统一参考：
 
-## 目标
-- 读取 `.ai/task/[feature]/.state.json`。
-- 按当前 phase 的 slot 和 manifest 顺序选择可执行 item，并始终串行调度单个 sub agent。
-- `/t-run` 的执行单元、slot 顺序、失败处理、所需上下文统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`。
-- `index.md` 和 slot manifest 不作为直接执行单元；slot manifest 同时是 slot 内 item 执行顺序的真源。
-- backend 的 OpenAPI 导出与前端 API 生成验收由 `backend-accept` 负责。
+- `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md`
 
 ## 参数
+
 | 参数 | 说明 |
 |---|---|
 | `[feature]` | 功能名 |
 | `--phase <backend\|frontend\|miniapp\|flutter\|web-demo\|flutter-demo>` | 仅执行指定阶段；未指定时执行 `.state.json` 的当前阶段 |
 
-## 前置条件
-- `.ai/task/[feature]/.state.json` 必须存在且可解析。
-- 目标阶段必须是 supported phase，且存在于当前任务 active phases 中；未启用 miniapp/Flutter 的项目不得执行对应 phase。
-- 目标阶段必须已规划，且 `phases[phase]`、`tasks[phase]` 和当前阶段目录存在。
-- 当前阶段目录必须存在。
-- 当前阶段必须包含：
-  - `index.md`
-  - 对应 slot manifest：backend/frontend/miniapp/flutter 为 `dev.md`, `test.md`, `accept.md`；web-demo/flutter-demo 为 `dev.md`, `accept.md`
-  - 对应 item 目录和 item 文件
+## Input Contract
 
-## 共享契约
+上游输入（来自 `/t-task` 产出）：
 
-- 状态结构与聚合规则：`${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md`
-- phase/slot/item 执行规则：`${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`
+- `.ai/task/[feature]/.state.json` — 任务状态文件（必须存在且可解析）
+- `.ai/task/[feature]/<phase>/index.md` — 阶段总览
+- `.ai/task/[feature]/<phase>/<slot>.md` — Slot manifest（slot 内 item 执行顺序的真源）
+- `.ai/task/[feature]/<phase>/<slot>/<ITEM-ID>-*.md` — Item 文件（`Goal / Work / Files / Validation / Handoff` 五章节，即执行依据）
 
-## item 选择
-按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 选择可执行 item：
+`index.md` 和 slot manifest 不作为直接执行单元。backend 的 OpenAPI 导出与前端 API 生成验收由 `backend-accept` 负责。
 
-- 首次选择前，先按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 将目标 phase 的 `generated` item 启动归一化为 `pending` 并写回状态
-- 只执行 `pending` 或 `failed` item
-- 按固定 slot 顺序和 manifest 表格从上到下选择第一个待执行 item，不得跳过
-- 若 manifest 未覆盖全部 item、包含重复 item、顺序无法确定或 item 文件缺失，立即终止并提示重新运行 `/t-task-check`
+## 执行循环
 
-## Sub Agent Context Contract
-每个 item 必须按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 通过 `Agent` tool 启动，`subagent_type` 为 item 文件中的 `agent` 字段值。传入 prompt 必须包含最小上下文（见下方）。
+1. 读取状态并确定执行范围，按共享契约校验状态与执行顺序。
+2. 完成校验后、启动任何 agent 前，将目标 phase 中全部 `generated` item 归一化为 `pending`，重新聚合对应 slot/phase 并一次性写回 `.state.json`（保留其他状态不变）；归一化写回失败时按状态写入失败处理，不得启动 agent。
+3. 按共享契约选择第一个 `pending` 或 `failed` item，通过 `Agent` tool 启动 `subagent_type` 为 item `agent` 字段值的 sub agent（调度规则见 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md`，最小上下文按 task-phase-execution 的 Agent Context）。
 
-最小上下文、可选增强上下文以及 backend-test 额外要求统一参考：
+   最小上下文示例：
 
-- `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`
-- `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md`
+   ```text
+   # 调用 backend-dev item 时的最小上下文
+   feature: sample-feature
+   phase: backend
+   slot: dev
+   item_id: BE-D02
+   agent: backend-dev
+   agent_spec: ${CLAUDE_PLUGIN_ROOT}/agents/backend-dev.md
+   item_file: .ai/task/sample-feature/backend/dev/BE-D02-domain-models.md
+   slot_manifest: .ai/task/sample-feature/backend/dev.md
+   phase_index: .ai/task/sample-feature/backend/index.md
+   previous_items:
+     BE-D01: completed, file=.ai/task/sample-feature/backend/dev/BE-D01-domain-models.md, handoff=<必要片段>
+   ```
 
-backend/test 特例：
-- 必须读取 `test_item_type`，只允许 `authoring` 或 `runner`。
-- 缺少 `test_item_type` 时拒绝执行，提示先运行 `/t-task-check` 或重建/修正 item。
+4. item 成功后写入 `tasks[phase][slot].items[item_id].status = completed`；失败后写入 `status = failed`、`last_error = <summary>`，并把 `tasks[phase][slot].status` 与 `phases[phase].status` 聚合为 `failed`，停止当前 phase 的后续执行。
+5. 每个 item 完成或失败后重新聚合 slot 和 phase 状态；item 成功且仍有可执行 item 时回到步骤 3 继续串行执行。backend 阶段在 `accept` slot 全部 completed 后聚合为 completed。
+
+## backend/test 特例
+
+- item 缺少 `test_item_type` 或类型非法时拒绝执行，提示先运行 `/t-task-check` 或重建/修正 item。
 - `authoring`：只编写或调整场景测试并做编译验证。
-- `runner`：按 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md` 执行；它必须在 manifest 中排在全部相关 authoring item 之后，再集中执行定向测试、失败分类、生产代码修复委派和重测。
-- `runner` 执行前必须从 `Expected Test Manifest`、变更文件和 package/module/test name 推导最小可靠定向命令；item 只给出全量 `uv run scripts/backend-test.py --` 且没有升级原因时，拒绝执行并提示重新运行 `/t-task-check` 或修正 item。
+- `runner`：按 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md` 执行；item 只给出全量 `uv run scripts/backend-test.py --` 且没有升级原因时拒绝执行。
 - 同一 item 同时包含"写新场景测试"和"修复生产代码直到通过"时拒绝执行。
-- item 正文使用 `Goal / Work / Files / Validation / Handoff` 五个章节；执行 agent 以这些章节作为目标、动作、路径、验证和交接依据。
-
-### 最小上下文示例
-
-```text
-# 调用 backend-dev item 时的最小上下文
-feature: sample-feature
-phase: backend
-slot: dev
-item_id: BE-D02
-agent: backend-dev
-agent_spec: ${CLAUDE_PLUGIN_ROOT}/agents/backend-dev.md
-item_file: .ai/task/sample-feature/backend/dev/BE-D02-domain-models.md
-slot_manifest: .ai/task/sample-feature/backend/dev.md
-phase_index: .ai/task/sample-feature/backend/index.md
-previous_items:
-  BE-D01: completed, file=.ai/task/sample-feature/backend/dev/BE-D01-domain-models.md, handoff=<必要片段>
-```
-
-## 状态推进
-- 读取状态并确定执行范围。
-- 依据 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 校验状态与执行顺序。
-- 完成状态、目录、manifest/item 和执行顺序校验后，在启动任何 agent 前，将目标 phase 中全部 `generated` item 改为 `pending`，重新聚合对应 slot/phase 并一次性写回 `.state.json`；保留其他状态不变。
-- 启动归一化写回失败时按状态写入失败处理，不得启动 agent。
-- 除启动归一化外，执行 item 前不更新状态；中断恢复时，重新选择顺序中的第一个 `pending` 或 `failed` item。
-- item 成功后写入：
-   - `tasks[phase][slot].items[item_id].status = completed`
-- item 失败后写入：
-   - `tasks[phase][slot].items[item_id].status = failed`
-   - `tasks[phase][slot].items[item_id].last_error = <summary>`
-   - `tasks[phase][slot].status = failed`
-   - `phases[phase].status = failed`
-   - 停止当前 phase 的后续执行
-- 每个 item 完成或失败后重新聚合 slot 和 phase 状态。
-- 若当前 item 成功且仍有可执行 item，则返回 Item Selection，继续串行选择下一个 item。
-- backend 阶段在 `accept` slot 全部 completed 后聚合为 completed。
 
 ## 禁止事项
-- 直接执行 `dev.md`、`test.md`、`accept.md`。
-- 只传 `index.md` 或 slot manifest 就开始执行。
+
+- 直接执行 `dev.md`、`test.md`、`accept.md`，或只传 `index.md` / slot manifest 就开始执行。
 - 忽略 manifest 顺序，按文件名或 `.state.json` 对象顺序执行。
-- 前序 item 未完成时执行后续 item。
-- 一次启动多个 sub agents 或批量下发多个 item。
-- 当前 item 未完成时，预取、提前执行或跨 slot 执行其他 item。
-- 对 `backend-test` 直接下发"先跑全量 `uv run scripts/backend-test.py --`"而不做变更分析。
-- backend/test runner 在未证明定向范围不可靠或门禁要求时执行全量 `uv run scripts/backend-test.py --`。
+- 一次启动多个 sub agent、批量下发多个 item，或当前 item 未完成时预取、提前执行、跨 slot 执行其他 item。
 
 ## 失败处理
+
 - 状态文件缺失/损坏：终止并提示先运行 `/t-task [feature] --phase [phase]`。
 - 前序 item 失败：停止当前 phase，修复后从该 item 恢复。
 - 状态写入失败：重试一次，失败则终止。
@@ -145,5 +102,4 @@ previous_items:
 - 阶段未启用：提示当前项目未启用该阶段，并展示 `.state.json.phases` 中的 active phases。
 - 阶段未生成：提示先运行 `/t-task [feature] --phase [phase]`。
 - item 文件缺失或 manifest 顺序非法：提示重建该阶段任务目录。
-- item 缺少 `Goal/Work/Files/Validation/Handoff` 五章节：提示重新运行 `/t-task-check`；若确认为旧格式任务，重新运行 `/t-task [feature] --phase [phase]` 生成。
-
+- item 缺少五章节：提示重新运行 `/t-task-check`；若确认为旧格式任务，重新运行 `/t-task [feature] --phase [phase]` 生成。

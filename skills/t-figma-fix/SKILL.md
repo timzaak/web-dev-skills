@@ -28,11 +28,7 @@ allowed-tools:
 
 校验 node URL、target-file 和非空描述，并确认 URL 对应区域已有可运行的代码实现；没有实现时停止，说明应先实现该区域或运行 `t-figma-impl`，不得把局部 fix 扩成整页实现。
 
-调用 `${CLAUDE_PLUGIN_ROOT}/scripts/figma-session.py resolve`：
-
-- 唯一 active session 的 fileKey 一致时附着，nodeId 可以不同；复用其中实际存在的 context、spec、manifest、candidates 和历史 delta，不要求这些产物必须来自 `t-figma-impl`。
-- missing 时以 node URL 调用 `create --stage fixing` 建立独立 session。
-- ambiguous 时询问选择；唯一 session 的 fileKey 不一致时，询问开发者回到匹配设计，或归档旧 session 后创建新的 fixing session，不得擅自复用或归档。
+调用 `${CLAUDE_PLUGIN_ROOT}/scripts/figma-session.py resolve`，附着（同 fileKey，nodeId 可不同）、独立 `create --stage fixing`、不一致与 ambiguous 询问等决策按共享契约的 Session Resolve 表执行；附着时复用 session 中实际存在的 context、spec、manifest、candidates 和历史 delta，不要求这些产物必须来自 `t-figma-impl`。
 
 读取项目约束、长期规则、目标区域代码、邻近复用实现，以及 session 中实际存在的 candidates、spec revisions 和历史 delta。只对 fix 节点调用 metadata/design context/screenshot/variables，保存为新的 source 证据，不覆盖已有主稿快照。
 

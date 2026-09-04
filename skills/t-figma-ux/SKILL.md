@@ -25,7 +25,7 @@ allowed-tools:
 
 ## 前置
 
-校验 URL（整页或待精修节点）与 target-file；URL 范围内没有已实现代码时停止。`figma-session.py resolve` 命中同 fileKey 的 active session 时附着（nodeId 可不同），missing 时以 `create --stage motion` 独立创建并生成 context，ambiguous 或 fileKey 不一致时询问。
+校验 URL（整页或待精修节点）与 target-file；URL 范围内没有已实现代码时停止。`figma-session.py resolve` 的附着（同 fileKey，nodeId 可不同）、独立 `create --stage motion`、不一致与 ambiguous 询问等决策按共享契约的 Session Resolve 表执行。
 
 读取项目动效模式、长期规则和 URL 范围内代码；原型证据按契约取自既有快照或新存 `source/motion-context.md`。范围内无原型数据且无交互语义时停止，请开发者明确动效范围。
 

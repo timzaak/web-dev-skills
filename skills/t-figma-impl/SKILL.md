@@ -27,7 +27,7 @@ allowed-tools:
 
 ## 前置和上下文
 
-校验 URL 与 target-file，通过 `${CLAUDE_PLUGIN_ROOT}/scripts/figma-session.py resolve` 找唯一 active session，并要求 fileKey/mainNodeId 与主稿 URL 一致；missing、mismatch 或 ambiguous 时分别提示先运行 assets、回到匹配主稿或询问选择。`assets-manifest.json` 不存在则停止并提示先运行 `t-figma-assets`；空数组合法。
+校验 URL 与 target-file，通过 `${CLAUDE_PLUGIN_ROOT}/scripts/figma-session.py resolve` 找 active session，并按共享契约的 Session Resolve 表执行。impl 只复用 fileKey/mainNodeId 与主稿 URL 一致且 assets 阶段已完成的 session；missing 或 mismatch 时停止并提示先运行 `t-figma-assets` 或回到匹配主稿，不得自行归档或创建 session。`assets-manifest.json` 不存在则停止；空数组合法。
 
 读取项目约束、目标文件及邻近模块、现有 token/组件/动效/响应式模式、`docs/figma-rules.md`、session candidates 和 assets manifest，生成固定章节的 `context.md`。栈、dev server、Playwright 目录或资产引用方式无法确定时停止询问。
 

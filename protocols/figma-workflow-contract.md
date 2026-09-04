@@ -62,8 +62,19 @@
 
 - target key 使用相对项目根、`/` 分隔、消除 `.` 后的路径；Windows 上匹配时不区分大小写，落盘保持真实大小写。
 - session 脚本仅发现旧 `memo/figma/` 时，将其整体迁移到 `.ai/figma/` 后继续；新旧目录同时存在时必须停止并要求开发者显式合并，不得静默覆盖。
-- `status` 只允许 `active|archived`。一个 target 只有一个 active session 时自动使用；零个时 assets/impl/ux 可创建，fix 在确认目标节点已有实现后也可创建；多个时必须询问。
+- `status` 只允许 `active|archived`。一个 target 只有一个 active session 时按各入口复用条件处理；零个时 assets/ux 可创建，impl 因缺少已完成的 assets session 必须停止，fix 在确认目标节点已有实现后可创建；多个时必须询问。
 - `session.json` 保存主 URL、fileKey、mainNodeId、targetFile、当前 stage（`assets|implemented|motion|fixing|accepted`）和 `specRevision`。状态文件不写时间元数据。
+
+### Session Resolve
+
+各入口开始时调用 `${CLAUDE_PLUGIN_ROOT}/scripts/figma-session.py resolve` 校验并规范化 target-file，并严格按下表处理；不得按时间或目录顺序猜测 session，也不得越过入口自身前置条件：
+
+| resolve 结果 | assets | impl | fix | ux |
+|---|---|---|---|---|
+| 唯一 active 且满足入口复用/附着条件 | fileKey/mainNodeId 一致时复用 | fileKey/mainNodeId 一致时复用，并校验 `assets-manifest.json` | fileKey 一致时附着；nodeId 可不同，复用其中实际存在的产物 | fileKey 一致时附着；nodeId 可不同 |
+| 唯一 active 但不满足入口复用/附着条件 | fileKey/mainNodeId 不一致时询问；确认后 `archive` 旧 session 再 `create` | fileKey/mainNodeId 不一致时停止；提示回到匹配主稿，或先对新主稿运行 assets；不得由 impl 归档或创建 session | fileKey 不一致时询问开发者回到匹配设计，或归档旧 session 后创建新 fixing session；不得擅自复用或归档 | fileKey 不一致时询问 |
+| 无 active session | 以主 URL `create` | 停止并提示先运行 assets | 确认目标节点已有代码实现后，以 node URL `create --stage fixing` | `create --stage motion` |
+| 多个 active（ambiguous） | `AskUserQuestion` 选择 | `AskUserQuestion` 选择；所选 session 仍须通过 fileKey/mainNodeId 与 manifest 门禁 | 询问选择 | 询问选择 |
 
 ## Source of Truth and Reconstruction
 
