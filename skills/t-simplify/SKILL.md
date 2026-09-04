@@ -1,6 +1,6 @@
 ---
 name: t-simplify
-description: Review the changed code for reuse, simplification, efficiency, and altitude issues with 4 parallel read-only reviewers, then apply the fixes directly. The default scope is the upstream range plus uncommitted changes; a PR / branch / file target replaces it. Quality cleanup only, not bug hunting. Replicated from Claude Code built-in /simplify.
+description: Review the changed code for reuse, simplification, efficiency, and altitude issues with 4 parallel read-only reviewers, then apply the fixes directly. The default scope is the upstream range plus uncommitted changes; a PR / branch / file target replaces it. Quality cleanup only, not bug hunting.
 argument-hint: "[<target>（可选：PR 号 / 分支名 / 文件路径）]"
 allowed-tools:
   - Read
@@ -16,11 +16,7 @@ allowed-tools:
 
 `t-simplify → 4 个清理审查 agent 并行 → 直接应用修复`
 
-运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
-
-## 来源说明
-
-本 skill 复刻自 Claude Code 内置 `/simplify` 命令的提示词。主流程（4 个角度并行只读审查 → 去重后直接修复）与 inline 降级来自 [Piebald-AI/claude-code-system-prompts](https://github.com/Piebald-AI/claude-code-system-prompts)（MIT）对 v2.1.154 slash command 与 v2.1.213 inline 模式的二进制提取；当时四个角度指引还是运行时注入变量、未随提取发布，本插件最初按公开行为还原。后续 v2.1.232 已把角度指引内嵌进二进制，本插件按本机 `@anthropic-ai/claude-code@2.1.232` 二进制内嵌字符串逐字校准了四个角度、Phase 0 变更收集（上游区间 + 未提交变更）和 `<target>` 参数语义，校准结果落在 `${CLAUDE_PLUGIN_ROOT}/protocols/simplify-cleanup-contract.md`；并按本插件约定补充分 agent 角色规范、结构化契约和 `.ai/quality/` 报告。
+运行时边界：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`（判断脚本入口或项目事实与插件默认冲突时读）
 
 ## 目标
 
@@ -46,7 +42,7 @@ allowed-tools:
 
 ## 变更收集
 
-按原文 Phase 0 语义收集审查范围：
+按 Phase 0 语义收集审查范围：
 
 1. 优先 `git diff @{upstream}...HEAD`；无 upstream 时依次回退 `git diff main...HEAD`、`git diff HEAD~1`。
 2. 存在未提交变更、或区间 diff 为空时，追加 `git diff HEAD` 把工作区变更纳入范围（审查常发生在提交前）；untracked 源码文件一并纳入（插件补充）。

@@ -20,13 +20,13 @@
 | PRD / user story 检查评分标准 | [prd-check-rubric.md](${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md) |
 | HTML Preview 通用契约 | [html-show-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md) |
 | PRD HTML Preview PRD 专用契约 | [prd-preview-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md) |
-| t-dream 候选问题、评分和报告契约 | [dream-report-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md) |
+| t-dream 候选问题、提取类别、评分和报告契约 | [dream-report-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md) |
 | 任务检查评分与阻塞规则 | [task-check-rubric.md](${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md) |
 | Demo 共享 Result 输出结构 | [demo-result-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/demo-result-contract.md) |
 | Demo 诊断报告结构与分类映射 | [diagnostic-report-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-contract.md) |
 | Web Demo 单文件运行、修复、补测与环境刷新 | [web-demo-run-repair-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md) |
 | Flutter Patrol Demo 单文件与批量修复 | [flutter-demo-run-repair-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/flutter-demo-run-repair-contract.md) |
-| Figma 素材、整页实现、局部精修、规则记忆与验收 | [figma-workflow-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md) |
+| Figma session、素材、整页实现、局部精修、规则记忆与验收 | [figma-workflow-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md) |
 | t-simplify 四角度清理审查、finding 结构与修复边界 | [simplify-cleanup-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/simplify-cleanup-contract.md) |
 
 ## 使用规则

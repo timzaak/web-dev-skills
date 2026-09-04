@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 def _run(args: list[str], *, capture: bool = False) -> subprocess.CompletedProcess[str]:
     env = os.environ.copy()
     env["MSYS_NO_PATHCONV"] = "1"
-    return subprocess.run(["docker", *args], text=True, capture_output=True, env=env)
+    return subprocess.run(["docker", *args], text=True, encoding="utf-8", errors="replace", capture_output=True, env=env)
 
 
 def container_exists(name: str) -> bool:
@@ -45,7 +45,7 @@ def exec_check(container: str, args: list[str]) -> tuple[int, str]:
     env["MSYS_NO_PATHCONV"] = "1"
     result = subprocess.run(
         ["docker", "exec", container, *args],
-        text=True, capture_output=True, env=env,
+        text=True, encoding="utf-8", errors="replace", capture_output=True, env=env,
     )
     output = result.stdout.strip() if result.returncode == 0 else result.stderr.strip()
     return result.returncode, output

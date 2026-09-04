@@ -34,9 +34,7 @@ allowed-tools:
 ## 参数
 
 - `$ARGUMENTS` = 项目名称（必须）
-- 仅允许英文、数字、连字符、下划线
-- 拒绝 `..`、`/`、`\`
-- 长度限制 1-50 字符
+- 仅允许英文、数字、连字符、下划线；拒绝 `..`、`/`、`\`；长度 1-50 字符
 
 如果参数不合法，终止并提示：
 `请提供合法的项目名称。例如：/t-init my-project`
@@ -54,67 +52,30 @@ allowed-tools:
 ### Step 1: 验证参数（主 Agent）
 
 - 校验 `$ARGUMENTS` 非空且合法
-- 检查目标目录是否已存在同名目录
-- 如果目录已存在且非空，询问用户是否覆盖
-- 创建目录结构：
-
-```text
-<project-name>/
-├── backend/
-│   ├── pom.xml
-│   └── src/
-│       ├── main/
-│       │   ├── java/{{PROJECT_PACKAGE_PATH}}/
-│       │   │   ├── {{PROJECT_NAME_PASCAL}}Application.java
-│       │   │   ├── config/
-│       │   │   ├── health/
-│       │   │   └── web/
-│       │   └── resources/
-│       └── test/java/{{PROJECT_PACKAGE_PATH}}/
-├── frontend/
-├── demo/
-└── scripts/
-```
+- 检查目标目录是否已存在同名目录；已存在且非空时询问用户是否覆盖
+- 按各 references 模板和「输出文件清单」创建目录结构
 
 ### Step 2: 查询文档（主 Agent）
 
-使用 Context7 查询关键依赖的最新文档，确保生成的代码使用当前最佳实践。
+使用 Context7 查询关键依赖的最新文档，确保生成的代码使用当前最佳实践。必查依赖与关注点：
 
-必查依赖：
-- **Spring Boot**：project setup, actuator, testing, testcontainers
-- **Spring Framework**：REST controller, validation, dependency injection, transaction
-- **springdoc-openapi**：OpenAPI 3, Swagger UI, `/v3/api-docs`
-- **TanStack Router**：前端文件路由
-- **TanStack Query**：数据请求
+- **Spring Boot** — project setup, actuator, testing, testcontainers
+- **Spring Framework** — REST controller, validation, dependency injection, transaction
+- **springdoc-openapi** — OpenAPI 3, Swagger UI, `/v3/api-docs`
+- **TanStack Router** — 文件路由、Vite 插件、createRouter
+- **TanStack Query** — QueryClient、useQuery、Provider
 
-如果某个 Context7 查询失败，降级到 `WebSearch` 搜索官方文档。如果都无法获取，基于已有知识生成但标注可能需要调整版本。
+如果某个 Context7 查询失败，降级到 `WebSearch` 搜索官方文档。如果都无法获取，基于已有知识生成但标注可能需要调整版本。将查询结果中的版本号和 API 用法保存，传递给后续 subagent。
 
-### Step 3: 生成后端（backend-dev subagent）
+### Step 3 ~ 5: 调度 subagent 生成代码（主 Agent）
 
-按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 使用 Agent 工具调度 `t-tools:backend-dev` subagent。后续 `frontend-dev` / `web-demo-dev` 调用同理。
+按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 依次调度 subagent，prompt 使用 [references/subagent-prompts.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/subagent-prompts.md) 中的对应模板，替换全部占位符并附上 Step 2 收集的版本信息。模板中的关键约束已固化，不得省略：
 
-Subagent prompt 必须要求：
-- 读取后端模板文件 `${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/backend-template.md`
-- 按模板生成 Spring Boot 后端文件并替换所有占位符
-- 默认使用 Maven wrapper 和 Maven 项目结构
-- 关键特性：
-  - Spring Boot Web
-  - Bean Validation
-  - Actuator health
-  - springdoc-openapi `/v3/api-docs` 与 Swagger UI
-  - 统一错误响应入口
-  - `GET /health` 兼容路由，可委托 Actuator/服务健康状态
-- 完成后执行 `cd backend && mvn test`；无 wrapper 时执行 `mvn test`
-
-### Step 4: 生成前端（frontend-dev subagent）
-
-沿用 [references/frontend-template.md](references/frontend-template.md) 生成 React + TanStack 前端。`generate-api` 默认从 `../frontend/api.json` 生成客户端；后端 OpenAPI JSON 由 backend finalize 或脚本从 Spring Boot `/v3/api-docs` 导出。
-
-必须通过 CLI 生成的 UI 组件仍由 CLI 生成，不手写覆盖。
-
-### Step 5: 生成 Demo E2E 测试（web-demo-dev subagent）
-
-沿用 [references/demo-template.md](references/demo-template.md)。默认后端基础 URL 为 `http://localhost:8080`，健康检查优先使用 `/actuator/health`，兼容 `/health`。
+| Step | subagent | 模板 | 输出目录 | 完成验证 |
+|---|---|---|---|---|
+| 3 | `t-tools:backend-dev` | backend-dev 模板 | `<project-name>/backend/` | `mvn test` |
+| 4 | `t-tools:frontend-dev` | frontend-dev 模板 | `<project-name>/frontend/` | `npm install` + `type-check`（routeTree.gen.ts 错误除外） |
+| 5 | `t-tools:web-demo-dev` | web-demo-dev 模板 | `<project-name>/demo/` | `npm install` + smoke test 全部通过 |
 
 ### Step 6: 生成项目本地 scripts（主 Agent）
 
@@ -155,99 +116,33 @@ Subagent prompt 必须要求：
 
 ### Step 8: 验证（主 Agent）
 
-收集各 subagent 的验证结果，汇总报告：
-- 后端：`mvn test` 或 `mvn test` 是否通过
-- 前端：`npm install` + `type-check` 是否通过（routeTree.gen.ts 错误除外）
-- Demo：`npm install` + smoke test 是否通过
-- 检查所有文件都已创建（Glob 验证）
-
-如果验证工具不可用，跳过并提示用户手动验证。
+收集各 subagent 的验证结果（见 Step 3 ~ 5 表格），并按「输出文件清单」用 Glob 确认所有文件都已创建。如果验证工具不可用，跳过并提示用户手动验证。
 
 ## 输出文件清单
 
-**后端（必须）：**
-- [ ] `backend/pom.xml`
-- [ ] `backend/src/main/java/{{PROJECT_PACKAGE_PATH}}/{{PROJECT_NAME_PASCAL}}Application.java`
-- [ ] `backend/src/main/java/{{PROJECT_PACKAGE_PATH}}/web/HealthController.java`
-- [ ] `backend/src/main/java/{{PROJECT_PACKAGE_PATH}}/health/HealthService.java`
-- [ ] `backend/src/main/java/{{PROJECT_PACKAGE_PATH}}/web/ApiErrorHandler.java`
-- [ ] `backend/src/main/resources/application.yml`
-- [ ] `backend/src/test/java/{{PROJECT_PACKAGE_PATH}}/{{PROJECT_NAME_PASCAL}}ApplicationTests.java`
-
-**前端（必须）：**
-- [ ] `frontend/package.json`
-- [ ] `frontend/tsconfig.json`
-- [ ] `frontend/vite.config.ts`
-- [ ] `frontend/openapi-ts.config.ts`
-- [ ] `frontend/index.html`
-- [ ] `frontend/src/main.tsx`
-- [ ] `frontend/src/styles.css`
-- [ ] `frontend/src/routes/__root.tsx`
-- [ ] `frontend/src/routes/index.tsx`
-- [ ] `frontend/src/components/ui/sonner.tsx`（由 shadcn CLI 生成）
-- [ ] `frontend/src/lib/api-client.ts`
-
-**脚本和文档：**
-- [ ] `scripts/backend-test.py`
-- [ ] `scripts/test-start.py`
-- [ ] `scripts/test-stop.py`
-- [ ] `scripts/web-demo-test-runner.py`
-- [ ] `scripts/web-demo-run-all.py`
-- [ ] `scripts/demo-start.py`
-- [ ] `scripts/demo-stop.py`
-- [ ] `scripts/debug-test.py`
-- [ ] `scripts/cleanup-demo.py`
-- [ ] `scripts/cleanup-test-logs.py`
-- [ ] `scripts/web-demo-failure-summary.py`
-- [ ] `scripts/lib/*.py`
-- [ ] `README.md`
-
-**AI 辅助配置（必须）：**
-- [ ] `AGENTS.md`
-- [ ] `CLAUDE.md`
-
-**Demo E2E 测试（必须）：**
-- [ ] `demo/package.json`
-- [ ] `demo/tsconfig.json`
-- [ ] `demo/playwright.config.ts`
-- [ ] `demo/eslint.config.js`
-- [ ] `demo/.gitignore`
-- [ ] `demo/e2e/smoke.e2e.ts`（冒烟测试，不依赖后端）
-- [ ] `demo/e2e/demo-basic.e2e.ts`
-- [ ] `demo/e2e/fixtures/demo-auth.fixtures.ts`
-- [ ] `demo/e2e/fixtures/test-data.ts`
-- [ ] `demo/e2e/helpers/auth.ts`
-- [ ] `demo/e2e/helpers/environment-setup.ts`
-- [ ] `demo/e2e/pages/base-page.ts`
-- [ ] `demo/e2e/pages/login-page.ts`
-- [ ] `demo/e2e/selectors.ts`
+完整清单见 [references/output-checklist.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/output-checklist.md)（Step 1 创建目录结构和 Step 8 验证时读取），覆盖四组必须产物：`backend/`（Maven 工程 + 配置与测试）、`frontend/`（Vite + TanStack 工程）、`scripts/` + `README.md` + `AGENTS.md`/`CLAUDE.md`、`demo/`（Playwright E2E 与冒烟测试）。
 
 ## 收尾输出
 
 完成后在响应中明确说明：
-- 项目路径
-- 已生成的文件数量
-- 各 subagent 验证结果（Maven test / npm install / smoke test）
+- 项目路径、已生成的文件数量
+- 各 subagent 验证结果（mvn test / npm install / smoke test）
 - OpenAPI 位置（`/v3/api-docs`，Swagger UI 由 springdoc 配置）
-- 项目本地脚本已生成到 `scripts/`，后续优先执行 `uv run scripts/<name>.py`
-- Demo smoke test 运行命令（`cd demo && npx playwright test e2e/smoke.e2e.ts`）
+- 项目本地脚本已生成到 `scripts/`，后续优先执行 `uv run scripts/<name>.py`；UnifiedLogger 通过 `npm install playwright-unified-logger` 安装
+- Demo smoke test 运行命令（`cd demo && npx playwright test e2e/smoke.e2e.ts`）与日志环境变量说明（`UNIFIED_LOG_LEVEL` 等）
 - AGENTS.md 和 CLAUDE.md 已生成，提醒用户填写项目描述
-- 快速启动命令
-- 需要用户手动完成的步骤（如复制配置、安装 Docker 等）
+- 快速启动命令、需要用户手动完成的步骤（如复制 config、安装 Docker）
 - 下一步建议（如 `/t-prd` 开始功能规划）
 
 ## 质量门禁
 
 生成前逐项自检：
-- 是否查询了 Context7 确认 Spring Boot、Spring Framework、springdoc 和前端依赖版本/用法
-- 后端是否是 Java Spring Boot 项目结构
-- 是否包含 Actuator health 与 `/health` 兼容入口
-- 是否包含 `/v3/api-docs` OpenAPI 生成能力
-- 后端是否能编译/测试通过（`mvn test` 或 `mvn test`）
-- 前端组件是否通过 CLI 命令生成（不是 AI 手写）
-- demo smoke test 是否不依赖后端且能独立运行通过
-- 配置文件是否有完整注释说明关键字段
-- 所有占位符是否已替换为实际项目名称
+- 已查询 Context7 确认 Spring Boot、Spring Framework、springdoc 和前端依赖版本，并把版本信息传递给了 subagent
+- 后端是 Java Spring Boot 项目结构，包含 Actuator health 与 `/health` 兼容入口、`/v3/api-docs` OpenAPI 能力
+- 后端 `mvn test`、前端 install + type-check、Demo smoke test 通过，或明确记录跳过原因
+- sonner 等 UI 组件通过 CLI 命令生成（不是 AI 手写）；关键文件含中文注释，配置字段有完整说明
+- demo smoke test 不依赖后端且能独立运行通过；demo 中 import 路径正确指向 `playwright-unified-logger`（npm 包）
+- 所有占位符已替换为实际项目名称
 
 ## 失败处理
 
@@ -261,6 +156,8 @@ Subagent prompt 必须要求：
 
 ## 附加资源
 
+- 输出文件清单：[references/output-checklist.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/output-checklist.md)
+- Subagent prompt 模板：[references/subagent-prompts.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/subagent-prompts.md)
 - 后端文件模板：[references/backend-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/backend-template.md)
 - 前端文件模板：[references/frontend-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/frontend-template.md)
 - Demo E2E 测试模板：[references/demo-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/demo-template.md)

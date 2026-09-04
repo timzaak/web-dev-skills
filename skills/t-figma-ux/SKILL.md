@@ -18,14 +18,14 @@ allowed-tools:
 
 # Figma 动效精修
 
-共享契约：`${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md`
-原则基准：`${CLAUDE_PLUGIN_ROOT}/guides/figma/motion.md`
+共享契约：`${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md`（写 motion.json 或动效探针、区分附着/独立模式或晋升长期规则前读）
+原则基准：`${CLAUDE_PLUGIN_ROOT}/guides/figma/motion.md`（生成动效候选、取时长档位或做 Figma→CSS easing 映射前读）
 
 独立动效精修入口：对目标文件中已有实现（impl 产出或手写）提取原型证据、生成动效基准并实现验收。不修复静态视觉偏差（`t-figma-fix` 职责），不做结构实现，不下载素材。
 
 ## 前置
 
-校验 URL（整页或待精修节点）与 target-file；URL 范围内没有已实现代码时停止。`figma-session.py resolve` 命中同 fileKey 的 active session 时附着（nodeId 可不同），missing 时以 `create --stage motion` 独立创建并生成 context，ambiguous 或 fileKey 不一致时询问。
+校验 URL（整页或待精修节点）与 target-file；URL 范围内没有已实现代码时停止。`figma-session.py resolve` 的附着（同 fileKey，nodeId 可不同）、独立 `create --stage motion`、不一致与 ambiguous 询问等决策按共享契约的 Session Resolve 表执行。
 
 读取项目动效模式、长期规则和 URL 范围内代码；原型证据按契约取自既有快照或新存 `source/motion-context.md`。范围内无原型数据且无交互语义时停止，请开发者明确动效范围。
 

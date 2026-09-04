@@ -49,6 +49,8 @@ def _print_pgdog_failure_diagnostics(last_probe_output: str) -> None:
         ],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     if inspect.returncode == 0 and inspect.stdout.strip():
         print(f"PgDog inspect: {inspect.stdout.strip()}")
@@ -57,6 +59,8 @@ def _print_pgdog_failure_diagnostics(last_probe_output: str) -> None:
         ["docker", "logs", "t-test-pgdog", "--tail", "50"],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     log_output = (logs.stdout or logs.stderr).strip()
     if log_output:
@@ -243,7 +247,7 @@ BEGIN
     END LOOP;
 END $$;""",
     ]
-    result = subprocess.run(cleanup_cmd, capture_output=True, text=True)
+    result = subprocess.run(cleanup_cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if result.returncode == 0:
         print("[OK] Test schema cleanup completed")
     else:
