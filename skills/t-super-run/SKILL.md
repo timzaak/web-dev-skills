@@ -1,8 +1,9 @@
 ---
 name: t-super-run
-description: Plan and execute the explicitly requested backend, frontend, web-demo, flutter, or flutter-demo phase in one persistent main-session Goal with outcome-level status, role-guide switching, validation, recovery, and acceptance loops, without dispatching subagents; each invocation runs exactly one phase and stops before the next.
+description: Plan and execute the explicitly requested backend, frontend, web-demo, flutter, or flutter-demo phase in one persistent main-session Goal with outcome-level status, role-guide switching for dev/test, validation, recovery, and acceptance loops that dispatch a read-only accept subagent; each invocation runs exactly one phase and stops before the next.
 argument-hint: "[任务名称] --phase <backend|frontend|web-demo|flutter|flutter-demo>"
 allowed-tools:
+  - Agent
   - AskUserQuestion
   - Read
   - Edit
@@ -17,7 +18,7 @@ allowed-tools:
 
 # Super Run
 
-把任务规划与阶段执行合并为一个可恢复闭环。只做 `phase -> task` 目标级规划，由当前主会话直接完成实现、测试、修复和验收，不调用 subagent。每次调用只执行 `--phase` 显式指定的一个 phase；该 phase 完成后停止并报告剩余未完成 phase，不自动进入下一个 phase。
+把任务规划与阶段执行合并为一个可恢复闭环。只做 `phase -> task` 目标级规划，由当前主会话直接完成实现、测试和修复；验收按共享协议派发对应只读 accept subagent，除此之外不调用 subagent。每次调用只执行 `--phase` 显式指定的一个 phase；该 phase 完成后停止并报告剩余未完成 phase，不自动进入下一个 phase。
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 设计生成状态统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-state-contract.md`
@@ -82,7 +83,7 @@ allowed-tools:
 
 1. 重新运行设计校验并比较指纹；变化时先按共享协议重规划。
 2. 按状态选择顺序中的第一个 `pending | in_progress | failed` task。
-3. 读取该 task 的 agent 规范全文及计划列出的关联文档，把它们作为主会话当前角色边界。
+3. dev/test task：读取该 task 的 agent 规范全文及计划列出的关联文档，把它们作为主会话当前角色边界。accept task：按共享协议派发对应只读 accept subagent，并把报告结论映射回状态。
 4. 写入 `in_progress`，执行交付、最小可靠验证和必要修复。
 5. 写入 `completed` 与证据，重新聚合 phase，继续下一个 task。
 6. 失败时先写 `failed` 与证据；能够基于新证据修复时继续闭环，否则写 `blocked` 并暂停 Goal。
@@ -92,7 +93,7 @@ allowed-tools:
 
 ## 禁止事项
 
-- 调用 `Agent`、并行 subagent 或任何以 subagent 做上下文隔离的调度。
+- 为 dev/test 调用 `Agent`、并行 subagent 或任何以 subagent 做上下文隔离的调度；accept 只允许串行派发计划中对应的只读 accept agent，不得派发其他角色。
 - 自动进入、规划或恢复未被本次调用显式请求的 phase，或为其创建 Goal。
 - 生成 `.ai/task/` 的 manifest/item，或修改 `t-task/t-run` 状态。
 - 把 accept 角色改为实现角色，或让 accept 直接修复代码。

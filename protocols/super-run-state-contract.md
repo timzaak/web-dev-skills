@@ -1,6 +1,6 @@
 # Super Run State And Execution Contract
 
-按 task 切换角色规范，用 `.state.json` 恢复执行；不得调用 subagent。
+dev/test 由主会话按角色规范执行，accept 派发只读 subagent，用 `.state.json` 恢复执行。
 
 super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相互独立，不得互相迁移、覆盖或推导。
 
@@ -151,16 +151,26 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py ".ai/design/<feature>.md" -
 
 已有计划恢复执行时重新读取上游来源。若来源变化影响未执行 task，更新计划与状态；若变化使已完成工作失效，重新打开受影响 task 及其下游 test/accept，并在计划中记录原因。
 
-## Main-Session Role Loading
+## Role Loading And Accept Dispatch
 
-`/t-super-run` 不调用 `Agent` 或其他 subagent 调度工具。每个 task 开始前，主会话必须：
+`/t-super-run` 不为 dev/test 调用 `Agent` 或其他 subagent 调度工具；accept task 按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 派发只读 accept subagent。每个 dev/test task 开始前，主会话必须：
 
 1. 读取 `agent_spec` 全文，把它作为当前 task 的角色边界。
 2. 按 agent 规范的 Read Order 读取计划列出的关联文档。
 3. 只加载当前 task 所需的 feature 上下文，不预读后续角色的全部 guide。
 4. 完成 task 后把状态、证据、剩余风险和 handoff 写入运行时产物，再切换角色。
 
-Agent 规范在这里是主会话执行指南，不适用 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 的 prompt 注入步骤。
+对 dev/test，agent 规范是主会话执行指南，不适用 `subagent-dispatch.md` 的 prompt 注入步骤。
+
+accept task 到达执行位时，主会话按 `subagent-dispatch.md` 派发 `agent_spec` 对应的只读 accept agent：
+
+1. 读取 accept agent 规范全文并按该协议注入为 `# Agent Role:`，追加最小上下文：设计主文档与当前 phase 分端设计、消费后端契约时的 `backend.md`、改动范围与上游 handoff、dev/test 的证据入口。
+2. 写入 `in_progress` 后串行派发，一次只派发一个 accept subagent。
+3. subagent 只产出验收报告与结论，不读写 `.state.json`，不修改生产代码或测试。主会话把结论映射为状态，不得代出、改写或降级 subagent 结论：
+   - `ACCEPTED`，或没有 P0/P1 的 `ACCEPTED_WITH_IMPROVEMENTS`：写 `completed`，把报告路径追加进 `evidence`。
+   - `REJECTED`：按证据重新打开 dev 或 test，accept 重置为 `pending`；修复、重测后重新派发验收。
+4. 派发失败或 subagent 未产出报告与有效结论时，accept 写 `failed` 与 `last_error` 后重新派发；连续三次没有有效结论转 `blocked`。
+5. 恢复到 `in_progress` 的 accept task 时重新派发，不得把中断当作通过。
 
 ## Test And Acceptance Loop
 
@@ -169,24 +179,25 @@ Agent 规范在这里是主会话执行指南，不适用 `${CLAUDE_PLUGIN_ROOT}
 - 测试发现生产代码缺陷时，在同一个 test task 内读取对应 dev agent 规范后修复，再重新执行受影响测试；不得弱化断言、权限预期或业务规则。
 - web-demo/dev 同时承担 Playwright 资产维护和定向执行，不新增独立 test task。失败时读取 `web-demo-diagnose` 规范分类，再切换对应 dev 规范修复并补跑底层定向测试。
 - flutter-demo/dev 同时承担 Patrol 资产维护和定向执行，不新增独立 test task。失败时读取 `flutter-demo-diagnose` 规范分类，再切换 `flutter-demo-dev`、`flutter-dev` 或 `backend-dev` 规范修复并补跑整文件测试；Android device 选定值写入 `flutter-demo.md` plan，运行时缺失则询问用户。
-- accept 必须保持对应 accept agent 的只读验收边界；允许写验收报告，不得直接修改生产代码或测试来制造通过结果。
-- accept 拒绝时按证据重新打开 dev 或 test，并把 accept 重置为 `pending`。修复、重测后重新验收，直到通过或进入 `blocked`。
+- accept 由只读 accept subagent 执行（见 Role Loading And Accept Dispatch），必须保持该 agent 规范的只读验收边界；允许写验收报告，不得直接修改生产代码或测试来制造通过结果。
+- accept 拒绝时由主会话按证据重新打开 dev 或 test，并把 accept 重置为 `pending`。修复、重测后重新派发验收，直到通过或进入 `blocked`。
 
 ## Goal Contract
 
 计划和初始状态成功写入后，主动调用运行时 `/goal` 或等价原生 Goal API。目标必须包含：
 
 - outcome：完成 `<feature>/<phase>` 计划。
-- constraints：不调用 subagent；持续更新 `.state.json`；遵守计划中的 agent 规范和来源边界。
+- constraints：dev/test 不调用 subagent，accept 只派发对应只读 accept agent；持续更新 `.state.json`；遵守计划中的 agent 规范和来源边界。
 - verification：设计校验通过且指纹未变化；全部 task 为 `completed | skipped`；必要测试通过；accept 允许进入下游。
 
 推荐目标：
 
 ```text
 完成 <feature> 的 <phase> phase。以 .ai/super-run/<feature>/<phase>.md 为计划，
-以 .ai/super-run/<feature>/.state.json 为状态真相；不调用 subagent，按当前 task
-列出的 agent 规范直接执行、验证并记录证据。仅当全部 task 完成或跳过且 accept
-通过时结束；需要用户决策或外部条件时记录 blocked 并暂停。
+以 .ai/super-run/<feature>/.state.json 为状态真相；dev/test 按当前 task 列出的
+agent 规范由主会话直接执行，accept 派发对应只读 accept subagent 并按结论推进
+状态。仅当全部 task 完成或跳过且 accept 通过时结束；需要用户决策或外部条件时
+记录 blocked 并暂停。
 ```
 
 - 已存在同一 feature/phase 的 Goal 时复用或恢复，不重复创建。
