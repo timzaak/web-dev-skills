@@ -18,7 +18,7 @@ The development log of this project's iterations is kept on [linux.do](https://l
 
 ## Quick Start
 
-Not sure which command to start with? Run `/t-tools:t-how` — it explains the workflow for your goal and recommends the entry command.
+Not sure which command to start with? Run `t-how` — it explains the workflow for your goal and recommends the entry command.
 
 Prerequisites:
 
@@ -30,57 +30,57 @@ Minimal end-to-end loop:
 
 ```bash
 # Product decision gate
-/t-tools:t-decision user-management
+t-decision user-management
 
 # Start with research when feasibility, dependency, or cost risks affect product scope
-/t-tools:t-tech-research user-management
+t-tech-research user-management
 
 # Generate .ai/prd and .ai/user-stories drafts when product boundaries are ready;
 # this may also run before research, then run again afterward to converge the drafts
-/t-tools:t-prd user-management
+t-prd user-management
 
 # PRD quality check (optional; recommended for high-risk requirements)
-/t-tools:t-prd-check user-management
+t-prd-check user-management
 
 # Generate technical design
-/t-tools:t-design user-management
+t-design user-management
 
 # Design quality check (optional; recommended for complex designs)
-/t-tools:t-design-check user-management
+t-design-check user-management
 
 # Generate executable backend tasks
-/t-tools:t-task user-management --phase backend
+t-task user-management --phase backend
 
 # Check task breakdown, execution order, and executability (optional; recommended for complex plans)
-/t-tools:t-task-check user-management --phase backend
+t-task-check user-management --phase backend
 
 # Implement and test by phase
-/t-tools:t-run user-management --phase backend
+t-run user-management --phase backend
 
 # GPT-5.6 Sol-class path: let one main session plan, execute, and remain in
 # Goal mode through implementation, validation, repair, and acceptance
-/t-tools:t-super-run user-management --phase backend
+t-super-run user-management --phase backend
 
 # Run Web Demo/E2E tests
-/t-tools:t-web-demo-run demo/e2e/<role>/<scenario>.e2e.ts
+t-web-demo-run demo/e2e/<role>/<scenario>.e2e.ts
 
 # Run all non-live Demo/E2E files sequentially with checkpoint resume
-/t-tools:t-web-demo-run-all
+t-web-demo-run-all
 # When many Demo files fail with overlapping causes: add scan to pre-scan, cluster by root cause, then fix each unique cause once
-/t-tools:t-web-demo-run-all scan
+t-web-demo-run-all scan
 
 # Run one Android Flutter user-story demo
-/t-tools:t-flutter-demo-run patrol_test/<domain>/<story>_test.dart --device <android-id>
+t-flutter-demo-run patrol_test/<domain>/<story>_test.dart --device <android-id>
 
 # Run all Patrol demos sequentially with checkpoint resume
-/t-tools:t-flutter-demo-run-all --device <android-id>
+t-flutter-demo-run-all --device <android-id>
 
 # Web / Flutter Demo acceptance
-/t-tools:t-web-demo-accept <role>
-/t-tools:t-flutter-demo-accept <domain|all> --device <android-id>
+t-web-demo-accept <role>
+t-flutter-demo-accept <domain|all> --device <android-id>
 
 # Publish formal PRD / user stories after implementation and acceptance
-/t-tools:t-prd-publish user-management
+t-prd-publish user-management
 ```
 
 `t-prd-check`, `t-design-check`, and `t-task-check` are optional quality checks. Run them for high-risk requirements, complex designs, multi-person work, long-lived changes, or unstable AI output; simple changes may continue directly to the next stage. `accept` remains the implementation acceptance closure and is separate from these optional checks.
@@ -96,13 +96,13 @@ Minimal end-to-end loop:
 - `web-demo`: Playwright Demo/E2E based on user stories and browser user paths.
 - `flutter-demo`: Android Patrol demos based on user stories, including real App actions and native system UI.
 
-Each phase starts with `/t-tools:t-task <feature> --phase <phase>`, may run `/t-tools:t-task-check <feature> --phase <phase>` depending on risk, and then `/t-tools:t-run <feature> --phase <phase>` executes items serially. Repeat the loop for every active phase.
+Each phase starts with `t-task <feature> --phase <phase>`, may run `t-task-check <feature> --phase <phase>` depending on risk, and then `t-run <feature> --phase <phase>` executes items serially. Repeat the loop for every active phase.
 
-`/t-tools:t-super-run <feature> --phase <backend|frontend|web-demo|flutter|flutter-demo>` is the single-main-session path for backend, frontend, Web Demo, Flutter, and Flutter Demo. It merges planning and execution: dev and test run in the main session under agent role guides, while accept dispatches the matching read-only accept subagent and maps its verdict back into the state, recording outcome-level status as `dev -> test -> accept` for backend/frontend/flutter or `dev -> accept` for web-demo/flutter-demo. `--phase` is required; each invocation executes exactly the one specified phase, then stops and reports the remaining unfinished phases for the user to start explicitly. Miniapp uses `t-task -> [t-task-check] -> t-run`.
+`t-super-run <feature> --phase <backend|frontend|web-demo|flutter|flutter-demo>` is the single-main-session path for backend, frontend, Web Demo, Flutter, and Flutter Demo. It merges planning and execution: dev and test run in the main session under agent role guides, while accept dispatches the matching read-only accept subagent and maps its verdict back into the state, recording outcome-level status as `dev -> test -> accept` for backend/frontend/flutter or `dev -> accept` for web-demo/flutter-demo. `--phase` is required; each invocation executes exactly the one specified phase, then stops and reports the remaining unfinished phases for the user to start explicitly. Miniapp uses `t-task -> [t-task-check] -> t-run`.
 
 ## Key Rules
 
-- Every `t-*` command is manually invoked (standard form `/t-tools:t-<skill>`); the model must not trigger them automatically.
+- Every `t-*` command is manually invoked; the model must not trigger them automatically.
 - `t-decision` is the product decision gate before PRD and tech research; it routes to `t-prd` or `t-tech-research` by the main unknown.
 - Consult `.ai/decision-log/<feature>.md` before asking the user anything; never re-ask a confirmed or already-decided question.
 - A delivered PRD, tech research report, or design must have `needs_user_answer=0`. Questions that affect scope, business rules, permissions, security, significant cost, or acceptance are asked first, never silently stored as pending items, assumptions, or risks.
