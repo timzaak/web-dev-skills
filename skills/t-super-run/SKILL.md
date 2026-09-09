@@ -56,7 +56,7 @@ allowed-tools:
 2. 按 phase 确认设计输入：backend 读 `backend.md`；frontend/web-demo 读 `frontend.md`；flutter/flutter-demo 读 `flutter.md`；客户端依赖后端契约时同时读 `backend.md`。
 3. 读取相关 `.ai/prd/**/*.md`、`docs/prd/**/*.md`、`.ai/user-stories/**/*.md` 与 `docs/user-stories/**/*.md`，保留 draft/published 来源边界。
 4. 在任何提问前读取 `.ai/decision-log/[feature].md`；存在时按需读取 `.ai/decision/[feature].md` 与 `.ai/tech-research/[feature].md`。
-5. 从设计覆盖矩阵、Operation ID、文件影响表、Decision Trace、代码和配置确定 active phases、task 闭环与真实验证入口。
+5. 按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Phases 启用规则，从设计覆盖矩阵、Operation ID、文件影响表、Decision Trace、代码和配置确定 active phases、task 闭环与真实验证入口；设计主文档声明 Demo 主路径或文件影响表含 `web-demo`/`flutter-demo` 行且项目存在对应交付端时，对应 demo phase 计入 active phases，demo 资产由该 phase 交付，不并入 frontend/flutter。
 6. 按 Decision Exposure Gate 分类缺口；`needs_user_answer` 未解决时不得进入实现。
 
 不要无差别加载所有 PRD、用户故事或 guide。先通过 feature 名、设计引用和内容检索定位相关文件，再读取全文。

@@ -22,7 +22,7 @@ super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相
 
 ## Supported Phases And Tasks
 
-`supported_phases` 固定为 `backend | frontend | web-demo | flutter | flutter-demo`。一个 feature 通常只命中单一端栈，`active_phases` 由真实交付端确定。miniapp 仍使用分阶段的 `t-task -> t-run` 工作流。
+`supported_phases` 固定为 `backend | frontend | web-demo | flutter | flutter-demo`。一个 feature 通常只命中单一端栈，`active_phases` 的启用判定统一按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Phases 规则执行（miniapp 除外，不进 super-run）：设计主文档声明 Demo 主路径或文件影响表出现 `web-demo`/`flutter-demo` 行时，对应 demo phase 纳入 `active_phases`，demo 演示资产不得并入 frontend/flutter phase 交付。miniapp 仍使用分阶段的 `t-task -> t-run` 工作流。
 
 | phase | task 顺序 | agent 规范 |
 | --- | --- | --- |
@@ -32,7 +32,7 @@ super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相
 | web-demo | `dev -> accept` | `web-demo-dev -> web-demo-accept` |
 | flutter-demo | `dev -> accept` | `flutter-demo-dev -> flutter-demo-accept` |
 
-`--phase` 必填，每次调用只执行显式请求的一个 phase。`active_phases` 只包含设计、PRD 或明确用户要求中的真实交付端，用于校验请求 phase 的适用性并报告剩余工作。执行规则：
+`--phase` 必填，每次调用只执行显式请求的一个 phase。`active_phases` 只包含按上述启用规则激活的 phase，用于校验请求 phase 的适用性并报告剩余工作。执行规则：
 
 1. 首次规划时从设计与需求来源识别 `active_phases`；请求的 phase 不在其中时终止，不得为满足命令而编造交付范围。
 2. 已有状态且请求 phase 为 `completed | skipped` 时直接报告结果，不重新执行，也不选择其他 phase。

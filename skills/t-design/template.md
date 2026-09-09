@@ -147,10 +147,11 @@
 
 > 汇总所有适用分端文档的文件影响范围；`/t-task` 直接对照本表拆分 item。
 > MODIFY/DELETE 路径必须存在。CREATE 路径允许尚不存在，但父目录必须存在，并在说明中给出相邻实现或命名规范依据。
+> 设计要求用户故事演示时，Playwright `demo/e2e/` 演示资产标 `web-demo`，Patrol 演示资产标 `flutter-demo`；无需演示时不出现这两个值。
 
 | 文件 | 操作 | 说明 | 来源分端 |
 |---|---|---|---|
-| `[真实仓库路径]` | CREATE / MODIFY / DELETE | [变更摘要] | backend / frontend / flutter / 跨端 |
+| `[真实仓库路径]` | CREATE / MODIFY / DELETE | [变更摘要] | backend / frontend / flutter / web-demo / flutter-demo / 跨端 |
 
 ## 9. 外部参考
 

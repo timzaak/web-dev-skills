@@ -182,7 +182,7 @@ D2 工程取舍由设计阶段明确选择并写入 Design；符合 Decision Con
 - 分端设计摘要（来自各端 `task_completion.summary`，每端 3-5 行）
 - 测试与验收策略跨端汇总（来自各分端文档测试章节）
 - 风险与验证动作汇总
-- §8 文件影响范围：逐行合并各分端文档的文件影响表，标注来源分端；此表是 `/t-task` 的唯一拆分依据，必须覆盖全部适用端
+- §8 文件影响范围：逐行合并各分端文档的文件影响表，标注来源分端（取值 backend/frontend/flutter/web-demo/flutter-demo/跨端；设计要求用户故事演示时，Playwright `demo/e2e/` 资产标 `web-demo`、Patrol 资产标 `flutter-demo`，供 `/t-task` 与 `/t-super-run` 识别 demo 交付端）；此表是 `/t-task` 的唯一拆分依据，必须覆盖全部适用端
 
 不适用章节保留并标记"不适用"及原因。写入后对所有实际生成的文档运行：
 
