@@ -2,6 +2,8 @@
 
 Vitest 覆盖业务分支与契约；Playwright 覆盖真实扩展加载、跨上下文通信和用户路径。先确认项目现有 scripts、fixtures 与依赖版本，再选择受影响范围。
 
+需要用户当前标签页、登录态或已安装扩展的现场验证时，先读 [用户 Chrome 调试](${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md)，采用 Chrome DevTools MCP；本页的临时 profile 负责独立回归，两种证据不得互相冒充。extension-test 仍负责 Vitest，现场采集由开发角色或主会话完成。
+
 ## Vitest
 
 - WXT 内置 `WxtVitest`，从 `wxt/testing/vitest-plugin` 导入；它接入 WXT Vite 配置、别名和 browser 的 fakeBrowser 实现，无需另找 `wxt-vitest` 包。

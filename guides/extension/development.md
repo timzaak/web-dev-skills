@@ -9,6 +9,7 @@
 - Tailwind / Radix 按 UI 复杂度采用；简单 popup 优先组件局部状态，有跨组件状态需求再用 Zustand。
 - 需要服务端缓存时在 UI 使用 TanStack Query；有 OpenAPI 时可采用生成客户端。不要为无后端的扩展引入这些依赖。
 - 测试选择与配置见 [testing.md](${CLAUDE_PLUGIN_ROOT}/guides/extension/testing.md)。
+- 设计现场验证策略或诊断用户当前浏览器问题时，读 [用户 Chrome 调试](${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md)，使用 Chrome DevTools MCP 自动连接现有 Chrome。
 
 ## 上下文职责
 

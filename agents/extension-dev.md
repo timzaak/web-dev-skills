@@ -10,6 +10,14 @@ tools:
   - Edit
   - mcp__context7__resolve-library-id
   - mcp__context7__query-docs
+  - mcp__chrome-devtools__list_pages
+  - mcp__chrome-devtools__select_page
+  - mcp__chrome-devtools__take_snapshot
+  - mcp__chrome-devtools__take_screenshot
+  - mcp__chrome-devtools__list_console_messages
+  - mcp__chrome-devtools__get_console_message
+  - mcp__chrome-devtools__list_network_requests
+  - mcp__chrome-devtools__get_network_request
 ---
 
 # Extension Dev
@@ -21,6 +29,8 @@ tools:
 任务规划调用时，仅按调用方要求返回 slot/item 计划，不执行代码或命令；拆分与定向测试执行规则读取 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`。
 
 ## 执行
+
+任务涉及用户当前浏览器时，先读 `${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md`；工具权限、现场证据与主会话交接按 `${CLAUDE_PLUGIN_ROOT}/protocols/extension-acceptance-contract.md`。本角色浏览器工具用于观察，复现/重载等超出工具范围的动作交回主会话完成。
 
 1. 读 `${CLAUDE_PLUGIN_ROOT}/guides/extension/development.md`，核对项目入口、scripts、消息和存储封装，再实现当前 item。库级事实优先查官方文档/Context7。
 2. 权限、注入范围或 CSP 变更缺少设计/已确认依据时返回缺口；不要静默扩权。

@@ -5,6 +5,7 @@ Chrome 扩展（Manifest V3）规范入口，按“先定位问题，再读对�
 | 你要确认的问题 | 对应规范 |
 | --- | --- |
 | 默认技术基线、上下文边界、消息与存储实践 | [development.md](${CLAUDE_PLUGIN_ROOT}/guides/extension/development.md) |
+| 读取用户当前 Chrome、真实登录态与扩展现场；三种 AI 客户端接入 | [live-browser.md](${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md) |
 | Vitest/MSW 测试边界、fakeBrowser 用法与 Playwright 扩展 E2E | [testing.md](${CLAUDE_PLUGIN_ROOT}/guides/extension/testing.md) |
 | 完成前最小验证命令与门禁 | [validation.md](${CLAUDE_PLUGIN_ROOT}/guides/extension/validation.md) |
 | 只读验收、权限最小化、契约一致性检查 | [quality.md](${CLAUDE_PLUGIN_ROOT}/guides/extension/quality.md) |

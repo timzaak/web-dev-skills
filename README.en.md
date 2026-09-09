@@ -77,6 +77,8 @@ Prepare a WXT project first (`t-init` does not yet provide an extension template
 
 ## Usage Rules
 
+When extension development needs the user's current Chrome tabs, login state, or installed extensions, use **Chrome DevTools MCP with `--autoConnect`**. Follow the [live Chrome debugging guide](guides/extension/live-browser.md) to configure Claude Code, Codex, or ZCode and allow the connection in Chrome. This is a conditional dependency for live-browser tasks, not a globally required MCP server; live evidence and isolated Playwright regression results are assessed separately.
+
 - Every `t-*` command is manually invoked; the model must not trigger them automatically.
 - Not sure which command to use, or how a stage runs? Run `t-how`: it routes by goal and explains preconditions, outputs, and next steps.
 - PRD, tech research, and design need explicit human calibration: speak through the real intent with [Do Not Shortcut the Intent](human/speech-template.en.md) first, and never deliver with unconfirmed questions left open.

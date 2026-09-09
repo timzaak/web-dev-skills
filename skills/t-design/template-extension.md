@@ -51,6 +51,7 @@
 
 - Vitest：[受影响业务分支与定向脚本]
 - 浏览器：[真实加载、消息/权限/生命周期的必要证据；fixture、宿主/stub 来源、环境模式和命令]
+- 用户当前 Chrome：[按 `${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md` 规划 Chrome DevTools MCP 现场验证；目标页面/扩展、所需上下文与复现步骤，或不适用依据；证据要求遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/extension-acceptance-contract.md`]
 - Demo：[需要用户故事演示时声明 web-demo 交付和选择器影响；否则说明不适用]
 - 构建：[实际 type-check/compile、build 和生产 manifest 路径]
 

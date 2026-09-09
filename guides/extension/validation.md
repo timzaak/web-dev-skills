@@ -8,6 +8,7 @@
 | 生产构建 | 实现、配置或权限变更 | build 成功，入口与 manifest 生成 |
 | manifest 核对 | 构建后 | 实际输出（默认 `.output/chrome-mv3/manifest.json`）的权限、注入范围、入口、CSP 与设计及源码意图一致；披露增量 |
 | 定向测试 | 受影响行为有测试、补测或任务要求 | 相关测试通过；缺失必要测试不能视为通过 |
+| 用户浏览器现场 | 按 [验收协议](${CLAUDE_PLUGIN_ROOT}/protocols/extension-acceptance-contract.md) 判断适用性 | 协议要求的本次现场证据完整，修复后已核对实际加载产物及行为 |
 | lint | 项目已有该门禁 | 使用不改写源码的检查模式 |
 
 在扩展实际目录分别运行，例如 `npm run compile`、`npm run build`、`npm run test:run -- <相关文件>`。仅文档变更可跳过编译并说明原因。

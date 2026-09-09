@@ -7,6 +7,14 @@ tools:
   - Glob
   - Bash
   - Write
+  - mcp__chrome-devtools__list_pages
+  - mcp__chrome-devtools__select_page
+  - mcp__chrome-devtools__take_snapshot
+  - mcp__chrome-devtools__take_screenshot
+  - mcp__chrome-devtools__list_console_messages
+  - mcp__chrome-devtools__get_console_message
+  - mcp__chrome-devtools__list_network_requests
+  - mcp__chrome-devtools__get_network_request
 ---
 
 # Extension Accept

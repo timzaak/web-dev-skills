@@ -76,6 +76,8 @@ t-prd-publish user-management
 
 ## 使用规则
 
+扩展开发需要读取用户当前 Chrome 的标签页、登录态或已安装扩展时，统一使用 **Chrome DevTools MCP + `--autoConnect`**。按 [用户 Chrome 调试指南](guides/extension/live-browser.md) 配置 Claude Code、Codex 或 ZCode，并在 Chrome 中允许连接。该服务仅为现场任务的条件依赖，不加入全局必需 MCP；现场证据与独立 Playwright 回归分别验收。
+
 - 所有 `t-*` 命令都需手工触发，模型不得自动调用。
 - 不确定用哪个命令、想了解某阶段怎么跑时，运行 `t-how`：它按目标路由并讲解前置条件、产物和下一步。
 - PRD、技术预研和设计需要人的明确校准：先按 [莫要偷懒](human/speech-template.md) 口述真实意图，交付时不得遗留未向用户确认的问题。
