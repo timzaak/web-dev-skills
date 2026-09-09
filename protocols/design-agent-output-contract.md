@@ -16,6 +16,7 @@
     "change_scope": {
       "backend": true,
       "frontend": false,
+      "extension": false,
       "miniapp": false,
       "flutter": false,
       "web_demo": false,
@@ -38,6 +39,8 @@
 ```
 
 ## Status Rules
+
+`frontend-design` 的 extension 模式输出路径和 change_scope 使用 extension；change_scope 字段集合沿用 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`，本协议只定义设计专有字段。
 
 - `task_completion.status=success`：文档已完整写入，`needs_user_answer` 为空，`self_check` 全部通过。
 - `task_completion.status=partial`：只保留可诊断的中间文档；修复后重新调度或终止本轮。
@@ -80,7 +83,7 @@
 
 ## Client Contract Dependencies
 
-前端和 Flutter 只声明消费关系：
+前端、扩展和 Flutter 只声明消费关系：
 
 ```json
 {

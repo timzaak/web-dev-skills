@@ -2,7 +2,7 @@
 
 [English](README.en.md)
 
-面向 Rust、React、小程序与 Flutter 项目的 Claude Code plugin。它把 AI 编程拆成一套可执行、可恢复、可验收的工程工作流：
+面向 Rust、React、Chrome 扩展、小程序与 Flutter 项目的 Claude Code plugin。它把 AI 编程拆成一套可执行、可恢复、可验收的工程工作流：
 
 ```text
 Decision -> PRD / 技术预研（按主要未知项选择，可回环）-> 设计 -> 任务 -> 开发 -> 验收 -> Demo -> 发布
@@ -64,12 +64,15 @@ t-prd-publish user-management
 
 - `backend`：后端接口、数据模型、权限、业务逻辑、后端测试和只读验收。
 - `frontend`：React 页面、组件、状态、前端测试和只读验收。
+- `extension`：WXT / Chrome MV3 入口、消息、存储、权限、Vitest 测试和只读验收；浏览器演示归 `web-demo`。
 - `miniapp`：小程序页面、平台能力、构建验证和只读验收。
 - `flutter`：Flutter View、Riverpod 状态、数据层、单元/widget/integration 测试和只读验收。
 - `web-demo`：基于用户故事维护 Playwright Demo/E2E，并验收浏览器用户路径。
 - `flutter-demo`：基于用户故事维护 Android Patrol 演示，覆盖真实 App 操作与原生系统 UI。
 
-每个 phase 的闭环是 `t-task -> [t-task-check]（可选，按风险）-> t-run`，快速上手只以 backend 为例，其余 phase 重复同样闭环。`t-super-run` 是 GPT-5.6 Sol 级强模型的单主会话路径：合并规划与执行，`--phase` 必填，每次调用只执行一个 phase，完成后停止。miniapp 不走 `t-super-run`，使用标准闭环。
+每个 phase 的闭环是 `t-task -> [t-task-check]（可选，按风险）-> t-run`，快速上手只以 backend 为例，其余 phase 重复同样闭环。`t-super-run` 是 GPT-5.6 Sol 级强模型的单主会话路径：合并规划与执行，`--phase` 必填，每次调用只执行一个 phase，完成后停止。miniapp 和 extension 不走 `t-super-run`，使用标准闭环。
+
+扩展项目先准备 WXT 工程（`t-init` 尚不提供扩展模板），再运行 `t-design <feature>`、`t-task <feature> --phase extension`、`t-run <feature> --phase extension`。设计独立输出 `extension.md`；独立扩展 Demo 的 fixture 与 `--no-auto-env` 用法见 [扩展测试指南](guides/extension/testing.md)。
 
 ## 使用规则
 

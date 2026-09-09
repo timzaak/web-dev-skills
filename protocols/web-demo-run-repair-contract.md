@@ -35,12 +35,19 @@ Result: {"success":"true|false","fixed":"false","logs":"...","exitCode":0,"testF
 ## 诊断、修复与补测
 
 - 诊断使用 `web-demo-diagnose`，输入 `testFile`、实际失败的 `runId` 和 `testCaseTitle`。
-- 按诊断的 `recommended_agent` 选择 `web-demo-dev | frontend-dev | backend-dev | miniapp-dev | flutter-dev`。
+- 按诊断的 `recommended_agent` 选择 `web-demo-dev | frontend-dev | extension-dev | backend-dev | miniapp-dev | flutter-dev`。
 - 所有 Agent 调用必须先按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 注入角色规范。
 - 修复返回必须按 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md` 解析 `task_completion.change_scope` 和 `tests_to_run`。
-- 补测命令必须符合 `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`，并按 `backend -> frontend -> miniapp -> flutter -> demo` 串行。与当前定向 Demo 验证完全相同的 `demo` 命令去重，不重复执行。
+- 补测命令必须符合 `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`，并按 `backend -> frontend -> extension -> miniapp -> flutter -> demo` 串行。与当前定向 Demo 验证完全相同的 `demo` 命令去重，不重复执行。
 - 缺少 `tests_to_run` 时记录 P1 契约缺失，并按实际 `change_scope` 执行至少一条最小补测。补测失败记录风险，但继续 Demo 验证和后续尝试。
-- miniapp/Flutter 补测只在目标项目实际启用对应交付端，或诊断明确归因到该交付端时执行。
+- extension/miniapp/Flutter 补测只在目标项目实际启用对应交付端，或诊断明确归因到该交付端时执行。
+
+## 扩展 Demo 运行模式
+
+- 运行前从任务 Validation 和 fixture 确认环境选择。仅当 fixture 自行管理宿主站点、HTTP stub 和临时浏览器 profile 时，扩展独立测试使用 `--no-auto-env`；后续定向、整文件终验、scan 和批次恢复必须保留该参数。
+- 扩展 fixture 与请求隔离规则读取 `${CLAUDE_PLUGIN_ROOT}/guides/extension/testing.md`；缺 fixture 或依赖服务时失败，不跳过用例假装通过。
+- extension-dev 修复实际扩展代码后，必须先重新 build，再用新 persistent context 重跑；不能加载旧产物。
+- 独立扩展模式的文件间隔离由 fixture 关闭 profile、重置 stub 数据实现，不运行默认 Web stop/start。真实后端依赖仍按下节重建，不能用独立模式绕过。
 
 ## 环境和数据隔离
 
@@ -51,7 +58,7 @@ Result: {"success":"true|false","fixed":"false","logs":"...","exitCode":0,"testF
   ```
 
 - 是否重建环境只以后端代码是否实际产生变动为准，不以 `recommended_agent`、`task_completion.change_scope` 或其他代码层的变动作为判定依据。`change_scope` 仍用于选择补测范围，不能替代文件变化事实。
-- 批次运行时，Demo 用例产生的业务数据可能影响后续文件。每个文件完成后，若还有下一个文件，必须通过上述 stop/start 重建 Demo 环境和数据容器。
+- 使用默认 Web 环境的批次运行时，Demo 用例产生的业务数据可能影响后续文件。每个文件完成后，若还有下一个文件，必须通过上述 stop/start 重建 Demo 环境和数据容器。
 - 环境重建不得删除 `demo/test-results/runs/<run-id>/` 历史证据。
 
 ## 日志与 Run ID

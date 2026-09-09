@@ -44,7 +44,7 @@ allowed-tools:
 - `--phase` 缺失或不在支持列表内时终止，提示 `--phase <backend|frontend|web-demo|flutter|flutter-demo>` 用法。
 - `.ai/design/[feature].md` 必须存在。
 - 运行 `python ${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py ".ai/design/[feature].md" --require-complete --json`；失败时停止，不创建或恢复 super-run。
-- 只支持 `backend | frontend | web-demo | flutter | flutter-demo`；请求的 phase 不在设计与需求来源识别出的真实交付端内时终止，不得为满足命令而编造交付范围。miniapp 使用 `/t-task`、可选 `/t-task-check` 与 `/t-run`。
+- 只支持 `backend | frontend | web-demo | flutter | flutter-demo`；请求的 phase 不在设计与需求来源识别出的真实交付端内时终止，不得为满足命令而编造交付范围。miniapp 和 extension 使用 `/t-task`、可选 `/t-task-check` 与 `/t-run`。
 - 不读取或修改 `.ai/task/[feature]/` 作为 super-run 状态。
 - 已有状态且请求的 phase 为 `completed | skipped` 时，直接报告结果，不重新执行，也不选择其他 phase。
 

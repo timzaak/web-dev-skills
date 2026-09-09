@@ -25,7 +25,7 @@ allowed-tools:
 ## 输入范围
 
 - 设计主文档：`.ai/design/[feature].md`
-- 分端设计文档（适用端必须存在）：`.ai/design/[feature]/backend.md`、`.ai/design/[feature]/frontend.md`、`.ai/design/[feature]/flutter.md`
+- 分端设计文档（适用端必须存在）：`.ai/design/[feature]/backend.md`、`.ai/design/[feature]/frontend.md`、`.ai/design/[feature]/extension.md`、`.ai/design/[feature]/flutter.md`
 - 设计生成状态：`.ai/design/[feature]/.state.json`（存在时必须为 `complete`）
 - 决策账本：`.ai/decision-log/[feature].md`（存在时必须读取）
 - 需求来源：`.ai/user-stories/**/*.md`、`docs/user-stories/**/*.md`、`.ai/prd/**/*.md`、`docs/prd/**/*.md`、`.ai/tech-research/**/*.md`
@@ -34,6 +34,7 @@ allowed-tools:
   - `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md`
   - `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md`
   - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md`
+  - `${CLAUDE_PLUGIN_ROOT}/guides/extension/development.md`（扩展适用时）
   - `${CLAUDE_PLUGIN_ROOT}/guides/flutter/development.md`（目标项目启用 Flutter 时）
   - `AGENTS.md`
 
@@ -46,7 +47,7 @@ allowed-tools:
 - 对主文档和全部适用分端文档运行决策闭合扫描；`needs_user_answer` 和澄清处理按 rubric 的 Clarification Gate 执行（先查 Decision Log，未解决时 `AskUserQuestion` 阻塞提问，回答后更新 Decision Log 和设计文档再重新扫描）。
 - 核对设计文档与需求来源的一致性。设计引用 `.ai/user-stories` 时确认其为 draft 候选来源且路径存在；同时存在相关 `docs/user-stories` 时检查是否有未说明冲突。纯技术方案可接受 `.ai/tech-research/[feature].md` 作为唯一需求来源，不得因缺少 PRD/用户故事扣 P0。
 - 核对设计文档与项目规范的一致性。
-- 按 rubric 的维度和 Detailed Checks 分别检查：主文档（需求追溯、跨端契约与汇总）、backend 分端（API、数据库、领域逻辑）、frontend 分端（页面、状态与数据流）、flutter 分端（分层、状态管理、导航）与测试策略。
+- 按 rubric 的维度和 Detailed Checks 分别检查：主文档（需求追溯、跨端契约与汇总）、backend 分端（API、数据库、领域逻辑）、frontend 分端（页面、状态与数据流）、extension 分端（权限、消息/存储与生命周期）、flutter 分端（分层、状态管理、导航）与测试策略。
 - 评估设计方案的章节组织是否内聚：若同一业务闭环、同一数据模型或同一外部契约被拆分为多个独立章节，应在设计阶段合并，避免 `/t-task` 产出颗粒度过细的 item；分端文档内部不得重复其他端的设计内容。
 - 按 rubric 的归一化规则生成评分与问题清单，并按其 Pass Gate 输出 `PASS / CONDITIONAL PASS / FAIL`，不得只凭总分宣布通过。
 - 输出下一步建议：通过或风险可接受时进入 `/t-task [feature]`；修复后可重新运行 `/t-design-check [feature]`。

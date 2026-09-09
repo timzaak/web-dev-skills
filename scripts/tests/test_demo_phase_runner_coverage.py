@@ -19,6 +19,26 @@ SPEC.loader.exec_module(coverage)
 
 
 class DemoPhaseCoverageTests(unittest.TestCase):
+    def test_extension_runner_discovery_and_full_suite_gate(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            runner = root / ".ai/task/feature/extension/test/EX-T02-runner.md"
+            runner.parent.mkdir(parents=True)
+            content = (
+                "## Expected Test Manifest\n- `rejects invalid sender`\n"
+                "## Validation\ncd extension && npm run test:run -- lib/messaging.test.ts\n"
+            )
+            runner.write_text(content, encoding="utf-8")
+            self.assertEqual(coverage.find_runner_files(root, "feature", "extension"), [runner])
+            self.assertEqual(coverage.find_runner_files(root, "feature", None), [runner])
+            self.assertEqual(coverage.infer_layer(runner), "extension")
+            self.assertEqual(coverage.check_runner(root, runner, dynamic=False).errors, [])
+            runner.write_text(content.replace(" -- lib/messaging.test.ts", ""), encoding="utf-8")
+            errors = coverage.check_runner(root, runner, dynamic=False).errors
+            self.assertTrue(any("Full-suite command lacks" in error for error in errors))
+            runner.write_text(content.replace("cd extension && npm run test:run -- lib/messaging.test.ts", ""), encoding="utf-8")
+            self.assertIn("No test runner command found.", coverage.check_runner(root, runner, dynamic=False).errors)
+
     def test_discovers_web_and_flutter_demo_runner_items_independently(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

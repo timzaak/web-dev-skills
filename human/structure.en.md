@@ -48,9 +48,9 @@ Not every project needs every stage. `t-prd-check`, `t-design-check`, and `t-tas
 
 Subagents are split by engineering role instead of making one agent own every responsibility:
 
-- `backend-dev` / `frontend-dev` / `miniapp-dev`: implementation.
-- `backend-test` / `frontend-test` / `miniapp-test`: testing.
-- `backend-accept` / `frontend-accept` / `miniapp-accept`: read-only acceptance with evidence.
+- `backend-dev` / `frontend-dev` / `miniapp-dev` / `extension-dev`: implementation.
+- `backend-test` / `frontend-test` / `miniapp-test` / `extension-test`: testing.
+- `backend-accept` / `frontend-accept` / `miniapp-accept` / `extension-accept`: read-only acceptance with evidence.
 - `web-demo-dev` / `web-demo-accept` / `web-demo-diagnose`: Playwright Demo/E2E maintenance, acceptance, and diagnosis.
 - `flutter-demo-dev` / `flutter-demo-accept` / `flutter-demo-diagnose`: Android Patrol user-story demo maintenance, acceptance, and diagnosis.
 - `context-curator` / `structure-review` / `backend-consistency`: context, structure, and implementation consistency audits.

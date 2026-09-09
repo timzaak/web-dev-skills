@@ -24,6 +24,7 @@
    - `DATA`
    - `AUTH`
    - `FRONTEND`
+   - `EXTENSION`
    - `BACKEND`
    - `ENV`
 
@@ -78,6 +79,10 @@
 
 推荐处理方：
 - `frontend-dev`
+
+### EXTENSION
+
+检查生产构建、worker 日志、消息处理和权限证据，区分扩展实现缺陷与 fixture 加载失败；前者按诊断协议交给 `extension-dev`，后者交给 `web-demo-dev`。不要仅凭浏览器 UI 报错归入 FRONTEND。
 
 ### BACKEND
 

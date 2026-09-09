@@ -1,6 +1,6 @@
 {
   "name": "t-tools",
-  "description": "DDD-driven development skills, sub-agents and workflow commands for Rust, React, miniapp, and Flutter projects",
+  "description": "DDD-driven development skills, sub-agents and workflow commands for Rust, React, miniapp, Flutter, and Chrome Extension projects",
   "version": "1.0.0",
   "author": {
     "name": "T Team"
@@ -8,6 +8,8 @@
   "targetStack": {
     "backend": "Rust / Axum",
     "frontend": "React / TanStack Router & Query / Zustand / Tailwind / Radix UI",
+    "miniapp": "WeChat Mini Program / Taro / React",
+    "extension": "Chrome Extension MV3 / WXT / React / WXT storage / @webext-core/messaging",
     "mobile": "Flutter / Riverpod / go_router / integration_test / Patrol",
     "testing": "cargo nextest / Vitest / Flutter Test / Web Demo (Playwright) / Flutter Demo (Android Patrol)"
   },

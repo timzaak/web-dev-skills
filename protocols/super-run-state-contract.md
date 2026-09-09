@@ -22,7 +22,7 @@ super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相
 
 ## Supported Phases And Tasks
 
-`supported_phases` 固定为 `backend | frontend | web-demo | flutter | flutter-demo`。一个 feature 通常只命中单一端栈，`active_phases` 的启用判定统一按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Phases 规则执行（miniapp 除外，不进 super-run）：设计主文档声明 Demo 主路径或文件影响表出现 `web-demo`/`flutter-demo` 行时，对应 demo phase 纳入 `active_phases`，demo 演示资产不得并入 frontend/flutter phase 交付。miniapp 仍使用分阶段的 `t-task -> t-run` 工作流。
+`supported_phases` 固定为 `backend | frontend | web-demo | flutter | flutter-demo`。一个 feature 通常只命中单一端栈，`active_phases` 的启用判定统一按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Phases 规则执行（miniapp 和 extension 除外，不进 super-run）：设计主文档声明 Demo 主路径或文件影响表出现 `web-demo`/`flutter-demo` 行时，对应 demo phase 纳入 `active_phases`，demo 演示资产不得并入 frontend/flutter phase 交付。miniapp 和 extension 仍使用分阶段的 `t-task -> t-run` 工作流。
 
 | phase | task 顺序 | agent 规范 |
 | --- | --- | --- |

@@ -11,6 +11,9 @@ allowed-tools:
   - Agent
 ---
 
+Chrome 扩展 Demo 的 fixture、`--no-auto-env` 参数传递、修复后重建和批次隔离按 `${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md` 的“扩展 Demo 运行模式”；仅此模式下不执行默认 Web 环境 stop/start。
+
+
 # 批量运行 Demo 测试（主会话逐文件驱动）
 
 运行时边界：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`（判断脚本入口或项目事实与插件默认冲突时读）
@@ -73,7 +76,7 @@ uv run scripts/web-demo-test-runner.py "<rel_path>" --run-id "<batch_run_id>-<fi
 #### B5. 持久化 + 文件间数据隔离
 
 1. **保留最小结果**：只保留 `{status, exit_code, duration, run_id, logs, fixed}`；仅失败时再保留一句简短 `error`。文件名、下标、计数和总耗时由脚本推导。
-2. **数据隔离**：若还有下一个文件，无论当前文件成功或失败，都先重建 Demo 环境和数据容器；重建失败时执行 `block` 后中止批次（该命令保留断点且不追加结果）：
+2. **数据隔离**：若还有下一个文件，无论当前文件成功或失败，均按共享修复协议选择隔离方式。独立扩展模式确认 fixture 已清理 profile/stub；默认 Web 模式重建 Demo 环境和数据容器。隔离失败时执行 `block` 后中止批次（该命令保留断点且不追加结果）。以下 stop/start 仅用于默认 Web 模式：
    ```bash
    uv run scripts/demo-stop.py --quiet && uv run scripts/demo-start.py
    uv run scripts/web-demo-run-all.py block --json <json_report> --error "<简短原因>"

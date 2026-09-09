@@ -2,7 +2,7 @@
 
 [中文](README.md)
 
-A Claude Code plugin for Rust, React, miniapp, and Flutter projects. It turns AI programming into an executable, resumable, and acceptable engineering workflow:
+A Claude Code plugin for Rust, React, Chrome extension, miniapp, and Flutter projects. It turns AI programming into an executable, resumable, and acceptable engineering workflow:
 
 ```text
 Decision -> PRD / Tech Research (choose by the main unknown; iterate if needed) -> Design -> Task -> Development -> Acceptance -> Demo -> Release
@@ -65,12 +65,15 @@ A typical web order is `backend -> frontend -> web-demo`; a typical Flutter orde
 
 - `backend`: backend APIs, data models, permissions, business logic, backend tests, and read-only acceptance.
 - `frontend`: React pages, components, state, frontend tests, and read-only acceptance.
+- `extension`: WXT / Chrome MV3 entrypoints, messaging, storage, permissions, Vitest tests, and read-only acceptance; browser demos use `web-demo`.
 - `miniapp`: miniapp pages, platform capabilities, build verification, and read-only acceptance.
 - `flutter`: Flutter views, Riverpod state, data layers, unit/widget/integration tests, and read-only acceptance.
 - `web-demo`: Playwright Demo/E2E based on user stories and browser user paths.
 - `flutter-demo`: Android Patrol demos based on user stories, including real App actions and native system UI.
 
-Each phase runs the loop `t-task -> [t-task-check] (optional, by risk) -> t-run`; the quick start shows backend as the example and other phases repeat it. `t-super-run` is the single-main-session path for GPT-5.6 Sol-class models: it merges planning and execution, requires `--phase`, executes exactly one phase per call, then stops. Miniapp uses the standard loop.
+Each phase runs the loop `t-task -> [t-task-check] (optional, by risk) -> t-run`; the quick start shows backend as the example and other phases repeat it. `t-super-run` is the single-main-session path for GPT-5.6 Sol-class models: it merges planning and execution, requires `--phase`, executes exactly one phase per call, then stops. Miniapp and extension use the standard loop, outside `t-super-run`.
+
+Prepare a WXT project first (`t-init` does not yet provide an extension template), then run `t-design <feature>`, `t-task <feature> --phase extension`, and `t-run <feature> --phase extension`. Design produces a separate `extension.md`. See the [extension testing guide](guides/extension/testing.md) for standalone fixtures and `--no-auto-env`.
 
 ## Usage Rules
 

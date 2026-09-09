@@ -48,9 +48,9 @@ t-design -> [t-design-check] -> t-task -> [t-task-check]
 
 Subagent 按工程角色拆分，而不是让一个 agent 同时承担所有职责：
 
-- `backend-dev` / `frontend-dev` / `miniapp-dev`：实现。
-- `backend-test` / `frontend-test` / `miniapp-test`：测试。
-- `backend-accept` / `frontend-accept` / `miniapp-accept`：默认只读验收并输出证据。
+- `backend-dev` / `frontend-dev` / `miniapp-dev` / `extension-dev`：实现。
+- `backend-test` / `frontend-test` / `miniapp-test` / `extension-test`：测试。
+- `backend-accept` / `frontend-accept` / `miniapp-accept` / `extension-accept`：默认只读验收并输出证据。
 - `web-demo-dev` / `web-demo-accept` / `web-demo-diagnose`：维护、验收和诊断 Playwright Demo/E2E。
 - `flutter-demo-dev` / `flutter-demo-accept` / `flutter-demo-diagnose`：维护、验收和诊断 Android Patrol 用户故事演示。
 - `context-curator` / `structure-review` / `backend-consistency`：上下文、结构和实现一致性审计。

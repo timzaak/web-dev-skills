@@ -18,6 +18,9 @@ tools:
   - Write
 ---
 
+任务涉及 Chrome 扩展时，先读 `${CLAUDE_PLUGIN_ROOT}/guides/extension/testing.md` 的 fixture、环境与生命周期规则；失败归因按 `${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-contract.md`，不把扩展实现问题交给 frontend-dev。
+
+
 # Demo Diagnose Agent
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`

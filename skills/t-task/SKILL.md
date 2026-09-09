@@ -1,7 +1,7 @@
 ---
 name: t-task
 description: Convert technical design documents into executable phased task plans with ordered work breakdown.
-argument-hint: "[任务名称] [--phase <backend|frontend|miniapp|flutter|web-demo|flutter-demo>]"
+argument-hint: "[任务名称] [--phase <backend|frontend|extension|miniapp|flutter|web-demo|flutter-demo>]"
 allowed-tools:
   - AskUserQuestion
   - Read
@@ -34,7 +34,7 @@ allowed-tools:
 | 参数 | 说明 |
 |---|---|
 | `[feature]` | 功能名（必填） |
-| `--phase <backend\|frontend\|miniapp\|flutter\|web-demo\|flutter-demo>` | 指定阶段生成；未指定时默认选择第一个 active phase |
+| `--phase <backend\|frontend\|extension\|miniapp\|flutter\|web-demo\|flutter-demo>` | 指定阶段生成；未指定时默认选择第一个 active phase |
 
 ## Input Contract
 
@@ -43,7 +43,7 @@ allowed-tools:
   - 必须包含：目标、范围、交付端范围、跨端契约摘要、测试与验收汇总、文件影响范围全量汇总
   - 应包含：现有实现分析概览、用户故事/PRD/技术预研引用、Decision Trace
   - 纯技术方案设计可只包含技术预研引用，但必须声明不涉及业务逻辑、产品规则、用户可见流程或验收目标变动
-- `.ai/design/[feature]/backend.md`、`frontend.md`、`flutter.md` — 分端设计文档；主文档 §4.2 标记适用时必须存在，生成对应 phase 时必须读取（分端细节以分端文档为准）
+- `.ai/design/[feature]/backend.md`、`frontend.md`、`extension.md`、`flutter.md` — 分端设计文档；主文档 §4.2 标记适用时必须存在，生成对应 phase 时必须读取（分端细节以分端文档为准）
 - `.ai/design/[feature]/.state.json` — 存在时必须为 `complete`，否则停止并提示恢复 `/t-design [feature]`；没有状态文件时兼容旧设计产物
 - `.ai/decision-log/[feature].md` — 跨阶段决策账本（存在时必须读取；本阶段不得采用 Superseded Decision）
 
@@ -52,7 +52,7 @@ allowed-tools:
 - `docs/prd/**/*.md`、`.ai/user-stories/**/*.md`、`docs/user-stories/**/*.md`、`.ai/tech-research/**/*.md` — 需求来源
 - `${CLAUDE_PLUGIN_ROOT}/guides/` — 开发规范
 
-前置条件：active phases、miniapp/flutter 启用规则和 slot 顺序统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`；未启用的 phase 不参与生成。
+前置条件：active phases、extension/miniapp/flutter 启用规则和 slot 顺序统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`；未启用的 phase 不参与生成。
 
 ## Output Contract
 
@@ -71,7 +71,8 @@ allowed-tools:
 
 - 校验 `.ai/design/[feature].md` 存在。读取 Decision Log，核对设计的 Decision Trace，并把 `Must Resolve Before=t-task` 的 Deferred Question 升级为 `needs_user_answer`。
 - 解析 `[feature]` 和 `--phase`；按 task-phase-execution 检测 active phases，未传 `--phase` 时选择第一个 active phase。
-- 按当前 phase 提取设计文档最小相关上下文：主文档（目标范围、交付端范围、跨端契约、测试汇总、文件影响范围）加当前 phase 对应的分端设计文档（backend phase 读 `backend.md`，frontend phase 读 `frontend.md`，flutter/web-demo/flutter-demo phase 读对应端文档，缺失时读主文档可用部分）；未命中相关章节时记录警告，但不得编造设计事实。
+- 按当前 phase 提取设计文档最小相关上下文：主文档（目标范围、交付端范围、跨端契约、测试汇总、文件影响范围）加当前 phase 对应的分端设计文档（backend phase 读 `backend.md`，frontend phase 读 `frontend.md`，extension phase 读 `extension.md`，flutter/web-demo/flutter-demo phase 读对应端文档，缺失时读主文档可用部分）；未命中相关章节时记录警告，但不得编造设计事实。
+- web-demo 涉及扩展时读取 `extension.md` 的浏览器策略及 `${CLAUDE_PLUGIN_ROOT}/guides/extension/testing.md`；extension 适用却缺少分端设计时停止，不套用 Web UI 方案。
 - 调度 slot agent 前，先要求其识别当前 slot 的责任闭环（业务能力、接口能力、页面主流程、组件族、测试资产闭环或验收闭环）；技术层、文件类型和实现步骤只作为拆分的辅助线索。
 - 按当前阶段 slot 串行调度相应 agent（映射见下表），每次调度按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 通过 `Agent` tool 启动。prompt 保持精简：阶段设计摘要、上游 handoff、目标 guide/protocol 路径、责任闭环识别要求、输出字段要求、`needs_user_answer` 规则；不得复制 guide、protocol 或 agent 文档中的长篇规则。
 - 生成 backend/test runner item 时，必须要求 agent 从 `Expected Test Manifest`、变更文件和 package/module/test name 推导最小可靠定向命令；规划全量 `uv run scripts/backend-test.py --` 时必须在 `Validation` 或 `Handoff` 写明无法可靠定向的具体原因或门禁要求，否则写入前硬校验拒绝。完整规则见 task-phase-execution 的 Backend Test Item Types。
@@ -91,6 +92,9 @@ allowed-tools:
 | frontend | dev | frontend-dev |
 | frontend | test | frontend-test |
 | frontend | accept | frontend-accept |
+| extension | dev | extension-dev |
+| extension | test | extension-test |
+| extension | accept | extension-accept |
 | miniapp | dev | miniapp-dev |
 | miniapp | test | miniapp-test |
 | miniapp | accept | miniapp-accept |
