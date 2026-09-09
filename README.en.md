@@ -29,65 +29,39 @@ Prerequisites:
 Minimal end-to-end loop:
 
 ```bash
-# Product decision gate
+# Product decision gate; routes to tech research or PRD by the main unknown
 t-decision user-management
 
-# Start with research when feasibility, dependency, or cost risks affect product scope
+# Run research first when feasibility, dependencies, or cost may affect scope;
+# no fixed order with PRD — converge before design
 t-tech-research user-management
 
-# Generate .ai/prd and .ai/user-stories drafts when product boundaries are ready;
-# this may also run before research, then run again afterward to converge the drafts
+# Generate .ai/prd and .ai/user-stories drafts
 t-prd user-management
 
-# PRD quality check (optional; recommended for high-risk requirements)
-t-prd-check user-management
-
-# Generate technical design
+# Generate technical design (master + per-stack)
 t-design user-management
 
-# Design quality check (optional; recommended for complex designs)
-t-design-check user-management
-
-# Generate executable backend tasks
+# Generate tasks and implement per phase; repeat the loop for other phases
 t-task user-management --phase backend
-
-# Check task breakdown, execution order, and executability (optional; recommended for complex plans)
-t-task-check user-management --phase backend
-
-# Implement and test by phase
 t-run user-management --phase backend
 
-# GPT-5.6 Sol-class path: let one main session plan, execute, and remain in
-# Goal mode through implementation, validation, repair, and acceptance
+# Single-main-session path for GPT-5.6 Sol-class models, merging planning and execution
 t-super-run user-management --phase backend
 
-# Run Web Demo/E2E tests
+# Web Demo/E2E and final acceptance (Flutter: t-flutter-demo-run / t-flutter-demo-accept)
 t-web-demo-run demo/e2e/<role>/<scenario>.e2e.ts
-
-# Run all non-live Demo/E2E files sequentially with checkpoint resume
-t-web-demo-run-all
-# When many Demo files fail with overlapping causes: add scan to pre-scan, cluster by root cause, then fix each unique cause once
-t-web-demo-run-all scan
-
-# Run one Android Flutter user-story demo
-t-flutter-demo-run patrol_test/<domain>/<story>_test.dart --device <android-id>
-
-# Run all Patrol demos sequentially with checkpoint resume
-t-flutter-demo-run-all --device <android-id>
-
-# Web / Flutter Demo acceptance
 t-web-demo-accept <role>
-t-flutter-demo-accept <domain|all> --device <android-id>
 
 # Publish formal PRD / user stories after implementation and acceptance
 t-prd-publish user-management
 ```
 
-`t-prd-check`, `t-design-check`, and `t-task-check` are optional quality checks. Run them for high-risk requirements, complex designs, multi-person work, long-lived changes, or unstable AI output; simple changes may continue directly to the next stage. `accept` remains the implementation acceptance closure and is separate from these optional checks.
+`t-prd-check`, `t-design-check`, and `t-task-check` are optional quality checks; use them by risk.
 
 ## Phase Split
 
-`t-task`, `t-task-check`, and `t-run` all progress by phase. A typical web order is `backend -> frontend -> web-demo`; a typical Flutter order is `backend -> flutter -> flutter-demo`.
+A typical web order is `backend -> frontend -> web-demo`; a typical Flutter order is `backend -> flutter -> flutter-demo`.
 
 - `backend`: backend APIs, data models, permissions, business logic, backend tests, and read-only acceptance.
 - `frontend`: React pages, components, state, frontend tests, and read-only acceptance.
@@ -96,23 +70,13 @@ t-prd-publish user-management
 - `web-demo`: Playwright Demo/E2E based on user stories and browser user paths.
 - `flutter-demo`: Android Patrol demos based on user stories, including real App actions and native system UI.
 
-Each phase starts with `t-task <feature> --phase <phase>`, may run `t-task-check <feature> --phase <phase>` depending on risk, and then `t-run <feature> --phase <phase>` executes items serially. Repeat the loop for every active phase.
+Each phase runs the loop `t-task -> [t-task-check] (optional, by risk) -> t-run`; the quick start shows backend as the example and other phases repeat it. `t-super-run` is the single-main-session path for GPT-5.6 Sol-class models: it merges planning and execution, requires `--phase`, executes exactly one phase per call, then stops. Miniapp uses the standard loop.
 
-`t-super-run <feature> --phase <backend|frontend|web-demo|flutter|flutter-demo>` is the single-main-session path for backend, frontend, Web Demo, Flutter, and Flutter Demo. It merges planning and execution: dev and test run in the main session under agent role guides, while accept dispatches the matching read-only accept subagent and maps its verdict back into the state, recording outcome-level status as `dev -> test -> accept` for backend/frontend/flutter or `dev -> accept` for web-demo/flutter-demo. `--phase` is required; each invocation executes exactly the one specified phase, then stops and reports the remaining unfinished phases for the user to start explicitly. Miniapp uses `t-task -> [t-task-check] -> t-run`.
-
-## Key Rules
+## Usage Rules
 
 - Every `t-*` command is manually invoked; the model must not trigger them automatically.
-- `t-decision` is the product decision gate before PRD and tech research; it routes to `t-prd` or `t-tech-research` by the main unknown.
-- Consult `.ai/decision-log/<feature>.md` before asking the user anything; never re-ask a confirmed or already-decided question.
-- A delivered PRD, tech research report, or design must have `needs_user_answer=0`. Questions that affect scope, business rules, permissions, security, significant cost, or acceptance are asked first, never silently stored as pending items, assumptions, or risks.
-- `t-prd` and `t-tech-research` have no fixed order, but both must converge without unexplained conflicts before `t-design`; rerun `t-prd` when research findings change product semantics.
-- `t-prd` only writes candidate drafts under `.ai/prd` and `.ai/user-stories`; `t-prd-publish` merges long-term facts back into `docs/`.
-- `t-design` produces a master document plus per-stack designs: backend design runs first and owns the API contract; frontend and Flutter designs only consume it.
-- Figma restoration and motion refinement are standalone entries outside the main chain: `t-figma-assets` prepares assets, `t-figma-impl` restores a full page, `t-figma-fix` refines one region, `t-figma-ux` polishes motion.
-- Helper commands: `t-doc` for project documentation; `t-dream` for cross-stage read-only audits (PRD governance requires an explicit `--govern-prd`); `t-simplify` simplifies changed code, not correctness bugs. Before `t-push`, run `/code-review --fix` and `t-simplify` first; `t-push` then cleans comments, runs affected CI, commits, and pushes.
-
-PRD, tech research, and design need explicit human calibration: speak through the real intent following [Do Not Shortcut the Intent](human/speech-template.en.md) first, and have the AI echo its key understanding and open questions before generating artifacts. After `t-prd`, state the PRD you would accept and let the AI revise against it; after `t-design`, walk the UX from the user's perspective — entry points, paths, feedback, defaults, and error states — before asking for revision.
+- Not sure which command to use, or how a stage runs? Run `t-how`: it routes by goal and explains preconditions, outputs, and next steps.
+- PRD, tech research, and design need explicit human calibration: speak through the real intent with [Do Not Shortcut the Intent](human/speech-template.en.md) first, and never deliver with unconfirmed questions left open.
 
 ## Installation
 

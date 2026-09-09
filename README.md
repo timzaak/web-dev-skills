@@ -29,65 +29,38 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 最短闭环：
 
 ```bash
-# 产品立项判断
+# 产品立项判断，按主要未知项进入技术预研或 PRD
 t-decision user-management
 
-# 技术可行性、依赖或成本会影响产品范围时，先做技术预研
+# 技术可行性、依赖或成本影响产品范围时先做预研；与 PRD 无固定顺序，进设计前收敛
 t-tech-research user-management
 
-# 产品边界已足以成稿时生成 .ai/prd 与 .ai/user-stories 草稿；
-# 也可先生成草稿，再做技术预研，最后重跑本命令收敛草稿
+# 生成 .ai/prd 与 .ai/user-stories 草稿
 t-prd user-management
 
-# PRD 质量检查（可选，推荐高风险需求运行）
-t-prd-check user-management
-
-# 生成技术设计
+# 生成技术设计（主文档 + 分端设计）
 t-design user-management
 
-# 设计质量检查（可选，推荐复杂设计运行）
-t-design-check user-management
-
-# 生成 backend 阶段可执行任务
+# 生成任务并按 phase 实现与测试；其他 phase 重复同样闭环
 t-task user-management --phase backend
-
-# 检查任务拆分、顺序和可执行性（可选，推荐复杂任务运行）
-t-task-check user-management --phase backend
-
-# 按阶段实现与测试
 t-run user-management --phase backend
 
-# GPT-5.6 Sol 级强模型路径：由主会话规划、执行并用 Goal 持续到验收通过
-# 此命令采用目标级 task，不生成供 t-task-check 检查的细粒度 item
+# GPT-5.6 Sol 级强模型的单主会话路径，合并规划与执行
 t-super-run user-management --phase backend
 
-# 运行 Web Demo/E2E 测试
+# Web Demo/E2E 与最终验收（Flutter 对应 t-flutter-demo-run / t-flutter-demo-accept）
 t-web-demo-run demo/e2e/<role>/<scenario>.e2e.ts
-
-# 串行运行全部非 live Demo/E2E，支持断点续跑
-t-web-demo-run-all
-# 批量 Demo 失败密集且疑似共享根因时：加 scan 参数先聚类再按唯一根因修
-t-web-demo-run-all scan
-
-# 运行 Android Flutter 用户故事演示
-t-flutter-demo-run patrol_test/<domain>/<story>_test.dart --device <android-id>
-
-# 串行运行全部 Patrol 演示，支持断点续跑
-t-flutter-demo-run-all --device <android-id>
-
-# Web / Flutter Demo 最终验收
 t-web-demo-accept <role>
-t-flutter-demo-accept <domain|all> --device <android-id>
 
 # 实现和验收后发布正式 PRD / 用户故事
 t-prd-publish user-management
 ```
 
-`t-prd-check`、`t-design-check`、`t-task-check` 是可选质量检查：高风险需求、复杂设计、多人协作、长期维护或 AI 输出明显不稳定时建议运行；简单变更可直接进入下一阶段。`accept` 阶段仍是实现后的验收收口，不属于这三个可选检查。
+`t-prd-check`、`t-design-check`、`t-task-check` 是可选质量检查，按风险选用。
 
 ## 阶段拆分
 
-`t-task`、`t-task-check` 和 `t-run` 都按 phase 推进，其中 `t-task-check` 是可选检查。典型 Web 顺序是 `backend -> frontend -> web-demo`；典型 Flutter 顺序是 `backend -> flutter -> flutter-demo`。
+典型 Web 顺序是 `backend -> frontend -> web-demo`；典型 Flutter 顺序是 `backend -> flutter -> flutter-demo`。
 
 - `backend`：后端接口、数据模型、权限、业务逻辑、后端测试和只读验收。
 - `frontend`：React 页面、组件、状态、前端测试和只读验收。
@@ -96,23 +69,13 @@ t-prd-publish user-management
 - `web-demo`：基于用户故事维护 Playwright Demo/E2E，并验收浏览器用户路径。
 - `flutter-demo`：基于用户故事维护 Android Patrol 演示，覆盖真实 App 操作与原生系统 UI。
 
-每个 phase 都先运行 `t-task <feature> --phase <phase>`，随后可按风险选择运行 `t-task-check <feature> --phase <phase>`，再用 `t-run <feature> --phase <phase>` 串行执行 item。README 的快速上手只展开 backend 作为示例；其他 active phase 重复同样闭环。
+每个 phase 的闭环是 `t-task -> [t-task-check]（可选，按风险）-> t-run`，快速上手只以 backend 为例，其余 phase 重复同样闭环。`t-super-run` 是 GPT-5.6 Sol 级强模型的单主会话路径：合并规划与执行，`--phase` 必填，每次调用只执行一个 phase，完成后停止。miniapp 不走 `t-super-run`，使用标准闭环。
 
-`t-super-run <feature> --phase <backend|frontend|web-demo|flutter|flutter-demo>` 是针对 GPT-5.6 Sol（`gpt-5.6-sol`）及同等级强模型优化的单主会话执行路径：它合并任务规划与执行，dev/test 由主会话按 agent 规范直接执行，accept 派发对应只读 accept subagent 并把结论映射回状态，只按 backend/frontend/flutter 的 `dev -> test -> accept` 或 web-demo/flutter-demo 的 `dev -> accept` 记录目标级状态。`--phase` 必填，每次调用只执行指定的一个 phase，完成后停止并报告剩余未完成 phase，由用户再次调用启动。miniapp 使用 `t-task -> [t-task-check] -> t-run`。
-
-## 关键使用规则
+## 使用规则
 
 - 所有 `t-*` 命令都需手工触发，模型不得自动调用。
-- `t-decision` 是产品立项门禁，先于 PRD 和技术预研，按主要未知项路由到 `t-prd` 或 `t-tech-research`。
-- 任何阶段提问前先查 `.ai/decision-log/<feature>.md`，已确认或已裁决的决策不再重复询问。
-- PRD、技术预研和设计交付时必须满足 `needs_user_answer=0`：影响范围、业务规则、权限、安全、显著成本或验收的问题先问用户，不得静默写成“待确认”、假设或风险。
-- `t-prd` 与 `t-tech-research` 没有全局固定顺序，进入 `t-design` 前必须收敛且无未解释冲突；预研结论改变产品语义时重跑 `t-prd` 更新草稿。
-- `t-prd` 只写 `.ai/prd` 与 `.ai/user-stories` 候选草稿，`t-prd-publish` 才把长期事实合并回 `docs/`。
-- `t-design` 产出主文档与分端设计：后端设计先行并拥有 API 契约，前端与 Flutter 设计只消费契约。
-- Figma 还原与动效精修是独立入口，不进入主链路：`t-figma-assets` 准备素材，`t-figma-impl` 整页还原，`t-figma-fix` 局部精修，`t-figma-ux` 动效精修。
-- 辅助命令：`t-doc` 写项目文档；`t-dream` 跨阶段只读审计，PRD 治理写入需显式 `--govern-prd`；`t-simplify` 简化变更代码，不查正确性缺陷。推荐 `t-push` 前先跑 `/code-review --fix` 和 `t-simplify`，`t-push` 再清理注释、跑受影响 CI 并提交推送。
-
-PRD、技术预研和设计需要人的明确校准：先按 [莫要偷懒](human/speech-template.md) 口述真实意图，AI 吞吐后先输出重点理解与待确认问题再生成产物；`t-prd` 后先口述你认可的 PRD 让 AI 对照修正，`t-design` 后从用户视角过一遍入口、路径、反馈、默认值和错误状态再让 AI 修正。
+- 不确定用哪个命令、想了解某阶段怎么跑时，运行 `t-how`：它按目标路由并讲解前置条件、产物和下一步。
+- PRD、技术预研和设计需要人的明确校准：先按 [莫要偷懒](human/speech-template.md) 口述真实意图，交付时不得遗留未向用户确认的问题。
 
 ## 安装
 
