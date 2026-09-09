@@ -77,6 +77,7 @@ Subagent 按工程角色拆分，而不是让一个 agent 同时承担所有职�
 
 - `backend/`：后端架构、开发、测试、验证、TDD 和质量门禁。
 - `frontend/`：前端开发模式、测试策略、`data-testid` 和质量门禁。
+- `extension/`：Chrome 扩展工程初始化、开发、测试、验证和质量门禁。
 - `miniapp/`：小程序开发、测试、验证和质量门禁。
 - `web-demo/`：Playwright E2E、选择器、Page Object、诊断和常见失败处理。
 - `flutter/`：Flutter 开发、测试以及 Android Patrol 用户故事演示。

@@ -73,7 +73,7 @@ A typical web order is `backend -> frontend -> web-demo`; a typical Flutter orde
 
 Each phase runs the loop `t-task -> [t-task-check] (optional, by risk) -> t-run`; the quick start shows backend as the example and other phases repeat it. `t-super-run` is the single-main-session path for GPT-5.6 Sol-class models: it merges planning and execution, requires `--phase`, executes exactly one phase per call, then stops. Miniapp and extension use the standard loop, outside `t-super-run`.
 
-Prepare a WXT project first (`t-init` does not yet provide an extension template), then run `t-design <feature>`, `t-task <feature> --phase extension`, and `t-run <feature> --phase extension`. Design produces a separate `extension.md`. See the [extension testing guide](guides/extension/testing.md) for standalone fixtures and `--no-auto-env`.
+Prepare a WXT project first by following the [extension initialization guide](guides/extension/initialization.md) (`t-init` does not yet provide an extension template), then run `t-design <feature>`, `t-task <feature> --phase extension`, and `t-run <feature> --phase extension`. Design produces a separate `extension.md`. See the [extension testing guide](guides/extension/testing.md) for standalone fixtures and `--no-auto-env`.
 
 ## Usage Rules
 

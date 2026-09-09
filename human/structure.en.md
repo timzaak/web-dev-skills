@@ -77,6 +77,7 @@ Shared rules should be changed in protocols first, not copied across multiple sk
 
 - `backend/`: backend architecture, development, testing, validation, TDD, and quality gates.
 - `frontend/`: frontend development patterns, testing strategy, `data-testid`, and quality gates.
+- `extension/`: Chrome extension project initialization, development, testing, validation, and quality gates.
 - `miniapp/`: miniapp development, testing, validation, and quality gates.
 - `web-demo/`: Playwright E2E, selectors, Page Objects, diagnosis, and common failure handling.
 - `flutter/`: Flutter development, testing, and Android Patrol user-story demos.
