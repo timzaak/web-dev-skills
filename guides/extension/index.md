@@ -4,7 +4,7 @@ Chrome 扩展（Manifest V3）规范入口，按“先定位问题，再读对�
 
 | 你要确认的问题 | 对应规范 |
 | --- | --- |
-| 从零搭建 WXT 工程（脚手架、基线对齐、测试脚手架、初始化验证） | [initialization.md](${CLAUDE_PLUGIN_ROOT}/guides/extension/initialization.md) |
+| 从零创建 WXT 工程并验证开发、测试与构建 | [initialization.md](${CLAUDE_PLUGIN_ROOT}/guides/extension/initialization.md) |
 | 默认技术基线、上下文边界、消息与存储实践 | [development.md](${CLAUDE_PLUGIN_ROOT}/guides/extension/development.md) |
 | 读取用户当前 Chrome、真实登录态与扩展现场；三种 AI 客户端接入 | [live-browser.md](${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md) |
 | Vitest/MSW 测试边界、fakeBrowser 用法与 Playwright 扩展 E2E | [testing.md](${CLAUDE_PLUGIN_ROOT}/guides/extension/testing.md) |
@@ -13,7 +13,6 @@ Chrome 扩展（Manifest V3）规范入口，按“先定位问题，再读对�
 
 ## 使用规则
 
-- initialization.md 只覆盖从零建 WXT 工程；已有工程直接进入设计与任务阶段，不重复初始化。
 - `development.md` 维护 extension 工程基线；项目代码/配置是当前实现事实，跨阶段输出和验收判定由 protocols 定义。
 - 与 frontend 共享的实践（Vitest 测试原则、`data-testid`、Query/Zod/Tailwind 模式）以 `guides/frontend/` 对应页面为准，本目录只维护插件特有差异。
 - `testing.md` 只负责测试 how-to，不负责重述全部架构。
