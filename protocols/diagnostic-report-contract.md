@@ -10,9 +10,9 @@
 每份报告都必须在开头给出以下字段：
 
 - `runtime`: `web | flutter`
-- `problem_code`: `TEST | FRONTEND | FLUTTER | NATIVE | BACKEND | ENV | AUTH | DATA`
+- `problem_code`: `TEST | FRONTEND | EXTENSION | FLUTTER | NATIVE | BACKEND | ENV | AUTH | DATA`
 - `severity`: `P0 | P1 | P2`
-- `recommended_agent`: `web-demo-dev | flutter-demo-dev | frontend-dev | flutter-dev | backend-dev | manual`
+- `recommended_agent`: `web-demo-dev | flutter-demo-dev | frontend-dev | extension-dev | flutter-dev | backend-dev | manual`
 - `confidence`: `high | medium | low`
 
 字段含义：
@@ -126,6 +126,7 @@
 | `TEST` | 测试代码、选择器、断言、等待、流程问题 | web: `web-demo-dev`; flutter: `flutter-demo-dev` |
 | `DATA` | 测试数据、前置条件、唯一性或初始化问题 | web: `web-demo-dev`; flutter: `flutter-demo-dev` |
 | `FRONTEND` | 前端渲染、交互、路由、可见性、遮挡问题 | `frontend-dev` |
+| `EXTENSION` | 扩展 UI、worker、消息、存储或 manifest 权限实现问题（runtime=web） | `extension-dev` |
 | `FLUTTER` | Flutter 页面、路由、状态或业务交互实现问题 | `flutter-dev` |
 | `NATIVE` | Android 平台能力、权限或系统 UI 实现问题 | `flutter-dev` |
 | `BACKEND` | 后端接口、查询、服务端异常 | `backend-dev` |

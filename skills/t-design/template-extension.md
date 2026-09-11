@@ -1,0 +1,68 @@
+# [方案名称] Chrome 扩展技术设计
+
+主文档：`.ai/design/[feature].md`。仅描述扩展交付；后端契约引用来源，不复制字段定义。
+
+## 1. 目标与范围
+
+- [本端交付目标、范围外项、采用的 WXT/浏览器版本与实际目录]
+
+## 2. 需求来源与决策追踪
+
+| Decision ID | 状态 | 设计落点 | 说明 |
+|---|---|---|---|
+| `DEC-[feature]-001` | Applied / Not Applicable / Superseded | [章节] | [依据] |
+
+- [需求/用户故事/纯技术预研引用及验收目标]
+
+## 3. 现有实现分析
+
+- [真实入口、manifest、消息、存储、可复用模块与受影响边界]
+
+## 4. 入口与交互
+
+| 入口/上下文 | 承载目标 | 交互与反馈 | 关闭/导航/重启后的行为 |
+|---|---|---|---|
+| [实际入口] | [目标] | [主路径及错误反馈；无 UI 时说明] | [生命周期] |
+
+## 5. 权限与上下文
+
+- permissions / host_permissions / matches / CSP：[增量、需求或 DEC 依据、拒绝/撤销路径]
+- 特权操作及请求归属：[调用方、执行方、允许的站点/操作、凭据访问边界]
+- 注入 UI（适用时）：[隔离方式、portal、重复注入与卸载清理]
+- worker（适用时）：[监听注册、状态恢复、定时/幂等、失败重试边界]
+
+## 6. 消息与存储
+
+### 6.1 API 依赖
+
+- 契约源：[backend.md 或现有 OpenAPI/SDK；无后端时明确不适用并删除示例行]
+
+| Operation ID | 方法 | 路径 | 使用的请求字段 | 使用的响应字段 | 用途 |
+|---|---|---|---|---|---|
+| [operationId] | [METHOD] | `/api/...` | [字段名] | [字段名] | [用途] |
+
+### 6.2 扩展内部契约
+
+- 消息：[集中定义位置、sender/payload 校验、响应/错误、超时/取消]
+- 存储：[key/区域、schema、写入方、迁移与失败恢复、watch 清理]
+- UI 状态：[局部状态/按需 Zustand/Query 的归属，持久化与 hydration；不引入无需求依赖]
+
+## 7. 测试与验收
+
+- Vitest：[受影响业务分支与定向脚本]
+- 浏览器：[真实加载、消息/权限/生命周期的必要证据；fixture、宿主/stub 来源、环境模式和命令]
+- 用户当前 Chrome：[按 `${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md` 规划 Chrome DevTools MCP 现场验证；目标页面/扩展、所需上下文与复现步骤，或不适用依据；证据要求遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/extension-acceptance-contract.md`]
+- Demo：[需要用户故事演示时声明 web-demo 交付和选择器影响；否则说明不适用]
+- 构建：[实际 type-check/compile、build 和生产 manifest 路径]
+
+## 8. 风险与验证动作
+
+- [已确定方案的风险、验证动作及完成条件；用户裁决缺口返回主会话，不以假设推进]
+
+## 9. 文件影响范围（扩展文件）
+
+| 文件 | 操作 | 说明 |
+|---|---|---|
+| `[真实仓库路径]` | CREATE / MODIFY / DELETE | [变更与命名依据] |
+
+同时列入本端依赖的 Demo 资产，由主文档汇总时标记 web-demo。MODIFY/DELETE 路径必须存在，CREATE 父目录必须存在。

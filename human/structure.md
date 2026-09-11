@@ -48,9 +48,9 @@ t-design -> [t-design-check] -> t-task -> [t-task-check]
 
 Subagent 按工程角色拆分，而不是让一个 agent 同时承担所有职责：
 
-- `backend-dev` / `frontend-dev` / `miniapp-dev`：实现。
-- `backend-test` / `frontend-test` / `miniapp-test`：测试。
-- `backend-accept` / `frontend-accept` / `miniapp-accept`：默认只读验收并输出证据。
+- `backend-dev` / `frontend-dev` / `miniapp-dev` / `extension-dev`：实现。
+- `backend-test` / `frontend-test` / `miniapp-test` / `extension-test`：测试。
+- `backend-accept` / `frontend-accept` / `miniapp-accept` / `extension-accept`：默认只读验收并输出证据。
 - `web-demo-dev` / `web-demo-accept` / `web-demo-diagnose`：维护、验收和诊断 Playwright Demo/E2E。
 - `flutter-demo-dev` / `flutter-demo-accept` / `flutter-demo-diagnose`：维护、验收和诊断 Android Patrol 用户故事演示。
 - `context-curator` / `structure-review` / `backend-consistency`：上下文、结构和实现一致性审计。
@@ -79,6 +79,7 @@ Subagent 按工程角色拆分，而不是让一个 agent 同时承担所有职�
 
 - `backend/`：后端架构、开发、测试、验证、TDD 和质量门禁。
 - `frontend/`：前端开发模式、测试策略、`data-testid` 和质量门禁。
+- `extension/`：Chrome 扩展工程初始化、开发、测试、验证和质量门禁。
 - `miniapp/`：小程序开发、测试、验证和质量门禁。
 - `web-demo/`：Playwright E2E、选择器、Page Object、诊断和常见失败处理。
 - `flutter/`：Flutter 开发、测试以及 Android Patrol 用户故事演示。
@@ -147,7 +148,7 @@ Demo 阶段不是后端或前端测试的重复。它用 Playwright E2E 按用�
 
 `t-run` 只执行 item，不直接执行 `index.md`、`dev.md`、`test.md`、`accept.md` 这类 manifest。任意时刻最多一个 item 处于 `running`，这样牺牲一些并发速度，换来更小上下文、更清楚的失败定位和可恢复状态。
 
-`t-super-run` 提供单主会话执行模型。它不生成 item，也不调用 subagent，而是在主会话中按当前 task 读取对应 agent 规范和关联 guide，执行后把状态与证据写入 `.ai/super-run/[feature]/`，再切换下一个角色。backend/frontend 固定为 `dev -> test -> accept`，demo 为 `dev -> accept`；`--phase` 必填，Goal 只在请求的 phase 内持续推进，该 phase 完成后停止，状态文件负责跨上下文恢复。需要显式 subagent 分工或细粒度 handoff 时继续使用标准链路。
+`t-super-run` 提供单主会话执行模型。它不生成 item；dev/test 在主会话中按当前 task 读取对应 agent 规范和关联 guide 直接执行，accept 派发对应只读 accept subagent 并把报告结论映射回状态，执行后把状态与证据写入 `.ai/super-run/[feature]/`，再切换下一个角色。backend/frontend 固定为 `dev -> test -> accept`，demo 为 `dev -> accept`；`--phase` 必填，Goal 只在请求的 phase 内持续推进，该 phase 完成后停止，状态文件负责跨上下文恢复。需要 dev/test 层面的显式 subagent 分工或细粒度 handoff 时继续使用标准链路。
 
 修复 agent 必须返回 `tests_to_run`，说明修复后应该补跑哪些后端、前端或 Demo 命令，避免“Demo 通过但底层回归失败”的风险被藏起来。
 

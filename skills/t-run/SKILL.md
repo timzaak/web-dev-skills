@@ -1,7 +1,7 @@
 ---
 name: t-run
-description: Execute phased task plans for backend, frontend, miniapp, Flutter, Web Demo, or Flutter Demo.
-argument-hint: "[任务名称] [--phase <backend|frontend|miniapp|flutter|web-demo|flutter-demo>]"
+description: Execute phased task plans for backend, frontend, Chrome extensions, miniapp, Flutter, Web Demo, or Flutter Demo.
+argument-hint: "[任务名称] [--phase <backend|frontend|extension|miniapp|flutter|web-demo|flutter-demo>]"
 allowed-tools:
   - AskUserQuestion
   - Read
@@ -25,8 +25,8 @@ allowed-tools:
 
 ## 前置条件
 
-- `.ai/task/[feature]/.state.json` 必须存在且可解析；目标阶段必须是 supported phase 且存在于当前任务 active phases（未启用 miniapp/Flutter 的项目不得执行对应 phase），并已规划（`phases[phase]`、`tasks[phase]` 和对应阶段目录存在）。
-- 当前阶段目录必须包含：`index.md`、对应 slot manifest（backend/frontend/miniapp/flutter 为 `dev.md`, `test.md`, `accept.md`；web-demo/flutter-demo 为 `dev.md`, `accept.md`）、对应 item 目录和 item 文件。
+- `.ai/task/[feature]/.state.json` 必须存在且可解析；目标阶段必须是 supported phase 且存在于当前任务 active phases（未启用 extension/miniapp/Flutter 的项目不得执行对应 phase），并已规划（`phases[phase]`、`tasks[phase]` 和对应阶段目录存在）。
+- 当前阶段目录必须包含：`index.md`、对应 slot manifest（backend/frontend/extension/miniapp/flutter 为 `dev.md`, `test.md`, `accept.md`；web-demo/flutter-demo 为 `dev.md`, `accept.md`）、对应 item 目录和 item 文件。
 
 ## 共享契约
 
@@ -41,7 +41,7 @@ allowed-tools:
 | 参数 | 说明 |
 |---|---|
 | `[feature]` | 功能名 |
-| `--phase <backend\|frontend\|miniapp\|flutter\|web-demo\|flutter-demo>` | 仅执行指定阶段；未指定时执行 `.state.json` 的当前阶段 |
+| `--phase <backend\|frontend\|extension\|miniapp\|flutter\|web-demo\|flutter-demo>` | 仅执行指定阶段；未指定时执行 `.state.json` 的当前阶段 |
 
 ## Input Contract
 

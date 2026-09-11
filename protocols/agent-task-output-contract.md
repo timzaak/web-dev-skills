@@ -16,6 +16,7 @@
     "change_scope": {
       "backend": false,
       "frontend": true,
+      "extension": false,
       "miniapp": false,
       "flutter": false,
       "web_demo": false,
@@ -59,6 +60,7 @@
 {
   "backend": false,
   "frontend": false,
+  "extension": false,
   "miniapp": false,
   "flutter": false,
   "web_demo": false,
@@ -68,9 +70,9 @@
 
 规则：
 
-- 六个字段都必须出现
+- 七个字段都必须出现
 - 只将实际受影响层标记为 `true`
-- 未启用 miniapp/Flutter 的项目仍返回对应字段为 `false`，以保持修复闭环契约稳定
+- 未启用 extension/miniapp/Flutter 的项目仍返回对应字段为 `false`，以保持修复闭环契约稳定
 
 ## `tests_to_run`
 
@@ -92,6 +94,7 @@
     "change_scope": {
       "backend": false,
       "frontend": true,
+      "extension": false,
       "miniapp": false,
       "flutter": false,
       "web_demo": false,
@@ -115,12 +118,13 @@
 
 - 失败也必须使用 `task_completion` envelope，便于调用方统一读取 `task_completion.status`。
 - `task_completion.status` 必须为 `failed`。
-- `change_scope` 必须按已产生或可能影响的层填写；字段为 `backend/frontend/miniapp/flutter/web_demo/flutter_demo`。无法判断时六项都保留并在 `error.details` 说明不确定性。
+- `change_scope` 必须按已产生或可能影响的层填写；字段为 `backend/frontend/extension/miniapp/flutter/web_demo/flutter_demo`。无法判断时七项都保留并在 `error.details` 说明不确定性。
 - 若失败发生在修复或验证闭环中，`tests_to_run` 可以为空数组，但必须在 `error.details` 或 `suggested_fix` 中说明无法给出补测命令的原因。
 
 ## Role-Specific Extensions
 
 - `frontend-dev` 可补充 `validation_results`、`components_added`、`components_modified`
+- `extension-dev` 可补充 `entrypoints_changed`、`permissions_changed`、`validation_results`
 - `miniapp-dev` 可补充 `validation_results`、`components_added`、`components_modified`
 - `flutter-dev` 可补充 `validation_results`、`widgets_added`、`widgets_modified`
 - `web-demo-dev` / `flutter-demo-dev` 可只保留最小成功字段，不需要 `validation_results`

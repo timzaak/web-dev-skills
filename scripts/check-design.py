@@ -12,7 +12,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 
-STACKS = ("backend", "frontend", "flutter")
+STACKS = ("backend", "frontend", "extension", "flutter")
 MAIN_HEADINGS = (
     "## 1. 需求概述",
     "## 2. 需求来源",
@@ -29,6 +29,7 @@ MAIN_HEADINGS = (
 STACK_HEADINGS = {
     "backend": ("## 4. API 接口设计", "## 9. 详细设计", "## 12. 文件影响范围"),
     "frontend": ("## 4. 用户体验流", "### 5.3 页面结构 / 线框说明", "## 9. 详细设计", "## 11. 文件影响范围"),
+    "extension": ("## 4. 入口与交互", "## 5. 权限与上下文", "## 6. 消息与存储", "## 7. 测试与验收", "## 9. 文件影响范围"),
     "flutter": ("## 4. 用户体验流", "### 6.1 API 依赖", "## 12. 详细设计", "## 14. 文件影响范围"),
 }
 PLACEHOLDERS = re.compile(
@@ -135,7 +136,7 @@ def operation_map(text: str, heading: str) -> dict[str, tuple[str, str]]:
 
 
 def impact_rows(text: str) -> list[tuple[str, str]]:
-    for fragment in ("8. 文件影响范围", "文件影响范围（后端文件）", "文件影响范围（前端文件）", "文件影响范围（Flutter 文件）"):
+    for fragment in ("8. 文件影响范围", "文件影响范围（后端文件）", "文件影响范围（前端文件）", "文件影响范围（Flutter 文件）", "文件影响范围（扩展文件）"):
         rows = table_rows(text, fragment)
         if rows:
             return [(clean_cell(row[0]), clean_cell(row[1]).upper()) for row in rows if len(row) >= 2]
@@ -219,7 +220,7 @@ def validate(main_path: Path, repo_root: Path, require_complete: bool = False) -
         if main_ops != backend_ops:
             findings.append(Finding("MAIN_CONTRACT_MISMATCH", str(main_path), "operation/method/path differ from backend.md"))
 
-    for stack in ("frontend", "flutter"):
+    for stack in ("frontend", "extension", "flutter"):
         if stack not in documents or not backend_ops:
             continue
         dependencies = operation_map(documents[stack][1], "API 依赖")

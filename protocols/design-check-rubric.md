@@ -2,7 +2,7 @@
 
 ## Scoring
 
-设计产物是"主文档 + 分端文档"结构：`.ai/design/<feature>.md`（主文档）加 `.ai/design/<feature>/backend.md`、`frontend.md`、`flutter.md` 中适用端。评分先按维度打分，再按适用维度归一化。
+设计产物是"主文档 + 分端文档"结构：`.ai/design/<feature>.md`（主文档）加 `.ai/design/<feature>/backend.md`、`frontend.md`、`extension.md`、`flutter.md` 中适用端。评分先按维度打分，再按适用维度归一化。
 
 | 维度 | 分值 | 说明 |
 |---|---:|---|
@@ -10,13 +10,14 @@
 | 现有实现分析准确性 | 15 | 使用真实路径，复用点与受影响范围明确（主文档概览 + 各分端文档现状分析） |
 | 后端设计完整性 | 25 | `backend.md`：接口清单、字段、错误响应、权限、路径规范、数据模型、迁移策略、领域逻辑 |
 | 前端设计完整性 | 15 | `frontend.md`：页面/组件、线框说明、状态与数据流、关键状态、契约依赖 |
+| 扩展设计完整性 | 15 | `extension.md`：入口、权限依据、消息/存储、生命周期、拒绝/恢复路径和真实浏览器验证 |
 | Flutter 设计完整性 | 15 | `flutter.md`：分层架构、状态管理、页面与导航、可测试性 |
 | 测试与验收策略 | 10 | 各端测试入口和主验收路径明确 |
 | 决策闭合与跨端一致性 | 10 | `needs_user_answer=0`，决策追踪和覆盖矩阵完整，契约消费一致，主文档 §8 全量汇总 |
 
 归一化规则：
 
-- 分端维度（后端/前端/Flutter）仅对适用端计分；不适用的维度记"不适用"，不参与计分。
+- 分端维度（后端/前端/扩展/Flutter）仅对适用端计分；不适用的维度记"不适用"，不参与计分。
 - 基础维度（需求追溯、现有实现分析、测试与验收、决策闭合与跨端一致性）始终计分。
 - 总分 = Σ适用维度得分 ÷ Σ适用维度满分 × 100，四舍五入取整；报告中必须列出参与计分的维度。
 
@@ -36,7 +37,7 @@
 评分前必须对主文档和全部适用分端文档运行：
 
 ```bash
-python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py ".ai/design/<feature>.md" ".ai/design/<feature>/backend.md" ".ai/design/<feature>/frontend.md" ".ai/design/<feature>/flutter.md"
+python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py ".ai/design/<feature>.md" ".ai/design/<feature>/backend.md" ".ai/design/<feature>/frontend.md" ".ai/design/<feature>/extension.md" ".ai/design/<feature>/flutter.md"
 ```
 
 （仅扫描实际存在的文档。）
@@ -48,9 +49,10 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py ".ai/design/<feat
 ### P0
 
 - 主文档不存在，或适用端的分端文档不存在
+- 扩展适用但入口、权限依据、消息/存储边界或关键恢复路径缺失，无法形成可执行方案
 - 涉及后端接口但 `backend.md` 缺少 API 设计，或涉及数据库变更但缺少数据库设计
 - 涉及前端但 `frontend.md` 缺少页面/交互说明；涉及 Flutter 但 `flutter.md` 缺少页面/分层说明（适用端）
-- `frontend.md` / `flutter.md` 的 API 依赖与契约源（`backend.md` 或现有接口）冲突
+- `frontend.md` / `extension.md` / `flutter.md` 的 API 依赖与契约源（`backend.md` 或现有接口）冲突
 - 主文档 §8 文件影响范围未全量汇总适用端的文件影响表
 - 主文档缺少设计覆盖矩阵，或 P0 requirement/story 没有设计、测试和文件影响落点
 - 业务功能设计目标与 PRD/用户故事明显冲突
@@ -65,7 +67,7 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py ".ai/design/<feat
 - 前端/Flutter 的用户体验流或页面描述过于抽象，缺少入口、操作路径、系统反馈或错误状态
 - Flutter 分层或状态管理偏离 Riverpod 技术线（`${CLAUDE_PLUGIN_ROOT}/guides/flutter/constitution.md`），或明显过度分层
 - 前端违反状态分工：服务端数据进入 Zustand（应由 TanStack Query 独占管理），或缓存/刷新策略缺失
-- `frontend.md` / `flutter.md` 单列或复制 API 契约字段表，破坏契约单一来源
+- `frontend.md` / `extension.md` / `flutter.md` 单列或复制 API 契约字段表，破坏契约单一来源
 - 主文档承载 API 字段表、数据库表结构或页面线框等分端细节，而非摘要与链接
 - 测试策略缺少实际入口
 - 分端文档缺少本端 Decision Trace 子集，或与主文档 Decision Trace 矛盾
@@ -103,6 +105,12 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py ".ai/design/<feat
 - 说明与现有前端模式的承接关系；`data-testid` 影响已声明（如涉及 Demo/E2E）
 - API 依赖只引用契约源，不复制契约字段表
 
+扩展（`extension.md`）：
+
+- 按 `${CLAUDE_PLUGIN_ROOT}/skills/t-design/template-extension.md` 检查入口、权限差异、接收端校验、存储迁移及敏感数据访问、worker 恢复与 UI 清理
+- 测试策略明确单测和真实浏览器证据边界、fixture 环境及运行命令；不得假设普通 Web fixture 能加载扩展
+- 关键权限、消息或恢复方案未确定时不能通过
+
 Flutter（`flutter.md`）：
 
 - 用户可见交互以用户体验描述为主：入口、操作路径、系统反馈、默认值、错误状态与恢复齐全，未陷入技术实现细节
@@ -115,13 +123,13 @@ Flutter（`flutter.md`）：
 跨端一致性：
 
 - 主文档 §4.3 契约源声明明确，摘要与 `backend.md` 一致
-- `frontend.md` / `flutter.md` 的 API 依赖表与契约源不冲突
+- `frontend.md` / `extension.md` / `flutter.md` 的 API 依赖表与契约源不冲突
 - 主文档 §6 测试汇总覆盖全部适用端的测试入口与 Demo 主路径
 - 主文档设计覆盖矩阵逐项连接 Requirement/Story、设计落点、契约或组件、测试验收和文件影响；不得复制需求正文
 
 文档结构：
 
-- 主文档 §8 文件影响范围必须存在，表格包含 `文件 | 操作 | 说明` 三列（可含来源分端列），操作列使用 CREATE/MODIFY/DELETE，且全量覆盖各分端文档的文件影响表
+- 主文档 §8 文件影响范围必须存在，表格包含 `文件 | 操作 | 说明` 三列（可含来源分端列），操作列使用 CREATE/MODIFY/DELETE，来源分端取值限于 backend/frontend/extension/flutter/web-demo/flutter-demo/跨端（Demo 演示资产按交付端标 web-demo/flutter-demo），且全量覆盖各分端文档的文件影响表
 - backend 详细设计包含必要的数据结构、公开签名、错误类型或算法骨架
 - frontend 详细设计包含页面状态转换、关键事件/副作用和公开 hook/schema/query/store 边界
 - Flutter 详细设计包含状态转换、Notifier 事件/副作用和 provider/repository/service/路由边界

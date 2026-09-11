@@ -120,6 +120,8 @@ After configuring, restart the client and trigger one library-docs lookup in a s
 
 ## Verification
 
+When extension development requires the user's current browser, follow the [live Chrome debugging guide](${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md) to configure Chrome DevTools MCP with `--autoConnect`. That guide maintains the shared setup for Codex, ZCode, and Claude Code. Then verify tool availability in the actual executing role and identify the target tab; successful dispatcher or Context7 checks do not establish browser connectivity.
+
 After the three steps above, run from any target project directory:
 
 ```

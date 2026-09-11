@@ -45,7 +45,7 @@ HTML Preview 不再强制限定为单文件、内联 CSS/JS、无 npm/CDN/构建
 
 ## Review Workflow
 
-`/t-html-show` 生成或更新 Preview 后，默认不自动打开；打开为可选项，规则与命令见下方 `Opening the Preview`。
+`/t-html-show` 生成或更新 Preview 后，默认不自动打开；打开为可选项，规则、命令与送达验证分级见下方 `Opening the Preview`。
 
 推荐流程：
 
@@ -59,9 +59,39 @@ HTML Preview 不再强制限定为单文件、内联 CSS/JS、无 npm/CDN/构建
 
 默认不自动打开。生成或更新 Preview 后，只报告 `preview_path` 和当前平台对应的打开命令，由人类自行决定是否打开。如 Preview 依赖外部资源、npm 包、构建工具或本地服务，还必须报告依赖说明和可复现的安装/构建/启动命令。
 
-仅当人类在对话中明确要求打开（如"打开预览"/"open it"）时才执行打开；不解析额外 flag。
+仅当人类在对话中明确要求打开（如"打开预览"/"open it"）时才执行打开；不解析额外 flag。执行打开后必须按「送达验证分级」报告 `open_result`，证据不足不得宣称"已打开"。
 
-可直接打开的 Preview 按平台选择命令：
+### 送达验证分级
+
+"已打开"是分级宣称，每级绑定证据：
+
+| verification | 条件 | 证据 | 允许宣称 |
+|---|---|---|---|
+| `verified-render` | 当前角色可调用 `chrome-devtools` 浏览器工具（接入见 `${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md`，建议 `--autoConnect` 连接用户日常 Chrome） | `new_page` 打开 `file://` 页成功 + 页面截图 + console 无资源加载失败 | 已打开并确认渲染 |
+| `verified-tab` | macOS 且无 MCP | `open-preview.py` 返回 `verification=verified-tab`（Chrome 打开、激活窗口、读回活动 tab URL 与 `file://` 一致） | 已打开且 tab 置前 |
+| `verified-command` | 其他环境兜底 | 打开命令退出码 0 | 只能说"已执行打开命令，可见性未确认" |
+
+规则：
+
+- `open_result` 结构：`{status: opened | open-command-executed | failed, verification, command, evidence}`；`status=opened` 仅当 `verification` 为 `verified-tab` 或 `verified-render`。
+- 浏览器工具可用性核对：主会话已连接 MCP 不代表 subagent 可用（同 `${CLAUDE_PLUGIN_ROOT}/protocols/extension-acceptance-contract.md` 的规则）。执行前核对当前角色实际可调用的工具；缺失时降级到脚本级别并在 `evidence` 中说明缺口，不得用 Bash 伪装浏览器验证。
+- `verified-render` 的 console 检查同时是最小渲染自检：发现 Mermaid/CDN 等资源加载失败时，如实报告主视觉降级为 fallback，不得宣称渲染正常。
+- `verified-render` 打开的页面留给用户查看，不得关闭页面或标签。
+- 打开失败时保留已生成的 Preview 文件，如实报告命令与错误。
+
+### 执行打开
+
+优先 `verified-render`：当前角色有 `chrome-devtools` 浏览器工具时，`new_page` 打开 `file://<绝对路径>`，`take_screenshot` 留证，`list_console_messages` 检查资源加载失败。
+
+无 MCP 时运行脚本（收编三平台打开命令；macOS 用 Chrome 打开并尽力读回 tab URL，读回失败降级为 `verified-command`）：
+
+```bash
+python ${CLAUDE_PLUGIN_ROOT}/scripts/open-preview.py <preview-path> --json
+```
+
+需要本地服务或构建步骤的 Preview：按页面声明的运行命令启动，先确认服务可访问（HTTP 状态码 < 400）再宣称"已启动"，再打开对应 URL 或产物路径。
+
+人类手动打开命令：
 
 | 平台 | 命令 |
 |---|---|
@@ -69,18 +99,7 @@ HTML Preview 不再强制限定为单文件、内联 CSS/JS、无 npm/CDN/构建
 | Windows（Git Bash） | `cmd.exe //c start "" "<path>"` |
 | Linux | `xdg-open "<path>"` |
 
-分支判断写法：
-
-```bash
-path="<preview-path>"
-if [ "$(uname -s)" = "Darwin" ]; then open "$path"
-elif [ -n "$WINDIR" ]; then cmd.exe //c start "" "$(cygpath -w "$path" 2>/dev/null || echo "$path")"
-else xdg-open "$path"; fi
-```
-
-需要本地服务或构建步骤的 Preview，按页面声明的运行命令启动，再打开对应 URL 或产物路径。
-
-校验要求：执行后必须确认命令返回成功；失败时如实报告路径与命令，不得谎报"已打开"。子代理同样遵守：不得在未真正打开时报告"已打开"。
+子代理同样遵守本节：未达 `verified-tab` 不得报告"已打开"，`evidence` 必须真实可查。
 
 ## Content Model
 

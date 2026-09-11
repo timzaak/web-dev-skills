@@ -88,6 +88,39 @@ FRONTEND = """
 
 
 class DesignValidationTests(unittest.TestCase):
+    def test_extension_design_is_validated_and_fingerprinted(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            main = self.make_design(root)
+            write(main, main_doc().replace("frontend", "extension"))
+            extension = main.with_suffix("") / "extension.md"
+            content = '''
+## 4. 入口与交互
+## 5. 权限与上下文
+## 6. 消息与存储
+### 6.1 API 依赖
+| Operation ID | 方法 | 路径 |
+|---|---|---|
+| createExport | POST | /api/exports |
+## 7. 测试与验收
+## 9. 文件影响范围（扩展文件）
+| 文件 | 操作 | 说明 |
+|---|---|---|
+| web/new.ts | CREATE | extension entry |
+'''
+            write(extension, content)
+            self.assertEqual(checker.validate(main, root), [])
+            self.assertIn(extension, checker.design_documents(main))
+            before = checker.design_fingerprint(main)
+            self.assertEqual(before, checker.design_fingerprint(main))
+            write(extension, content.replace("/api/exports", "/api/wrong"))
+            self.assertNotEqual(before, checker.design_fingerprint(main))
+            self.assertIn("CONTRACT_SIGNATURE_MISMATCH", {f.code for f in checker.validate(main, root)})
+            write(extension, content.replace("web/new.ts", "web/other.ts"))
+            self.assertIn("IMPACT_NOT_AGGREGATED", {f.code for f in checker.validate(main, root)})
+            extension.unlink()
+            self.assertIn("STACK_DOC_MISSING", {f.code for f in checker.validate(main, root)})
+
     def make_design(self, root: Path, frontend: str = FRONTEND) -> Path:
         (root / "src").mkdir()
         (root / "web").mkdir()

@@ -1,7 +1,7 @@
 ---
 name: t-task-check
 description: Validate task plan executability and consistency with a 100-point score and P0/P1/P2 fix list.
-argument-hint: "[任务名称] [--phase <backend|frontend|miniapp|flutter|web-demo|flutter-demo>]"
+argument-hint: "[任务名称] [--phase <backend|frontend|extension|miniapp|flutter|web-demo|flutter-demo>]"
 allowed-tools:
   - AskUserQuestion
   - Read
@@ -25,7 +25,7 @@ allowed-tools:
 ## 使用方式
 
 ```bash
-/t-task-check [feature] [--phase <backend|frontend|miniapp|flutter|web-demo|flutter-demo>]
+/t-task-check [feature] [--phase <backend|frontend|extension|miniapp|flutter|web-demo|flutter-demo>]
 ```
 
 | 参数 | 说明 |
@@ -39,7 +39,7 @@ allowed-tools:
 - 决策账本：`.ai/decision-log/[feature].md`（存在时必须读取）
 - 需求来源：`.ai/user-stories/**/*.md`、`docs/user-stories/**/*.md`、`.ai/prd/**/*.md`、`docs/prd/**/*.md`、`.ai/tech-research/**/*.md`（按设计文档引用读取）
 - 状态文件：`.ai/task/[feature]/.state.json`
-- 阶段目录：`.ai/task/[feature]/[phase]/` 下的 `index.md`、slot manifest（backend/frontend/miniapp/flutter 为 `dev.md`、`test.md`、`accept.md`；web-demo / flutter-demo 为 `dev.md`、`accept.md`）和 item 文件
+- 阶段目录：`.ai/task/[feature]/[phase]/` 下的 `index.md`、slot manifest（backend/frontend/extension/miniapp/flutter 为 `dev.md`、`test.md`、`accept.md`；web-demo / flutter-demo 为 `dev.md`、`accept.md`）和 item 文件
 
 ## Schema 校验
 
@@ -56,7 +56,7 @@ allowed-tools:
    - 集中测试执行 item 优先运行 `uv run scripts/check-test-runner-coverage.py [feature] --layer [layer]` 做覆盖校验；backend 动态校验失败记 P1 或 P0（取决于是否导致新增测试无法执行），其他层静态校验失败至少记 P1。
    - 后端测试命令必须使用目标项目内脚本入口 `uv run scripts/backend-test.py -- [filter]`（没有 filter 也保留 `--`）；使用 `mvn spring-boot:run`、裸 `mvn test`、插件根路径或省略 `--` 的记 P1，并改为统一入口。
 5. 核对设计文档与任务文档的一致性；纯技术方案任务可只追溯设计文档中的技术预研来源，不得因缺少 PRD/用户故事扣 P0。任务引用 `.ai/user-stories` 时确认其为 draft 候选来源且路径存在；不得要求先发布到 `docs/user-stories` 才能进入 `/t-run`。
-6. 通过 `Agent` tool 按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 调度当前阶段对应 subagent 做专业校验（backend: `backend-dev/backend-test/backend-accept`；frontend: `frontend-dev/frontend-test/frontend-accept`；miniapp: `miniapp-dev/miniapp-test/miniapp-accept`；flutter: `flutter-dev/flutter-test/flutter-accept`；web-demo: `web-demo-dev/web-demo-accept`；flutter-demo: `flutter-demo-dev/flutter-demo-accept`），可并行调度。subagent 上下文按 rubric 的 Context Budget Rules 裁剪：
+6. 通过 `Agent` tool 按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 调度当前阶段对应 subagent 做专业校验（backend: `backend-dev/backend-test/backend-accept`；frontend: `frontend-dev/frontend-test/frontend-accept`；extension: `extension-dev/extension-test/extension-accept`；miniapp: `miniapp-dev/miniapp-test/miniapp-accept`；flutter: `flutter-dev/flutter-test/flutter-accept`；web-demo: `web-demo-dev/web-demo-accept`；flutter-demo: `flutter-demo-dev/flutter-demo-accept`），可并行调度。subagent 上下文按 rubric 的 Context Budget Rules 裁剪：
    - dev agent 默认只接收 dev item 与直接影响实现的跨 slot 摘要
    - test agent 默认只接收 test item、相关 dev `Handoff/Files` 摘要和集中定向测试执行闭环约束
    - accept agent 默认只接收 accept item、顺序中相关 runner/dev `Handoff` 摘要和验收闭环约束

@@ -5,6 +5,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -19,6 +20,20 @@ SPEC.loader.exec_module(demo_test_runner)
 
 
 class RunLogRetentionTests(unittest.TestCase):
+    def test_standalone_extension_mode_skips_web_environment_and_preserves_failure(self) -> None:
+        argv = ["web-demo-test-runner.py", "demo/e2e/extension/settings.e2e.ts", "--no-auto-env", "--run-id", "extension-run"]
+        with patch.object(sys, "argv", argv), patch.object(demo_test_runner, "ensure_environment") as environment, patch.object(demo_test_runner, "run_tests", return_value=1) as run:
+            self.assertEqual(demo_test_runner.main(), 1)
+        environment.assert_not_called()
+        self.assertEqual(run.call_args.kwargs["test_file"], "demo/e2e/extension/settings.e2e.ts")
+        self.assertEqual(run.call_args.kwargs["run_id"], "extension-run")
+
+    def test_default_environment_failure_prevents_test_execution(self) -> None:
+        argv = ["web-demo-test-runner.py", "demo/e2e/settings.e2e.ts"]
+        with patch.object(sys, "argv", argv), patch.object(demo_test_runner, "ensure_environment", return_value=False), patch.object(demo_test_runner, "run_tests") as run:
+            self.assertEqual(demo_test_runner.main(), 1)
+        run.assert_not_called()
+
     def test_preparing_run_preserves_other_run_logs(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             demo_dir = Path(temp_dir)

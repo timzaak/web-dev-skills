@@ -2,20 +2,22 @@
 
 ## Phases
 
-`supported_phases` 固定为 `backend`, `frontend`, `miniapp`, `flutter`, `web-demo`, `flutter-demo`。
+`supported_phases` 固定为 `backend`, `frontend`, `extension`, `miniapp`, `flutter`, `web-demo`, `flutter-demo`。
 
-`active_phases` 只包含当前 feature 需要生成和执行的阶段。`miniapp` 仅在项目根目录存在 `miniapp/`，或设计文档明确包含小程序交付时启用。`flutter` 仅在目标项目/子目录的 `pubspec.yaml` 声明 Flutter SDK，或设计文档明确包含 Flutter 交付时启用。`web-demo` 仅在设计要求 Web 用户故事演示且项目存在 Web 交付端时启用；`flutter-demo` 仅在设计要求 Flutter 用户故事演示且项目声明 Flutter SDK 时启用。普通 integration test 或 Patrol 技术门禁本身不自动启用 `flutter-demo`。
+`active_phases` 只包含当前 feature 需要生成和执行的阶段。`extension` 仅在当前设计明确包含 Chrome 扩展交付或变更影响实际扩展工程时启用；目录存在本身不启用无关 feature 的扩展阶段。`miniapp` 仅在项目根目录存在 `miniapp/`，或设计文档明确包含小程序交付时启用。`flutter` 仅在目标项目/子目录的 `pubspec.yaml` 声明 Flutter SDK，或设计文档明确包含 Flutter 交付时启用。`web-demo` 仅在设计要求 Web 用户故事演示且项目存在 Web 或 Chrome 扩展交付端时启用；`flutter-demo` 仅在设计要求 Flutter 用户故事演示且项目声明 Flutter SDK 时启用。普通 integration test 或 Patrol 技术门禁本身不自动启用 `flutter-demo`。
 
 默认顺序：
 
 - Web 项目：`backend -> frontend -> web-demo`
+- 扩展项目：`extension -> web-demo`，仅在需要后端改动时前置 backend，仅在设计要求演示时启用 web-demo
 - Flutter 项目：`backend -> flutter -> flutter-demo`
-- 多端项目：`backend -> frontend/miniapp/flutter -> web-demo/flutter-demo`，只包含实际交付端，固定排序为 `frontend -> miniapp -> flutter -> web-demo -> flutter-demo`
+- 多端项目：`backend -> frontend/extension/miniapp/flutter -> web-demo/flutter-demo`，只包含实际交付端，固定排序为 `frontend -> extension -> miniapp -> flutter -> web-demo -> flutter-demo`
 
 ## Slot Order
 
 - backend: `dev -> test -> accept`
 - frontend: `dev -> test -> accept`
+- extension: `dev -> test -> accept`
 - miniapp: `dev -> test -> accept`
 - flutter: `dev -> test -> accept`
 - web-demo: `dev -> accept`
@@ -25,7 +27,7 @@
 
 `/t-run` 只执行以下 item 文件：
 
-- `{backend,frontend,miniapp,flutter}/{dev,test,accept}/*.md`
+- `{backend,frontend,extension,miniapp,flutter}/{dev,test,accept}/*.md`
 - `{web-demo,flutter-demo}/{dev,accept}/*.md`
 
 不直接执行 `index.md`, `dev.md`, `test.md`, `accept.md`。
@@ -57,7 +59,7 @@
 
 每个 item 必须能让 `/t-run` 单独恢复执行，并包含：
 
-- `id`: 稳定 ID，例如 `BE-D01`, `FE-T02`, `MA-A01`, `FL-T01`, `WD-D01`, `FD-A01`
+- `id`: 稳定 ID，例如 `BE-D01`, `FE-T02`, `EX-D01`, `MA-A01`, `FL-T01`, `WD-D01`, `FD-A01`
 - `title`
 - `agent`
 
@@ -153,7 +155,7 @@ web-demo / flutter-demo 阶段的 `accept` slot 同样适用 `accept` 上限。
 - flutter-demo dev：按用户故事、业务状态流或 Patrol 测试基础设施闭环拆分；一个文件默认只承载一个用户故事或强耦合状态流。
 - accept：design consistency、public API contract、business rules、permission/security、test evidence、demo readiness；纯技术方案聚焦技术目标、兼容性、公共契约、迁移/配置影响、测试证据和回归风险。
 
-backend/test、frontend/test、miniapp/test、flutter/test、web-demo/dev、flutter-demo/dev 的测试拆分与执行见 [Test Execution Consolidation](#test-execution-consolidation) 与 [Backend Test Item Types](#backend-test-item-types)。
+backend/test、frontend/test、extension/test、miniapp/test、flutter/test、web-demo/dev、flutter-demo/dev 的测试拆分与执行见 [Test Execution Consolidation](#test-execution-consolidation) 与 [Backend Test Item Types](#backend-test-item-types)。
 
 ## Test Execution Consolidation
 
@@ -164,12 +166,13 @@ backend/test、frontend/test、miniapp/test、flutter/test、web-demo/dev、flut
 - runner 必须包含 `Expected Test Manifest`：测试文件、测试函数/用例标题、来源 authoring item、预期 runner 命令。
 - runner 只运行覆盖来源所需的最小可靠定向测试、类型检查或构建命令；全量测试只在定向范围无法覆盖风险，或发布/验收门禁要求时使用，并说明原因。
 - 编译、预构建、项目启动等等待成本允许存在，但 item 必须记录实际命令和失败/耗时证据。
-- 可用 `uv run scripts/check-test-runner-coverage.py <feature> --layer <backend|frontend|miniapp|flutter|web-demo|flutter-demo>` 校验 runner 覆盖关系。
+- 可用 `uv run scripts/check-test-runner-coverage.py <feature> --layer <backend|frontend|extension|miniapp|flutter|web-demo|flutter-demo>` 校验 runner 覆盖关系。
 
 适用阶段：
 
 - backend/test：集中 runner 执行定向后端测试。
 - frontend/test：全部 Vitest/MSW authoring 后执行定向 `npm run test:run -- [pattern]`，按需加 `type-check`。
+- extension/test：沿用测试 authoring 后集中定向执行的规则，由 extension-test 执行项目实际 Vitest 命令；浏览器用例归 web-demo/dev。runner 验证范围从相关 authoring item 推导，不默认全量。
 - miniapp/test：测试或验证资产完成后执行相关 `typecheck`、构建或专项 gate。
 - flutter/test：单元/widget 测试资产完成后执行相关定向 `flutter test`；按改动范围执行 integration_test、Patrol、analyze 或构建门禁。
 - web-demo/dev：Playwright Demo、fixture、Page Object 完成后执行相关 `web-demo-test-runner.py [test-file] --grep [pattern]` 或少量相关文件。

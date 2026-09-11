@@ -89,6 +89,7 @@
 |---|---|---|
 | backend | `.ai/design/[feature]/backend.md` | 适用 / 不适用（原因） |
 | frontend | `.ai/design/[feature]/frontend.md` | 适用 / 不适用（原因） |
+| extension | `.ai/design/[feature]/extension.md` | 适用 / 不适用（原因） |
 | flutter | `.ai/design/[feature]/flutter.md` | 适用 / 不适用（原因） |
 
 > 仅对"适用"的端生成分端设计文档；不适用端不创建文件。
@@ -118,6 +119,10 @@
 - [核心结论与关键取舍，3-5 行]
 - 详见 `.ai/design/[feature]/flutter.md`
 
+### 5.4 Chrome 扩展
+- [核心结论与关键取舍，3-5 行；不适用时说明]
+- 详见 `.ai/design/[feature]/extension.md`
+
 ## 6. 测试与验收策略（跨端汇总）
 
 > 各端测试细节在分端文档；本节汇总跨端测试入口和主验收路径，供 `/t-task` 直接消费。
@@ -126,6 +131,7 @@
 - 后端: [单元/场景测试入口摘要；不适用写"不适用"]
 - 前端: [测试入口与 data-testid 依赖摘要；不适用写"不适用"]
 - Flutter: [单元/widget 测试与 Patrol 摘要；不适用写"不适用"]
+- 扩展: [Vitest、构建/manifest、真实浏览器和环境模式摘要；不适用写"不适用"]
 
 ### 6.2 Demo / E2E 主验收路径
 - [按交付端声明 Web Playwright 和/或 Android Flutter Patrol 主故事验收路径；无需演示时明确说明]
@@ -147,10 +153,11 @@
 
 > 汇总所有适用分端文档的文件影响范围；`/t-task` 直接对照本表拆分 item。
 > MODIFY/DELETE 路径必须存在。CREATE 路径允许尚不存在，但父目录必须存在，并在说明中给出相邻实现或命名规范依据。
+> 设计要求用户故事演示时，Playwright `demo/e2e/` 演示资产标 `web-demo`，Patrol 演示资产标 `flutter-demo`；无需演示时不出现这两个值。
 
 | 文件 | 操作 | 说明 | 来源分端 |
 |---|---|---|---|
-| `[真实仓库路径]` | CREATE / MODIFY / DELETE | [变更摘要] | backend / frontend / flutter / 跨端 |
+| `[真实仓库路径]` | CREATE / MODIFY / DELETE | [变更摘要] | backend / frontend / extension / flutter / web-demo / flutter-demo / 跨端 |
 
 ## 9. 外部参考
 

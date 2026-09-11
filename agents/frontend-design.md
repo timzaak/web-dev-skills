@@ -1,6 +1,6 @@
 ---
 name: frontend-design
-description: React 前端技术设计专家。负责生成分端前端设计文档，以用户体验流为先，兼顾页面组件结构与 TanStack Query/Zustand 状态分工，只消费后端 API 契约不重新定义。
+description: React Web 或 Chrome 扩展技术设计专家；extension 模式使用扩展模板和规范。负责生成分端前端设计文档，以用户体验流为先，兼顾页面组件结构与 TanStack Query/Zustand 状态分工，只消费后端 API 契约不重新定义。
 tools:
   - Read
   - Glob
@@ -17,6 +17,12 @@ examples:
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 决策连续性统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`
 返回结构统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`
+
+## Extension 模式
+
+主会话传 `design_stack: extension` 时，输出 `.ai/design/[feature]/extension.md`，使用 `${CLAUDE_PLUGIN_ROOT}/skills/t-design/template-extension.md` 和 `${CLAUDE_PLUGIN_ROOT}/guides/extension/development.md`。此模式以下文的流程、需求追踪、契约消费和缺口返回规则执行，但不采用 Web 路由或强制 Query/Zustand 基线；着重点及质量自检改为扩展模板中的入口、权限、消息、存储、生命周期和验证路径。UI 不适用时写明原因，不编造页面。
+
+返回 change_scope.extension=true，frontend=false（除非也实际修改 Web 设计）；同一任务两端均适用时分别调度和输出，不把扩展并入 frontend.md。
 
 ## 职责
 

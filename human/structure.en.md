@@ -48,9 +48,9 @@ Not every project needs every stage. `t-prd-check`, `t-design-check`, and `t-tas
 
 Subagents are split by engineering role instead of making one agent own every responsibility:
 
-- `backend-dev` / `frontend-dev` / `miniapp-dev`: implementation.
-- `backend-test` / `frontend-test` / `miniapp-test`: testing.
-- `backend-accept` / `frontend-accept` / `miniapp-accept`: read-only acceptance with evidence.
+- `backend-dev` / `frontend-dev` / `miniapp-dev` / `extension-dev`: implementation.
+- `backend-test` / `frontend-test` / `miniapp-test` / `extension-test`: testing.
+- `backend-accept` / `frontend-accept` / `miniapp-accept` / `extension-accept`: read-only acceptance with evidence.
 - `web-demo-dev` / `web-demo-accept` / `web-demo-diagnose`: Playwright Demo/E2E maintenance, acceptance, and diagnosis.
 - `flutter-demo-dev` / `flutter-demo-accept` / `flutter-demo-diagnose`: Android Patrol user-story demo maintenance, acceptance, and diagnosis.
 - `context-curator` / `structure-review` / `backend-consistency`: context, structure, and implementation consistency audits.
@@ -79,6 +79,7 @@ Shared rules should be changed in protocols first, not copied across multiple sk
 
 - `backend/`: backend architecture, development, testing, validation, TDD, and quality gates.
 - `frontend/`: frontend development patterns, testing strategy, `data-testid`, and quality gates.
+- `extension/`: Chrome extension project initialization, development, testing, validation, and quality gates.
 - `miniapp/`: miniapp development, testing, validation, and quality gates.
 - `web-demo/`: Playwright E2E, selectors, Page Objects, diagnosis, and common failure handling.
 - `flutter/`: Flutter development, testing, and Android Patrol user-story demos.
@@ -147,7 +148,7 @@ The model is `phase -> slot -> item`:
 
 `t-run` executes only items. It does not directly execute manifests such as `index.md`, `dev.md`, `test.md`, or `accept.md`. At most one item may be `running` at a time. This trades some concurrency for smaller context, clearer failure localization, and recoverable state.
 
-`t-super-run` provides a single-main-session execution model. It generates no items and dispatches no subagents. Instead, the main session reads the current task's agent specification and related guides, executes the work, checkpoints status and evidence under `.ai/super-run/[feature]/`, and then switches roles. Backend/frontend use `dev -> test -> accept`; demo uses `dev -> accept`. `--phase` is required; Goal mode keeps only the requested phase moving and stops when it completes, while the state file supports recovery across context compaction. Keep the standard path when explicit subagent ownership or fine-grained handoffs are required.
+`t-super-run` provides a single-main-session execution model. It generates no items. For dev and test, the main session reads the current task's agent specification and related guides and executes the work directly; accept dispatches the matching read-only accept subagent and maps its verdict back into the state. Status and evidence are checkpointed under `.ai/super-run/[feature]/` between roles. Backend/frontend use `dev -> test -> accept`; demo uses `dev -> accept`. `--phase` is required; Goal mode keeps only the requested phase moving and stops when it completes, while the state file supports recovery across context compaction. Keep the standard path when explicit subagent ownership or fine-grained handoffs are required.
 
 A fixing agent must return `tests_to_run`, explaining which backend, frontend, or Demo commands should be rerun after the fix. This keeps the risk of "Demo passes but lower-level regression fails" visible.
 

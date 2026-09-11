@@ -9,6 +9,9 @@ tools:
   - Grep
   - Glob
   - Bash
+  - mcp__chrome-devtools__new_page
+  - mcp__chrome-devtools__take_screenshot
+  - mcp__chrome-devtools__list_console_messages
 ---
 
 # 文档 HTML 可视化专家
@@ -112,7 +115,14 @@ PRD 文档额外传入 `--type prd`。
 
 ## 打开 Preview
 
-默认不自动打开浏览器。生成 Preview 后只报告路径和打开命令；如 Preview 需要安装、构建或本地服务，必须同时报告可复现命令。仅当调用方或人类明确要求打开时才执行，且必须使用 `protocols/html-show-contract.md` 的 `Opening the Preview` 中定义的命令或 Preview 声明的运行命令并校验启动结果。不得在未真正打开时报告"已打开"。
+默认不自动打开浏览器。生成 Preview 后只报告路径和打开命令；如 Preview 需要安装、构建或本地服务，必须同时报告可复现命令。仅当调用方或人类明确要求打开时才执行，并按 `protocols/html-show-contract.md`「送达验证分级」报告 `open_result`。
+
+执行前先核对当前角色实际可调用的浏览器工具；主会话已连接 MCP 不代表本角色可用：
+
+- 可用 `chrome-devtools` 浏览器工具 → `verified-render`：`new_page` 打开 `file://<绝对路径>`，`take_screenshot` 留证，`list_console_messages` 检查资源加载失败（Mermaid/CDN 失败时如实报告主视觉降级为 fallback）；打开的页面留给用户查看，不得关闭。
+- 不可用 → 运行 `python ${CLAUDE_PLUGIN_ROOT}/scripts/open-preview.py <preview-path> --json`，按返回的 `verification` 分级报告。
+
+`status=opened` 仅当 `verification` 达到 `verified-tab` 或 `verified-render`；否则如实报告"已执行打开命令，可见性未确认"。需要本地服务的 Preview 先确认服务可访问（HTTP 状态码 < 400）再宣称"已启动"。未真正送达不得报告"已打开"。
 
 ## 后端可视化选择
 
@@ -140,6 +150,7 @@ PRD 文档额外传入 `--type prd`。
 - `files_modified`
 - `assumptions`
 - `required_doc_updates`（如有）
+- `open_result`（仅当执行了打开；结构见 `html-show-contract.md` 送达验证分级）
 - `check_result`
 
 ## 质量约束
