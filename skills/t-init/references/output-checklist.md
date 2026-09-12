@@ -26,6 +26,7 @@
 - [ ] `frontend/src/lib/api-client.ts`
 
 **脚本和文档：**
+- [ ] `scripts/index.md`（测试运行说明，由根目录 AGENTS.md 指向）
 - [ ] `scripts/backend-test.py`
 - [ ] `scripts/test-start.py`
 - [ ] `scripts/test-stop.py`

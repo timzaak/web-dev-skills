@@ -32,6 +32,7 @@ Don't blend conflicting patterns.
 ## Rule 5 — Tests verify intent, not just behavior
 Tests must encode WHY behavior matters, not just WHAT it does.
 A test that can't fail when business logic changes is wrong.
+Before running tests, read `scripts/index.md` from the project root.
 
 ## Rule 6 — Checkpoint after every significant step
 Summarize what was done, what's verified, what's left.
