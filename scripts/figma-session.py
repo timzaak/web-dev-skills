@@ -117,7 +117,6 @@ def create_session(
         "url": url,
         "targetFile": target,
         "stage": stage,
-        "specRevision": 0,
     }
     (session_dir / "session.json").write_text(
         json.dumps(session, indent=2, ensure_ascii=False) + "\n", encoding="utf-8",
