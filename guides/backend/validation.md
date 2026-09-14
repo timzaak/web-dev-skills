@@ -30,7 +30,7 @@ cd backend && cargo check --package <api-package>
 ### 2. 代码质量收口（推荐）
 
 ```bash
-/code-review
+/t-tools:t-review
 cd backend && cargo clippy --fix --allow-dirty --allow-staged --all-targets --all-features
 cd backend && cargo fmt --all
 ```

@@ -49,7 +49,7 @@ t-decision -> t-prd / t-tech-research（无固定顺序，进设计前收敛）
 | 强模型单会话实现 | `/t-tools:t-super-run <feature> --phase <phase>` | 合并规划与执行；`--phase` 必填 |
 | Web Demo / E2E | `/t-tools:t-web-demo-run <file>` 或 `/t-tools:t-web-demo-run-all` | 之后 `/t-tools:t-web-demo-accept <role>` |
 | Flutter Demo | `/t-tools:t-flutter-demo-run <file> --device <id>` 或 `/t-tools:t-flutter-demo-run-all` | 之后 `/t-tools:t-flutter-demo-accept <domain\|all>` |
-| 提交推送 | `/code-review --fix`、`/t-tools:t-simplify`，再 `/t-tools:t-push` | push 会清理注释并跑受影响 CI |
+| 提交推送 | `/t-tools:t-review`、`/t-tools:t-simplify`，再 `/t-tools:t-push` | review 只报告，发现缺陷先修复；push 会清理注释并跑受影响 CI |
 | 发版 | `/t-tools:t-release [版本号]` | semver 不带 `v`，git tag 带 `v` |
 | 写项目教程 / 文档 | `/t-tools:t-doc [名称]` | 不用于 PRD 和技术设计 |
 | 审计上下文 / 结构漂移 | `/t-tools:t-dream [feature]` | 默认只读；PRD 治理加 `--govern-prd` |

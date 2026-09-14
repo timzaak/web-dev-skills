@@ -59,7 +59,7 @@ uv run scripts/backend-test.py -- -E 'package(<crate>) and test(<pattern>)'
 
 ```bash
 cd backend
-/code-review
+/t-tools:t-review
 cargo clippy --fix --allow-dirty --allow-staged --all-targets --all-features
 cargo fmt --all
 ```

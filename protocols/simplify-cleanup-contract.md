@@ -2,11 +2,11 @@
 
 t-simplify 的审查角度、finding 结构、去重/跳过/修复边界和报告结构的单一事实源。
 
-本契约只做代码质量清理，不找正确性缺陷；正确性缺陷属于 `/code-review` 与各阶段 accept 的职责。
+本契约只做代码质量清理，不找正确性缺陷；正确性缺陷属于 `t-review`（`${CLAUDE_PLUGIN_ROOT}/protocols/review-correctness-contract.md`）与各阶段 accept 的职责。
 
 ## Review Angles
 
-四个角度互不重叠，每个 reviewer agent 只负责注入的一个角度。以下指引与 Claude Code v2.1.232 内置 `/simplify` 原文逐字对齐（提取来源见 SKILL.md），不得自行放宽或收窄：
+四个角度互不重叠，每个 reviewer agent 只负责注入的一个角度。以下指引与 Claude Code 内置 `/simplify` 原文逐字对齐（对齐版本 v2.1.232，2026-09-14 复核至 v2.1.269 无变化），不得自行放宽或收窄：
 
 ### Reuse（复用）
 
@@ -22,7 +22,7 @@ t-simplify 的审查角度、finding 结构、去重/跳过/修复边界和报�
 
 ### Altitude（抽象层级）
 
-检查每处修改是否实现在正确深度，而不是脆弱的创可贴。在共享基础设施上叠加特例说明修得不够深——优先泛化底层机制，而不是继续加特例。
+检查每处修改是否在正确深度修复根因，而不是用脆弱的创可贴修补症状。在共享基础设施上叠加特例说明修得不够深——优先对底层机制做更简单、更通用的修改而不是继续加特例，并点名该修改。
 
 ## Finding Structure
 
