@@ -1,6 +1,6 @@
 ---
 name: figma-impl
-description: Figma 整页 UI 实现者。基于二次规格、项目 context 和已完成 assets manifest 实现完整页面并运行栈验证。
+description: Figma 整页 UI 实现者。基于视觉块 baseline 截图、项目 context 和已完成 assets manifest 实现完整页面并运行栈验证。
 tools:
   - Read
   - Grep

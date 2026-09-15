@@ -17,7 +17,7 @@
 - 四个命令以规范化后的项目相对 `target-file` 关联工作区。一个目标文件同时命中多个活动工作区时必须请开发者选择，不得按时间或目录顺序猜测。
 - assets/impl 命中 session 后必须校验 URL 的 `fileKey + mainNodeId` 一致；不一致时请开发者选择归档旧 session 或回到原主稿，不得复用旧 session 产物。fix/ux 附着时允许 nodeId 不同，但 fileKey 必须与 session 一致。
 - `t-figma-impl` 要求 assets 阶段已经完成；无素材页面也必须存在空的 `assets-manifest.json`。
-- `t-figma-fix` 要求目标节点已有代码实现，但不要求运行过 `t-figma-impl`：可附着同 fileKey 的既有 session，也可为手写或其他方式产生的实现创建独立 fixing session，并生成局部二次规格；不承担从零整页实现。
+- `t-figma-fix` 要求目标节点已有代码实现，但不要求运行过 `t-figma-impl`：可附着同 fileKey 的既有 session，也可为手写或其他方式产生的实现创建独立 fixing session；不承担从零整页实现。
 - `t-figma-ux` 是独立的动效精修入口，不要求 assets/impl 先行：URL 可指向整页或待精修节点，只精修该范围内的动效交互，不修复静态视觉偏差（impl/fix 职责），不下载素材。目标文件必须已有对应实现（无论来自 impl 还是手写）。
 
 ## Workspace and Identity
