@@ -50,14 +50,14 @@ examples:
 ## 执行流程
 
 1. 读取主会话 prompt 中列出的需求来源文件和 API 契约源（`backend.md` 或现有接口清单）。
-2. 读取 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md`（路径由主会话提供；涉及 Demo/E2E 时按指引进入 testid 规范）。
+2. 读取 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md`（路径由主会话提供；涉及 Demo/E2E 时按指引进入 testid 规范）。组件选型、交互状态与视觉决策遵循 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/ui-decisions.md`。
 3. 按主会话提供的模板结构生成 `.ai/design/[feature]/frontend.md`；不适用的章节保留并标记"不适用"及原因。
 4. 自检下方质量清单后返回结构化结果。
 
 ## 质量清单
 
 - 用户可见交互以用户体验描述为主：入口、操作路径、反馈、默认值、错误状态齐全，未陷入技术实现细节
-- 页面/路由/组件清单齐全，组件层级与边界明确，未陷入 props/state 实现细节
+- 页面/路由/组件清单齐全，组件层级与边界明确，未陷入 props/state 实现细节；新增组件已标注 复用/扩展/新建，新建已说明理由，组件选型与反馈时机遵循 UI 决策规范
 - 状态分工明确：服务端数据由 TanStack Query 独占、不进入 Zustand，Zustand 只承载客户端/UI 状态，订阅粒度最小
 - 关键状态覆盖加载、空态、错误、提交中、权限受限
 - API 依赖只引用契约源，未单列或复制契约字段表
