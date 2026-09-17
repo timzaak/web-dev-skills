@@ -4,9 +4,9 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import math
+import os
 import shutil
 import struct
 import subprocess
@@ -30,14 +30,6 @@ def run(command: list[str], *, runner: Runner = subprocess.run) -> subprocess.Co
     if result.returncode != 0:
         raise RuntimeError(result.stderr.strip() or f"command failed: {' '.join(command)}")
     return result
-
-
-def sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def ffprobe(path: Path, *, ffprobe_bin: str, runner: Runner = subprocess.run) -> dict[str, Any]:
@@ -79,6 +71,25 @@ def has_alpha(probe: dict[str, Any]) -> bool:
     return any(marker in pixel_format for marker in ("rgba", "bgra", "argb", "yuva", "gbrap", "pal8"))
 
 
+def has_transparent_pixels(
+    path: Path, *, ffmpeg_bin: str, runner: Runner = subprocess.run,
+) -> bool:
+    result = run([
+        ffmpeg_bin, "-v", "info", "-i", str(path),
+        "-vf", "alphaextract,signalstats,metadata=print", "-frames:v", "1",
+        "-f", "null", "-",
+    ], runner=runner)
+    output = f"{result.stdout}\n{result.stderr}"
+    marker = "lavfi.signalstats.YMIN="
+    for line in output.splitlines():
+        if marker in line:
+            try:
+                return float(line.split(marker, 1)[1].strip()) < 255
+            except ValueError as exc:
+                raise RuntimeError("invalid alpha statistics returned by ffmpeg") from exc
+    raise RuntimeError("ffmpeg did not return alpha statistics")
+
+
 def top_level_atoms(path: Path) -> list[tuple[str, int]]:
     atoms: list[tuple[str, int]] = []
     size_total = path.stat().st_size
@@ -117,7 +128,6 @@ def common_metadata(path: Path, probe: dict[str, Any]) -> dict[str, Any]:
     width, height = dimensions(probe)
     return {
         "outputPath": str(path),
-        "sha256": sha256(path),
         "width": width,
         "height": height,
         "aspectRatio": ratio(width, height),
@@ -130,22 +140,44 @@ def convert_image(
     *,
     flattened: bool = False,
     lossless: bool = False,
-    quality: int = 100,
+    quality: int = 80,
+    alpha_mask: Path | None = None,
+    expect_alpha: bool = False,
     ffmpeg_bin: str,
     ffprobe_bin: str,
     runner: Runner = subprocess.run,
 ) -> dict[str, Any]:
     source_probe = ffprobe(source, ffprobe_bin=ffprobe_bin, runner=runner)
-    use_lossless = flattened or lossless or has_alpha(source_probe)
+    use_lossless = flattened or lossless or alpha_mask is not None or has_alpha(source_probe)
     output.parent.mkdir(parents=True, exist_ok=True)
-    command = [ffmpeg_bin, "-y", "-i", str(source), "-c:v", "libwebp"]
+    temporary_output = output.with_name(f".{output.stem}.tmp{output.suffix}")
+    command = [ffmpeg_bin, "-y", "-i", str(source)]
+    if alpha_mask is not None:
+        if not alpha_mask.is_file():
+            raise RuntimeError(f"alpha mask not found: {alpha_mask}")
+        width, height = dimensions(source_probe)
+        command += [
+            "-i", str(alpha_mask), "-filter_complex",
+            f"[1:v]alphaextract,scale={width}:{height}:flags=lanczos[alpha];[0:v][alpha]alphamerge",
+        ]
+    command += ["-c:v", "libwebp"]
     if use_lossless:
         command += ["-lossless", "1", "-compression_level", "6"]
     else:
         command += ["-quality", str(quality)]
-    command += [str(output)]
-    run(command, runner=runner)
-    final_probe = ffprobe(output, ffprobe_bin=ffprobe_bin, runner=runner)
+    command += [str(temporary_output)]
+    try:
+        run(command, runner=runner)
+        final_probe = ffprobe(temporary_output, ffprobe_bin=ffprobe_bin, runner=runner)
+        if expect_alpha or alpha_mask is not None:
+            if not has_alpha(final_probe):
+                raise RuntimeError("expected transparent output, but the output has no alpha channel")
+            if not has_transparent_pixels(temporary_output, ffmpeg_bin=ffmpeg_bin, runner=runner):
+                raise RuntimeError("expected transparent output, but the alpha channel is fully opaque")
+        os.replace(temporary_output, output)
+    finally:
+        if temporary_output.exists():
+            temporary_output.unlink()
     return common_metadata(output, final_probe)
 
 
@@ -190,7 +222,9 @@ def build_parser() -> argparse.ArgumentParser:
     image.add_argument("output")
     image.add_argument("--flattened", action="store_true", help="Use lossless WebP for text-composited exports.")
     image.add_argument("--lossless", action="store_true")
-    image.add_argument("--quality", type=int, default=100)
+    image.add_argument("--quality", type=int, default=80)
+    image.add_argument("--alpha-mask", type=Path, help="Isolated PNG whose alpha channel replaces the export alpha; it is scaled to the source dimensions.")
+    image.add_argument("--expect-alpha", action="store_true", help="Fail when the converted image has no transparent pixels.")
 
     video = subparsers.add_parser("video", help="Convert a video to progressive MP4.")
     video.add_argument("source")
@@ -215,7 +249,8 @@ def main(argv: list[str] | None = None) -> int:
                 raise RuntimeError("--quality must be between 1 and 100")
             result = convert_image(
                 source, output, flattened=args.flattened, lossless=args.lossless,
-                quality=args.quality, ffmpeg_bin=ffmpeg_bin, ffprobe_bin=ffprobe_bin,
+                quality=args.quality, alpha_mask=args.alpha_mask, expect_alpha=args.expect_alpha,
+                ffmpeg_bin=ffmpeg_bin, ffprobe_bin=ffprobe_bin,
             )
         else:
             result = convert_video(

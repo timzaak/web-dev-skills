@@ -19,13 +19,14 @@
 - 按目标素材类型设置导出格式：需要位图处理的素材导出 PNG/JPEG，矢量素材导出 SVG。
 - `download_assets` 返回的临时 URL 必须立即下载到 `.ai/figma/<session>/raw/`，不得直接写入正式代码。
 - 这类图片条目在 manifest 中的 `source` 记录为 `download-assets`。
+- 视觉上应透明的组合节点不能只相信 `pix_fmt`：Figma 可能返回带 alpha 容器但 alpha 全为 255，并把画布色 `#1e1e1e` 烘焙进 RGB。对此节点同时调用 `get_screenshot(contentsOnly: true)`，下载隔离 PNG 作为 alpha mask；保留 `download_assets` 的 3 倍 RGB，通过脚本缩放并合并隔离截图的 alpha。
 
 ## 图片转换
 
-1. PNG/JPEG 照片转 quality 100 WebP；透明或含文字合成图转 lossless WebP。
+1. PNG/JPEG 照片转 quality 80 WebP；透明或含文字合成图转 lossless WebP。预期透明图使用 `image --alpha-mask <isolated.png> --expect-alpha`；脚本必须确认最终 alpha 存在透明像素，不能只检查像素格式。
 2. 用 ffprobe 读取最终宽高，约分成 `W/H`；不要从 CSS 或 Figma 标注猜比例。
-3. 正式路径先查 hash，同名异内容停止，禁止静默覆盖。
-4. 脚本 `image|video` 的 JSON 输出（outputPath、sha256、width、height、aspectRatio）即 manifest 条目数据；全部成功后汇总写 `assets-manifest.json`，再删除 `raw/`。
+3. 正式路径已存在时停止，禁止静默覆盖；开发者明确要求替换时才覆盖。
+4. 脚本 `image|video` 的 JSON 输出（outputPath、width、height、aspectRatio）即 manifest 条目数据；全部成功后汇总写 `assets-manifest.json`，再删除 `raw/`。
 
 ## 视频转换
 
