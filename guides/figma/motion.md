@@ -1,6 +1,6 @@
 # Figma 动效交互原则基准
 
-本规范把迪士尼动画十二原则提炼为界面动效的判断标准，供 `t-figma-ux` 在 Figma 原型证据缺失时生成默认候选、并在实现审查时对照。`motion.json` 结构、探针与验收门禁见 `${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md`。
+本规范把迪士尼动画十二原则提炼为界面动效的判断标准，供 `t-figma-ux` 在 Figma 原型证据缺失时生成默认候选、并在实现审查时对照。`motion.json` 结构与验收门禁见 `${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md`。
 
 ## 证据优先级
 
@@ -35,7 +35,7 @@
 - 大区域转场（抽屉、跨页、全屏）：300–500ms，ease-in-out。
 - 持续循环（loading/呼吸）不适用出入场档位，必须提供 reduced-motion 暂停。
 
-Figma easing 名称到 CSS 记录形式（`motion.json` 与数值探针统一使用右列）：
+Figma easing 名称到 CSS 记录形式（`motion.json` 统一使用右列）：
 
 | Figma | CSS computed 形式 |
 |---|---|
@@ -43,7 +43,7 @@ Figma easing 名称到 CSS 记录形式（`motion.json` 与数值探针统一使
 | EASE_IN | `cubic-bezier(0.42, 0, 1, 1)` |
 | EASE_OUT | `cubic-bezier(0, 0, 0.58, 1)` |
 | EASE_IN_OUT | `cubic-bezier(0.42, 0, 0.58, 1)` |
-| SPRING | 无 CSS 等价；记录 `{stiffness, damping, mass}` 参数并用项目动效库实现，不生成数值探针 |
+| SPRING | 无 CSS 等价；记录 `{stiffness, damping, mass}` 参数并用项目动效库实现 |
 
 ## 可访问性
 

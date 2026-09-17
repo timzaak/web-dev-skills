@@ -60,7 +60,7 @@ uv run scripts/backend-test.py -- --module user-service --tests '*UserServiceTes
 
 ```bash
 cd backend
-/code-review
+/t-tools:t-review
 mvn test
 mvn verify
 ```

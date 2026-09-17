@@ -63,6 +63,7 @@ allowed-tools:
 - `${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md` — 环境与测试指南
 - `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md` — 后端开发规范
 - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md` — 前端开发规范
+- `${CLAUDE_PLUGIN_ROOT}/guides/frontend/ui-decisions.md` — 前端 UI 组件选型、交互状态与无障碍底线（frontend/extension 设计时）
 - `${CLAUDE_PLUGIN_ROOT}/guides/extension/development.md` — Chrome 扩展设计时读取
 - `${CLAUDE_PLUGIN_ROOT}/guides/flutter/development.md` — Flutter 开发规范（目标项目启用 Flutter 时）
 - `${CLAUDE_PLUGIN_ROOT}/guides/flutter/demo-testing.md` — Android Patrol 用户故事演示规范（设计要求 Flutter Demo 时）

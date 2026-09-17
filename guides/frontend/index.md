@@ -5,6 +5,7 @@ frontend 规范入口，按“先定位问题，再读对应页面”使用。
 | 你要确认的问题 | 对应规范 |
 | --- | --- |
 | 当前 frontend 架构事实、目录职责、路由与 API 约束 | [development.md](${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md) |
+| UI 组件选型、交互状态与反馈、无障碍底线、视觉纪律 | [ui-decisions.md](${CLAUDE_PLUGIN_ROOT}/guides/frontend/ui-decisions.md) |
 | Query / Router / Form / API / Tailwind 的项目常用模式 | [patterns.md](${CLAUDE_PLUGIN_ROOT}/guides/frontend/patterns.md) |
 | Vitest、MSW、测试边界与测试写法 | [testing.md](${CLAUDE_PLUGIN_ROOT}/guides/frontend/testing.md) |
 | 完成前最小验证命令与门禁 | [validation.md](${CLAUDE_PLUGIN_ROOT}/guides/frontend/validation.md) |

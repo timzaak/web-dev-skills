@@ -28,6 +28,7 @@
 | Flutter Patrol Demo 单文件与批量修复 | [flutter-demo-run-repair-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/flutter-demo-run-repair-contract.md) |
 | Figma session、素材、整页实现、局部精修、规则记忆与验收 | [figma-workflow-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md) |
 | t-simplify 四角度清理审查、finding 结构与修复边界 | [simplify-cleanup-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/simplify-cleanup-contract.md) |
+| t-review 正确性审查角度、候选结构、三态验证与报告 | [review-correctness-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/review-correctness-contract.md) |
 
 ## 使用规则
 

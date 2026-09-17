@@ -74,7 +74,9 @@ class CommandConstructionTests(unittest.TestCase):
             )
         ffmpeg_call = next(call for call in calls if call[0] == "ffmpeg")
         self.assertIn("-lossless", ffmpeg_call)
-        self.assertEqual(result["conversion"]["mode"], "webp-lossless")
+        self.assertEqual(
+            set(result), {"outputPath", "sha256", "width", "height", "aspectRatio"}
+        )
 
     def test_photo_uses_quality_100(self) -> None:
         calls: list[list[str]] = []

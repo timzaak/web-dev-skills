@@ -141,18 +141,12 @@ def convert_image(
     command = [ffmpeg_bin, "-y", "-i", str(source), "-c:v", "libwebp"]
     if use_lossless:
         command += ["-lossless", "1", "-compression_level", "6"]
-        mode = "webp-lossless"
     else:
         command += ["-quality", str(quality)]
-        mode = f"webp-quality-{quality}"
     command += [str(output)]
     run(command, runner=runner)
     final_probe = ffprobe(output, ffprobe_bin=ffprobe_bin, runner=runner)
-    return {
-        **common_metadata(output, final_probe),
-        "mimeType": "image/webp",
-        "conversion": {"mode": mode},
-    }
+    return common_metadata(output, final_probe)
 
 
 def convert_video(
@@ -184,19 +178,7 @@ def convert_video(
         raise RuntimeError(f"expected yuv420p, got {stream.get('pix_fmt')}")
     if not is_faststart(output):
         raise RuntimeError("MP4 is not faststart: moov atom is not before mdat")
-    return {
-        **common_metadata(output, final_probe),
-        "mimeType": "video/mp4",
-        "conversion": {
-            "mode": "mp4-progressive",
-            "videoCodec": "h264",
-            "audioCodec": "aac" if has_audio else None,
-            "pixelFormat": "yuv420p",
-            "crf": 23,
-            "preset": "medium",
-            "fastStart": True,
-        },
-    }
+    return common_metadata(output, final_probe)
 
 
 def build_parser() -> argparse.ArgumentParser:

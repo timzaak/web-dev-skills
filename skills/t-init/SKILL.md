@@ -104,20 +104,24 @@ allowed-tools:
 - 脚本文件名、主要 CLI 参数和输出 JSON/日志契约保持稳定，便于 `/t-tools:t-*` 流程复用。
 - 运行类命令优先使用 `uv run scripts/<name>.py`；只有目标项目缺少对应脚本时，才回退到 `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/<name>.py`。
 
+脚本适配完成后，读取 [references/scripts-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/scripts-template.md)，根据实际脚本和各端测试配置生成目标项目 `scripts/index.md`，作为测试运行说明的唯一维护位置。
+
 ### Step 7: 生成 AGENTS.md、CLAUDE.md 和 README.md（主 Agent）
 
 读取 [references/agents-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/agents-template.md) 获取模板内容。
 
 生成三个根目录文件：
-- `AGENTS.md` — 项目描述占位符 + 项目行为准则
+- `AGENTS.md` — 项目描述占位符 + 项目行为准则 + `scripts/index.md` 读取入口；不重复测试命令，也不为此生成分端 AGENTS.md
 - `CLAUDE.md` — 仅包含 `@AGENTS.md`
-- `README.md` — 快速启动指南（从 [references/scripts-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/scripts-template.md) 获取项目本地脚本命令）
+- `README.md` — 快速启动指南；测试运行说明统一维护在 `scripts/index.md`
 
 生成后提示用户填写 `AGENTS.md` 顶部的项目描述占位符。
 
 ### Step 8: 验证（主 Agent）
 
 收集各 subagent 的验证结果（见 Step 3 ~ 5 表格），并按「输出文件清单」用 Glob 确认所有文件都已创建。如果验证工具不可用，跳过并提示用户手动验证。
+
+确认根目录 AGENTS.md 指向 `scripts/index.md`，索引中的目录、命令、前置条件和结果位置与生成的脚本、配置一致。缺少测试入口时注明缺口，不虚构命令；未执行的验证明确标为未验证。重试生成索引时保留用户已有说明，仅更新本次涉及的入口。
 
 ## 输出文件清单
 

@@ -33,7 +33,7 @@ uv run scripts/backend-test.py --
 ### 2. 代码质量收口（推荐）
 
 ```bash
-/code-review
+/t-tools:t-review
 uv run scripts/backend-test.py --
 cd backend && mvn verify
 ```

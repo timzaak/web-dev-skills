@@ -98,8 +98,9 @@ Prerequisites:
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI is installed and logged in
 - MCP Server [`context7`](https://github.com/upstash/context7) is configured
-- The official [Figma MCP Server](https://developers.figma.com/docs/figma-mcp-server/) is configured when using the Figma workflow
+- The official [Figma MCP Server](https://developers.figma.com/docs/figma-mcp-server/) and Chrome DevTools MCP are configured when using the Figma workflow (the latter is used for visual acceptance comparison)
 - `ffmpeg` and `ffprobe` are installed and available on PATH when converting Figma media assets
+- `t-figma-impl` / `t-figma-fix` / `t-figma-ux` require a user-provided accessible preview URL; the dev server is the user's responsibility to start
 
 For tools that do not support `claude --plugin-dir` (Codex, ZCode, etc.), see [Using t-tools in Other AI Coding Tools](human/use-in-other-agents.en.md): place a dispatcher skill under `~/.agents/skills/` that routes `/t-tool <skill>` to the cloned repository directory.
 

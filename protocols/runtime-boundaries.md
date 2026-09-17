@@ -9,7 +9,7 @@
 | 目标项目代码与配置 | 当前实现事实 |
 | 目标项目 `AGENTS.md` / `CLAUDE.md` | 项目级执行约束 |
 | 目标项目 `docs/` | 已发布的长期产品、设计和使用事实 |
-| 目标项目 `.ai/` | 当前工作流的草稿、状态、质量报告、预览产物，以及 Figma session、原始证据、二次规格和候选规则记忆 |
+| 目标项目 `.ai/` | 当前工作流的草稿、状态、质量报告、预览产物，以及 Figma session、原始证据和候选规则记忆 |
 | 目标项目 `scripts/` | 环境、测试和 Demo 的本地执行入口 |
 | `${CLAUDE_PLUGIN_ROOT}/protocols/` | 跨 skill 和 agent 的共享契约 |
 | `${CLAUDE_PLUGIN_ROOT}/guides/` | 默认工程规范和领域实践 |
