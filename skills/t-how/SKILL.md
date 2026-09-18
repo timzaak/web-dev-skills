@@ -53,7 +53,7 @@ t-decision -> t-prd / t-tech-research（无固定顺序，进设计前收敛）
 | 发版 | `/t-tools:t-release [版本号]` | semver 不带 `v`，git tag 带 `v` |
 | 写项目教程 / 文档 | `/t-tools:t-doc [名称]` | 不用于 PRD 和技术设计 |
 | 审计上下文 / 结构漂移 | `/t-tools:t-dream [feature]` | 默认只读；PRD 治理加 `--govern-prd` |
-| Figma 还原 | `/t-tools:t-figma-assets`，再 `/t-tools:t-figma-impl` | 局部精修 `t-figma-fix`，动效 `t-figma-ux` |
+| Figma 还原 | `/t-tools:t-figma-assets`，再 `/t-tools:t-figma-impl` | 动效 `t-figma-ux` |
 | 新项目脚手架 | `/t-tools:t-init <project-name>` | Rust + React 全栈骨架 |
 
 表外还有 `t-html-show` 等辅助命令：用 Glob 列出 `${CLAUDE_PLUGIN_ROOT}/skills/`，读对应 `SKILL.md` 开头确认职责后再讲解。
