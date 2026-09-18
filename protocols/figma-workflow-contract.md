@@ -116,8 +116,8 @@
 
 - 图片、图标和合成父节点通过 Figma MCP `download_assets` 导出，不得使用 `get_design_context` 返回的素材 URL 代替下载；`defaultScale` 默认 3，仅明确的小型非关键图标或装饰用 2。
 - 临时 URL 立即下载到 session `raw/`，不得写入正式代码；manifest 条目 `source` 记录为 `download-assets`。
-- PNG/JPEG 转 WebP：照片 quality 100，透明图和 `flattened: true` 合成图 lossless；SVG、已有 WebP 和 GIF 直接保留。项目长期规则可覆盖默认策略。
-- 预期透明的组合节点必须用 `get_screenshot(contentsOnly: true)` 的隔离 PNG 提供 alpha mask，并保留 `download_assets` 的高分辨率 RGB。转换后验证 alpha 通道包含透明像素；仅有 alpha 像素格式但 alpha 全为 255 视为失败。
+- PNG/JPEG 转 WebP：透明图和 `flattened: true` 合成图 lossless，照片走脚本默认 quality；已有 WebP 和 GIF 直接保留；SVG 经 SVGO 优化后落位，不直接复制。项目长期规则可覆盖默认策略。
+- 预期透明的组合节点必须用 `get_screenshot(contentsOnly: true)` 的隔离 PNG 提供 alpha mask，并保留 `download_assets` 的高分辨率 RGB。转换后验证 alpha 通道包含透明像素；仅有 alpha 像素格式但 alpha 全为 255 视为失败。半透明像素的 RGB 会被画布色 `#1e1e1e` 烘焙，mask 合并后必须用 `--unbake-color 1e1e1e` 反解原色，否则浅色渐变在浅色页面上显灰。
 - 使用 ffprobe 提取最终宽高，以最大公约数记录 `aspectRatio`。
 - assets 阶段不编辑 UI 源码；impl/fix 根据 manifest 引用资产并写入真实 aspect-ratio。
 
@@ -153,7 +153,7 @@
 - `publicUrl` 是页面运行时 URL；视频必填（验收时用于在浏览器中定位并播放检查），图片按目标栈需要填写。
 - 名称语义化并沿用项目命名风格；禁止节点 id、hash 和 Figma 默认层名作为最终文件名。
 - 正式路径已存在时停止，请开发者改名或明确允许替换；manifest 不记录内容哈希。
-- 全部条目成功后原子性写入，失败不写半成功条目；脚本 `image|video` 的 JSON 输出即条目数据来源。
+- 全部条目成功后原子性写入，失败不写半成功条目；脚本 `image|video|svg` 的 JSON 输出即条目数据来源。
 - `raw/` 只是转换前的中转缓存：manifest 写入成功后即删除整个 session `raw/`；需要重新导出时重新调用 `download_assets` 下载，不依赖 raw 的持久性。
 
 ## Motion and Interaction

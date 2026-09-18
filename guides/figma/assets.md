@@ -20,13 +20,18 @@
 - `download_assets` 返回的临时 URL 必须立即下载到 `.ai/figma/<session>/raw/`，不得直接写入正式代码。
 - 这类图片条目在 manifest 中的 `source` 记录为 `download-assets`。
 - 视觉上应透明的组合节点不能只相信 `pix_fmt`：Figma 可能返回带 alpha 容器但 alpha 全为 255，并把画布色 `#1e1e1e` 烘焙进 RGB。对此节点同时调用 `get_screenshot(contentsOnly: true)`，下载隔离 PNG 作为 alpha mask；保留 `download_assets` 的 3 倍 RGB，通过脚本缩放并合并隔离截图的 alpha。
+- alpha mask 合并只恢复透明度：半透明像素的 RGB 仍是与画布色 `#1e1e1e` 复合后的值，浅色渐变在页面上会显灰。转换时追加 `image --unbake-color 1e1e1e`（与 `--alpha-mask` 连用或对已带正确 alpha 的烘焙图单独使用），脚本按 `真实RGB=(烘焙RGB-(1-a)*背景)/a` 反解；Figma 桌面端 Export 导出可作权威对照，画布色非默认时以其为准。
 
 ## 图片转换
 
-1. PNG/JPEG 照片转 quality 80 WebP；透明或含文字合成图转 lossless WebP。预期透明图使用 `image --alpha-mask <isolated.png> --expect-alpha`；脚本必须确认最终 alpha 存在透明像素，不能只检查像素格式。
+1. PNG/JPEG 照片按脚本默认 quality 转 WebP；透明或含文字合成图转 lossless WebP。预期透明图使用 `image --alpha-mask <isolated.png> --expect-alpha`；脚本必须确认最终 alpha 存在透明像素，不能只检查像素格式。
 2. 用 ffprobe 读取最终宽高，约分成 `W/H`；不要从 CSS 或 Figma 标注猜比例。
 3. 正式路径已存在时停止，禁止静默覆盖；开发者明确要求替换时才覆盖。
 4. 脚本 `image|video` 的 JSON 输出（outputPath、width、height、aspectRatio）即 manifest 条目数据；全部成功后汇总写 `assets-manifest.json`，再删除 `raw/`。
+
+## SVG 优化
+
+矢量素材不直接复制：逐个调用 `svg <source> <output>`，脚本用 SVGO（默认预设 + multipass）清理 Figma 导出的冗余并落位，同时从优化产物的 width/height 或 viewBox 提取 manifest 尺寸。SVGO 缺失时脚本报错，安装 `npm install -g svgo` 后重跑；不回退为直接复制。
 
 ## 视频转换
 
