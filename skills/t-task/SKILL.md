@@ -71,7 +71,7 @@ allowed-tools:
 
 - 校验 `.ai/design/[feature].md` 存在。读取 Decision Log，核对设计的 Decision Trace，并把 `Must Resolve Before=t-task` 的 Deferred Question 升级为 `needs_user_answer`。
 - 解析 `[feature]` 和 `--phase`；按 task-phase-execution 检测 active phases，未传 `--phase` 时选择第一个 active phase。
-- 按当前 phase 提取设计文档最小相关上下文：主文档（目标范围、交付端范围、跨端契约、测试汇总、文件影响范围）加当前 phase 对应的分端设计文档（backend phase 读 `backend.md`，frontend phase 读 `frontend.md`，extension phase 读 `extension.md`，flutter/web-demo/flutter-demo phase 读对应端文档，缺失时读主文档可用部分）；未命中相关章节时记录警告，但不得编造设计事实。
+- 按当前 phase 提取设计文档最小相关上下文：主文档（目标范围、交付端范围、跨端契约、测试汇总、文件影响范围）加当前 phase 对应的分端设计文档（backend phase 读 `backend.md`，frontend phase 读 `frontend.md`，extension phase 读 `extension.md`，flutter/web-demo/flutter-demo phase 读对应端文档，miniapp phase 读主文档小程序相关部分，缺失时读主文档可用部分）；未命中相关章节时记录警告，但不得编造设计事实。
 - web-demo 涉及扩展时读取 `extension.md` 的浏览器策略及 `${CLAUDE_PLUGIN_ROOT}/guides/extension/testing.md`；extension 适用却缺少分端设计时停止，不套用 Web UI 方案。
 - 调度 slot agent 前，先要求其识别当前 slot 的责任闭环（业务能力、接口能力、页面主流程、组件族、测试资产闭环或验收闭环）；技术层、文件类型和实现步骤只作为拆分的辅助线索。
 - 按当前阶段 slot 串行调度相应 agent（映射见下表），每次调度按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 通过 `Agent` tool 启动。prompt 保持精简：阶段设计摘要、上游 handoff、目标 guide/protocol 路径、责任闭环识别要求、输出字段要求、`needs_user_answer` 规则；不得复制 guide、protocol 或 agent 文档中的长篇规则。
