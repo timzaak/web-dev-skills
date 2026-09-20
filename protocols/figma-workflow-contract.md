@@ -72,7 +72,7 @@
 
 ## Source of Truth and Reconstruction
 
-1. 目标项目代码、配置及 `AGENTS.md`/`CLAUDE.md` 是当前实现与执行约束。
+1. 目标项目代码、配置及 `AGENTS.md` 是当前实现与执行约束。
 2. `docs/figma-rules.md` 是已验证的项目级 Figma 长期规则。
 3. `source/` 是 MCP 提取窗口内取得的不可变原始证据；不得在调试中覆盖。
 4. `rule-candidates.md` 是当前 session 的候选经验，不自动凌驾于代码或长期规则。

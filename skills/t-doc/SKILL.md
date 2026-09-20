@@ -61,7 +61,7 @@ allowed-tools:
 
 | 来源 | 关注点 |
 |------|--------|
-| `README.md`, `CLAUDE.md` | 项目定位、技术栈、运行方式 |
+| `README.md` | 项目定位、技术栈、运行方式 |
 | `package.json`, `Cargo.toml`, `pyproject.toml` | 依赖和版本 |
 | `src/`, `app/`, `lib/` 入口文件 | 模块结构、路由、核心抽象 |
 | `docs/`, `guides/`, `protocols/` | 现有文档和规范 |
