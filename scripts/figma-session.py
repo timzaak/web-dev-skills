@@ -14,7 +14,7 @@ from typing import Any
 
 RUNTIME_DIR = Path(".ai") / "figma"
 LEGACY_RUNTIME_DIR = Path("memo") / "figma"
-SESSION_STAGES = ("assets", "motion", "fixing")
+SESSION_STAGES = ("assets", "motion")
 
 
 def runtime_dir(project: Path) -> Path:
@@ -158,7 +158,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--stage", choices=SESSION_STAGES, default="assets",
         help=(
             "initial session stage; assets for restore chain, motion for standalone "
-            "t-figma-ux, fixing for standalone t-figma-fix"
+            "t-figma-ux"
         ),
     )
     archive_parser = sub.add_parser("archive")

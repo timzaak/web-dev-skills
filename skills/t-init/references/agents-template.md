@@ -1,6 +1,6 @@
 # AGENTS.md 模板
 
-## 1. AGENTS.md
+## AGENTS.md
 
 ```markdown
 > [项目简述：请在此处填写项目的一句话描述]
@@ -42,16 +42,7 @@ If you lose track, stop and restate.
 
 ---
 
-## 2. CLAUDE.md
-
-```markdown
-@AGENTS.md
-```
-
----
-
 ## 生成时的注意事项
 
-- `CLAUDE.md` 仅包含 `@AGENTS.md` 一行
 - `AGENTS.md` 顶部的项目描述占位符需提示用户填写
 - 行为准则内容为静态文本，无需替换占位符

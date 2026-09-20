@@ -9,7 +9,7 @@ def _resolve_repo_root() -> Path:
     Priority:
     1. AI_PROJECT_ROOT override for intentional shared-script use
     2. git rev-parse --show-toplevel anchored to this scripts tree
-    3. Walk this scripts tree upward for CLAUDE.md / .git marker
+    3. Walk this scripts tree upward for AGENTS.md / .git marker
     4. parents[2] relative to this file
     """
     override = os.environ.get("CLAUDE_PROJECT_DIR")
@@ -53,7 +53,7 @@ def _resolve_repo_root() -> Path:
 
     # Walk from the scripts tree upward for marker files.
     for parent in [script_project_root, *script_project_root.parents]:
-        if (parent / "CLAUDE.md").is_file() or (parent / ".git").exists():
+        if (parent / "AGENTS.md").is_file() or (parent / ".git").exists():
             return parent
 
     # Fallback: assume scripts are inside the project.

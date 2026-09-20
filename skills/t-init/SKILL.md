@@ -106,13 +106,12 @@ allowed-tools:
 
 脚本适配完成后，读取 [references/scripts-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/scripts-template.md)，根据实际脚本和各端测试配置生成目标项目 `scripts/index.md`，作为测试运行说明的唯一维护位置。
 
-### Step 7: 生成 AGENTS.md、CLAUDE.md 和 README.md（主 Agent）
+### Step 7: 生成 AGENTS.md 和 README.md（主 Agent）
 
 读取 [references/agents-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/agents-template.md) 获取模板内容。
 
-生成三个根目录文件：
+生成两个根目录文件：
 - `AGENTS.md` — 项目描述占位符 + 项目行为准则 + `scripts/index.md` 读取入口；不重复测试命令，也不为此生成分端 AGENTS.md
-- `CLAUDE.md` — 仅包含 `@AGENTS.md`
 - `README.md` — 快速启动指南；测试运行说明统一维护在 `scripts/index.md`
 
 生成后提示用户填写 `AGENTS.md` 顶部的项目描述占位符。
@@ -125,7 +124,7 @@ allowed-tools:
 
 ## 输出文件清单
 
-完整清单见 [references/output-checklist.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/output-checklist.md)（Step 1 创建目录结构和 Step 8 验证时读取），覆盖四组必须产物：`backend/`（Maven 工程 + 配置与测试）、`frontend/`（Vite + TanStack 工程）、`scripts/` + `README.md` + `AGENTS.md`/`CLAUDE.md`、`demo/`（Playwright E2E 与冒烟测试）。
+完整清单见 [references/output-checklist.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/output-checklist.md)（Step 1 创建目录结构和 Step 8 验证时读取），覆盖四组必须产物：`backend/`（Maven 工程 + 配置与测试）、`frontend/`（Vite + TanStack 工程）、`scripts/` + `README.md` + `AGENTS.md`、`demo/`（Playwright E2E 与冒烟测试）。
 
 ## 收尾输出
 
@@ -135,7 +134,7 @@ allowed-tools:
 - OpenAPI 位置（`/v3/api-docs`，Swagger UI 由 springdoc 配置）
 - 项目本地脚本已生成到 `scripts/`，后续优先执行 `uv run scripts/<name>.py`；UnifiedLogger 通过 `npm install playwright-unified-logger` 安装
 - Demo smoke test 运行命令（`cd demo && npx playwright test e2e/smoke.e2e.ts`）与日志环境变量说明（`UNIFIED_LOG_LEVEL` 等）
-- AGENTS.md 和 CLAUDE.md 已生成，提醒用户填写项目描述
+- AGENTS.md 已生成，提醒用户填写项目描述
 - 快速启动命令、需要用户手动完成的步骤（如复制 config、安装 Docker）
 - 下一步建议（如 `/t-prd` 开始功能规划）
 

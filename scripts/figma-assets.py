@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Convert and inspect Figma image/video assets with ffmpeg and ffprobe."""
+"""Convert, optimize and inspect Figma assets with ffmpeg and SVGO."""
 
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import math
+import os
+import re
 import shutil
 import struct
 import subprocess
@@ -30,14 +31,6 @@ def run(command: list[str], *, runner: Runner = subprocess.run) -> subprocess.Co
     if result.returncode != 0:
         raise RuntimeError(result.stderr.strip() or f"command failed: {' '.join(command)}")
     return result
-
-
-def sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def ffprobe(path: Path, *, ffprobe_bin: str, runner: Runner = subprocess.run) -> dict[str, Any]:
@@ -79,6 +72,25 @@ def has_alpha(probe: dict[str, Any]) -> bool:
     return any(marker in pixel_format for marker in ("rgba", "bgra", "argb", "yuva", "gbrap", "pal8"))
 
 
+def has_transparent_pixels(
+    path: Path, *, ffmpeg_bin: str, runner: Runner = subprocess.run,
+) -> bool:
+    result = run([
+        ffmpeg_bin, "-v", "info", "-i", str(path),
+        "-vf", "alphaextract,signalstats,metadata=print", "-frames:v", "1",
+        "-f", "null", "-",
+    ], runner=runner)
+    output = f"{result.stdout}\n{result.stderr}"
+    marker = "lavfi.signalstats.YMIN="
+    for line in output.splitlines():
+        if marker in line:
+            try:
+                return float(line.split(marker, 1)[1].strip()) < 255
+            except ValueError as exc:
+                raise RuntimeError("invalid alpha statistics returned by ffmpeg") from exc
+    raise RuntimeError("ffmpeg did not return alpha statistics")
+
+
 def top_level_atoms(path: Path) -> list[tuple[str, int]]:
     atoms: list[tuple[str, int]] = []
     size_total = path.stat().st_size
@@ -113,11 +125,95 @@ def is_faststart(path: Path) -> bool:
     return "moov" in offsets and "mdat" in offsets and offsets["moov"] < offsets["mdat"]
 
 
+def parse_hex_color(value: str) -> tuple[int, int, int]:
+    text = value.strip().lstrip("#")
+    if len(text) != 6 or any(c not in "0123456789abcdefABCDEF" for c in text):
+        raise RuntimeError(f"color must be a 6-digit hex value, got: {value}")
+    return tuple(int(text[i:i + 2], 16) for i in (0, 2, 4))  # type: ignore[return-value]
+
+
+def unbake_expression(sample: str, background: int) -> str:
+    """Reverse canvas compositing for one channel: true = (baked - (1-a)*bg) / a."""
+    return (
+        f"if(eq(alpha(X,Y),0),0,if(eq(alpha(X,Y),255),{sample},"
+        f"clip(({sample}-(1-alpha(X,Y)/255)*{background})/(alpha(X,Y)/255),0,255)))"
+    )
+
+
+def svg_root_tag(text: str) -> str:
+    match = re.search(r"<svg\b[^>]*>", text)
+    if match is None:
+        raise RuntimeError("source does not contain an <svg> root element")
+    return match.group(0)
+
+
+def svg_dimensions(text: str) -> tuple[int, int]:
+    tag = svg_root_tag(text)
+
+    def attribute(name: str) -> str | None:
+        found = re.search(rf'{name}\s*=\s*"([^"]*)"', tag) or re.search(
+            rf"{name}\s*=\s*'([^']*)'", tag
+        )
+        return found.group(1) if found else None
+
+    def parse_length(value: str | None) -> float | None:
+        if value is None:
+            return None
+        try:
+            length = float(re.sub(r"(?i)px$", "", value.strip()))
+        except ValueError:
+            return None
+        return length if length > 0 else None
+
+    width = parse_length(attribute("width"))
+    height = parse_length(attribute("height"))
+    if width is None or height is None:
+        parts = (attribute("viewBox") or attribute("viewbox") or "").replace(",", " ").split()
+        if len(parts) == 4:
+            width = width if width is not None else parse_length(parts[2])
+            height = height if height is not None else parse_length(parts[3])
+    if width is None or height is None:
+        raise RuntimeError("cannot determine SVG dimensions from width/height or viewBox")
+    return round(width), round(height)
+
+
+def optimize_svg(
+    source: Path,
+    output: Path,
+    *,
+    svgo_bin: str,
+    runner: Runner = subprocess.run,
+) -> dict[str, Any]:
+    output.parent.mkdir(parents=True, exist_ok=True)
+    temporary_output = output.with_name(f".{output.stem}.tmp{output.suffix}")
+    try:
+        run(
+            [svgo_bin, "--multipass", "-i", str(source), "-o", str(temporary_output)],
+            runner=runner,
+        )
+        if not temporary_output.is_file():
+            raise RuntimeError("svgo did not produce an output file")
+        width, height = svg_dimensions(temporary_output.read_text(encoding="utf-8"))
+        os.replace(temporary_output, output)
+    finally:
+        if temporary_output.exists():
+            temporary_output.unlink()
+    print(
+        f"svgo: {source.stat().st_size} -> {output.stat().st_size} bytes",
+        file=sys.stderr,
+    )
+    return {
+        "outputPath": str(output),
+        "width": width,
+        "height": height,
+        "aspectRatio": ratio(width, height),
+    }
+
+
 def common_metadata(path: Path, probe: dict[str, Any]) -> dict[str, Any]:
     width, height = dimensions(probe)
     return {
         "outputPath": str(path),
-        "sha256": sha256(path),
         "width": width,
         "height": height,
         "aspectRatio": ratio(width, height),
@@ -130,22 +226,80 @@ def convert_image(
     *,
     flattened: bool = False,
     lossless: bool = False,
-    quality: int = 100,
+    quality: int = 80,
+    max_width: int = 0,
+    alpha_mask: Path | None = None,
+    unbake: tuple[int, int, int] | None = None,
+    expect_alpha: bool = False,
     ffmpeg_bin: str,
     ffprobe_bin: str,
     runner: Runner = subprocess.run,
 ) -> dict[str, Any]:
     source_probe = ffprobe(source, ffprobe_bin=ffprobe_bin, runner=runner)
-    use_lossless = flattened or lossless or has_alpha(source_probe)
+    if unbake is not None and alpha_mask is None and not has_transparent_pixels(
+        source, ffmpeg_bin=ffmpeg_bin, runner=runner,
+    ):
+        raise RuntimeError(
+            "--unbake-color needs per-pixel alpha, but the source is fully opaque; "
+            "provide --alpha-mask from an isolated screenshot"
+        )
+    use_lossless = (
+        flattened or lossless or alpha_mask is not None or unbake is not None
+        or has_alpha(source_probe)
+    )
+    source_width, _ = dimensions(source_probe)
+    scale_filter = (
+        f"scale={max_width}:-2:flags=lanczos" if max_width and source_width > max_width else ""
+    )
     output.parent.mkdir(parents=True, exist_ok=True)
-    command = [ffmpeg_bin, "-y", "-i", str(source), "-c:v", "libwebp"]
+    temporary_output = output.with_name(f".{output.stem}.tmp{output.suffix}")
+    command = [ffmpeg_bin, "-y", "-i", str(source)]
+    filter_complex = ""
+    if alpha_mask is not None:
+        if not alpha_mask.is_file():
+            raise RuntimeError(f"alpha mask not found: {alpha_mask}")
+        width, height = dimensions(source_probe)
+        tail = "[merged]" if unbake is not None else ""
+        filter_complex = (
+            f"[1:v]alphaextract,scale={width}:{height}:flags=lanczos[alpha];"
+            f"[0:v][alpha]alphamerge{tail}"
+        )
+        command += ["-i", str(alpha_mask)]
+    if unbake is not None:
+        geq = (
+            f"format=rgba,geq="
+            f"r='{unbake_expression('r(X,Y)', unbake[0])}':"
+            f"g='{unbake_expression('g(X,Y)', unbake[1])}':"
+            f"b='{unbake_expression('b(X,Y)', unbake[2])}':"
+            f"a='alpha(X,Y)'"
+        )
+        source_label = "[merged]" if alpha_mask is not None else "[0:v]"
+        filter_complex += f";{source_label}{geq}" if filter_complex else f"{source_label}{geq}"
+    if scale_filter:
+        if filter_complex:
+            filter_complex += f",{scale_filter}"
+        else:
+            command += ["-vf", scale_filter]
+    if filter_complex:
+        command += ["-filter_complex", filter_complex]
+    command += ["-c:v", "libwebp"]
     if use_lossless:
         command += ["-lossless", "1", "-compression_level", "6"]
     else:
         command += ["-quality", str(quality)]
-    command += [str(output)]
-    run(command, runner=runner)
-    final_probe = ffprobe(output, ffprobe_bin=ffprobe_bin, runner=runner)
+    command += [str(temporary_output)]
+    try:
+        run(command, runner=runner)
+        final_probe = ffprobe(temporary_output, ffprobe_bin=ffprobe_bin, runner=runner)
+        if expect_alpha or alpha_mask is not None:
+            if not has_alpha(final_probe):
+                raise RuntimeError("expected transparent output, but the output has no alpha channel")
+            if not has_transparent_pixels(temporary_output, ffmpeg_bin=ffmpeg_bin, runner=runner):
+                raise RuntimeError("expected transparent output, but the alpha channel is fully opaque")
+        os.replace(temporary_output, output)
+    finally:
+        if temporary_output.exists():
+            temporary_output.unlink()
     return common_metadata(output, final_probe)
 
 
@@ -190,7 +344,15 @@ def build_parser() -> argparse.ArgumentParser:
     image.add_argument("output")
     image.add_argument("--flattened", action="store_true", help="Use lossless WebP for text-composited exports.")
     image.add_argument("--lossless", action="store_true")
-    image.add_argument("--quality", type=int, default=100)
+    image.add_argument("--quality", type=int, default=80)
+    image.add_argument("--max-width", type=int, default=0, help="Downscale wider sources to this pixel width with lanczos before encoding; 0 keeps the source resolution.")
+    image.add_argument("--alpha-mask", type=Path, help="Isolated PNG whose alpha channel replaces the export alpha; it is scaled to the source dimensions.")
+    image.add_argument("--unbake-color", help="Hex color (e.g. 1e1e1e) that Figma baked into semi-transparent RGB; true colors are restored via true=(baked-(1-a)*bg)/a after the optional alpha-mask merge.")
+    image.add_argument("--expect-alpha", action="store_true", help="Fail when the converted image has no transparent pixels.")
+
+    svg = subparsers.add_parser("svg", help="Optimize an SVG with SVGO.")
+    svg.add_argument("source")
+    svg.add_argument("output")
 
     video = subparsers.add_parser("video", help="Convert a video to progressive MP4.")
     video.add_argument("source")
@@ -208,19 +370,33 @@ def main(argv: list[str] | None = None) -> int:
         print("source and output must be different files", file=sys.stderr)
         return 2
     try:
-        ffmpeg_bin = require_tool("ffmpeg")
-        ffprobe_bin = require_tool("ffprobe")
-        if args.command == "image":
-            if not 1 <= args.quality <= 100:
-                raise RuntimeError("--quality must be between 1 and 100")
-            result = convert_image(
-                source, output, flattened=args.flattened, lossless=args.lossless,
-                quality=args.quality, ffmpeg_bin=ffmpeg_bin, ffprobe_bin=ffprobe_bin,
-            )
+        if args.command == "svg":
+            svgo_bin = shutil.which("svgo")
+            if not svgo_bin:
+                raise RuntimeError(
+                    "svgo not found; install it with `npm install -g svgo` and ensure it is on PATH"
+                )
+            result = optimize_svg(source, output, svgo_bin=svgo_bin)
         else:
-            result = convert_video(
-                source, output, ffmpeg_bin=ffmpeg_bin, ffprobe_bin=ffprobe_bin,
-            )
+            ffmpeg_bin = require_tool("ffmpeg")
+            ffprobe_bin = require_tool("ffprobe")
+            if args.command == "image":
+                if not 1 <= args.quality <= 100:
+                    raise RuntimeError("--quality must be between 1 and 100")
+                if args.max_width < 0:
+                    raise RuntimeError("--max-width must be a non-negative pixel width")
+                unbake = parse_hex_color(args.unbake_color) if args.unbake_color else None
+                result = convert_image(
+                    source, output, flattened=args.flattened, lossless=args.lossless,
+                    quality=args.quality, max_width=args.max_width,
+                    alpha_mask=args.alpha_mask, unbake=unbake,
+                    expect_alpha=args.expect_alpha,
+                    ffmpeg_bin=ffmpeg_bin, ffprobe_bin=ffprobe_bin,
+                )
+            else:
+                result = convert_video(
+                    source, output, ffmpeg_bin=ffmpeg_bin, ffprobe_bin=ffprobe_bin,
+                )
     except RuntimeError as exc:
         print(str(exc), file=sys.stderr)
         return 1

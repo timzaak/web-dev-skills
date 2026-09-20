@@ -4,7 +4,7 @@
 | --- | --- |
 | 插件资源与目标项目运行时边界 | [runtime-boundaries.md](${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md) |
 | PRD、用户故事和技术预研的正式/候选来源边界 | [requirement-source-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md) |
-| 代码注释中临时工作流文档引用禁令与低价值注释定义 | [code-comment-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md) |
+| 代码注释默认不写的保留白名单、低价值注释禁令与临时工作流文档引用禁令 | [code-comment-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md) |
 | 产品立项决策简报结构、结论和下游承接规则 | [decision-brief-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/decision-brief-contract.md) |
 | 跨阶段决策账本、用户决策暴露和消费追踪 | [decision-continuity-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md) |
 | 实现类 agent 的通用结构化输出 | [agent-task-output-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md) |
@@ -26,7 +26,7 @@
 | Demo 诊断报告结构与分类映射 | [diagnostic-report-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-contract.md) |
 | Web Demo 单文件运行、修复、补测与环境刷新 | [web-demo-run-repair-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md) |
 | Flutter Patrol Demo 单文件与批量修复 | [flutter-demo-run-repair-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/flutter-demo-run-repair-contract.md) |
-| Figma session、素材、整页实现、局部精修、规则记忆与验收 | [figma-workflow-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md) |
+| Figma session、素材、整页实现、规则记忆与验收 | [figma-workflow-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md) |
 | t-simplify 四角度清理审查、finding 结构与修复边界 | [simplify-cleanup-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/simplify-cleanup-contract.md) |
 | t-review 正确性审查角度、候选结构、三态验证与报告 | [review-correctness-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/review-correctness-contract.md) |
 

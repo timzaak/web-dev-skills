@@ -33,7 +33,7 @@ EXCLUDE_DIRS = {
 }
 
 DEFAULT_REPORT_PATH = Path(".ai/check-markdown-links-report.md")
-ROOT_DOCS = {"CLAUDE.md", "AGENTS.md"}
+ROOT_DOCS = {"AGENTS.md"}
 INDEX_PATTERNS = {"00-index.md", "index.md", "INDEX.md"}
 README_PATTERNS = {"README.md", "_README.md"}
 

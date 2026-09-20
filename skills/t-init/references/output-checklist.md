@@ -45,7 +45,6 @@
 
 **AI 辅助配置（必须）：**
 - [ ] `AGENTS.md`
-- [ ] `CLAUDE.md`
 
 **Demo E2E 测试（必须）：**
 - [ ] `demo/package.json`
