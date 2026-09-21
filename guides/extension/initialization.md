@@ -11,14 +11,26 @@ npx wxt@latest init <目录名> -t react --pm <npm|pnpm|yarn|bun>
 - 全栈仓库默认放在 `extension/`，独立扩展以生成目录为仓库根目录；进入该目录，用选定的包管理器安装依赖。下文命令以 npm 为例。
 - 技术基线按 [development.md](${CLAUDE_PLUGIN_ROOT}/guides/extension/development.md)；初始化保留 React + TypeScript 模板，功能依赖与权限增量待设计明确后引入。
 
-## 2. 核对配置
+## 2. 确认开发循环
+
+写业务代码前用 AskUserQuestion 确认开发循环模式，按选择写入 `wxt.config.ts`；未确认前不替用户默认：
+
+| 模式 | 配置 | 说明 |
+|---|---|---|
+| 独立 dev 浏览器 | 无需额外配置 | WXT 自动拉起装好扩展的浏览器，保存后自动重载；一次性 profile，登录态不跨会话保留 |
+| 复用用户日常 Chrome | `webExt: { disabled: true }` | 用户把 `.output/chrome-mv3-dev` 一次性 Load unpacked 进日常 Chrome（或按 [用户 Chrome 调试](${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md) 用扩展管理工具安装）；`npm run dev` 常驻后保存即自动整扩展重载，content script 更新需刷新宿主标签页；结束开发后移除或停用该 dev 扩展 |
+| 专用持久 profile | `chromiumArgs: ['--user-data-dir=./.wxt/chrome-data']`（Windows 可用 `chromiumProfile` + `keepProfileChanges: true`） | 状态跨会话保留，适合固定测试账号 |
+
+unpacked 扩展 ID 由目录路径派生，`.output/chrome-mv3-dev` 路径不变则 ID 稳定，重复加载等效更新。任何模式下都禁止把 `chromiumProfile` + `keepProfileChanges` 指向真实默认 user data dir：受单实例锁拦截，Chrome 136+ 禁用默认目录的调试管道，且有写坏 profile 风险。
+
+## 3. 核对配置
 
 - 全局 manifest 与 Vite 配置写入 `wxt.config.ts`，入口专属选项随入口声明；不手写生成的 `manifest.json`。
 - 入口文件位于 `entrypoints/` 顶层或其直接子目录的 `index.*`；辅助文件放在对应入口目录内，避免被当作独立入口构建。
 - 保留模板的 `dev` / `build` / `zip`、`compile`（`tsc --noEmit`）和 `postinstall`（`wxt prepare`）脚本。
 - 确认 `.gitignore` 忽略 `.output/`、`.wxt/`、`node_modules/`。
 
-## 3. 接入测试
+## 4. 接入测试
 
 安装 `vitest` 为开发依赖，创建 `vitest.config.ts`：
 
@@ -33,9 +45,9 @@ export default defineConfig({
 
 新增 `test:run`（`vitest run`）脚本和一个冒烟单测，验证测试管线可用；用例与 mock 边界按 [testing.md](${CLAUDE_PLUGIN_ROOT}/guides/extension/testing.md)。
 
-## 4. 验证与衔接
+## 5. 验证与衔接
 
-运行 `npm run dev`，确认扩展加载及模板页面正常后停止开发进程，再执行：
+按第 2 步选定的模式运行 `npm run dev`，确认扩展加载及模板页面正常（复用日常 Chrome 模式下由用户确认）后停止开发进程，再执行：
 
 ```bash
 npm run compile
