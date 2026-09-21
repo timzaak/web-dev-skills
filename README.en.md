@@ -100,6 +100,7 @@ Prerequisites:
 - MCP Server [`context7`](https://github.com/upstash/context7) is configured
 - The official [Figma MCP Server](https://developers.figma.com/docs/figma-mcp-server/) and Chrome DevTools MCP are configured when using the Figma workflow (the latter is used for visual acceptance comparison)
 - `ffmpeg` and `ffprobe` are installed and available on PATH when converting Figma media assets; SVG optimization additionally requires `svgo` (`npm install -g svgo`)
+- PNG-to-WebP conversion in `t-figma-assets` depends on the [kyz](https://github.com/timzaak/kyz) credential proxy: run `kyz daemon start` with the tinify rule configured (store the tinify credential in the vault as described in `docs/proxy.md` of the kyz repository); the TinyPNG API key never lands in this repository
 - `t-figma-impl` / `t-figma-ux` require a user-provided accessible preview URL; the dev server is the user's responsibility to start
 
 For tools that do not support `claude --plugin-dir` (Codex, ZCode, etc.), see [Using t-tools in Other AI Coding Tools](human/use-in-other-agents.en.md): place a dispatcher skill under `~/.agents/skills/` that routes `/t-tool <skill>` to the cloned repository directory.

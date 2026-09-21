@@ -99,6 +99,7 @@ claude --plugin-dir /path/to/skills
 - MCP Server [`context7`](https://github.com/upstash/context7) 已配置
 - 使用 Figma 工作流时，官方 [Figma MCP Server](https://developers.figma.com/docs/figma-mcp-server/) 与 Chrome DevTools MCP 已配置（后者用于验收目视比对）
 - 使用 Figma 素材转换时，`ffmpeg` 与 `ffprobe` 已安装并可从 PATH 调用；SVG 优化还需要 `svgo`（`npm install -g svgo`）
+- `t-figma-assets` 的 PNG 转 WebP 依赖 [kyz](https://github.com/timzaak/kyz) 凭据代理：需 `kyz daemon start` 并配置 tinify 规则（tinify 凭据存入 vault，方法见 kyz 仓库 `docs/proxy.md`），TinyPNG API key 不落本仓库
 - `t-figma-impl` / `t-figma-ux` 需要用户提供可访问的 preview URL；dev server 由用户负责启动
 
 使用 Codex、ZCode 等不支持 `claude --plugin-dir` 的工具时，见 [在其它 AI 编程工具中使用 t-tools](human/use-in-other-agents.md)：通过在 `~/.agents/skills/` 下放置路由 skill，把 `/t-tool <skill>` 指向克隆后的仓库目录。

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Convert, optimize and inspect Figma assets with ffmpeg and SVGO."""
+"""Convert, optimize and inspect Figma assets with ffmpeg, TinyPNG and SVGO."""
 
 from __future__ import annotations
 
@@ -12,11 +12,21 @@ import shutil
 import struct
 import subprocess
 import sys
+import urllib.error
+import urllib.request
 from pathlib import Path
 from typing import Any, Callable
+from urllib.parse import urlsplit, urlunsplit
 
 
 Runner = Callable[..., subprocess.CompletedProcess[str]]
+
+TINIFY_HOST = "api.tinify.com"
+KYZ_PROXY_DEFAULT = "http://127.0.0.1:8477"
+
+# All TinyPNG traffic targets the loopback kyz credential proxy; never route it
+# through a system HTTP proxy.
+_LOOPBACK_OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
 
 def require_tool(name: str) -> str:
@@ -220,6 +230,127 @@ def common_metadata(path: Path, probe: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def kyz_proxy_token() -> str | None:
+    state_dirs: list[Path] = []
+    local_appdata = os.environ.get("LOCALAPPDATA")
+    if local_appdata:
+        state_dirs.append(Path(local_appdata) / "kyz" / "daemon")
+    state_home = os.environ.get("XDG_STATE_HOME") or str(Path.home() / ".local" / "state")
+    state_dirs.append(Path(state_home) / "kyz" / "daemon")
+    for directory in state_dirs:
+        try:
+            token = (directory / "proxy.token").read_text(encoding="utf-8").strip()
+        except OSError:
+            continue
+        if token:
+            return token
+    return None
+
+
+def tinify_error_text(status: int, body: bytes) -> str:
+    detail = body[:200].decode("utf-8", errors="replace").strip()
+    try:
+        payload = json.loads(body.decode("utf-8", errors="replace"))
+    except (json.JSONDecodeError, ValueError):
+        payload = None
+    if isinstance(payload, dict):
+        detail = f"{payload.get('error', 'unknown')}: {payload.get('message', '')}".rstrip(": ")
+    hint = ""
+    if status == 401:
+        hint = " (check the kyz proxy token and the stored tinify basic credential)"
+    elif status == 429:
+        hint = " (TinyPNG monthly compression quota exhausted)"
+    return f"TinyPNG returned HTTP {status}: {detail}{hint}"
+
+
+def tinify_call(
+    upstream_url: str,
+    *,
+    proxy: str,
+    token: str | None,
+    data: bytes | None = None,
+) -> tuple[int, bytes]:
+    target = urlsplit(upstream_url)
+    base = urlsplit(proxy if "://" in proxy else f"http://{proxy}")
+    headers = {"Host": target.netloc}
+    if data is not None:
+        headers["Content-Type"] = "application/octet-stream"
+    if token:
+        headers["x-kyz-proxy-token"] = token
+    request = urllib.request.Request(
+        urlunsplit((base.scheme, base.netloc, target.path, target.query, "")),
+        data=data,
+        headers=headers,
+    )
+    try:
+        with _LOOPBACK_OPENER.open(request, timeout=300) as response:
+            return response.status, response.read()
+    except urllib.error.HTTPError as exc:
+        raise RuntimeError(tinify_error_text(exc.code, exc.read())) from exc
+    except urllib.error.URLError as exc:
+        raise RuntimeError(
+            f"cannot reach the kyz credential proxy at {base.netloc} ({exc.reason}); "
+            "run `kyz daemon status` and confirm the tinify rule listens on it"
+        ) from exc
+
+
+def tinify_compress(
+    image: Path,
+    destination: Path,
+    *,
+    proxy: str,
+    token: str | None,
+) -> None:
+    status, body = tinify_call(
+        f"https://{TINIFY_HOST}/shrink", proxy=proxy, token=token, data=image.read_bytes(),
+    )
+    if status != 201:
+        raise RuntimeError(f"TinyPNG returned HTTP {status}, expected 201")
+    try:
+        output_url = json.loads(body)["output"]["url"]
+    except (json.JSONDecodeError, KeyError, TypeError) as exc:
+        preview = body[:200].decode("utf-8", errors="replace")
+        raise RuntimeError(f"unexpected TinyPNG shrink response: {preview!r}") from exc
+    status, body = tinify_call(output_url, proxy=proxy, token=token)
+    if status != 200:
+        raise RuntimeError(f"TinyPNG output download returned HTTP {status}")
+    destination.write_bytes(body)
+
+
+def alpha_filter_graph(
+    source_probe: dict[str, Any],
+    *,
+    alpha_mask: Path | None,
+    unbake: tuple[int, int, int] | None,
+) -> tuple[list[str], str]:
+    """Build alpha handling inputs and filter graph; both empty when no alpha work is needed."""
+    if alpha_mask is None and unbake is None:
+        return [], ""
+    inputs: list[str] = []
+    filter_complex = ""
+    if alpha_mask is not None:
+        if not alpha_mask.is_file():
+            raise RuntimeError(f"alpha mask not found: {alpha_mask}")
+        width, height = dimensions(source_probe)
+        tail = "[merged]" if unbake is not None else ""
+        filter_complex = (
+            f"[1:v]alphaextract,scale={width}:{height}:flags=lanczos[alpha];"
+            f"[0:v][alpha]alphamerge{tail}"
+        )
+        inputs += ["-i", str(alpha_mask)]
+    if unbake is not None:
+        geq = (
+            f"format=rgba,geq="
+            f"r='{unbake_expression('r(X,Y)', unbake[0])}':"
+            f"g='{unbake_expression('g(X,Y)', unbake[1])}':"
+            f"b='{unbake_expression('b(X,Y)', unbake[2])}':"
+            f"a='alpha(X,Y)'"
+        )
+        source_label = "[merged]" if alpha_mask is not None else "[0:v]"
+        filter_complex += f";{source_label}{geq}" if filter_complex else f"{source_label}{geq}"
+    return inputs, filter_complex
+
+
 def convert_image(
     source: Path,
     output: Path,
@@ -231,6 +362,7 @@ def convert_image(
     alpha_mask: Path | None = None,
     unbake: tuple[int, int, int] | None = None,
     expect_alpha: bool = False,
+    tinypng_proxy: str = KYZ_PROXY_DEFAULT,
     ffmpeg_bin: str,
     ffprobe_bin: str,
     runner: Runner = subprocess.run,
@@ -243,6 +375,10 @@ def convert_image(
             "--unbake-color needs per-pixel alpha, but the source is fully opaque; "
             "provide --alpha-mask from an isolated screenshot"
         )
+    # PNG sources (and anything needing alpha work) go: local transparency fixup
+    # -> TinyPNG compression via the kyz credential proxy -> lossless WebP.
+    # JPEG photos still encode directly with the configured quality.
+    use_tinypng = source.suffix.lower() == ".png" or alpha_mask is not None or unbake is not None
     use_lossless = (
         flattened or lossless or alpha_mask is not None or unbake is not None
         or has_alpha(source_probe)
@@ -251,45 +387,50 @@ def convert_image(
     scale_filter = (
         f"scale={max_width}:-2:flags=lanczos" if max_width and source_width > max_width else ""
     )
+    alpha_inputs, alpha_graph = alpha_filter_graph(
+        source_probe, alpha_mask=alpha_mask, unbake=unbake,
+    )
     output.parent.mkdir(parents=True, exist_ok=True)
     temporary_output = output.with_name(f".{output.stem}.tmp{output.suffix}")
-    command = [ffmpeg_bin, "-y", "-i", str(source)]
-    filter_complex = ""
-    if alpha_mask is not None:
-        if not alpha_mask.is_file():
-            raise RuntimeError(f"alpha mask not found: {alpha_mask}")
-        width, height = dimensions(source_probe)
-        tail = "[merged]" if unbake is not None else ""
-        filter_complex = (
-            f"[1:v]alphaextract,scale={width}:{height}:flags=lanczos[alpha];"
-            f"[0:v][alpha]alphamerge{tail}"
-        )
-        command += ["-i", str(alpha_mask)]
-    if unbake is not None:
-        geq = (
-            f"format=rgba,geq="
-            f"r='{unbake_expression('r(X,Y)', unbake[0])}':"
-            f"g='{unbake_expression('g(X,Y)', unbake[1])}':"
-            f"b='{unbake_expression('b(X,Y)', unbake[2])}':"
-            f"a='alpha(X,Y)'"
-        )
-        source_label = "[merged]" if alpha_mask is not None else "[0:v]"
-        filter_complex += f";{source_label}{geq}" if filter_complex else f"{source_label}{geq}"
-    if scale_filter:
-        if filter_complex:
-            filter_complex += f",{scale_filter}"
-        else:
-            command += ["-vf", scale_filter]
-    if filter_complex:
-        command += ["-filter_complex", filter_complex]
-    command += ["-c:v", "libwebp"]
-    if use_lossless:
-        command += ["-lossless", "1", "-compression_level", "6"]
-    else:
-        command += ["-quality", str(quality)]
-    command += [str(temporary_output)]
+    processed_png = output.with_name(f".{output.stem}.tmp-processed.png")
+    tinified_png = output.with_name(f".{output.stem}.tmp-tinified.png")
     try:
-        run(command, runner=runner)
+        if use_tinypng:
+            upload_source = source
+            if alpha_inputs or alpha_graph or scale_filter:
+                upload_source = processed_png
+                tail = ",".join(part for part in (scale_filter, "format=rgba") if part)
+                preprocess = [ffmpeg_bin, "-y", "-i", str(source), *alpha_inputs]
+                if alpha_graph:
+                    preprocess += ["-filter_complex", f"{alpha_graph},{tail}"]
+                else:
+                    preprocess += ["-vf", tail]
+                preprocess += [str(processed_png)]
+                run(preprocess, runner=runner)
+            tinify_compress(
+                upload_source, tinified_png, proxy=tinypng_proxy, token=kyz_proxy_token(),
+            )
+            print(
+                f"tinify: {upload_source.stat().st_size} -> {tinified_png.stat().st_size} bytes "
+                f"via kyz proxy ({TINIFY_HOST})",
+                file=sys.stderr,
+            )
+            run([
+                ffmpeg_bin, "-y", "-i", str(tinified_png),
+                "-c:v", "libwebp", "-lossless", "1", "-compression_level", "6",
+                str(temporary_output),
+            ], runner=runner)
+        else:
+            command = [ffmpeg_bin, "-y", "-i", str(source)]
+            if scale_filter:
+                command += ["-vf", scale_filter]
+            command += ["-c:v", "libwebp"]
+            if use_lossless:
+                command += ["-lossless", "1", "-compression_level", "6"]
+            else:
+                command += ["-quality", str(quality)]
+            command += [str(temporary_output)]
+            run(command, runner=runner)
         final_probe = ffprobe(temporary_output, ffprobe_bin=ffprobe_bin, runner=runner)
         if expect_alpha or alpha_mask is not None:
             if not has_alpha(final_probe):
@@ -297,9 +438,15 @@ def convert_image(
             if not has_transparent_pixels(temporary_output, ffmpeg_bin=ffmpeg_bin, runner=runner):
                 raise RuntimeError("expected transparent output, but the alpha channel is fully opaque")
         os.replace(temporary_output, output)
+        mode = "lossless" if use_lossless or use_tinypng else f"quality {quality}"
+        print(
+            f"webp: {source.stat().st_size} -> {output.stat().st_size} bytes ({mode})",
+            file=sys.stderr,
+        )
     finally:
-        if temporary_output.exists():
-            temporary_output.unlink()
+        for temporary in (temporary_output, processed_png, tinified_png):
+            if temporary.exists():
+                temporary.unlink()
     return common_metadata(output, final_probe)
 
 
@@ -349,6 +496,11 @@ def build_parser() -> argparse.ArgumentParser:
     image.add_argument("--alpha-mask", type=Path, help="Isolated PNG whose alpha channel replaces the export alpha; it is scaled to the source dimensions.")
     image.add_argument("--unbake-color", help="Hex color (e.g. 1e1e1e) that Figma baked into semi-transparent RGB; true colors are restored via true=(baked-(1-a)*bg)/a after the optional alpha-mask merge.")
     image.add_argument("--expect-alpha", action="store_true", help="Fail when the converted image has no transparent pixels.")
+    image.add_argument(
+        "--tinypng-proxy",
+        default=KYZ_PROXY_DEFAULT,
+        help=f"Base URL of the kyz credential proxy used to reach TinyPNG (default: {KYZ_PROXY_DEFAULT}). PNG sources always compress through TinyPNG before the lossless WebP encode.",
+    )
 
     svg = subparsers.add_parser("svg", help="Optimize an SVG with SVGO.")
     svg.add_argument("source")
@@ -390,7 +542,7 @@ def main(argv: list[str] | None = None) -> int:
                     source, output, flattened=args.flattened, lossless=args.lossless,
                     quality=args.quality, max_width=args.max_width,
                     alpha_mask=args.alpha_mask, unbake=unbake,
-                    expect_alpha=args.expect_alpha,
+                    expect_alpha=args.expect_alpha, tinypng_proxy=args.tinypng_proxy,
                     ffmpeg_bin=ffmpeg_bin, ffprobe_bin=ffprobe_bin,
                 )
             else:

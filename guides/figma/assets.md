@@ -24,10 +24,11 @@
 
 ## 图片转换
 
-1. PNG/JPEG 照片按脚本默认 quality 转 WebP；透明或含文字合成图转 lossless WebP。预期透明图使用 `image --alpha-mask <isolated.png> --expect-alpha`；脚本必须确认最终 alpha 存在透明像素，不能只检查像素格式。
-2. 用 ffprobe 读取最终宽高，约分成 `W/H`；不要从 CSS 或 Figma 标注猜比例。
-3. 正式路径已存在时停止，禁止静默覆盖；开发者明确要求替换时才覆盖。
-4. 脚本 `image|video` 的 JSON 输出（outputPath、width、height、aspectRatio）即 manifest 条目数据；全部成功后汇总写 `assets-manifest.json`，再删除 `raw/`。
+1. PNG 统一走脚本管线：本地透明处理（alpha mask 合并、反烘焙）与缩放 → 经 kyz 凭据代理上传 TinyPNG 压缩 → 无损 WebP 落位；`--flattened`/`--lossless`/`--quality` 仅对 JPEG 源生效（按 quality 转 lossy WebP，不经 TinyPNG）。预期透明图使用 `image --alpha-mask <isolated.png> --expect-alpha`；脚本必须确认最终 alpha 存在透明像素，不能只检查像素格式。
+2. TinyPNG 压缩依赖 kyz daemon 的 tinify 代理规则：默认 `127.0.0.1:8477`（`--tinypng-proxy` 覆盖），脚本按 `Host: api.tinify.com` 转发并自动读取 daemon token。转换前确认 `kyz daemon status` 的 proxy_listen 存在；脚本报代理或上游错误（401 凭据、429 月度配额、body 超限）时停止并转述，不回退为本地有损压缩。上传超过 daemon 默认 10 MiB body 上限时先调大 `request_body_limit_bytes`。
+3. 用 ffprobe 读取最终宽高，约分成 `W/H`；不要从 CSS 或 Figma 标注猜比例。
+4. 正式路径已存在时停止，禁止静默覆盖；开发者明确要求替换时才覆盖。
+5. 脚本 `image|video` 的 JSON 输出（outputPath、width、height、aspectRatio）即 manifest 条目数据；全部成功后汇总写 `assets-manifest.json`，再删除 `raw/`。
 
 ## SVG 优化
 
