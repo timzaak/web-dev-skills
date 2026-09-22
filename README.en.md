@@ -20,11 +20,7 @@ The development log of this project's iterations is kept on [linux.do](https://l
 
 Not sure which command to start with? Run `t-how` — it explains the workflow for your goal and recommends the entry command.
 
-Prerequisites:
-
-- The plugin has been loaded by following [Installation](#installation)
-- The target project has runtime directories: `docs/` and `.ai/`
-- [`context7`](https://github.com/upstash/context7) is configured
+Follow [Installation](#installation) and meet its prerequisites first.
 
 Minimal end-to-end loop:
 
@@ -101,7 +97,10 @@ Prerequisites:
 - The official [Figma MCP Server](https://developers.figma.com/docs/figma-mcp-server/) and Chrome DevTools MCP are configured when using the Figma workflow (the latter is used for visual acceptance comparison)
 - `ffmpeg` and `ffprobe` are installed and available on PATH when converting Figma media assets; SVG optimization additionally requires `svgo` (`npm install -g svgo`)
 - PNG-to-WebP conversion in `t-figma-assets` depends on the [kyz](https://github.com/timzaak/kyz) credential proxy: run `kyz daemon start` with the tinify rule configured (store the tinify credential in the vault as described in `docs/proxy.md` of the kyz repository); the TinyPNG API key never lands in this repository
-- `t-figma-impl` / `t-figma-ux` require a user-provided accessible preview URL; the dev server is the user's responsibility to start
+
+`t-figma-assets` processes assets from node metadata and converter results without reviewing each image visually; page-level visual comparison happens during implementation and acceptance.
+
+The runtime directories `.ai/` and `docs/` are created automatically during execution — no need to create them up front. `docs/` may already be used for your own purposes: t-tools only writes to its own fixed document paths (`docs/prd/`, `docs/user-stories/`, `docs/design/`, etc.) and leaves unrelated content untouched.
 
 For tools that do not support `claude --plugin-dir` (Codex, ZCode, etc.), see [Using t-tools in Other AI Coding Tools](human/use-in-other-agents.en.md): place a dispatcher skill under `~/.agents/skills/` that routes `/t-tool <skill>` to the cloned repository directory.
 

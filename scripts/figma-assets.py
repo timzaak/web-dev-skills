@@ -376,13 +376,10 @@ def convert_image(
             "provide --alpha-mask from an isolated screenshot"
         )
     # PNG sources (and anything needing alpha work) go: local transparency fixup
-    # -> TinyPNG compression via the kyz credential proxy -> lossless WebP.
-    # JPEG photos still encode directly with the configured quality.
+    # -> TinyPNG compression via the kyz credential proxy -> WebP at the
+    # configured quality. --lossless remains available as an explicit override.
     use_tinypng = source.suffix.lower() == ".png" or alpha_mask is not None or unbake is not None
-    use_lossless = (
-        flattened or lossless or alpha_mask is not None or unbake is not None
-        or has_alpha(source_probe)
-    )
+    use_lossless = lossless
     source_width, _ = dimensions(source_probe)
     scale_filter = (
         f"scale={max_width}:-2:flags=lanczos" if max_width and source_width > max_width else ""
@@ -415,11 +412,13 @@ def convert_image(
                 f"via kyz proxy ({TINIFY_HOST})",
                 file=sys.stderr,
             )
-            run([
-                ffmpeg_bin, "-y", "-i", str(tinified_png),
-                "-c:v", "libwebp", "-lossless", "1", "-compression_level", "6",
-                str(temporary_output),
-            ], runner=runner)
+            command = [ffmpeg_bin, "-y", "-i", str(tinified_png), "-c:v", "libwebp"]
+            if use_lossless:
+                command += ["-lossless", "1", "-compression_level", "6"]
+            else:
+                command += ["-quality", str(quality), "-compression_level", "6"]
+            command += [str(temporary_output)]
+            run(command, runner=runner)
         else:
             command = [ffmpeg_bin, "-y", "-i", str(source)]
             if scale_filter:
@@ -438,7 +437,7 @@ def convert_image(
             if not has_transparent_pixels(temporary_output, ffmpeg_bin=ffmpeg_bin, runner=runner):
                 raise RuntimeError("expected transparent output, but the alpha channel is fully opaque")
         os.replace(temporary_output, output)
-        mode = "lossless" if use_lossless or use_tinypng else f"quality {quality}"
+        mode = "lossless" if use_lossless else f"quality {quality}"
         print(
             f"webp: {source.stat().st_size} -> {output.stat().st_size} bytes ({mode})",
             file=sys.stderr,
@@ -489,7 +488,7 @@ def build_parser() -> argparse.ArgumentParser:
     image = subparsers.add_parser("image", help="Convert PNG/JPEG to WebP.")
     image.add_argument("source")
     image.add_argument("output")
-    image.add_argument("--flattened", action="store_true", help="Use lossless WebP for text-composited exports.")
+    image.add_argument("--flattened", action="store_true", help="Mark text-composited exports; quality 80 is used by default. Use --lossless to preserve exact pixels.")
     image.add_argument("--lossless", action="store_true")
     image.add_argument("--quality", type=int, default=80)
     image.add_argument("--max-width", type=int, default=0, help="Downscale wider sources to this pixel width with lanczos before encoding; 0 keeps the source resolution.")
@@ -499,7 +498,7 @@ def build_parser() -> argparse.ArgumentParser:
     image.add_argument(
         "--tinypng-proxy",
         default=KYZ_PROXY_DEFAULT,
-        help=f"Base URL of the kyz credential proxy used to reach TinyPNG (default: {KYZ_PROXY_DEFAULT}). PNG sources always compress through TinyPNG before the lossless WebP encode.",
+        help=f"Base URL of the kyz credential proxy used to reach TinyPNG (default: {KYZ_PROXY_DEFAULT}). PNG sources always compress through TinyPNG before WebP encoding.",
     )
 
     svg = subparsers.add_parser("svg", help="Optimize an SVG with SVGO.")

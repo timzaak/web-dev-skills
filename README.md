@@ -20,13 +20,7 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 
 不知道从哪个命令开始时，运行 `t-how`：它按你的目标讲解工作流并推荐入口命令。
 
-前置条件：
-
-- 已按 [安装](#安装) 加载插件
-- 目标项目具备 `docs/` 和 `.ai/` 运行时目录
-- 已配置 [`context7`](https://github.com/upstash/context7)
-
-最短闭环：
+按 [安装](#安装) 加载插件并满足前置条件后，最短闭环：
 
 ```bash
 # 产品立项判断，按主要未知项进入技术预研或 PRD
@@ -93,14 +87,17 @@ cd /your-project
 claude --plugin-dir /path/to/skills
 ```
 
-前置依赖：
+前置条件：
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI 能正常使用
 - MCP Server [`context7`](https://github.com/upstash/context7) 已配置
 - 使用 Figma 工作流时，官方 [Figma MCP Server](https://developers.figma.com/docs/figma-mcp-server/) 与 Chrome DevTools MCP 已配置（后者用于验收目视比对）
 - 使用 Figma 素材转换时，`ffmpeg` 与 `ffprobe` 已安装并可从 PATH 调用；SVG 优化还需要 `svgo`（`npm install -g svgo`）
 - `t-figma-assets` 的 PNG 转 WebP 依赖 [kyz](https://github.com/timzaak/kyz) 凭据代理：需 `kyz daemon start` 并配置 tinify 规则（tinify 凭据存入 vault，方法见 kyz 仓库 `docs/proxy.md`），TinyPNG API key 不落本仓库
-- `t-figma-impl` / `t-figma-ux` 需要用户提供可访问的 preview URL；dev server 由用户负责启动
+
+`t-figma-assets` 根据节点信息和转换脚本结果处理素材，不逐张目视检查；页面视觉比对由后续实现与验收阶段完成。
+
+`.ai/` 与 `docs/` 运行时目录无需预先创建，工作流执行过程中会自行创建。`docs/` 可能已被你用于其它事情：t-tools 只写入自己的固定文档路径（`docs/prd/`、`docs/user-stories/`、`docs/design/` 等），不改动其中的无关内容。
 
 使用 Codex、ZCode 等不支持 `claude --plugin-dir` 的工具时，见 [在其它 AI 编程工具中使用 t-tools](human/use-in-other-agents.md)：通过在 `~/.agents/skills/` 下放置路由 skill，把 `/t-tool <skill>` 指向克隆后的仓库目录。
 

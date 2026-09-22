@@ -96,17 +96,16 @@
 
 - 收集主节点内的图片/视频节点；不足时用无 nodeId 的 `get_metadata` 枚举同文件 pages，按节点名、类型和尺寸筛选候选。
 - `--asset-url` 是显式补充来源，优先级高于自动匹配；跨 Figma 文件不自动扫描，必须显式提供节点 URL。
-- 候选无法唯一匹配时列出 node id、page、名称、尺寸和截图证据询问，不得选择“看起来最像”的素材。
+- 候选无法唯一匹配时列出 node id、page、名称和尺寸等 metadata 证据询问，不得逐张截图比对或猜测素材。
 
 ### Composite Assets
 
-含文字的图片默认导出包含图片和文字的最小共同视觉父节点，manifest 标 `flattened: true`，impl 不再重复实现其内文字。文字涉及交互、动态数据、本地化或独立无障碍语义时，先请开发者裁决。
+含文字的图片根据节点层级导出包含图片和文字的最小共同父节点，manifest 标 `flattened: true`，impl 不再重复实现其内文字。文字涉及交互、动态数据、本地化或独立无障碍语义时，先请开发者裁决。
 
 ### Images
 
 - 图片、图标和合成父节点通过 Figma MCP `download_assets` 导出，不得使用 `get_design_context` 返回的素材 URL 代替下载；`defaultScale` 默认 3，仅明确的小型非关键图标或装饰用 2。
 - 临时 URL 立即下载到 session `raw/`，不得写入正式代码；manifest 条目 `source` 记录为 `download-assets`。
-- PNG 转 WebP 统一管线：本地透明处理（alpha mask 合并、`--unbake-color` 反烘焙、缩放）→ 经 kyz 凭据代理上传 TinyPNG 压缩 → 无损 WebP 落位。JPEG 照片按脚本默认 quality 直转 lossy WebP，不经 TinyPNG；已有 WebP 和 GIF 直接保留；SVG 经 SVGO 优化后落位，不直接复制。TinyPNG 代理不可用或上游报错（401/429）时转换失败并停止，不回退为本地有损压缩；项目长期规则可覆盖默认策略。
 - 预期透明的组合节点必须用 `get_screenshot(contentsOnly: true)` 的隔离 PNG 提供 alpha mask，并保留 `download_assets` 的高分辨率 RGB。转换后验证 alpha 通道包含透明像素；仅有 alpha 像素格式但 alpha 全为 255 视为失败。半透明像素的 RGB 会被画布色 `#1e1e1e` 烘焙，mask 合并后必须用 `--unbake-color 1e1e1e` 反解原色，否则浅色渐变在浅色页面上显灰。
 - 使用 ffprobe 提取最终宽高，以最大公约数记录 `aspectRatio`。
 - assets 阶段不编辑 UI 源码；impl 根据 manifest 引用资产并写入真实 aspect-ratio。
