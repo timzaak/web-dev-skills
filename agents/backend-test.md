@@ -65,6 +65,7 @@ tools:
 
 通过 `t-task` 生成 backend/test slot 时：
 
+- 按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 判断新增或修改场景测试资产的价值；没有独立测试资产时不规划 backend/test。
 - authoring item 由本 agent 规划或执行。
 - 同一后端场景下强相关的测试文件、helper 和模块注册应优先合并为一个 authoring item；只有验证范围、文件责任或失败归因明显不同才拆开。
 - runner item、覆盖来源、`Expected Test Manifest` 和禁止项统一以 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 为准。

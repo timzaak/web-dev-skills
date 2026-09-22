@@ -3,7 +3,7 @@
 > **Vitest + @testing-library/react + MSW**
 > **运行模式**: JSDOM
 > **无需后端环境**: 是
-> **测试策略**: Demo 承担完整故事与页面主链路，Vitest 只覆盖高价值逻辑和 Demo 难稳定覆盖的边界
+> **测试策略**: Demo 承担完整故事与页面主链路；仅当 Demo 难稳定覆盖重要逻辑或边界时新增 Vitest，并说明可观察回归与覆盖缺口。受影响的现有测试仍定向运行。
 
 ## 测试环境配置
 
@@ -233,8 +233,8 @@ expect(screen.findByTestId('loading')).toBeDefined()
 
 ## 规划约束
 
-- `frontend/test.md` 默认只列高价值逻辑型 Vitest 任务
-- 若需求已由 Demo 覆盖，应优先记录“不新增 Vitest，由 Demo 覆盖”
+- 只有存在高价值、独立的 Vitest 测试资产时才规划 `frontend/test.md`
+- 若需求已由 Demo 覆盖，在阶段 index 中记录“不新增 Vitest，由 Demo 覆盖”，dev 执行受影响的现有测试或类型检查
 - 不要为了“补测试”而增加页面级、性能、可访问性或视觉回归 Vitest
 
 ## 参考

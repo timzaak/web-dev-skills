@@ -26,7 +26,7 @@ allowed-tools:
 
 - 设计主文档：`.ai/design/[feature].md`
 - 分端设计文档（适用端必须存在）：`.ai/design/[feature]/backend.md`、`.ai/design/[feature]/frontend.md`、`.ai/design/[feature]/extension.md`、`.ai/design/[feature]/flutter.md`
-- 设计生成状态：`.ai/design/[feature]/.state.json`（存在时必须为 `complete`）
+- 设计生成状态：`.ai/design/[feature]/.state.json`（必须存在且为 `complete`）
 - 决策账本：`.ai/decision-log/[feature].md`（存在时必须读取）
 - 需求来源：`.ai/user-stories/**/*.md`、`docs/user-stories/**/*.md`、`.ai/prd/**/*.md`、`docs/prd/**/*.md`、`.ai/tech-research/**/*.md`
 - 规范来源：
@@ -41,7 +41,7 @@ allowed-tools:
 ## 执行流程
 
 - 校验主文档是否存在，并按主文档 §4.2 交付端范围校验适用端的分端文档是否存在。
-- `.ai/design/[feature]/.state.json` 存在但状态不是 `complete` 时停止，提示先恢复 `/t-design [feature]`。
+- `.ai/design/[feature]/.state.json` 缺失或状态不是 `complete` 时停止，提示先恢复 `/t-design [feature]`。
 - 从设计文档提取引用的用户故事、PRD、技术预研、接口、数据库变更、各端范围、测试策略。
 - 运行 `python ${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py ".ai/design/[feature].md" --require-complete`；失败时先按结构化结果修正文档，不进入评分。
 - 对主文档和全部适用分端文档运行决策闭合扫描；`needs_user_answer` 和澄清处理按 rubric 的 Clarification Gate 执行（先查 Decision Log，未解决时 `AskUserQuestion` 阻塞提问，回答后更新 Decision Log 和设计文档再重新扫描）。
@@ -60,7 +60,7 @@ allowed-tools:
 | `DESIGN_DOC_MISSING` | 设计主文档不存在 | 未找到设计主文档 | 先运行 `/t-design [feature]` |
 | `DESIGN_STACK_DOC_MISSING` | 主文档 §4.2 标记适用，但对应分端文档不存在 | 未找到适用端的分端设计文档 | 重新运行 `/t-design [feature]` 补齐该端 |
 | `DESIGN_DOC_INVALID` | 设计文档缺少标题或主要章节结构 | 设计文档结构不完整 | 按模板补齐章节后重试 |
-| `DESIGN_GENERATION_INCOMPLETE` | `.state.json` 存在且不是 `complete` | 设计仍在生成或上一轮失败 | 恢复或重新运行 `/t-design [feature]` |
+| `DESIGN_GENERATION_INCOMPLETE` | `.state.json` 缺失或不是 `complete` | 设计状态不完整 | 恢复或重新运行 `/t-design [feature]` |
 | `REQUIREMENT_SOURCE_MISSING` | 无法定位任何关联的用户故事、PRD 或技术预研 | 未找到可追溯的需求来源 | 在设计文档中补充引用后重试 |
 | `REPORT_WRITE_FAILED` | 质量报告写入失败 | 无法写入检查报告 | 检查 `.ai/quality/` 目录权限后重试 |
 

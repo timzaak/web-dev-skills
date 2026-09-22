@@ -171,14 +171,17 @@ def validate(main_path: Path, repo_root: Path, require_complete: bool = False) -
     main_text = documents["main"][1]
     design_dir = main_path.with_suffix("")
     state_path = design_dir / ".state.json"
-    if require_complete and state_path.exists():
-        try:
-            state = json.loads(state_path.read_text(encoding="utf-8"))
-        except (OSError, UnicodeError, json.JSONDecodeError) as exc:
-            findings.append(Finding("DESIGN_STATE_INVALID", str(state_path), str(exc)))
+    if require_complete:
+        if not state_path.is_file():
+            findings.append(Finding("DESIGN_GENERATION_INCOMPLETE", str(state_path), "design state file missing"))
         else:
-            if state.get("status") != "complete":
-                findings.append(Finding("DESIGN_GENERATION_INCOMPLETE", str(state_path), str(state.get("status"))))
+            try:
+                state = json.loads(state_path.read_text(encoding="utf-8"))
+            except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+                findings.append(Finding("DESIGN_STATE_INVALID", str(state_path), str(exc)))
+            else:
+                if state.get("status") != "complete":
+                    findings.append(Finding("DESIGN_GENERATION_INCOMPLETE", str(state_path), str(state.get("status"))))
     for heading in MAIN_HEADINGS:
         if heading not in main_text:
             findings.append(Finding("MAIN_HEADING_MISSING", str(main_path), heading))

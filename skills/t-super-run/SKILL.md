@@ -74,7 +74,7 @@ allowed-tools:
 - 按 `${CLAUDE_PLUGIN_ROOT}/protocols/super-run-state-contract.md` 创建或更新：
   - `.ai/super-run/[feature]/.state.json`
   - `.ai/super-run/[feature]/[phase].md`
-- backend/frontend/extension/miniapp/flutter 固定规划 `dev -> test -> accept`，web-demo/flutter-demo 固定规划 `dev -> accept`。
+- backend/frontend/extension/miniapp/flutter 默认规划 `dev -> accept`；需要测试角色编写测试用例、fixture/helper 或专项验证脚本时规划 `dev -> test -> accept`。web-demo/flutter-demo 规划 `dev -> accept`。仅运行现有测试或编译、类型检查、构建时，验证归 dev；accept 核查实际执行证据。
 - 每个 task 只规划一个责任闭环，不生成 item。
 - 把校验结果的 `design_documents` 和 `design_fingerprint` 写入 super-run state；恢复规则见共享协议。
 - 计划必须写明每个 task 要读取的 agent 规范及其关联文档的具体路径。
@@ -96,7 +96,7 @@ allowed-tools:
 4. 写入 `in_progress`，执行交付、最小可靠验证和必要修复。
 5. 写入 `completed` 与证据，重新聚合 phase，继续下一个 task。
 6. 失败时先写 `failed` 与证据；能够基于新证据修复时继续闭环，否则写 `blocked` 并暂停 Goal。
-7. accept 拒绝时按共享协议重新打开 dev 或 test，再次测试和验收。
+7. accept 拒绝时按共享协议重新打开 dev 或已规划的 test，再次验证和验收。
 
 每次显著步骤后把完成内容、验证证据、剩余工作和 handoff 写入状态或 phase 计划，确保上下文压缩后能从文件恢复。
 

@@ -36,7 +36,7 @@
 ```bash
 cd frontend
 npm run type-check
-npm run test:run
+npm run test:run -- [受影响测试路径或 pattern]
 npm run lint
 npx jscpd src/
 ```
@@ -44,7 +44,7 @@ npx jscpd src/
 Demo 验证（仓库根目录）：
 
 ```bash
-uv run scripts/web-demo-test-runner.py demo/e2e/ --mode fast
+uv run scripts/web-demo-test-runner.py demo/e2e/[受影响用例].e2e.ts
 ```
 
 ## 5. API 一致性检查

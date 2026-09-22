@@ -39,11 +39,11 @@ allowed-tools:
 - 决策账本：`.ai/decision-log/[feature].md`（存在时必须读取）
 - 需求来源：`.ai/user-stories/**/*.md`、`docs/user-stories/**/*.md`、`.ai/prd/**/*.md`、`docs/prd/**/*.md`、`.ai/tech-research/**/*.md`（按设计文档引用读取）
 - 状态文件：`.ai/task/[feature]/.state.json`
-- 阶段目录：`.ai/task/[feature]/[phase]/` 下的 `index.md`、slot manifest（backend/frontend/extension/miniapp/flutter 为 `dev.md`、`test.md`、`accept.md`；web-demo / flutter-demo 为 `dev.md`、`accept.md`）和 item 文件
+- 阶段目录：`.ai/task/[feature]/[phase]/` 下的 `index.md`、已规划 slot 的 manifest 和 item 文件；backend/frontend/extension/miniapp/flutter 的 test slot 按需存在
 
 ## Schema 校验
 
-`.state.json` 的 schema 要求统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md` 的 Schema Checks 和 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md`。任一项缺失或非法即返回 `TASK_SCHEMA_INVALID`。旧格式 item（缺少 `Goal/Work/Files/Validation/Handoff` 五章节）不做兼容迁移；返回结构问题并提示重新运行 `/t-task [feature] --phase [phase]`。
+`.state.json` 的 schema 要求统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md` 的 Schema Checks 和 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md`。任一项缺失或非法即返回 `TASK_SCHEMA_INVALID`。item 缺少 `Goal/Work/Files/Validation/Handoff` 五章节时返回结构问题并提示重新运行 `/t-task [feature] --phase [phase]`。
 
 ## 执行流程
 
@@ -51,10 +51,10 @@ allowed-tools:
 2. 读取阶段目录下的 `index.md`、slot manifest，并按 rubric 的 Context Budget Rules 建立轻量 item 表（先状态/索引/manifest 和关键字段抽取，仅在有疑点或需补证时读 item 全文，大型 phase 先用 `Grep` 定位）。
 3. 对当前 phase 全部 Markdown 运行 `python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py <all-phase-markdown-paths>`，并核对 `index.md` 的 Decision Trace 覆盖相关 Active Decision。
 4. 按 rubric 的 Execution Checks 和 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 校验 item 结构、拆分阈值、Slot Item Count Limits、测试集中执行与 backend/test 闭环。补充严重度规则：
-   - 集中测试执行 item 优先运行 `uv run scripts/check-test-runner-coverage.py [feature] --layer [layer]` 做覆盖校验；backend 动态校验失败记 P1 或 P0（取决于是否导致新增测试无法执行），其他层静态校验失败至少记 P1。
+   - 存在 test slot 时，其集中测试执行 item 优先运行 `uv run scripts/check-test-runner-coverage.py [feature] --layer [layer]` 做覆盖校验；backend 动态校验失败记 P1 或 P0（取决于是否导致新增测试无法执行），其他层静态校验失败至少记 P1。没有 test slot 时核对阶段 index 的原因和 dev Validation 中至少一项可执行验证。
    - 后端测试命令必须使用目标项目内脚本入口 `uv run scripts/backend-test.py -- [filter]`（没有 filter 也保留 `--`）；使用 `cargo run`、裸 `cargo test`、插件根路径或省略 `--` 的记 P1，并改为统一入口。
 5. 核对设计文档与任务文档的一致性；纯技术方案任务可只追溯设计文档中的技术预研来源，不得因缺少 PRD/用户故事扣 P0。任务引用 `.ai/user-stories` 时确认其为 draft 候选来源且路径存在；不得要求先发布到 `docs/user-stories` 才能进入 `/t-run`。
-6. 通过 `Agent` tool 按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 调度当前阶段对应 subagent 做专业校验（backend: `backend-dev/backend-test/backend-accept`；frontend: `frontend-dev/frontend-test/frontend-accept`；extension: `extension-dev/extension-test/extension-accept`；miniapp: `miniapp-dev/miniapp-test/miniapp-accept`；flutter: `flutter-dev/flutter-test/flutter-accept`；web-demo: `web-demo-dev/web-demo-accept`；flutter-demo: `flutter-demo-dev/flutter-demo-accept`），可并行调度。subagent 上下文按 rubric 的 Context Budget Rules 裁剪：
+6. 通过 `Agent` tool 按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 调度当前阶段已规划 slot 对应的 subagent 做专业校验（backend: `backend-dev/backend-test/backend-accept`；frontend: `frontend-dev/frontend-test/frontend-accept`；extension: `extension-dev/extension-test/extension-accept`；miniapp: `miniapp-dev/miniapp-test/miniapp-accept`；flutter: `flutter-dev/flutter-test/flutter-accept`；web-demo: `web-demo-dev/web-demo-accept`；flutter-demo: `flutter-demo-dev/flutter-demo-accept`），可并行调度。没有 test slot 时主流程核对不规划原因和 dev 验证；dev、accept agent 参与检查。subagent 上下文按 rubric 的 Context Budget Rules 裁剪：
    - dev agent 默认只接收 dev item 与直接影响实现的跨 slot 摘要
    - test agent 默认只接收 test item、相关 dev `Handoff/Files` 摘要和集中定向测试执行闭环约束
    - accept agent 默认只接收 accept item、顺序中相关 runner/dev `Handoff` 摘要和验收闭环约束

@@ -36,7 +36,7 @@ cd backend && cargo fmt --all
 ```
 
 规则：
-- 后端测试执行与补测证据属于 backend/test、backend-accept 或显式测试命令。
+- 新增场景测试资产及集中执行属于 backend/test；没有该 slot 时，backend-dev 定向运行受影响的现有测试，backend-accept 核查证据。
 - OpenAPI 导出与前端 API 生成验收属于 backend-accept。
 
 ### 3. 格式化检查（可选但推荐）

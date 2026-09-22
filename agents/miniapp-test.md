@@ -1,6 +1,6 @@
 ---
 name: miniapp-test
-description: miniapp 类型检查、构建回归、模板门禁与专项测试编写/修复。
+description: 需要独立测试或专项验证资产时，编写和验证 miniapp 测试、模板门禁及相关构建配置。
 
 tools:
   - Read
@@ -40,9 +40,11 @@ tools:
 ## 测试边界
 
 优先由本 agent 处理的场景：
-- `npm run typecheck`、`npm run build:weapp`、`npm run build:h5` 回归
+- 独立测试或专项验证资产的编写与定向运行
 - `prepublish:check`、`starter:ci-gate` 相关问题
 - 页面注册遗漏、token/icon 产物缺失、模板契约漂移
+
+没有独立测试或专项验证资产时，`miniapp-dev` 执行受影响的 `typecheck`、构建或 gate，任务计划不生成 miniapp/test。
 
 默认不由本 agent 承担的场景：
 - 大规模业务页面实现

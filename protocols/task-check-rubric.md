@@ -46,7 +46,7 @@
 - `phases` 包含当前任务的 active phases；未启用 extension/miniapp/Flutter 的项目不要求包含对应 phase
 - `phases[*].status` 存在
 - `tasks[phase]` 存在
-- backend/frontend/extension/miniapp/flutter 含 `dev/test/accept`
+- backend/frontend/extension/miniapp/flutter 含 `dev/accept`；需要测试角色编写测试用例、fixture/helper 或专项验证脚本时含 `test`
 - web-demo / flutter-demo 含 `dev/accept`
 - 每个 slot 含 `status/manifest/items`
 - 每个 item 含 `status/file/agent`
@@ -69,9 +69,11 @@
    - manifest 按表格从上到下覆盖全部 items，且无重复 item
 - item 文件包含必填字段
 - item 文件包含 `id/title/agent` 和 `Goal/Work/Files/Validation/Handoff` 五个章节
-- 若当前阶段为 backend，backend/test slot 符合 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 authoring/集中 runner 覆盖与 runner agent/协议引用要求
+- 若当前阶段包含 backend/test，该 slot 符合 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 authoring/集中 runner 覆盖与 runner agent/协议引用要求
 - 若当前阶段为 backend，backend/test runner 默认使用定向命令；全量 `uv run scripts/backend-test.py --` 只有在写明无法可靠定向或门禁要求时才允许
-- 若当前阶段为 backend，backend/test 至少包含一个 runner，且 runner 在 manifest 中排在其覆盖的 authoring item 之后
+- 若当前阶段包含 backend/test，该 slot 至少包含一个 runner，且 runner 在 manifest 中排在其覆盖的 authoring item 之后；没有 test slot 时，阶段 index 说明原因，dev Validation 至少包含一项可执行验证
+- 仅运行现有测试、编译、类型检查或构建时，验证归 dev，不据此要求 test slot
+- 所有阶段检查新增测试的可观察回归、场景测试/Demo 覆盖缺口；仅为覆盖率、技术分层或重复已有路径规划的测试记为过度拆分
 - 若当前阶段为 frontend/extension/miniapp/flutter/web-demo/flutter-demo，涉及测试代码 authoring 时必须有排在相关 authoring item 之后的集中定向执行 item，且不得默认规划全量测试
 - slot item 数量符合 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的上限，或具有用户授权证据
 - 大范围重构、旧架构替换或旧模块迁移任务包含旧代码清理清单，并按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 先删除旧实现再改写新结构
@@ -156,6 +158,7 @@ agent 评审边界：
 ### P1
 
 - slot 状态与 item 聚合状态不匹配
+- 没有 test slot，且阶段 index 缺少原因或 dev Validation 没有可执行验证，导致 accept 无法核查测试风险
 - item 缺少关键章节
 - slot item 数量超过 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的上限且无用户授权证据，或 item 职责、验证、恢复边界可疑且无合理说明
 - item 职责混杂，单次 agent 调用高概率无法完成

@@ -17,4 +17,4 @@
 - 无法恢复时写 `failed` 和 `failed_stack`。
 - 主文档、分端文档、决策闭合扫描和结构校验全部通过后写 `complete`。
 - `/t-task` 和 `/t-design-check` 遇到非 `complete` 状态时停止。
-- 状态文件缺失时兼容旧设计产物。
+- 状态文件缺失时停止，提示运行 `/t-design <feature>` 生成完整设计状态。

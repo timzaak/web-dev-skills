@@ -2,7 +2,7 @@
 
 本文档提供 Test-Driven Development（TDD）的完整示例和详细说明。
 
-## Domain 层开发：采用 TDD 模式
+## Domain 层开发：高价值局部规则按需采用 TDD
 
 **适用场景**：
 - 纯业务逻辑（如：密码策略、权限验证）
@@ -86,7 +86,7 @@ uv run scripts/backend-test.py -- -E 'package(<core-package>) and test(domain::u
 
 说明：上例测试的是 `validate` 的业务行为，不测试 `PasswordPolicy::new()` 是否把字段赋值成功；只有构造函数包含校验、默认值合成或规范化时才测构造函数本身。
 
-## Application 层开发：部分采用 TDD
+## Application 层开发：场景测试难稳定覆盖时按需采用 TDD
 
 **适用场景**：
 - Service 层的业务编排逻辑

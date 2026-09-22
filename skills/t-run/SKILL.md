@@ -26,7 +26,7 @@ allowed-tools:
 ## 前置条件
 
 - `.ai/task/[feature]/.state.json` 必须存在且可解析；目标阶段必须是 supported phase 且存在于当前任务 active phases（未启用 extension/miniapp/Flutter 的项目不得执行对应 phase），并已规划（`phases[phase]`、`tasks[phase]` 和对应阶段目录存在）。
-- 当前阶段目录必须包含：`index.md`、对应 slot manifest（backend/frontend/extension/miniapp/flutter 为 `dev.md`, `test.md`, `accept.md`；web-demo/flutter-demo 为 `dev.md`, `accept.md`）、对应 item 目录和 item 文件。
+- 当前阶段目录必须包含：`index.md`、状态文件中已规划 slot 的 manifest 和 item 文件。backend/frontend/extension/miniapp/flutter 必含 dev、accept；有独立测试资产时另含 test。web-demo/flutter-demo 只含 dev、accept。
 
 ## 共享契约
 
@@ -102,4 +102,4 @@ allowed-tools:
 - 阶段未启用：提示当前项目未启用该阶段，并展示 `.state.json.phases` 中的 active phases。
 - 阶段未生成：提示先运行 `/t-task [feature] --phase [phase]`。
 - item 文件缺失或 manifest 顺序非法：提示重建该阶段任务目录。
-- item 缺少五章节：提示重新运行 `/t-task-check`；若确认为旧格式任务，重新运行 `/t-task [feature] --phase [phase]` 生成。
+- item 缺少五章节：提示重新运行 `/t-task-check` 或 `/t-task [feature] --phase [phase]` 修正任务。

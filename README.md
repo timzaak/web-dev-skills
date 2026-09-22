@@ -10,6 +10,8 @@ Decision -> PRD / 技术预研（按主要未知项选择，可回环）-> 设�
 
 T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和 Demo 交付链路的项目。它的重点不是让模型自由发挥，而是用 skill 编排阶段、用 subagent 分工执行、用 protocol 固化共享契约，并在需要时用 check / accept 阶段收口质量。
 
+测试默认围绕后端场景和用户故事 Demo 规划；只有这些测试难稳定覆盖重要规则或边界时才新增局部测试。需要测试角色编写测试用例或专项验证脚本时才规划 test slot；运行现有测试、类型检查和构建归 dev，accept 核查证据。
+
 推荐先读 [human/structure.md](human/structure.md)，理解 skill、subagent、protocol 如何协同；做需求前可用 [human/speech-template.md](human/speech-template.md) 先口述一遍真实意图。
 
 本项目迭代的开发日志记录在 [linux.do](https://linux.do/t/topic/1988118/4)。

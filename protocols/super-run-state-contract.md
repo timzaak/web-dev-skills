@@ -28,13 +28,15 @@ super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相
 
 | phase | task 顺序 | agent 规范 |
 | --- | --- | --- |
-| backend | `dev -> test -> accept` | `backend-dev -> backend-test -> backend-accept` |
-| frontend | `dev -> test -> accept` | `frontend-dev -> frontend-test -> frontend-accept` |
-| extension | `dev -> test -> accept` | `extension-dev -> extension-test -> extension-accept` |
-| miniapp | `dev -> test -> accept` | `miniapp-dev -> miniapp-test -> miniapp-accept` |
-| flutter | `dev -> test -> accept` | `flutter-dev -> flutter-test -> flutter-accept` |
+| backend | `dev -> accept`；需测试角色编写场景测试时插入 `test` | `backend-dev -> backend-test（按需）-> backend-accept` |
+| frontend | `dev -> accept`；需测试角色编写 Vitest 测试时插入 `test` | `frontend-dev -> frontend-test（按需）-> frontend-accept` |
+| extension | `dev -> accept`；需测试角色编写 Vitest 测试时插入 `test` | `extension-dev -> extension-test（按需）-> extension-accept` |
+| miniapp | `dev -> accept`；需测试角色编写测试或专项 gate 时插入 `test` | `miniapp-dev -> miniapp-test（按需）-> miniapp-accept` |
+| flutter | `dev -> accept`；需测试角色编写单元/widget/integration 测试时插入 `test` | `flutter-dev -> flutter-test（按需）-> flutter-accept` |
 | web-demo | `dev -> accept` | `web-demo-dev -> web-demo-accept` |
 | flutter-demo | `dev -> accept` | `flutter-demo-dev -> flutter-demo-accept` |
+
+按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 判断是否需要测试角色编写测试用例、fixture/helper 或专项验证脚本。仅运行现有测试、编译、类型检查或构建时，phase 计划和 state 都不包含 test task；phase 计划记录原因、dev 中至少一项可执行验证及后续 Demo 计划（适用时）。accept 验收实际执行证据。dev 发现需要上述测试编写工作时，在 accept 前更新计划和 state，插入 test task。
 
 `--phase` 必填，每次调用只执行显式请求的一个 phase。`active_phases` 只包含按上述启用规则激活的 phase，用于校验请求 phase 的适用性并报告剩余工作。执行规则：
 
@@ -63,15 +65,6 @@ super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相
             "${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md"
           ],
           "evidence": ["backend/src/..."]
-        },
-        "test": {
-          "status": "in_progress",
-          "agent_spec": "${CLAUDE_PLUGIN_ROOT}/agents/backend-test.md",
-          "references": [
-            "${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md",
-            "${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md"
-          ],
-          "evidence": []
         },
         "accept": {
           "status": "pending",
@@ -119,8 +112,7 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py ".ai/design/<feature>.md" -
 - 校验失败：停止，不执行 task。
 - 首次规划：把 `design_documents` 和 `design_fingerprint` 写入 `sources.design`。
 - 指纹相同：继续恢复。
-- 指纹变化：重读设计覆盖矩阵、Operation ID、文件影响和 Decision Trace；更新 phase 计划，重新打开受影响的 dev/test/accept task，再写入新指纹。无法确定影响范围时停止并请求用户裁决。
-- 旧状态的 `sources.design` 是字符串：转换为对象；重新校验所有未完成 phase，并按当前证据判断是否需要重新打开已完成 task。
+- 指纹变化：重读设计覆盖矩阵、Operation ID、文件影响和 Decision Trace；更新 phase 计划，重新打开受影响的已规划 task，再写入新指纹。无法确定影响范围时停止并请求用户裁决。
 
 不得仅因文件路径相同而跳过指纹比较。
 
@@ -133,7 +125,7 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py ".ai/design/<feature>.md" -
 - `failed`：当前尝试失败，但可由执行闭环继续修复。
 - `blocked`：需要用户决策、权限、外部系统变化或其他当前无法自行解决的条件。
 - `completed`：交付物与当前 task 的验证均完成。
-- `skipped`：已有证据证明 task 或 phase 不适用。
+- `skipped`：已有证据证明已规划的 task 或 phase 不适用。
 
 执行 task 前先写 `in_progress`。成功后写 `completed`、删除旧 `last_error`，并追加文件、命令、报告或日志证据；失败后先写 `failed` 和 `last_error`，再决定自动修复或转为 `blocked`。状态写入失败时重试一次，仍失败则停止，避免继续产生无法恢复的修改。
 
@@ -153,7 +145,7 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py ".ai/design/<feature>.md" -
 
 计划采用 outcome-first 结构：明确当前层级、完成条件、约束、工具/证据入口和停止规则，不预先规定可从仓库事实判断的逐步操作。阶段切换时记录简短 handoff；例行工具调用不写成长篇过程日志。
 
-已有计划恢复执行时重新读取上游来源。若来源变化影响未执行 task，更新计划与状态；若变化使已完成工作失效，重新打开受影响 task 及其下游 test/accept，并在计划中记录原因。
+已有计划恢复执行时重新读取上游来源。若来源变化影响未执行 task，更新计划与状态；若变化使已完成工作失效，重新打开受影响 task 及其已规划的下游 task，并在计划中记录原因。
 
 ## Role Loading And Accept Dispatch
 
@@ -181,12 +173,12 @@ accept task 到达执行位时，主会话按 `subagent-dispatch.md` 派发 `age
 - backend/test 先按 `backend-test` 规范编写或维护场景测试并做编译验证，再由主会话按 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md` 执行定向测试与失败分类。
 - frontend/test 按 `frontend-test` 规范完成测试资产和定向执行。
 - extension/test 按 `extension-test` 规范完成 Vitest 测试资产和定向执行；浏览器用例归 web-demo/dev。dev/test 涉及用户当前浏览器现场时，按 `${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md` 接入并按 `${CLAUDE_PLUGIN_ROOT}/protocols/extension-acceptance-contract.md` 采集现场证据，浏览器工具仅用于观察。
-- miniapp/test 按 `miniapp-test` 规范完成类型检查、构建回归和专项 gate。
+- miniapp/test 按 `miniapp-test` 规范完成独立测试或专项 gate 资产及其验证；没有 test task 时，typecheck 和构建回归归 dev task。
 - 测试发现生产代码缺陷时，在同一个 test task 内读取对应 dev agent 规范后修复，再重新执行受影响测试；不得弱化断言、权限预期或业务规则。
 - web-demo/dev 同时承担 Playwright 资产维护和定向执行，不新增独立 test task。失败时读取 `web-demo-diagnose` 规范分类，再切换对应 dev 规范修复并补跑底层定向测试。
 - flutter-demo/dev 同时承担 Patrol 资产维护和定向执行，不新增独立 test task。失败时读取 `flutter-demo-diagnose` 规范分类，再切换 `flutter-demo-dev`、`flutter-dev` 或 `backend-dev` 规范修复并补跑整文件测试；Android device 选定值写入 `flutter-demo.md` plan，运行时缺失则询问用户。
 - accept 由只读 accept subagent 执行（见 Role Loading And Accept Dispatch），必须保持该 agent 规范的只读验收边界；允许写验收报告，不得直接修改生产代码或测试来制造通过结果。
-- accept 拒绝时由主会话按证据重新打开 dev 或 test，并把 accept 重置为 `pending`。修复、重测后重新派发验收，直到通过或进入 `blocked`。
+- accept 拒绝时由主会话按证据重新打开 dev 或已规划的 test，并把 accept 重置为 `pending`。修复、重测后重新派发验收，直到通过或进入 `blocked`。
 
 ## Goal Contract
 

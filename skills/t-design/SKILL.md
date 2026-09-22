@@ -171,7 +171,7 @@ extension 调用 frontend-design 时必须传 `design_stack: extension` 及扩�
 - 不复制 guide、protocol 或 agent 文档中的长篇规则
 
 处理子 agent 返回：
-- 只读取 `task_completion.status` 和 `design_result`，拒绝旧的顶层 `status/doc_path/contract_summary` 返回结构
+- 只读取 `task_completion.status` 和 `design_result`；其他顶层返回结构不符合输出契约
 - `needs_user_answer` 非空 → 按决策纪律处理，然后重新调度该端
 - `task_completion.status=partial` 或 `design_result.self_check` 未通过 → 不进入合并；修复输入后重新调度，无法恢复时把生成状态写为 `failed`
 - `task_completion.status=failed` → 终止该端并把生成状态写为 `failed`；不得写入该端成功状态

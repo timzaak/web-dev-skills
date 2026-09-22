@@ -10,6 +10,8 @@ Decision -> PRD / Tech Research (choose by the main unknown; iterate if needed) 
 
 T-Tools is designed for projects that already have a delivery chain across product documents, design, task breakdown, development, testing, and demos. Its focus is not freeform model execution. It uses skills to orchestrate stages, subagents to split work, protocols to keep shared contracts stable, and check / accept stages to close quality when needed.
 
+Test plans default to backend scenarios and user story demos. Add focused tests only when those paths cannot reliably cover an important rule or edge case. Plan a test slot when the test role must write test cases or a dedicated validation script. Running existing tests, type checks, and builds belongs to development; acceptance reviews the evidence.
+
 Recommended first reading: [human/structure.en.md](human/structure.en.md) to understand how skills, subagents, and protocols work together. Before shaping a requirement, use [human/speech-template.en.md](human/speech-template.en.md) to speak through the real intent first.
 
 The development log of this project's iterations is kept on [linux.do](https://linux.do/t/topic/1988118/4) (in Chinese).

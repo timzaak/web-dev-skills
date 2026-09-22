@@ -15,13 +15,9 @@
 
 ## Slot Order
 
-- backend: `dev -> test -> accept`
-- frontend: `dev -> test -> accept`
-- extension: `dev -> test -> accept`
-- miniapp: `dev -> test -> accept`
-- flutter: `dev -> test -> accept`
-- web-demo: `dev -> accept`
-- flutter-demo: `dev -> accept`
+backend、frontend、extension、miniapp、flutter 默认执行 `dev -> accept`。本次任务需要由测试角色新增或修改测试用例、测试 fixture/helper，或专项验证脚本时，执行 `dev -> test -> accept`。web-demo、flutter-demo 执行 `dev -> accept`，Demo 用例及其辅助代码由该阶段的 dev slot 负责。
+
+仅运行现有测试、编译、类型检查或构建时，不生成 `test` slot、`test.md` 或 test item；这些命令写入 `dev` item 的 Validation，至少执行一项。backend-dev 在实现文件内编写必要的高价值单元测试，也归 dev，不单独生成 test slot。阶段 index 说明测试选择和适用的后续 Demo 计划；`accept` 核查实际执行证据。若 dev 发现需要测试角色新增或修改上述用例或脚本，先更新任务计划和状态，插入 `test` slot，再进入 accept。
 
 ## Execution Unit
 
@@ -38,7 +34,7 @@
 - 按 [Slot Order](#slot-order) 扫描目标 phase；同一 slot 内严格按 slot manifest 的 item 表格从上到下执行。
 - manifest 必须覆盖 `.state.json` 中当前 slot 的全部 item，且每个 item 只能出现一次；顺序缺失或不一致时终止执行。
 - 选择顺序中的第一个 `pending` 或 `failed` item；后续 item 不得越过它提前执行。
-- `completed` 或 `skipped` item 直接越过，不重复执行。
+- `completed` 或 `skipped` item 直接越过，不重复执行；不存在的可选 test slot 不参与扫描。
 - 除上述一次性启动归一化外，`/t-run` 在调度单个 item 前不更新状态；中断恢复时重新选择顺序中的第一个 `pending` 或 `failed` item。
 
 ## Agent Context
@@ -80,6 +76,7 @@ backend/test item 还必须符合 [Backend Test Item Types](#backend-test-item-t
 - 技术层、文件类型或实现步骤只能作为辅助线索；拆分必须让每个 item 都能独立验证，并降低失败归因成本。
 - 不合并弱相关、验证命令不同或失败归因会互相污染的主交付物。
 - 测试代码编写与测试运行/修复闭环必须拆开。
+- 选择测试时先写出要防止的可观察回归及现有场景测试/Demo 的覆盖缺口。业务流程、跨模块/API/数据库交互优先由场景测试覆盖；完整用户故事和真实客户端链路由 Demo 覆盖。只有场景测试/Demo 难以稳定覆盖的重要业务规则、权限、状态转换或异常边界，才新增局部单元/widget/组件测试。禁止为覆盖率数字、技术分层、简单转发或已有路径重复生成用例。没有增量测试价值时不生成 test slot。
 - 不把大范围跨模块重构、多个页面域或多个完整用户故事塞进同一 item。
 - validation 必须来自目标项目实际脚本、package 名或配置。
 - Cargo 命令中的 `--package <name>` 必须匹配对应 `Cargo.toml` 的 `[package].name`，不得假设包名等于目录名。
@@ -160,7 +157,7 @@ backend/test、frontend/test、extension/test、miniapp/test、flutter/test、we
 
 ## Test Execution Consolidation
 
-测试规划遵循集中执行：
+存在 test slot 时，测试规划遵循集中执行：
 
 - authoring item 负责写测试资产；runner item 汇总本轮相关 authoring 产物并执行。
 - runner 必须排在其覆盖的全部相关 authoring item 之后，并记录覆盖来源。
@@ -173,11 +170,11 @@ backend/test、frontend/test、extension/test、miniapp/test、flutter/test、we
 
 - backend/test：集中 runner 执行定向后端测试。
 - frontend/test：全部 Vitest/MSW authoring 后执行定向 `npm run test:run -- [pattern]`，按需加 `type-check`。
-- extension/test：沿用测试 authoring 后集中定向执行的规则，由 extension-test 执行项目实际 Vitest 命令；浏览器用例归 web-demo/dev。runner 验证范围从相关 authoring item 推导，不默认全量。
+- extension/test：测试 authoring 后由 extension-test 集中执行项目实际 Vitest 定向命令；浏览器用例归 web-demo/dev。runner 验证范围从相关 authoring item 推导，不默认全量。
 - miniapp/test：测试或验证资产完成后执行相关 `typecheck`、构建或专项 gate。
 - flutter/test：单元/widget 测试资产完成后执行相关定向 `flutter test`；按改动范围执行 integration_test、Patrol、analyze 或构建门禁。
 - web-demo/dev：Playwright Demo、fixture、Page Object 完成后执行相关 `web-demo-test-runner.py [test-file] --grep [pattern]` 或少量相关文件。
-- flutter-demo/dev：Patrol 测试、screen/helper 完成后执行相关 `flutter-demo-test-runner.py [test-file] --device [android-id]`；首版 runner 按文件执行，不规划不存在的标题 grep。
+- flutter-demo/dev：Patrol 测试、screen/helper 完成后按文件执行相关 `flutter-demo-test-runner.py [test-file] --device [android-id]`；不规划不存在的标题 grep。
 
 ## Backend Test Item Types
 
@@ -186,7 +183,7 @@ backend/test item 必须声明 `test_item_type`：
 - `authoring`：由 `backend-test` 编写或维护场景测试、helper、模块注册，只做编译验证。
 - `runner`：由 `general-purpose` 按 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md` 汇总 authoring item 后执行定向测试、失败分类、生产代码修复委派和重测。
 
-backend/test slot 必须显式规划测试执行闭环：
+backend/test 有测试资产 authoring item 时必须显式规划测试执行闭环：
 
 - 每个新增或修改场景测试的 `authoring` item 必须被 runner 覆盖。
 - runner 按验证范围拆分；同一业务场景或 package/module 优先合并。
@@ -196,7 +193,7 @@ backend/test slot 必须显式规划测试执行闭环：
 - runner 中每条后端测试命令都必须以 `uv run scripts/backend-test.py --` 开头；没有 filter 时也保留结尾 `--`。
 - runner 默认必须带 filter 或 `-E` 表达式来收敛到 Expected Test Manifest 覆盖范围；只有定向范围无法可靠覆盖风险或存在明确门禁要求时，才允许规划全量 `uv run scripts/backend-test.py --`，并必须写明升级原因。
 - 不得写 `${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py`，不得省略 `--`，目标项目本地脚本失败时不得改用插件脚本绕过。
-- backend/accept 由固定 slot 顺序保证在 backend/test 之后执行；backend/test 必须至少包含一个 runner，且 runner 位于相关 authoring item 之后。
+- backend/test 必须至少包含一个 runner，且 runner 位于相关 authoring item 之后；backend/accept 在已规划的测试执行闭环完成后执行。没有 backend/test 时按 [Slot Order](#slot-order) 核查 dev 验证证据。
 
 缺少 `test_item_type`、类型非法、runner 未引用后端测试执行协议、或 runner agent 不是 `general-purpose` 时，执行应终止并提示重新运行 `/t-task-check` 或重建任务。
 

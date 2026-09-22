@@ -44,7 +44,7 @@ allowed-tools:
   - 应包含：现有实现分析概览、用户故事/PRD/技术预研引用、Decision Trace
   - 纯技术方案设计可只包含技术预研引用，但必须声明不涉及业务逻辑、产品规则、用户可见流程或验收目标变动
 - `.ai/design/[feature]/backend.md`、`frontend.md`、`extension.md`、`flutter.md` — 分端设计文档；主文档 §4.2 标记适用时必须存在，生成对应 phase 时必须读取（分端细节以分端文档为准）
-- `.ai/design/[feature]/.state.json` — 存在时必须为 `complete`，否则停止并提示恢复 `/t-design [feature]`；没有状态文件时兼容旧设计产物
+- `.ai/design/[feature]/.state.json` — 必须存在且为 `complete`，否则停止并提示恢复 `/t-design [feature]`
 - `.ai/decision-log/[feature].md` — 跨阶段决策账本（存在时必须读取；本阶段不得采用 Superseded Decision）
 
 可选输入：
@@ -73,11 +73,12 @@ allowed-tools:
 - 解析 `[feature]` 和 `--phase`；按 task-phase-execution 检测 active phases，未传 `--phase` 时选择第一个 active phase。
 - 按当前 phase 提取设计文档最小相关上下文：主文档（目标范围、交付端范围、跨端契约、测试汇总、文件影响范围）加当前 phase 对应的分端设计文档（backend phase 读 `backend.md`，frontend phase 读 `frontend.md`，extension phase 读 `extension.md`，flutter/web-demo/flutter-demo phase 读对应端文档，miniapp phase 读主文档小程序相关部分，缺失时读主文档可用部分）；未命中相关章节时记录警告，但不得编造设计事实。
 - web-demo 涉及扩展时读取 `extension.md` 的浏览器策略及 `${CLAUDE_PLUGIN_ROOT}/guides/extension/testing.md`；extension 适用却缺少分端设计时停止，不套用 Web UI 方案。
+- 按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 判断是否规划 test slot。仅运行现有测试或编译、类型检查、构建时，阶段计划只生成 dev 与 accept；index 说明测试选择和适用的后续 Demo 计划，dev item 的 Validation 至少包含一项可执行验证。需要测试角色编写测试用例、fixture/helper 或专项验证脚本时才规划 test slot。
 - 调度 slot agent 前，先要求其识别当前 slot 的责任闭环（业务能力、接口能力、页面主流程、组件族、测试资产闭环或验收闭环）；技术层、文件类型和实现步骤只作为拆分的辅助线索。
 - 按当前阶段 slot 串行调度相应 agent（映射见下表），每次调度按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 通过 `Agent` tool 启动。prompt 保持精简：阶段设计摘要、上游 handoff、目标 guide/protocol 路径、责任闭环识别要求、输出字段要求、`needs_user_answer` 规则；不得复制 guide、protocol 或 agent 文档中的长篇规则。
 - 生成 backend/test runner item 时，必须要求 agent 从 `Expected Test Manifest`、变更文件和 package/module/test name 推导最小可靠定向命令；规划全量 `uv run scripts/backend-test.py --` 时必须在 `Validation` 或 `Handoff` 写明无法可靠定向的具体原因或门禁要求，否则写入前硬校验拒绝。完整规则见 task-phase-execution 的 Backend Test Item Types。
 - slot agent 返回后按"Agent Output Contract"执行写入前硬校验；校验失败时终止当前 slot，不写入成功状态，要求重新生成该 slot。硬校验通过后写入当前 slot manifest 和 item 文件，再继续调用下游 slot。
-- 当前阶段 slot 齐备后生成 `<phase>/index.md`，用 `Decision ID | Status | Task/Item Location | Notes` 表追踪影响当前 phase 的 Active Decision。
+- 当前阶段已规划的 slot 齐备后生成 `<phase>/index.md`，用 `Decision ID | Status | Task/Item Location | Notes` 表追踪影响当前 phase 的 Active Decision；没有 test slot 时在 index 中说明测试选择和 dev 验证。
 - 收集当前 phase 的 `index.md`、slot manifest 和 item Markdown，运行 `python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py <all-phase-markdown-paths>`；命中项按 Decision Exposure Gate 处理，重新扫描通过前不得交付任务计划。
 - 写入或更新 `.state.json`：当前 phase 新生成且尚未执行的 item 写为 `generated`，再按 task-state-contract 聚合 slot 和 phase；不得在 `/t-task` 中提前改为 `pending`。
 - 返回下一步建议：复杂或高风险任务先运行 `/t-task-check [feature] --phase [phase]`；简单任务可直接运行 `/t-run [feature] --phase [phase]`。

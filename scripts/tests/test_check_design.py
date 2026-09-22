@@ -187,6 +187,17 @@ class DesignValidationTests(unittest.TestCase):
                 {item.code for item in checker.validate(main, root, require_complete=True)},
             )
 
+    def test_downstream_requires_complete_design_state(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            main = self.make_design(root)
+            self.assertIn(
+                "DESIGN_GENERATION_INCOMPLETE",
+                {item.code for item in checker.validate(main, root, require_complete=True)},
+            )
+            write(root / ".ai/design/sample/.state.json", '{"status":"complete"}')
+            self.assertEqual(checker.validate(main, root, require_complete=True), [])
+
     def test_fingerprint_covers_applicable_design_documents(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
