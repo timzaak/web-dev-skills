@@ -35,6 +35,7 @@ allowed-tools:
 - 若是文件路径：仅处理该文件。
 - 若是角色名：匹配 `demo/e2e/**` 下对应文件。
 - 若是 `all` 或空：扫描 `demo/e2e/**/*.e2e.ts`，排除 `fixtures/`、`templates/`、`verification/`。
+- 扫描与文件参数均排除 `demo/e2e/extension/`；扩展演示使用 `/t-tools:t-extension-demo-accept`。
 
 - 用户故事一致性检查（必须）。
 - 读取测试文件顶部注释中的用户故事路径。

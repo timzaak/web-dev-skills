@@ -14,6 +14,7 @@
     "miniapp": {"status": "pending"},
     "flutter": {"status": "pending"},
     "web-demo": {"status": "pending"},
+    "extension-demo": {"status": "pending"},
     "flutter-demo": {"status": "pending"}
   },
   "tasks": {
@@ -56,14 +57,14 @@
 
 ## State Rules
 
-- `phase` 只允许 supported phases：`backend | frontend | extension | miniapp | flutter | web-demo | flutter-demo`。
+- `phase` 只允许 supported phases：`backend | frontend | extension | miniapp | flutter | web-demo | extension-demo | flutter-demo`。
 - `phases` / `tasks` 只要求包含当前任务的 `active_phases`；未启用 extension/miniapp/Flutter 的项目不得强制要求对应 phase。
 - `extension` / `miniapp` / `flutter` 启用规则统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`。
 - `status` 只允许 `pending | failed | completed | skipped | generated`。
   - `skipped`：阶段或已规划的 item 不适用于当前任务
   - `generated`：任务规划已生成，尚未开始执行
 
-backend/frontend/extension/miniapp/flutter 的 `tasks[phase]` 必含 `dev` 与 `accept`；只有需要测试角色新增或修改测试用例、fixture/helper 或专项验证脚本时才包含 `test`。每个已规划 slot 都必须有 manifest 和至少一个 item；仅运行现有测试或编译、类型检查、构建时，`tasks[phase]` 和阶段目录都不包含 test slot。web-demo/flutter-demo 只含 `dev` 与 `accept`。
+backend/frontend/extension/miniapp/flutter 的 `tasks[phase]` 必含 `dev` 与 `accept`；只有需要测试角色新增或修改测试用例、fixture/helper 或专项验证脚本时才包含 `test`。每个已规划 slot 都必须有 manifest 和至少一个 item；仅运行现有测试或编译、类型检查、构建时，`tasks[phase]` 和阶段目录都不包含 test slot。web-demo/extension-demo/flutter-demo 只含 `dev` 与 `accept`。
 
 ## Execution Entry Transition
 

@@ -44,9 +44,13 @@ t-run user-management --phase backend
 # GPT-5.6 Sol 级强模型的单主会话路径，合并规划与执行
 t-super-run user-management --phase backend
 
-# Web Demo/E2E 与最终验收（Flutter 对应 t-flutter-demo-run / t-flutter-demo-accept）
+# Web Demo/E2E 与最终验收（扩展、Flutter 有独立入口）
 t-web-demo-run demo/e2e/<role>/<scenario>.e2e.ts
 t-web-demo-accept <role>
+# Chrome 扩展真实加载演示与验收
+t-extension-demo-run demo/e2e/extension/<scenario>.e2e.ts
+t-extension-demo-run-all
+t-extension-demo-accept all
 
 # 实现和验收后发布正式 PRD / 用户故事
 t-prd-publish user-management
@@ -56,19 +60,20 @@ t-prd-publish user-management
 
 ## 阶段拆分
 
-典型 Web 顺序是 `backend -> frontend -> web-demo`；典型 Flutter 顺序是 `backend -> flutter -> flutter-demo`。
+典型 Web 顺序是 `backend -> frontend -> web-demo`；典型扩展顺序是 `extension -> extension-demo`（有后端改动时前置 backend）；典型 Flutter 顺序是 `backend -> flutter -> flutter-demo`。
 
 - `backend`：后端接口、数据模型、权限、业务逻辑、后端测试和只读验收。
 - `frontend`：React 页面、组件、状态、前端测试和只读验收。
-- `extension`：WXT / Chrome MV3 入口、消息、存储、权限、Vitest 测试和只读验收；浏览器演示归 `web-demo`。
+- `extension`：WXT / Chrome MV3 入口、消息、存储、权限、Vitest 测试和只读验收。
 - `miniapp`：小程序页面、平台能力、构建验证和只读验收。
 - `flutter`：Flutter View、Riverpod 状态、数据层、单元/widget/integration 测试和只读验收。
 - `web-demo`：基于用户故事维护 Playwright Demo/E2E，并验收浏览器用户路径。
+- `extension-demo`：基于用户故事维护真实加载扩展的 Playwright 集成演示，验收跨上下文用户路径、权限和生命周期。
 - `flutter-demo`：基于用户故事维护 Android Patrol 演示，覆盖真实 App 操作与原生系统 UI。
 
 每个 phase 的闭环是 `t-task -> [t-task-check]（可选，按风险）-> t-run`，快速上手只以 backend 为例，其余 phase 重复同样闭环。`t-super-run` 是 GPT-5.6 Sol 级强模型的单主会话路径：合并规划与执行，`--phase` 必填，每次调用只执行一个 phase，完成后停止；全部 supported phase（含 extension 和 miniapp）均可走该路径。
 
-扩展项目按 [扩展初始化指南](guides/extension/initialization.md) 准备 WXT 工程（已有工程跳过；`t-init` 尚无扩展模板）。需求来源齐备后，运行 `t-design <feature>`、`t-task <feature> --phase extension`、`t-run <feature> --phase extension`。设计独立输出 `extension.md`；独立扩展 Demo 的 fixture 与 `--no-auto-env` 用法见 [扩展测试指南](guides/extension/testing.md)。
+扩展项目按 [扩展初始化指南](guides/extension/initialization.md) 准备 WXT 工程（已有工程跳过；`t-init` 尚无扩展模板）。需求来源齐备后，运行 `t-design <feature>`、`t-task <feature> --phase extension`、`t-run <feature> --phase extension`；设计要求用户故事演示时再运行 `t-task <feature> --phase extension-demo` 和 `t-run <feature> --phase extension-demo`。设计独立输出 `extension.md`；演示 fixture、环境与验收按 [扩展演示指南](guides/extension/demo-testing.md)。
 
 ## 使用规则
 

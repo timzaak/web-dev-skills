@@ -65,6 +65,7 @@ allowed-tools:
 - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md` — 前端开发规范
 - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/ui-decisions.md` — 前端 UI 组件选型、交互状态与无障碍底线（frontend/extension 设计时）
 - `${CLAUDE_PLUGIN_ROOT}/guides/extension/development.md` — Chrome 扩展设计时读取
+- `${CLAUDE_PLUGIN_ROOT}/guides/extension/demo-testing.md` — 设计包含 Chrome 扩展用户故事演示时读取
 - `${CLAUDE_PLUGIN_ROOT}/guides/flutter/development.md` — Flutter 开发规范（目标项目启用 Flutter 时）
 - `${CLAUDE_PLUGIN_ROOT}/guides/flutter/demo-testing.md` — Android Patrol 用户故事演示规范（设计要求 Flutter Demo 时）
 - `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md` — 质量规范
@@ -188,7 +189,7 @@ extension 调用 frontend-design 时必须传 `design_stack: extension` 及扩�
 - 分端设计摘要（来自各端 `task_completion.summary`，每端 3-5 行）
 - 测试与验收策略跨端汇总（来自各分端文档测试章节）
 - 风险与验证动作汇总
-- §8 文件影响范围：逐行合并各分端文档的文件影响表，标注来源分端（取值 backend/frontend/extension/flutter/web-demo/flutter-demo/跨端；设计要求用户故事演示时，Playwright `demo/e2e/` 资产标 `web-demo`、Patrol 资产标 `flutter-demo`，供 `/t-task` 与 `/t-super-run` 识别 demo 交付端）；此表是 `/t-task` 的唯一拆分依据，必须覆盖全部适用端
+- §8 文件影响范围：逐行合并各分端文档的文件影响表，标注来源分端（取值 backend/frontend/extension/flutter/web-demo/extension-demo/flutter-demo/跨端；设计要求用户故事演示时，Web Playwright 资产标 `web-demo`、扩展 Playwright 资产标 `extension-demo`、Patrol 资产标 `flutter-demo`，供 `/t-task` 与 `/t-super-run` 识别 demo 交付端）；此表是 `/t-task` 的唯一拆分依据，必须覆盖全部适用端
 
 不适用章节保留并标记"不适用"及原因。写入后对所有实际生成的文档运行：
 

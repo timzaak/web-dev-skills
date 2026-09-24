@@ -1,7 +1,7 @@
 ---
 name: t-super-run
-description: Plan and execute the explicitly requested backend, frontend, extension, miniapp, web-demo, flutter, or flutter-demo phase in one persistent main-session Goal with outcome-level status, role-guide switching for dev/test, validation, recovery, and acceptance loops that dispatch a read-only accept subagent; each invocation runs exactly one phase and stops before the next.
-argument-hint: "[任务名称] --phase <backend|frontend|extension|miniapp|web-demo|flutter|flutter-demo>"
+description: Plan and execute the explicitly requested backend, frontend, extension, miniapp, web-demo, extension-demo, flutter, or flutter-demo phase in one persistent main-session Goal with outcome-level status, role-guide switching for dev/test, validation, recovery, and acceptance loops that dispatch a read-only accept subagent; each invocation runs exactly one phase and stops before the next.
+argument-hint: "[任务名称] --phase <backend|frontend|extension|miniapp|web-demo|extension-demo|flutter|flutter-demo>"
 allowed-tools:
   - Agent
   - AskUserQuestion
@@ -45,14 +45,14 @@ allowed-tools:
 | 参数 | 说明 |
 | --- | --- |
 | `[feature]` | 必填；允许中文、英文、数字、空格、下划线和连字符 |
-| `--phase <backend\|frontend\|web-demo\|flutter\|flutter-demo>` | 必填；本次调用只执行该 phase，完成后停止 |
+| `--phase <backend\|frontend\|extension\|miniapp\|web-demo\|extension-demo\|flutter\|flutter-demo>` | 必填；本次调用只执行该 phase，完成后停止 |
 
 ## 前置条件
 
-- `--phase` 缺失或不在支持列表内时终止，提示 `--phase <backend|frontend|extension|miniapp|web-demo|flutter|flutter-demo>` 用法。
+- `--phase` 缺失或不在支持列表内时终止，提示 `--phase <backend|frontend|extension|miniapp|web-demo|extension-demo|flutter|flutter-demo>` 用法。
 - `.ai/design/[feature].md` 必须存在。
 - 运行 `python ${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py ".ai/design/[feature].md" --require-complete --json`；失败时停止，不创建或恢复 super-run。
-- 只支持 `backend | frontend | extension | miniapp | web-demo | flutter | flutter-demo`；请求的 phase 不在设计与需求来源识别出的真实交付端内时终止，不得为满足命令而编造交付范围。
+- 只支持 `backend | frontend | extension | miniapp | web-demo | extension-demo | flutter | flutter-demo`；请求的 phase 不在设计与需求来源识别出的真实交付端内时终止，不得为满足命令而编造交付范围。
 - 不读取或修改 `.ai/task/[feature]/` 作为 super-run 状态。
 - 已有状态且请求的 phase 为 `completed | skipped` 时，直接报告结果，不重新执行，也不选择其他 phase。
 
@@ -61,10 +61,10 @@ allowed-tools:
 在规划或恢复前：
 
 1. 读取 `check-design.py` 返回的全部 `design_documents`、`design_fingerprint` 和现有 `.ai/super-run/[feature]/`。
-2. 按 phase 确认设计输入：backend 读 `backend.md`；frontend/web-demo 读 `frontend.md`；extension 读 `extension.md`；flutter/flutter-demo 读 `flutter.md`；miniapp 读主文档小程序相关部分（当前无 miniapp 分端设计文档）；客户端依赖后端契约时同时读 `backend.md`。
+2. 按 phase 确认设计输入：backend 读 `backend.md`；frontend/web-demo 读 `frontend.md`；extension/extension-demo 读 `extension.md`；flutter/flutter-demo 读 `flutter.md`；miniapp 读主文档小程序相关部分（当前无 miniapp 分端设计文档）；客户端依赖后端契约时同时读 `backend.md`。
 3. 读取相关 `.ai/prd/**/*.md`、`docs/prd/**/*.md`、`.ai/user-stories/**/*.md` 与 `docs/user-stories/**/*.md`，保留 draft/published 来源边界。
 4. 在任何提问前读取 `.ai/decision-log/[feature].md`；存在时按需读取 `.ai/decision/[feature].md` 与 `.ai/tech-research/[feature].md`。
-5. 按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Phases 启用规则，从设计覆盖矩阵、Operation ID、文件影响表、Decision Trace、代码和配置确定 active phases、task 闭环与真实验证入口；设计主文档声明 Demo 主路径或文件影响表含 `web-demo`/`flutter-demo` 行且项目存在对应交付端时，对应 demo phase 计入 active phases，demo 资产由该 phase 交付，不并入 frontend/flutter。
+5. 按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Phases 启用规则，从设计覆盖矩阵、Operation ID、文件影响表、Decision Trace、代码和配置确定 active phases、task 闭环与真实验证入口；设计主文档声明 Demo 主路径或文件影响表含 `web-demo`/`extension-demo`/`flutter-demo` 行且项目存在对应交付端时，对应 demo phase 计入 active phases，demo 资产由该 phase 交付，不并入 frontend/extension/flutter。
 6. 按 Decision Exposure Gate 分类缺口；`needs_user_answer` 未解决时不得进入实现。
 
 不要无差别加载所有 PRD、用户故事或 guide。先通过 feature 名、设计引用和内容检索定位相关文件，再读取全文。
@@ -74,12 +74,13 @@ allowed-tools:
 - 按 `${CLAUDE_PLUGIN_ROOT}/protocols/super-run-state-contract.md` 创建或更新：
   - `.ai/super-run/[feature]/.state.json`
   - `.ai/super-run/[feature]/[phase].md`
-- backend/frontend/extension/miniapp/flutter 默认规划 `dev -> accept`；需要测试角色编写测试用例、fixture/helper 或专项验证脚本时规划 `dev -> test -> accept`。web-demo/flutter-demo 规划 `dev -> accept`。仅运行现有测试或编译、类型检查、构建时，验证归 dev；accept 核查实际执行证据。
+- backend/frontend/extension/miniapp/flutter 默认规划 `dev -> accept`；需要测试角色编写测试用例、fixture/helper 或专项验证脚本时规划 `dev -> test -> accept`。web-demo/extension-demo/flutter-demo 规划 `dev -> accept`。仅运行现有测试或编译、类型检查、构建时，验证归 dev；accept 核查实际执行证据。
 - 每个 task 只规划一个责任闭环，不生成 item。
 - 把校验结果的 `design_documents` 和 `design_fingerprint` 写入 super-run state；恢复规则见共享协议。
 - 计划必须写明每个 task 要读取的 agent 规范及其关联文档的具体路径。
 - 每个 task 的关联文档必须包含设计主文档和当前 phase 分端设计；消费后端契约时同时包含 `backend.md`。
 - web-demo/dev 的关联文档必须包含 `${CLAUDE_PLUGIN_ROOT}/agents/web-demo-diagnose.md`，用于把 Playwright 失败归因到测试资产、frontend 或 backend 后再切换对应规范修复。
+- extension-demo/dev 的关联文档必须包含 `${CLAUDE_PLUGIN_ROOT}/agents/extension-demo-diagnose.md` 和 `${CLAUDE_PLUGIN_ROOT}/guides/extension/demo-testing.md`，用于把 Playwright 失败归因到测试资产、extension 或 backend 后切换对应规范修复。
 - flutter-demo/dev 的关联文档必须包含 `${CLAUDE_PLUGIN_ROOT}/agents/flutter-demo-diagnose.md`，用于把 Patrol 失败归因到测试资产、Flutter 或 backend 后再切换对应规范修复。
 - extension/dev 或 extension/test 涉及用户当前浏览器现场时，关联文档必须包含 `${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md`；现场证据与角色浏览器工具边界按 `${CLAUDE_PLUGIN_ROOT}/protocols/extension-acceptance-contract.md` 执行，浏览器工具仅用于观察，重载扩展、刷新宿主页面等动作由主会话在任务授权范围内完成。
 - 首次写入后或恢复到未完成的请求 phase 后，主动调用 `/goal` 或运行时等价 Goal API；Goal 的 outcome、constraints 和 verification 必须符合共享协议，且只为请求的 phase 创建或恢复 Goal。

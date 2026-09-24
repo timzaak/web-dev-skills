@@ -129,7 +129,7 @@ Flutter（`flutter.md`）：
 
 文档结构：
 
-- 主文档 §8 文件影响范围必须存在，表格包含 `文件 | 操作 | 说明` 三列（可含来源分端列），操作列使用 CREATE/MODIFY/DELETE，来源分端取值限于 backend/frontend/extension/flutter/web-demo/flutter-demo/跨端（Demo 演示资产按交付端标 web-demo/flutter-demo），且全量覆盖各分端文档的文件影响表
+- 主文档 §8 文件影响范围必须存在，表格包含 `文件 | 操作 | 说明` 三列（可含来源分端列），操作列使用 CREATE/MODIFY/DELETE，来源分端取值限于 backend/frontend/extension/flutter/web-demo/extension-demo/flutter-demo/跨端（Demo 演示资产按交付端标 web-demo/extension-demo/flutter-demo），且全量覆盖各分端文档的文件影响表
 - backend 详细设计包含必要的数据结构、公开签名、错误类型或算法骨架
 - frontend 详细设计包含页面状态转换、关键事件/副作用和公开 hook/schema/query/store 边界
 - Flutter 详细设计包含状态转换、Notifier 事件/副作用和 provider/repository/service/路由边界

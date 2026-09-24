@@ -14,6 +14,7 @@ super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相
 ├── extension.md
 ├── miniapp.md
 ├── web-demo.md
+├── extension-demo.md
 ├── flutter.md
 └── flutter-demo.md
 ```
@@ -24,7 +25,7 @@ super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相
 
 ## Supported Phases And Tasks
 
-`supported_phases` 固定为 `backend | frontend | extension | miniapp | web-demo | flutter | flutter-demo`。一个 feature 通常只命中单一端栈，`active_phases` 的启用判定统一按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Phases 规则执行：设计主文档声明 Demo 主路径或文件影响表出现 `web-demo`/`flutter-demo` 行时，对应 demo phase 纳入 `active_phases`，demo 演示资产不得并入 frontend/flutter phase 交付。
+`supported_phases` 固定为 `backend | frontend | extension | miniapp | web-demo | extension-demo | flutter | flutter-demo`。一个 feature 通常只命中单一端栈，`active_phases` 的启用判定统一按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Phases 规则执行：设计主文档声明 Demo 主路径或文件影响表出现 `web-demo`/`extension-demo`/`flutter-demo` 行时，对应 demo phase 纳入 `active_phases`，demo 演示资产不得并入 frontend/extension/flutter phase 交付。
 
 | phase | task 顺序 | agent 规范 |
 | --- | --- | --- |
@@ -34,6 +35,7 @@ super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相
 | miniapp | `dev -> accept`；需测试角色编写测试或专项 gate 时插入 `test` | `miniapp-dev -> miniapp-test（按需）-> miniapp-accept` |
 | flutter | `dev -> accept`；需测试角色编写单元/widget/integration 测试时插入 `test` | `flutter-dev -> flutter-test（按需）-> flutter-accept` |
 | web-demo | `dev -> accept` | `web-demo-dev -> web-demo-accept` |
+| extension-demo | `dev -> accept` | `extension-demo-dev -> extension-demo-accept` |
 | flutter-demo | `dev -> accept` | `flutter-demo-dev -> flutter-demo-accept` |
 
 按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 判断是否需要测试角色编写测试用例、fixture/helper 或专项验证脚本。仅运行现有测试、编译、类型检查或构建时，phase 计划和 state 都不包含 test task；phase 计划记录原因、dev 中至少一项可执行验证及后续 Demo 计划（适用时）。accept 验收实际执行证据。dev 发现需要上述测试编写工作时，在 accept 前更新计划和 state，插入 test task。
@@ -172,10 +174,11 @@ accept task 到达执行位时，主会话按 `subagent-dispatch.md` 派发 `age
 
 - backend/test 先按 `backend-test` 规范编写或维护场景测试并做编译验证，再由主会话按 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md` 执行定向测试与失败分类。
 - frontend/test 按 `frontend-test` 规范完成测试资产和定向执行。
-- extension/test 按 `extension-test` 规范完成 Vitest 测试资产和定向执行；浏览器用例归 web-demo/dev。dev/test 涉及用户当前浏览器现场时，按 `${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md` 接入并按 `${CLAUDE_PLUGIN_ROOT}/protocols/extension-acceptance-contract.md` 采集现场证据，浏览器工具仅用于观察。
+- extension/test 按 `extension-test` 规范完成 Vitest 测试资产和定向执行；浏览器用户故事用例归 extension-demo/dev。dev/test 涉及用户当前浏览器现场时，按 `${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md` 接入并按 `${CLAUDE_PLUGIN_ROOT}/protocols/extension-acceptance-contract.md` 采集现场证据，浏览器工具仅用于观察。
 - miniapp/test 按 `miniapp-test` 规范完成独立测试或专项 gate 资产及其验证；没有 test task 时，typecheck 和构建回归归 dev task。
 - 测试发现生产代码缺陷时，在同一个 test task 内读取对应 dev agent 规范后修复，再重新执行受影响测试；不得弱化断言、权限预期或业务规则。
 - web-demo/dev 同时承担 Playwright 资产维护和定向执行，不新增独立 test task。失败时读取 `web-demo-diagnose` 规范分类，再切换对应 dev 规范修复并补跑底层定向测试。
+- extension-demo/dev 同时承担扩展 Playwright 资产维护和定向执行，不新增独立 test task。失败时读取 `extension-demo-diagnose` 分类，再切换对应 dev 规范修复、重建加载产物并补跑定向测试。
 - flutter-demo/dev 同时承担 Patrol 资产维护和定向执行，不新增独立 test task。失败时读取 `flutter-demo-diagnose` 规范分类，再切换 `flutter-demo-dev`、`flutter-dev` 或 `backend-dev` 规范修复并补跑整文件测试；Android device 选定值写入 `flutter-demo.md` plan，运行时缺失则询问用户。
 - accept 由只读 accept subagent 执行（见 Role Loading And Accept Dispatch），必须保持该 agent 规范的只读验收边界；允许写验收报告，不得直接修改生产代码或测试来制造通过结果。
 - accept 拒绝时由主会话按证据重新打开 dev 或已规划的 test，并把 accept 重置为 `pending`。修复、重测后重新派发验收，直到通过或进入 `blocked`。
@@ -206,7 +209,7 @@ agent 规范由主会话直接执行，accept 派发对应只读 accept subagent
 
 ## Failure Rules
 
-- `--phase` 缺失或不合法：终止并提示 `--phase <backend|frontend|extension|miniapp|web-demo|flutter|flutter-demo>` 用法。
+- `--phase` 缺失或不合法：终止并提示 `--phase <backend|frontend|extension|miniapp|web-demo|extension-demo|flutter|flutter-demo>` 用法。
 - 设计文档缺失：终止并提示先运行 `/t-design <feature>`。
 - 设计状态未完成或 `check-design.py` 失败：终止并提示恢复 `/t-design <feature>`。
 - 状态 JSON 损坏或结构非法：停止并报告具体字段，不覆盖原文件。

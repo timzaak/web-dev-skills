@@ -39,17 +39,24 @@ class DemoPhaseCoverageTests(unittest.TestCase):
             runner.write_text(content.replace("cd extension && npm run test:run -- lib/messaging.test.ts", ""), encoding="utf-8")
             self.assertIn("No test runner command found.", coverage.check_runner(root, runner, dynamic=False).errors)
 
-    def test_discovers_web_and_flutter_demo_runner_items_independently(self) -> None:
+    def test_discovers_web_extension_and_flutter_demo_runner_items_independently(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             base = root / ".ai" / "task" / "feature"
             web = base / "web-demo" / "dev" / "WD-D02-runner.md"
+            extension = base / "extension-demo" / "dev" / "ED-D02-runner.md"
             flutter = base / "flutter-demo" / "dev" / "FD-D02-runner.md"
             web.parent.mkdir(parents=True)
+            extension.parent.mkdir(parents=True)
             flutter.parent.mkdir(parents=True)
             web.write_text(
                 "## Expected Test Manifest\n- `login flow`\n"
                 "## Validation\nuv run scripts/web-demo-test-runner.py demo/e2e/login.e2e.ts --grep 'login flow'\n",
+                encoding="utf-8",
+            )
+            extension.write_text(
+                "## Expected Test Manifest\n- `settings flow`\n"
+                "## Validation\nuv run scripts/web-demo-test-runner.py demo/e2e/extension/settings.e2e.ts --no-auto-env --grep 'settings flow'\n",
                 encoding="utf-8",
             )
             flutter.write_text(
@@ -58,10 +65,16 @@ class DemoPhaseCoverageTests(unittest.TestCase):
                 encoding="utf-8",
             )
             self.assertEqual(coverage.find_runner_files(root, "feature", "web-demo"), [web])
+            self.assertEqual(coverage.find_runner_files(root, "feature", "extension-demo"), [extension])
             self.assertEqual(coverage.find_runner_files(root, "feature", "flutter-demo"), [flutter])
             self.assertEqual(coverage.infer_layer(web), "web-demo")
+            self.assertEqual(coverage.infer_layer(extension), "extension-demo")
             self.assertEqual(coverage.infer_layer(flutter), "flutter-demo")
             self.assertTrue(coverage.check_runner(root, web, dynamic=False).commands)
+            self.assertEqual(coverage.check_runner(root, extension, dynamic=False).errors, [])
+            self.assertTrue(coverage.is_full_suite_command(
+                "uv run scripts/web-demo-test-runner.py demo/e2e/extension/ --mode fast", "extension-demo"
+            ))
             self.assertTrue(coverage.check_runner(root, flutter, dynamic=False).commands)
 
 

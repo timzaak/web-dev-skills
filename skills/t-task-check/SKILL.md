@@ -1,7 +1,7 @@
 ---
 name: t-task-check
 description: Validate task plan executability and consistency with a 100-point score and P0/P1/P2 fix list.
-argument-hint: "[任务名称] [--phase <backend|frontend|extension|miniapp|flutter|web-demo|flutter-demo>]"
+argument-hint: "[任务名称] [--phase <backend|frontend|extension|miniapp|flutter|web-demo|extension-demo|flutter-demo>]"
 allowed-tools:
   - AskUserQuestion
   - Read
@@ -25,7 +25,7 @@ allowed-tools:
 ## 使用方式
 
 ```bash
-/t-task-check [feature] [--phase <backend|frontend|extension|miniapp|flutter|web-demo|flutter-demo>]
+/t-task-check [feature] [--phase <backend|frontend|extension|miniapp|flutter|web-demo|extension-demo|flutter-demo>]
 ```
 
 | 参数 | 说明 |
@@ -54,7 +54,7 @@ allowed-tools:
    - 存在 test slot 时，其集中测试执行 item 优先运行 `uv run scripts/check-test-runner-coverage.py [feature] --layer [layer]` 做覆盖校验；backend 动态校验失败记 P1 或 P0（取决于是否导致新增测试无法执行），其他层静态校验失败至少记 P1。没有 test slot 时核对阶段 index 的原因和 dev Validation 中至少一项可执行验证。
    - 后端测试命令必须使用目标项目内脚本入口 `uv run scripts/backend-test.py -- [filter]`（没有 filter 也保留 `--`）；使用 `cargo run`、裸 `cargo test`、插件根路径或省略 `--` 的记 P1，并改为统一入口。
 5. 核对设计文档与任务文档的一致性；纯技术方案任务可只追溯设计文档中的技术预研来源，不得因缺少 PRD/用户故事扣 P0。任务引用 `.ai/user-stories` 时确认其为 draft 候选来源且路径存在；不得要求先发布到 `docs/user-stories` 才能进入 `/t-run`。
-6. 通过 `Agent` tool 按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 调度当前阶段已规划 slot 对应的 subagent 做专业校验（backend: `backend-dev/backend-test/backend-accept`；frontend: `frontend-dev/frontend-test/frontend-accept`；extension: `extension-dev/extension-test/extension-accept`；miniapp: `miniapp-dev/miniapp-test/miniapp-accept`；flutter: `flutter-dev/flutter-test/flutter-accept`；web-demo: `web-demo-dev/web-demo-accept`；flutter-demo: `flutter-demo-dev/flutter-demo-accept`），可并行调度。没有 test slot 时主流程核对不规划原因和 dev 验证；dev、accept agent 参与检查。subagent 上下文按 rubric 的 Context Budget Rules 裁剪：
+6. 通过 `Agent` tool 按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 调度当前阶段已规划 slot 对应的 subagent 做专业校验（backend: `backend-dev/backend-test/backend-accept`；frontend: `frontend-dev/frontend-test/frontend-accept`；extension: `extension-dev/extension-test/extension-accept`；miniapp: `miniapp-dev/miniapp-test/miniapp-accept`；flutter: `flutter-dev/flutter-test/flutter-accept`；web-demo: `web-demo-dev/web-demo-accept`；extension-demo: `extension-demo-dev/extension-demo-accept`；flutter-demo: `flutter-demo-dev/flutter-demo-accept`），可并行调度。没有 test slot 时主流程核对不规划原因和 dev 验证；dev、accept agent 参与检查。subagent 上下文按 rubric 的 Context Budget Rules 裁剪：
    - dev agent 默认只接收 dev item 与直接影响实现的跨 slot 摘要
    - test agent 默认只接收 test item、相关 dev `Handoff/Files` 摘要和集中定向测试执行闭环约束
    - accept agent 默认只接收 accept item、顺序中相关 runner/dev `Handoff` 摘要和验收闭环约束

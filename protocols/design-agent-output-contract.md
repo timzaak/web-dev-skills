@@ -20,6 +20,7 @@
       "miniapp": false,
       "flutter": false,
       "web_demo": false,
+      "extension_demo": false,
       "flutter_demo": false
     }
   },

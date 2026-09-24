@@ -47,9 +47,13 @@ t-run user-management --phase backend
 # Single-main-session path for GPT-5.6 Sol-class models, merging planning and execution
 t-super-run user-management --phase backend
 
-# Web Demo/E2E and final acceptance (Flutter: t-flutter-demo-run / t-flutter-demo-accept)
+# Web Demo/E2E and final acceptance (extensions and Flutter have separate commands)
 t-web-demo-run demo/e2e/<role>/<scenario>.e2e.ts
 t-web-demo-accept <role>
+# Chrome extension loaded-browser demo and acceptance
+t-extension-demo-run demo/e2e/extension/<scenario>.e2e.ts
+t-extension-demo-run-all
+t-extension-demo-accept all
 
 # Publish formal PRD / user stories after implementation and acceptance
 t-prd-publish user-management
@@ -59,19 +63,20 @@ t-prd-publish user-management
 
 ## Phase Split
 
-A typical web order is `backend -> frontend -> web-demo`; a typical Flutter order is `backend -> flutter -> flutter-demo`.
+A typical web order is `backend -> frontend -> web-demo`; a typical extension order is `extension -> extension-demo` (with backend first when changed); a typical Flutter order is `backend -> flutter -> flutter-demo`.
 
 - `backend`: backend APIs, data models, permissions, business logic, backend tests, and read-only acceptance.
 - `frontend`: React pages, components, state, frontend tests, and read-only acceptance.
-- `extension`: WXT / Chrome MV3 entrypoints, messaging, storage, permissions, Vitest tests, and read-only acceptance; browser demos use `web-demo`.
+- `extension`: WXT / Chrome MV3 entrypoints, messaging, storage, permissions, Vitest tests, and read-only acceptance.
 - `miniapp`: miniapp pages, platform capabilities, build verification, and read-only acceptance.
 - `flutter`: Flutter views, Riverpod state, data layers, unit/widget/integration tests, and read-only acceptance.
 - `web-demo`: Playwright Demo/E2E based on user stories and browser user paths.
+- `extension-demo`: Playwright integration demos with a loaded extension, covering user paths across contexts, permissions, and lifecycle behavior.
 - `flutter-demo`: Android Patrol demos based on user stories, including real App actions and native system UI.
 
 Each phase runs the loop `t-task -> [t-task-check] (optional, by risk) -> t-run`; the quick start shows backend as the example and other phases repeat it. `t-super-run` is the single-main-session path for GPT-5.6 Sol-class models: it merges planning and execution, requires `--phase`, executes exactly one phase per call, then stops. Every supported phase, including extension and miniapp, can use this path.
 
-Prepare a WXT project using the [extension initialization guide](guides/extension/initialization.md) (skip for existing projects; `t-init` has no extension template yet). Once requirement sources are ready, run `t-design <feature>`, `t-task <feature> --phase extension`, and `t-run <feature> --phase extension`. Design produces a separate `extension.md`. See the [extension testing guide](guides/extension/testing.md) for standalone fixtures and `--no-auto-env`.
+Prepare a WXT project using the [extension initialization guide](guides/extension/initialization.md) (skip for existing projects; `t-init` has no extension template yet). Once requirement sources are ready, run `t-design <feature>`, `t-task <feature> --phase extension`, and `t-run <feature> --phase extension`. When design requires a user story demo, also run `t-task <feature> --phase extension-demo` and `t-run <feature> --phase extension-demo`. Design produces a separate `extension.md`. See the [extension demo guide](guides/extension/demo-testing.md) for fixtures, environment selection, and acceptance.
 
 ## Usage Rules
 

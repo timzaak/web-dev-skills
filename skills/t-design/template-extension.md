@@ -52,7 +52,7 @@
 - Vitest：[受影响业务分支与定向脚本]
 - 浏览器：[真实加载、消息/权限/生命周期的必要证据；fixture、宿主/stub 来源、环境模式和命令]
 - 用户当前 Chrome：[按 `${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md` 规划 Chrome DevTools MCP 现场验证；目标页面/扩展、所需上下文与复现步骤，或不适用依据；证据要求遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/extension-acceptance-contract.md`]
-- Demo：[需要用户故事演示时声明 web-demo 交付和选择器影响；否则说明不适用]
+- Demo：[需要扩展用户故事演示时声明 extension-demo 交付、`demo/e2e/extension/` 资产、fixture 环境模式和选择器影响；否则说明不适用]
 - 构建：[实际 type-check/compile、build 和生产 manifest 路径]
 
 ## 8. 风险与验证动作
@@ -65,4 +65,4 @@
 |---|---|---|
 | `[真实仓库路径]` | CREATE / MODIFY / DELETE | [变更与命名依据] |
 
-同时列入本端依赖的 Demo 资产，由主文档汇总时标记 web-demo。MODIFY/DELETE 路径必须存在，CREATE 父目录必须存在。
+同时列入本端依赖的 Demo 资产，由主文档汇总时标记 extension-demo。MODIFY/DELETE 路径必须存在，CREATE 父目录必须存在。

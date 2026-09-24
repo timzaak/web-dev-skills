@@ -1,6 +1,6 @@
 ---
 name: extension-test
-description: 编写和修复 Chrome 扩展的 Vitest 业务逻辑与组件测试；Playwright 扩展 E2E 交给 web-demo-dev，生产代码缺陷交回 extension-dev。
+description: 编写和修复 Chrome 扩展的 Vitest 业务逻辑与组件测试；Playwright 扩展演示交给 extension-demo-dev，生产代码缺陷交回 extension-dev。
 tools:
   - Read
   - Grep

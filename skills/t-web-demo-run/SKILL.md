@@ -15,7 +15,7 @@ allowed-tools:
   - Agent
 ---
 
-Chrome 扩展 Demo 的 fixture、`--no-auto-env` 参数传递、修复后重建和批次隔离按 `${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md` 的“扩展 Demo 运行模式”；仅此模式下不执行默认 Web 环境 stop/start。
+`demo/e2e/extension/` 下的扩展用户故事演示使用 `/t-tools:t-extension-demo-run`。
 
 
 # 单文件 Demo 测试运行与修复

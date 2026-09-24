@@ -8,6 +8,7 @@
 - `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/quality.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/quality.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/extension-demo-acceptance-contract.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/flutter/quality.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/flutter/demo-testing.md`
 
@@ -50,6 +51,7 @@
 - 后端验收细则：`${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md`
 - 前端验收细则：`${CLAUDE_PLUGIN_ROOT}/guides/frontend/quality.md`
 - Web Demo 验收细则：`${CLAUDE_PLUGIN_ROOT}/guides/web-demo/quality.md`
+- 扩展 Demo 验收细则：`${CLAUDE_PLUGIN_ROOT}/protocols/extension-demo-acceptance-contract.md`
 - Flutter Demo 验收细则：`${CLAUDE_PLUGIN_ROOT}/guides/flutter/demo-testing.md`
 
 ## 5. 执行约束

@@ -27,10 +27,10 @@ allowed-tools:
 ```text
 t-decision -> t-prd / t-tech-research（无固定顺序，进设计前收敛）
 -> t-design -> t-task -> t-run / t-super-run
--> t-web-demo-* / t-flutter-demo-* -> t-prd-publish -> t-push -> t-release
+-> t-web-demo-* / t-extension-demo-* / t-flutter-demo-* -> t-prd-publish -> t-push -> t-release
 ```
 
-`t-prd-check`、`t-design-check`、`t-task-check` 是可选质量检查。phase 顺序：Web 为 `backend -> frontend -> web-demo`，扩展项目为 `extension -> web-demo`（需要后端改动时前置 backend），Flutter 为 `backend -> flutter -> flutter-demo`。
+`t-prd-check`、`t-design-check`、`t-task-check` 是可选质量检查。phase 顺序：Web 为 `backend -> frontend -> web-demo`，扩展项目为 `extension -> extension-demo`（需要后端改动时前置 backend），Flutter 为 `backend -> flutter -> flutter-demo`。
 
 ## 场景路由
 
@@ -45,9 +45,10 @@ t-decision -> t-prd / t-tech-research（无固定顺序，进设计前收敛）
 | 技术设计 | `/t-tools:t-design <feature>` | 主文档 + 分端设计，后端契约先行 |
 | 任务拆解 | `/t-tools:t-task <feature> --phase <phase>` | 生成 item 级任务 |
 | 实现 + 测试 | `/t-tools:t-run <feature> --phase <phase>` | 串行执行 item |
-| Chrome 扩展开发 | `/t-tools:t-design <feature>`，再 `t-task` / `t-run --phase extension` | 先按 [extension 初始化指南](${CLAUDE_PLUGIN_ROOT}/guides/extension/initialization.md) 建 WXT 工程；t-init 尚无扩展模板；浏览器演示用 web-demo |
+| Chrome 扩展开发 | `/t-tools:t-design <feature>`，再 `t-task` / `t-run --phase extension` | 先按 [extension 初始化指南](${CLAUDE_PLUGIN_ROOT}/guides/extension/initialization.md) 建 WXT 工程；t-init 尚无扩展模板；用户故事演示用 extension-demo |
 | 强模型单会话实现 | `/t-tools:t-super-run <feature> --phase <phase>` | 合并规划与执行；`--phase` 必填 |
 | Web Demo / E2E | `/t-tools:t-web-demo-run <file>` 或 `/t-tools:t-web-demo-run-all` | 之后 `/t-tools:t-web-demo-accept <role>` |
+| Extension Demo / E2E | `/t-tools:t-extension-demo-run <file>` 或 `/t-tools:t-extension-demo-run-all` | 之后 `/t-tools:t-extension-demo-accept <file\|all>` |
 | Flutter Demo | `/t-tools:t-flutter-demo-run <file> --device <id>` 或 `/t-tools:t-flutter-demo-run-all` | 之后 `/t-tools:t-flutter-demo-accept <domain\|all>` |
 | 提交推送 | `/t-tools:t-review`、`/t-tools:t-simplify`，再 `/t-tools:t-push` | review 只报告，发现缺陷先修复；push 会清理注释并跑受影响 CI |
 | 发版 | `/t-tools:t-release [版本号]` | semver 不带 `v`，git tag 带 `v` |
