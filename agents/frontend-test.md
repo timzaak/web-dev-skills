@@ -101,11 +101,7 @@ cd frontend && npm run lint
 
 ### t-task 规划约束
 
-- 涉及新增或修改测试代码时，先规划测试 authoring item。
-- 同一前端场景下强相关的测试文件、MSW handler、fixture 和测试 helper 应优先合并为一个 authoring item；只有验证范围、文件责任或失败归因明显不同才拆开。
-- 集中定向执行 item 汇总本轮相关 Vitest/MSW/helper authoring item。
-- 集中定向执行 item 在 manifest 中排在全部相关 authoring item 之后，优先运行 `npm run test:run -- [pattern]`，按需加 `type-check`。
-- 执行范围从覆盖来源推导；全量 `npm run test:run` 仅用于定向范围不可靠或门禁要求。
+测试编写与执行的合并条件、集中 runner、Expected Test Manifest 和失败恢复统一按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Test Execution Consolidation；小范围同角色闭环默认合并。验证范围来自本次资产与风险，不默认全量。运行后按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 保存可供 accept 核查的证据。
 
 ## 编写约束
 

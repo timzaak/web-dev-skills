@@ -49,7 +49,7 @@
 
 ## 7. 测试与验收
 
-- Vitest：[受影响业务分支与定向脚本]
+- 局部 Vitest（按需）：[真实浏览器/场景验证难稳定覆盖的重要规则、可观察回归、覆盖缺口与定向脚本；无增量价值时写“不新增”及原因]
 - 浏览器：[真实加载、消息/权限/生命周期的必要证据；fixture、宿主/stub 来源、环境模式和命令]
 - 用户当前 Chrome：[按 `${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md` 规划 Chrome DevTools MCP 现场验证；目标页面/扩展、所需上下文与复现步骤，或不适用依据；证据要求遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/extension-acceptance-contract.md`]
 - Demo：[需要扩展用户故事演示时声明 extension-demo 交付、`demo/e2e/extension/` 资产、fixture 环境模式和选择器影响；否则说明不适用]

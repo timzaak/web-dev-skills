@@ -65,7 +65,7 @@ examples:
 - `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md`
 - 按需进入：
    - `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md`
-   - `${CLAUDE_PLUGIN_ROOT}/guides/backend/tdd-workflow.md`
+   - `${CLAUDE_PLUGIN_ROOT}/guides/backend/tdd-workflow.md`（仅在 testing.md 已确认局部测试有增量价值后读取）
    - `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/backend/validation.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md`
@@ -100,7 +100,7 @@ examples:
 - 修改 `backend/**/tests/scenarios/**` 或任何 `*_scenarios.rs`，除非用户明确授权修测试。
 - 修改场景测试断言、状态码预期、权限预期或业务规则预期。
 
-详细测试边界与写法统一参考 `${CLAUDE_PLUGIN_ROOT}/guides/backend/tdd-workflow.md`。
+测试选择先读 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`；确需局部测试时再读 `${CLAUDE_PLUGIN_ROOT}/guides/backend/tdd-workflow.md` 的断言与 TDD 指引。
 
 测试价值门槛统一参考 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`；不得新增构造函数赋值、DTO/derive、getter/setter、常量或机械字段映射测试。
 

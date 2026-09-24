@@ -40,6 +40,8 @@ allowed-tools:
 
 - `${CLAUDE_PLUGIN_ROOT}/protocols/super-run-state-contract.md`
 
+规划测试与验收时读取 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`，将受影响行为的验证入口、关键断言和承接位置写入现有设计测试章节/阶段计划；交付收尾按同一协议核对证据和待验证项。
+
 ## 参数
 
 | 参数 | 说明 |
@@ -54,7 +56,7 @@ allowed-tools:
 - 运行 `python ${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py ".ai/design/[feature].md" --require-complete --json`；失败时停止，不创建或恢复 super-run。
 - 只支持 `backend | frontend | extension | miniapp | web-demo | extension-demo | flutter | flutter-demo`；请求的 phase 不在设计与需求来源识别出的真实交付端内时终止，不得为满足命令而编造交付范围。
 - 不读取或修改 `.ai/task/[feature]/` 作为 super-run 状态。
-- 已有状态且请求的 phase 为 `completed | skipped` 时，直接报告结果，不重新执行，也不选择其他 phase。
+- 已有状态且请求的 phase 为 `completed | skipped` 时，按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 核对证据适用性；仍有效则报告阶段结果和待验证项，相关输入变化时按状态协议只重新打开受影响 task 及验收，不选择其他 phase。
 
 ## 来源加载
 
@@ -120,4 +122,4 @@ allowed-tools:
 - accept task 给出允许进入下游的结论；整个 phase 为 `skipped` 时必须有明确不适用证据。
 - `.state.json` 已按最终结果聚合。
 
-输出当前 phase、task 状态、主要变更、验证证据和剩余未完成 phase，然后停止本次调用；剩余 phase 由用户再次显式传入 `--phase` 启动。若全部 active phases 已完成，明确报告 feature 的 super-run 已完成。
+输出当前 phase、task 状态、主要变更、验证证据和剩余未完成 phase，然后停止本次调用；剩余 phase 由用户再次显式传入 `--phase` 启动。仅当全部 active phases 已完成且按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 核对全部必要场景均有有效证据时，报告 feature 的 super-run 已完成；否则列出待验证项并按共享协议重新打开承接验收，不宣称交付完成。

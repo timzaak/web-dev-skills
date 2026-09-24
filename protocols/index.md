@@ -13,6 +13,7 @@
 | 子 agent 调用前的角色规范注入 | [subagent-dispatch.md](${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md) |
 | 修复后补测集合的字段与允许命令 | [tests-to-run-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md) |
 | `.ai/task/.../.state.json` 的唯一结构真相 | [task-state-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md) |
+| 行为验证责任、跨阶段交接、完成门禁和运行证据复用 | [verification-evidence-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md) |
 | phase/slot/item 的执行顺序与前置规则 | [task-phase-execution.md](${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md) |
 | `.ai/super-run/...` 的目标级计划、状态、主会话执行、accept 派发与 Goal 闭环 | [super-run-state-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/super-run-state-contract.md) |
 | backend-test 的默认收敛与升级策略 | [backend-test-execution.md](${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md) |

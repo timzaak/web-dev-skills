@@ -69,7 +69,7 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py ".ai/design/<feat
 - 前端违反状态分工：服务端数据进入 Zustand（应由 TanStack Query 独占管理），或缓存/刷新策略缺失
 - `frontend.md` / `extension.md` / `flutter.md` 单列或复制 API 契约字段表，破坏契约单一来源
 - 主文档承载 API 字段表、数据库表结构或页面线框等分端细节，而非摘要与链接
-- 测试策略缺少实际入口
+- 测试策略缺少实际入口；业务行为变更缺少 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 要求的场景、关键断言或承接位置
 - 分端文档缺少本端 Decision Trace 子集，或与主文档 Decision Trace 矛盾
 
 ### P2

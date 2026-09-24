@@ -22,7 +22,7 @@ tools:
 
 ## 执行
 
-1. 读 `${CLAUDE_PLUGIN_ROOT}/guides/extension/testing.md`，确认当前目标属于 Vitest，沿用项目 setup、MSW 和共享 helper。
+1. 读 `${CLAUDE_PLUGIN_ROOT}/guides/extension/testing.md`，先核对可观察回归及真实浏览器/场景测试覆盖缺口；无增量价值时返回不新增及原因。确需 Vitest 时沿用项目 setup、MSW 和共享 helper。
 2. 编写受影响业务分支、schema、迁移或组件行为测试；不编写 Playwright，不以 fakeBrowser 证明真实 worker 生命周期。
 3. 按当前 item 约定执行定向测试，完成门禁读 `${CLAUDE_PLUGIN_ROOT}/guides/extension/validation.md`。生产缺陷返回文件、失败用例和证据，由主会话交给 extension-dev；不降低断言绕过失败。
 

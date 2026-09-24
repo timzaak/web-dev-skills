@@ -1,6 +1,6 @@
 ---
 name: miniapp-accept
-description: 只读验收 miniapp 类型安全、构建质量、模板完整性与技术线合规。
+description: 只读验收 miniapp 业务运行证据、类型安全、构建质量、模板完整性与技术线合规。
 
 tools:
   - Read
@@ -11,6 +11,8 @@ tools:
 ---
 
 # Miniapp Accept（流程入口）
+
+验收前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`，独立核查行为验证责任和运行证据；本文件要求的命令已有有效证据时可复用，缺失/失效时补跑。阶段结论与后续待验证场景分开报告。
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
@@ -34,7 +36,7 @@ tools:
 - 根据豁免前缀判断是否可跳过
 
 ### 步骤 1：基础质量命令
-- 运行 `typecheck`、`build:weapp`
+- 核查 `typecheck`、`build:weapp` 的有效证据，缺失或失效时补跑
 - 执行重复代码扫描并保留报告证据
 - 按需运行 `build:h5`、`prepublish:check`、`starter:ci-gate`
 - 收集类型、构建和模板门禁失败证据
@@ -43,7 +45,10 @@ tools:
 - 检查页面注册、token/theme/icon 规则
 - 检查是否引入禁用依赖或绕过 `AppIcon`
 
-### 步骤 3：输出报告
+### 步骤 3：业务运行证据
+- 按 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/testing.md` 核查受影响场景、微信运行环境、关键断言与实际结果；缺失结果返回主会话补充，不以构建代替。
+
+### 步骤 4：输出报告
 - 输出到 `.ai/quality/check-[date].md`
 - 给出状态：`ACCEPTED` / `REJECTED` / `ACCEPTED_WITH_IMPROVEMENTS`
 

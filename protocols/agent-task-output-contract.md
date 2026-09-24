@@ -42,6 +42,8 @@
 - `task_completion.change_scope`
 - `task_completion.tests_to_run` when the agent is used in a repair or verification loop that expects retest instructions
 
+执行验证或验收时，按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 在现有 Handoff/报告保存证据，并通过 `validation_results` 或 `summary` 引用；有后续承接时在 `next_steps` 列出待验证场景与承接位置。不得用当前 item 的 `success` 表示整个 feature 已验收。
+
 ## Optional Fields
 
 按角色扩展：

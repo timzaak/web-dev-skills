@@ -107,12 +107,7 @@ Runtime Dependencies：
 
 ## t-task 规划约束
 
-- 涉及新增或修改 Demo/E2E 测试、fixture、helper 或 Page Object 时，先规划 authoring item。
-- 同一用户故事或业务状态流下强相关的 fixture、helper、Page Object 和测试文件 authoring 应优先合并为一个 item；只有测试基础设施与故事流程会互相污染失败归因时才拆开。
-- 集中定向执行 item 汇总本轮相关测试代码 item。
-- 集中定向执行 item 在 manifest 中排在全部相关 authoring item 之后，优先运行相关 `web-demo-test-runner.py [test-file] --grep [pattern]` 或少量相关文件。
-- 执行范围从覆盖来源推导；全部 Demo 测试仅用于定向范围不可靠或门禁要求。
-- 如果 Playwright 项目启动、前端构建或 TypeScript 编译导致耗时，执行 item 必须记录命令、耗时和结果，不能因此改成跳过测试。
+测试编写与执行的合并条件、集中 runner、Expected Test Manifest 和失败恢复统一按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Test Execution Consolidation；小范围同角色闭环默认合并。验证范围来自本次资产与风险，不默认全量。运行后按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 保存可供 accept 核查的证据。
 
 ## 示例输出
 

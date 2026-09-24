@@ -38,12 +38,12 @@ super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相
 | extension-demo | `dev -> accept` | `extension-demo-dev -> extension-demo-accept` |
 | flutter-demo | `dev -> accept` | `flutter-demo-dev -> flutter-demo-accept` |
 
-按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 判断是否需要测试角色编写测试用例、fixture/helper 或专项验证脚本。仅运行现有测试、编译、类型检查或构建时，phase 计划和 state 都不包含 test task；phase 计划记录原因、dev 中至少一项可执行验证及后续 Demo 计划（适用时）。accept 验收实际执行证据。dev 发现需要上述测试编写工作时，在 accept 前更新计划和 state，插入 test task。
+按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 判断是否需要测试角色编写测试用例、fixture/helper 或专项验证脚本。仅运行现有测试、编译、类型检查或构建时，phase 计划和 state 都不包含 test task；phase 计划记录原因、dev 中至少一项可执行验证及后续 Demo 计划（适用时）。accept 按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 独立复核有效执行证据和行为验证承接；阶段结束报告尚未完成的业务验收，最终承接阶段核对全部必要场景。dev 发现需要上述测试编写工作时，在 accept 前更新计划和 state，插入 test task。
 
 `--phase` 必填，每次调用只执行显式请求的一个 phase。`active_phases` 只包含按上述启用规则激活的 phase，用于校验请求 phase 的适用性并报告剩余工作。执行规则：
 
 1. 首次规划时从设计与需求来源识别 `active_phases`；请求的 phase 不在其中时终止，不得为满足命令而编造交付范围。
-2. 已有状态且请求 phase 为 `completed | skipped` 时直接报告结果，不重新执行，也不选择其他 phase。
+2. 已有状态且请求 phase 为 `completed | skipped` 时先按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 核对证据适用性；仍有效则报告结果和待承接验证，不重新执行、不选择其他 phase。相关输入已变化时只重新打开受影响 task 及其验收。
 3. 请求 phase 完成后结束本次调用与对应 Goal，报告剩余未完成 phase；剩余 phase 由用户再次显式请求启动。
 
 `phases` 只包含 active phase。`current_phase` 指向本次执行的请求 phase；该 phase 聚合为 `completed | skipped` 后写为 `null`，不自动进入下一个 phase。
@@ -131,6 +131,8 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py ".ai/design/<feature>.md" -
 
 执行 task 前先写 `in_progress`。成功后写 `completed`、删除旧 `last_error`，并追加文件、命令、报告或日志证据；失败后先写 `failed` 和 `last_error`，再决定自动修复或转为 `blocked`。状态写入失败时重试一次，仍失败则停止，避免继续产生无法恢复的修改。
 
+按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 发现完成证据失效时，将受影响的 completed task 及对应 accept 置为 pending，失效的已完成下游验证同步重新打开，记录原因并重新聚合 phase；无关 task 保持原状态。仅更新恢复入口，不执行未请求的 phase。缺失证据同样需要补验；skipped 复核不适用依据。
+
 恢复 `in_progress` task 时，先检查工作区、已有交付物和验证证据，再从未满足的完成条件继续；不得把中断状态直接视为成功，也不得无条件重复可能产生副作用的动作。
 
 ## Phase Plan Contract
@@ -141,6 +143,7 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py ".ai/design/<feature>.md" -
 - Source Trace：本轮实际读取的设计文件与指纹、PRD、用户故事、Decision Brief、Decision Log、技术预研和项目事实。
 - Decision Trace：影响当前 phase 的 Active Decision 及应用位置。
 - task 表：`task | goal | agent spec | related documents | deliverable | validation`。
+- 验证责任表及上游待验证场景（字段和交接规则按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`）；无行为验证时记录适用性依据。
 - 必要的恢复说明和上游 handoff。
 
 每个 task 固定为一个目标级责任闭环，不继续拆 item。`related documents` 必须包含设计主文档、当前 phase 分端设计、消费后端契约时的 `backend.md`，以及 agent Read Order 中实际需要的文件；不得只写“按需阅读相关指南”。
@@ -162,7 +165,7 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py ".ai/design/<feature>.md" -
 
 accept task 到达执行位时，主会话按 `subagent-dispatch.md` 派发 `agent_spec` 对应的只读 accept agent：
 
-1. 读取 accept agent 规范全文并按该协议注入为 `# Agent Role:`，追加最小上下文：设计主文档与当前 phase 分端设计、消费后端契约时的 `backend.md`、改动范围与上游 handoff、dev/test 的证据入口。
+1. 读取 accept agent 规范全文并按该协议注入为 `# Agent Role:`，追加最小上下文：设计主文档与当前 phase 分端设计、消费后端契约时的 `backend.md`、改动范围与上游 handoff、dev/test 的证据入口、当前验证责任表及上游待验证场景，并提供 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`。
 2. 写入 `in_progress` 后串行派发，一次只派发一个 accept subagent。
 3. subagent 只产出验收报告与结论，不读写 `.state.json`，不修改生产代码或测试。主会话把结论映射为状态，不得代出、改写或降级 subagent 结论：
    - `ACCEPTED`，或没有 P0/P1 的 `ACCEPTED_WITH_IMPROVEMENTS`：写 `completed`，把报告路径追加进 `evidence`。

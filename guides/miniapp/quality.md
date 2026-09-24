@@ -7,6 +7,7 @@
 - 页面注册与模板完整性
 - theme/token/icon 体系约束
 - 小程序技术线合规
+- 受影响业务流程在微信运行时的验证证据
 
 ## 2. 前置检查（MANDATORY）
 
@@ -17,11 +18,14 @@
 
 ## 3. 验收门禁
 
+验证责任与证据有效性统一按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`，命令已有有效证据时可复用。
+
 ### P0（必须通过）
 - `npm run typecheck` 通过
 - `npm run build:weapp` 通过
 - 新页面已在 `src/app.config.ts` 正确注册
 - token/icon 产物无阻塞缺失
+- 当前负责的必要业务场景运行验证通过；证据要求见 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/testing.md`，未验证不能计为通过
 - 关键受保护文件未被无依据破坏
 
 ### P1（应通过）
@@ -78,6 +82,7 @@ cd miniapp && npm run starter:ci-gate -- --target taro-react-taroify-tailwind
 - 类型检查、构建、模板门禁结果
 - 重复代码检查结果（命令、重复率/重复块数量、关键文件位置；未执行时必须说明原因）
 - 页面注册与主题/图标约束检查结果
+- 业务场景、工具/设备、预期/实际结果及证据引用；不适用或尚待承接的项目及依据
 - 风险与修复建议（P0/P1/P2）
 
 ## 7. 禁止行为

@@ -18,6 +18,8 @@ Chrome 扩展用户故事演示归 `extension-demo-accept`；本角色只验收 
 
 # Demo Accept（流程入口）
 
+验收前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`，独立核查行为验证责任和运行证据；本文件要求的命令已有有效证据时可复用，缺失/失效时补跑。阶段结论与后续待验证场景分开报告。
+
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
 
@@ -44,11 +46,11 @@ Chrome 扩展用户故事演示归 `extension-demo-accept`；本角色只验收 
 - 校验场景、角色、断言匹配
 
 ### 阶段 2：编译验证（MANDATORY）
-- 执行 demo 编译
+- 核查 demo 编译有效证据，缺失或失效时执行编译
 - 记录编译错误
 
 ### 阶段 3：执行验证（MANDATORY）
-- 执行 demo 测试
+- 核查相关 Demo 整文件执行证据，缺失或失效时运行相关文件
 - 记录失败、超时、日志位置
 
 ### 阶段 4：代码质量检查

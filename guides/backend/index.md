@@ -5,7 +5,7 @@ backend 规范入口，按“先看架构事实，再进入测试/验证/验收�
 | 你要确认的问题 | 对应规范 |
 | --- | --- |
 | 当前 backend 架构事实、crate 边界、依赖方向与默认实现约束 | [development.md](${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md) |
-| TDD 节奏、单元/模块测试补法与实现期测试边界 | [tdd-workflow.md](${CLAUDE_PLUGIN_ROOT}/guides/backend/tdd-workflow.md) |
+| 已确认局部测试覆盖缺口后，选择最小断言与按需 TDD | [tdd-workflow.md](${CLAUDE_PLUGIN_ROOT}/guides/backend/tdd-workflow.md) |
 | 场景测试、集成测试和测试命令入口 | [testing.md](${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md) |
 | 完成前最小验证命令与升级顺序 | [validation.md](${CLAUDE_PLUGIN_ROOT}/guides/backend/validation.md) |
 | 只读验收门禁、拒绝条件与报告要求 | [quality.md](${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md) |

@@ -78,6 +78,17 @@ backend/frontend/extension/miniapp/flutter 的 `tasks[phase]` 必含 `dev` 与 `
 
 `/t-task-check` 只校验状态，不执行该迁移。`/t-task` 新生成且尚未进入执行队列的 item 保持 `generated`。
 
+阶段 `completed` 与业务交付的区别按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`；后续行为验证记录在现有 index/Handoff，不增加状态枚举。
+
+## Evidence Invalidation
+
+重新进入已执行阶段或交付收尾时，按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 核对相关证据：
+
+- 证据仍有效时保留 completed，不重复运行；skipped 只复核不适用依据，不要求不存在的执行日志。
+- 证据缺失或相关输入变化时，将持有失效验证的已完成 item、依赖其结果的已完成下游 item 及对应 accept item 置为 pending，并重新聚合 slot/phase；不重置无关 item 或尚未执行的 generated item。
+- 验证由后续 Demo 承接时，同时标记验证表对应行为为未执行并重新打开已完成的承接验收；记录失效原因和恢复入口，不自动执行其他 phase。
+- 若需要生产修复，由编排层重新打开对应 dev item；先持久化状态与 Handoff 再启动 agent。状态写入失败时停止，不以旧 completed 返回成功。
+
 ## Aggregation Rules
 
 slot 状态：

@@ -12,6 +12,8 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 
 测试默认围绕后端场景和用户故事 Demo 规划；只有这些测试难稳定覆盖重要规则或边界时才新增局部测试。需要测试角色编写测试用例或专项验证脚本时才规划 test slot；运行现有测试、类型检查和构建归 dev，accept 核查证据。
 
+业务行为变更必须有运行验证，或明确交给后续阶段并报告“业务验收待完成”；编译通过不能替代业务结果。小程序复用已有自动化或开发者工具/真机验证；扩展按实际覆盖缺口接入 Vitest，不默认补冒烟单测。同角色的小测试闭环可合并编写与运行，backend/test 保留 authoring/runner 分工。accept 独立审查并可复用仍有效的运行证据，输入变化或证据不足时补跑；详见 [验证证据协议](protocols/verification-evidence-contract.md)。
+
 推荐先读 [human/structure.md](human/structure.md)，理解 skill、subagent、protocol 如何协同；做需求前可用 [human/speech-template.md](human/speech-template.md) 先口述一遍真实意图。
 
 本项目迭代的开发日志记录在 [linux.do](https://linux.do/t/topic/1988118/4)。

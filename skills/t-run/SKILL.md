@@ -56,7 +56,7 @@ allowed-tools:
 
 ## 执行循环
 
-1. 读取状态并确定执行范围，按共享契约校验状态与执行顺序。
+1. 读取状态并确定执行范围，按共享契约校验状态与执行顺序；已有完成项先按 Evidence Invalidation 核对证据并重新打开失效项。
 2. 完成校验后、启动任何 agent 前，将目标 phase 中全部 `generated` item 归一化为 `pending`，重新聚合对应 slot/phase 并一次性写回 `.state.json`（保留其他状态不变）；归一化写回失败时按状态写入失败处理，不得启动 agent。
 3. 按共享契约选择第一个 `pending` 或 `failed` item，通过 `Agent` tool 启动 `subagent_type` 为 item `agent` 字段值的 sub agent（调度规则见 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md`，最小上下文按 task-phase-execution 的 Agent Context）。
 
@@ -79,6 +79,8 @@ allowed-tools:
 
 4. item 成功后写入 `tasks[phase][slot].items[item_id].status = completed`；失败后写入 `status = failed`、`last_error = <summary>`，并把 `tasks[phase][slot].status` 与 `phases[phase].status` 聚合为 `failed`，停止当前 phase 的后续执行。
 5. 每个 item 完成或失败后重新聚合 slot 和 phase 状态；item 成功且仍有可执行 item 时回到步骤 3 继续串行执行。backend 阶段在 `accept` slot 全部 completed 后聚合为 completed。
+
+执行验证和阶段收尾时读取 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`：accept 独立复核证据；报告当前 phase 结果及后续待验证场景。最后承接阶段不得遗漏上游交接的业务验证。
 
 ## backend/test 特例
 

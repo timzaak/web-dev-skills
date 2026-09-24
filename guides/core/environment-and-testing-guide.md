@@ -36,6 +36,8 @@
 - 已由 Demo 覆盖的完整主链路，不再重复补同路径前端测试。
 - 路由、租户前缀和 API base path 以目标项目当前设计与代码为准，不从历史示例推断。
 
+规划和交付时按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 记录验证责任与结果；没有新增测试不等于没有行为验证，编译或类型检查不能单独证明业务变更正确。
+
 ## 入口
 
 - Demo：[`e2e-testing.md`](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/e2e-testing.md)

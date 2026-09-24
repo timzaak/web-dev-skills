@@ -70,7 +70,7 @@ allowed-tools:
 - 是否存在 `Must Resolve Before=t-prd-publish` 或更早但尚未解决的 Deferred Question；存在时先完成用户裁决
 - 现有正式 PRD / 用户故事的缺失、过期或与已交付产品语义不一致问题
 - 草稿中哪些内容应写入、删去、降级或仅作为发布摘要说明；draft 用户故事中哪些应追加、合并、改写、删去或仅作摘要说明；索引是否需要新增或更新条目
-- 是否已有实现、测试和 Demo 验收完成证据
+- 是否已有实现和适用测试/Demo 的验收完成证据；按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 核对验证责任表与原始证据，所有必要场景已收口，不能把上游“本阶段通过、业务验收待完成”当作发布完成证据
 
 发现 P0 问题或缺少完成证据时停止发布并输出修复建议。
 

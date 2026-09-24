@@ -1,134 +1,27 @@
-# TDD 工作流程详细指南
+# 后端高价值局部测试与按需 TDD
 
-本文档提供 Test-Driven Development（TDD）的完整示例和详细说明。
+仅在已按 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md` 确认重要覆盖缺口后读取。普通 HTTP/数据库成功路径优先使用场景测试，不因 Domain/Application 分层要求逐层补单测。
 
-## Domain 层开发：高价值局部规则按需采用 TDD
+## 选择局部测试
 
-**适用场景**：
-- 纯业务逻辑（如：密码策略、权限验证）
-- 不依赖外部服务（数据库、HTTP、Redis）
-- 核心算法和数据转换
+新增前说明：要防止的可观察回归、已有场景测试为什么难以稳定覆盖，以及本次最小断言。构造赋值、DTO、getter/setter、机械映射和第三方库保证的行为不构成补测理由。
 
-**不适用场景**：
-- 只做字段赋值的 struct 构造函数、builder、getter/setter、DTO、常量和机械字段映射。
+适用示例：项目规定恢复令牌在截止时刻失效，但 HTTP 场景难稳定命中精确时间边界。若项目已有可注入时钟，局部用例验证截止前可恢复、截止时返回明确过期错误，且失败不会消耗令牌或改变业务状态。只替换时钟这一外部边界，断言实际业务结果，不 mock 整条业务链路。
 
-**TDD 工作流程（Red-Green-Refactor）**：
+不要为了测试引入本次生产需求不需要的 Repository 抽象、复杂 mock 框架或多层 fixture。若准备成本高于覆盖收益，回到场景验证评估；不得仅以 `result.is_ok()` 或 mock 调用次数证明普通创建流程正确。
 
-```rust
-// ========== Step 1: Red - 编写失败的测试 ==========
-#[cfg(test)]
-mod tests {
-    use super::*;
+## 按需 Red-Green-Refactor
 
-    #[test]
-    fn test_password_validation_too_short() {
-        let policy = PasswordPolicy::new(8);
-        let result = policy.validate("abc123");  // 只有 6 个字符
-        assert!(result.is_err());
-        assert!(matches!(result, Err(ValidationError::TooShort)));
-    }
+- 已确认局部测试有价值，且测试先行能澄清规则时，先写能暴露该缺陷的最小失败用例，再实现并定向验证。
+- 未改变可观察行为的重构保留断言；仅在相关实现或测试变化后重跑，不为编辑了无关文件重复运行。
+- 同一规则的等价边界可表驱动合并；不为每个内部方法生成一个用例。
 
-    #[test]
-    fn test_password_validation_missing_uppercase() {
-        let policy = PasswordPolicy::new(8);
-        let result = policy.validate("abcdefgh123");
-        assert!(result.is_err());
-        assert!(matches!(result, Err(ValidationError::MissingUppercase)));
-    }
+## 执行与交付
 
-    #[test]
-    fn test_password_validation_success() {
-        let policy = PasswordPolicy::new(8);
-        let result = policy.validate("Abc12345");
-        assert!(result.is_ok());
-    }
-}
-
-// ========== Step 2: Green - 实现最小可行代码 ==========
-impl PasswordPolicy {
-    pub fn new(min_length: usize) -> Self {
-        Self { min_length }
-    }
-
-    pub fn validate(&self, password: &str) -> Result<(), ValidationError> {
-        if password.len() < self.min_length {
-            return Err(ValidationError::TooShort);
-        }
-        if !password.chars().any(|c| c.is_uppercase()) {
-            return Err(ValidationError::MissingUppercase);
-        }
-        Ok(())
-    }
-}
-
-// ========== Step 3: Refactor - 重构优化代码结构 ==========
-// 提取辅助方法、优化逻辑、提升可读性
-impl PasswordPolicy {
-    fn has_uppercase(&self, password: &str) -> bool {
-        password.chars().any(|c| c.is_uppercase())
-    }
-
-    fn has_digit(&self, password: &str) -> bool {
-        password.chars().any(|c| c.is_ascii_digit())
-    }
-}
-```
-
-**快速反馈**（统一用 backend-test.py 入口，不要退回裸 cargo test）：
+命令使用目标项目统一入口及真实 package/module：
 
 ```bash
-# 只运行某 crate 的单元测试
-uv run scripts/backend-test.py -- -E 'package(<core-package>)'
-
-# 只运行当前模块的测试
-uv run scripts/backend-test.py -- -E 'package(<core-package>) and test(domain::user::policy)'
+uv run scripts/backend-test.py -- -E 'package(<core-package>) and test(<rule-pattern>)'
 ```
 
-说明：上例测试的是 `validate` 的业务行为，不测试 `PasswordPolicy::new()` 是否把字段赋值成功；只有构造函数包含校验、默认值合成或规范化时才测构造函数本身。
-
-## Application 层开发：场景测试难稳定覆盖时按需采用 TDD
-
-**适用场景**：
-- Service 层的业务编排逻辑
-- 可以使用 mockall Mock Repository 依赖
-
-**示例**：
-```rust
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use mockall::predicate::*;
-
-    #[tokio::test]
-    async fn test_user_service_create_success() {
-        // Given: Mock Repository
-        let mut mock_repo = MockUserRepository::new();
-        mock_repo.expect_find_by_email()
-            .with(eq("test@example.com"))
-            .returning(|_| Ok(None));
-
-        mock_repo.expect_create()
-            .returning(|_| Ok(User::fake()));
-
-        // When: 调用 Service
-        let service = UserServiceImpl::new(Arc::new(mock_repo));
-        let result = service.create_user("test@example.com", "Pass123").await;
-
-        // Then: 验证结果
-        assert!(result.is_ok());
-    }
-}
-```
-
-## TDD 最佳实践
-
-- **先判断测试价值**：只有能保护业务规则、边界、状态转换或错误语义时才写单元测试
-- **测试驱动实现**：只写足够的代码让测试通过
-- **重构优化**：测试通过后重构代码结构
-- **频繁运行测试**：每次修改后立即运行测试验证
-
-## 参考资源
-
-- [Rust Testing Guide](https://doc.rust-lang.org/book/ch11-00-testing.html)
-- [mockall Documentation](https://docs.rs/mockall/latest/mockall/)
-- [TDD Best Practices](https://martinfowler.com/bliki/TestDrivenDevelopment.html)
+本次新增或修改的单测必须实际通过。无增量价值时不新增，按任务安排验证已有受影响测试和业务场景。运行证据记录与验收复用按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`；测试选择和命令入口以 testing.md 为准。

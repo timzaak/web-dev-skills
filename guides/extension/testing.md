@@ -1,6 +1,6 @@
 # Chrome 扩展测试指南
 
-Vitest 覆盖业务分支与契约；Playwright 覆盖真实扩展加载、跨上下文通信和用户路径。先确认项目现有 scripts、fixtures 与依赖版本，再选择受影响范围。
+真实浏览器/场景验证优先覆盖扩展加载、跨上下文通信和用户路径；仅在这些路径难稳定覆盖重要业务规则或异常边界时新增 Vitest，并说明可观察回归及覆盖缺口。允许不新增局部测试，受影响的现有测试仍需定向验证。先确认项目现有 scripts、fixtures 与依赖版本，再选择受影响范围。
 
 需要用户当前标签页、登录态或已安装扩展的现场验证时，先读 [用户 Chrome 调试](${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md)，采用 Chrome DevTools MCP；本页的临时 profile 负责独立回归，两种证据不得互相冒充。extension-test 仍负责 Vitest，现场采集由开发角色或主会话完成。
 
@@ -39,4 +39,4 @@ uv run scripts/web-demo-test-runner.py demo/e2e/extension/settings.e2e.ts --no-a
 
 混合项目依赖真实 Web 后端时按设计保留默认环境管理；不要仅因有扩展目录就跳过环境。是否使用 `--no-auto-env` 写入任务 Validation，定向、整文件终验和批次恢复均保留该选择。
 
-修复闭环与隔离按 [Demo repair contract](${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md)；extension-demo 的测试编写/定向执行拆分由 [task phase contract](${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md) 决定。
+修复闭环与隔离按 [Demo repair contract](${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md)；extension-demo 的测试编写/定向执行合并或拆分由 [task phase contract](${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md) 决定。

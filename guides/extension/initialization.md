@@ -30,9 +30,9 @@ unpacked 扩展 ID 由目录路径派生，`.output/chrome-mv3-dev` 路径不变
 - 保留模板的 `dev` / `build` / `zip`、`compile`（`tsc --noEmit`）和 `postinstall`（`wxt prepare`）脚本。
 - 确认 `.gitignore` 忽略 `.output/`、`.wxt/`、`node_modules/`。
 
-## 4. 接入测试
+## 4. 按需接入局部测试
 
-安装 `vitest` 为开发依赖，创建 `vitest.config.ts`：
+先按 [testing.md](${CLAUDE_PLUGIN_ROOT}/guides/extension/testing.md) 判断覆盖缺口。已有测试管线沿用；新工程只有出现真实浏览器/场景验证难稳定覆盖的重要规则时，才安装 `vitest` 并创建 `vitest.config.ts`：
 
 ```ts
 import { defineConfig } from 'vitest/config';
@@ -43,7 +43,7 @@ export default defineConfig({
 });
 ```
 
-新增 `test:run`（`vitest run`）脚本和一个冒烟单测，验证测试管线可用；用例与 mock 边界按 [testing.md](${CLAUDE_PLUGIN_ROOT}/guides/extension/testing.md)。
+采用 Vitest 时新增 `test:run`（`vitest run`）脚本，用首个有实际业务断言的定向用例验证管线；不为证明框架可运行新增占位冒烟单测。没有局部测试需求时跳过接入，在初始化结果中说明，继续验证真实加载和构建。
 
 ## 5. 验证与衔接
 
@@ -51,9 +51,10 @@ export default defineConfig({
 
 ```bash
 npm run compile
-npm run test:run
 npm run build
 ```
+
+已有受影响测试或本次新增高价值用例时，再执行对应的定向测试命令；没有测试管线不要求 `test:run`。按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 记录真实加载、模板交互和构建结果，必要运行结果尚未取得时初始化保持未完成。
 
 构建后核对 `.output/chrome-mv3/manifest.json`：模板入口存在，权限未增加。后续功能变更的门禁按 [validation.md](${CLAUDE_PLUGIN_ROOT}/guides/extension/validation.md)，允许使用项目等价脚本。
 

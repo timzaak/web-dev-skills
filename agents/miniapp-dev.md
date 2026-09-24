@@ -92,6 +92,8 @@ tools:
 
 ### 完成前验证
 
+交付行为变更前，按 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/testing.md` 取得受影响场景的运行证据；证据记录和缺环境/人工结果时的交接按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`。
+
 必须执行：
 
 ```bash

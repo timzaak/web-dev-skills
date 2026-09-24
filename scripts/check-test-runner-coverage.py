@@ -97,11 +97,12 @@ def find_runner_files(root: Path, feature: str, layer: str | None) -> list[Path]
 
 
 def section_text(content: str, heading: str) -> str | None:
-    match = re.search(rf"^##\s+{re.escape(heading)}\s*$", content, re.MULTILINE | re.IGNORECASE)
+    match = re.search(rf"^(#{{2,3}})\s+{re.escape(heading)}\s*$", content, re.MULTILINE | re.IGNORECASE)
     if not match:
         return None
     start = match.end()
-    next_heading = re.search(r"^##\s+", content[start:], re.MULTILINE)
+    level = len(match.group(1))
+    next_heading = re.search(rf"^#{{1,{level}}}\s+", content[start:], re.MULTILINE)
     end = start + next_heading.start() if next_heading else len(content)
     return content[start:end]
 
@@ -164,7 +165,7 @@ def is_full_suite_command(command: str, layer: str) -> bool:
         return re.fullmatch(r"(?:cd\s+\S+\s+&&\s+)?(?:fvm\s+)?flutter\s+test", normalized) is not None
     if layer == "web-demo":
         return (
-            "web-demo-test-runner.py demo/e2e/" in normalized
+            re.search(r"web-demo-test-runner\.py\s+demo/e2e/?(?:\s|$)", normalized) is not None
             or re.fullmatch(r"uv\s+run\s+scripts[/\\]web-demo-test-runner\.py", normalized) is not None
         )
     if layer == "extension-demo":

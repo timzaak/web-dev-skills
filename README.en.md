@@ -12,6 +12,8 @@ T-Tools is designed for projects that already have a delivery chain across produ
 
 Test plans default to backend scenarios and user story demos. Add focused tests only when those paths cannot reliably cover an important rule or edge case. Plan a test slot when the test role must write test cases or a dedicated validation script. Running existing tests, type checks, and builds belongs to development; acceptance reviews the evidence.
 
+Behavior changes require runtime verification or an explicit handoff to a later phase, reported as pending business acceptance; compilation cannot prove business outcomes. Miniapps reuse existing automation or developer tool/device verification. Extensions add Vitest only for meaningful coverage gaps, without a mandatory smoke unit test. Small test scopes owned by one role may combine authoring and execution; backend/test retains separate authoring and runner items. Acceptance independently reviews the work and may reuse valid execution evidence, rerunning when relevant inputs change or evidence is insufficient. See the [verification evidence contract](protocols/verification-evidence-contract.md).
+
 Recommended first reading: [human/structure.en.md](human/structure.en.md) to understand how skills, subagents, and protocols work together. Before shaping a requirement, use [human/speech-template.en.md](human/speech-template.en.md) to speak through the real intent first.
 
 The development log of this project's iterations is kept on [linux.do](https://linux.do/t/topic/1988118/4) (in Chinese).

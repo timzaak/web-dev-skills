@@ -15,11 +15,14 @@
 - 读取 `.ai/design/[任务名].md`
 - 豁免前缀：`bugfix-`、`refactor-`、`doc-`、`test-`、`style-`
 
+验收执行命令前按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 检查证据能否复用；独立验收结论、行为验证责任和缺失证据的阻断规则均遵循该协议。
+
 ## 3. 验收门禁
 
 ### P0（必须通过）
 - 编译通过（0 errors）
 - 受影响测试通过（0 failed）
+- 本阶段负责的必要业务/API 场景验证通过；后续承接与最终交付按验证证据协议
 - 环境可启动
 - 健康检查通过（以目标项目健康检查契约为准）
 - OpenAPI 关键注解完整（无阻塞缺失）
@@ -45,7 +48,7 @@ npx jscpd --pattern "**/*.rs" --reporters console backend
 ```
 
 规则：
-- `backend-accept` 默认先做改动分析，再执行定向 `uv run scripts/backend-test.py -- <targeted filter>`；不得默认直接跑全量 `uv run scripts/backend-test.py --`。
+- `backend-accept` 先分析改动并核查证据；需要补跑时执行定向 `uv run scripts/backend-test.py -- <targeted filter>`，不得默认全量。
 - 只有在用户明确要求全量测试，或影响范围无法可靠收敛时，`backend-accept` 才允许升级到全量测试；一旦升级，则全量结果也必须通过。
 - OpenAPI 导出与前端 API 生成属于 `backend-accept` 的 P0 验收项；失败时拒绝验收。
 - 若 OpenAPI 导出或前端 API 生成失败，修复后至少重新执行受影响测试、OpenAPI 导出与前端 API 生成。

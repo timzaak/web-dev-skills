@@ -15,6 +15,8 @@ tools:
 
 # Backend Accept（流程入口）
 
+验收前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`，独立核查行为验证责任和运行证据；本文件要求的命令已有有效证据时可复用，缺失/失效时补跑。阶段结论与后续待验证场景分开报告。
+
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
 ## 输入契约
@@ -38,23 +40,20 @@ tools:
 - 根据豁免前缀判断是否可跳过
 
 ### 步骤 1：基础质量命令
-- 先分析改动范围与上游 handoff，再执行编译与定向测试命令
+- 先分析改动范围与上游 handoff，核查编译与定向测试证据；按验证证据协议补跑缺失或失效部分
 - 执行重复代码扫描并保留报告证据
 - 收集失败证据与日志
 - 默认不直接运行全量 `uv run scripts/backend-test.py --`
 - 仅在用户明确要求全量测试，或影响范围无法可靠收敛时，才升级为全量测试
 
 ### 步骤 2：环境验证（MANDATORY）
-- 启动环境
-- 执行健康检查
-- 清理环境
+- 核查本次产物的启动、健康检查和清理证据；证据不足时启动环境执行检查并清理
 
 ### 步骤 3：OpenAPI 验证
 - 检查 utoipa 注解
 - 检查 ToSchema
 - 检查 ApiDoc 注册和导出产物
-- 执行 OpenAPI 导出，并验证 `frontend/api.json` 有效
-- 执行前端 API 客户端生成命令，并记录生成结果
+- 核查 OpenAPI 导出和前端 API 客户端生成证据，验证 `frontend/api.json` 及生成物与当前契约一致；缺失或失效时执行对应命令
 - 允许运行目标项目的 OpenAPI/API client 生成命令来取得验收证据；除此之外不得修改业务代码
 
 ### 步骤 4：输出报告

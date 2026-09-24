@@ -8,6 +8,8 @@
 - 测试代码质量
 - 场景覆盖率与评分
 
+验收执行命令前按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 检查证据能否复用；独立验收结论、行为验证责任和缺失证据的阻断规则均遵循该协议。
+
 ## 2. 五阶段验收流程
 
 ### 阶段 1：用户故事一致性（MANDATORY）
@@ -110,5 +112,5 @@ npx jscpd --pattern "**/*.ts" --reporters console demo/e2e
 
 - 禁止测试失败时标记“带改进通过”
 - 禁止跳过用户故事一致性检查
-- 禁止跳过执行验证
+- 禁止缺少有效执行证据；按验证证据协议复用已有运行结果不视为跳过
 - 禁止降低标准让失败通过

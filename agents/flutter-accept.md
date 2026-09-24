@@ -7,6 +7,8 @@ tools: [Read, Grep, Glob, Bash, Write]
 
 # Flutter Accept
 
+验收前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`，独立核查行为验证责任和运行证据；本文件要求的命令已有有效证据时可复用，缺失/失效时补跑。阶段结论与后续待验证场景分开报告。
+
 读取设计/Handoff、目标项目 lock 和 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/quality.md`。
 
 只读执行：
