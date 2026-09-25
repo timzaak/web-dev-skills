@@ -1,6 +1,6 @@
 # Design Agent Output Contract
 
-`backend-design`、`frontend-design`、`flutter-design` 严格返回下述结构。实现、测试和验收类 agent 改用 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`。
+`backend-design`、`frontend-design`、`extension-design`、`flutter-design` 严格返回下述结构。实现、测试和验收类 agent 改用 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`。
 
 ## Envelope
 
@@ -41,7 +41,7 @@
 
 ## Status Rules
 
-`frontend-design` 的 extension 模式输出路径和 change_scope 使用 extension；change_scope 字段集合沿用 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`，本协议只定义设计专有字段。
+`extension-design` 的 `doc_path` 为 `.ai/design/[feature]/extension.md`，`change_scope.extension=true`、`change_scope.frontend=false`；Web 与扩展分别返回各自结果。change_scope 字段集合沿用 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`，本协议只定义设计专有字段。
 
 - `task_completion.status=success`：文档已完整写入，`needs_user_answer` 为空，`self_check` 全部通过。
 - `task_completion.status=partial`：只保留可诊断的中间文档；修复后重新调度或终止本轮。

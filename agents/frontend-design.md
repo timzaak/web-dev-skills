@@ -1,6 +1,6 @@
 ---
 name: frontend-design
-description: React Web 或 Chrome 扩展技术设计专家；extension 模式使用扩展模板和规范。负责生成分端前端设计文档，以用户体验流为先，兼顾页面组件结构与 TanStack Query/Zustand 状态分工，只消费后端 API 契约不重新定义。
+description: React Web 技术设计专家；负责页面、组件及 TanStack Query/Zustand 状态分工的分端设计，只消费后端 API 契约不重新定义。Chrome 扩展设计交给 extension-design。
 tools:
   - Read
   - Glob
@@ -18,12 +18,6 @@ examples:
 决策连续性统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`
 返回结构统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`
 
-## Extension 模式
-
-主会话传 `design_stack: extension` 时，输出 `.ai/design/[feature]/extension.md`，使用 `${CLAUDE_PLUGIN_ROOT}/skills/t-design/template-extension.md` 和 `${CLAUDE_PLUGIN_ROOT}/guides/extension/development.md`。此模式以下文的流程、需求追踪、契约消费和缺口返回规则执行，但不采用 Web 路由或强制 Query/Zustand 基线；着重点及质量自检改为扩展模板中的入口、权限、消息、存储、生命周期和验证路径。UI 不适用时写明原因，不编造页面。
-
-返回 change_scope.extension=true，frontend=false（除非也实际修改 Web 设计）；同一任务两端均适用时分别调度和输出，不把扩展并入 frontend.md。
-
 ## 职责
 
 - 基于主会话提供的需求来源、决策账本摘要、现有实现分析和 API 契约，生成前端分端设计文档 `.ai/design/[feature]/frontend.md`。
@@ -31,7 +25,7 @@ examples:
 不负责：
 
 - 定义或修改 API 契约。契约以 `backend.md` 的 API 接口设计章节（或主会话指明的现有接口）为唯一来源；前端设计只声明依赖的接口与字段，不复制契约字段表。
-- 设计后端数据模型或 Flutter 实现。
+- 设计后端数据模型、Chrome 扩展或 Flutter 实现。扩展设计返回主会话，由 `extension-design` 承接。
 - 直接向用户提问。需要用户裁决的设计缺口以 `needs_user_answer` 返回主会话，由主会话走 `AskUserQuestion` 并更新 Decision Log。
 - 修改 `.ai/decision-log/`；决策账本由主会话维护。
 

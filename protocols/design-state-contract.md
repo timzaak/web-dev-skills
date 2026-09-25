@@ -11,7 +11,7 @@
 }
 ```
 
-- 适用端取值为 backend / frontend / extension / flutter；extension 使用独立完成/失败记录，即使与 frontend 复用同一设计角色也不能合并状态。
+- 适用端取值为 backend / frontend / extension / flutter；各端使用独立完成/失败记录，extension 与 frontend 不能合并状态。
 - 调度前写 `in_progress`。
 - 每个端成功后更新 `completed_stacks`。
 - 无法恢复时写 `failed` 和 `failed_stack`。

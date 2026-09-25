@@ -20,4 +20,4 @@
 ## Output
 
 - 实现、修复、测试、验收 agent：`${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`
-- backend/frontend/flutter design agent：`${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`
+- backend/frontend/extension/flutter design agent：`${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`
