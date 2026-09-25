@@ -115,9 +115,10 @@ Flutter（`flutter.md`）：
 
 - 用户可见交互以用户体验描述为主：入口、操作路径、系统反馈、默认值、错误状态与恢复齐全，未陷入技术实现细节
 - UI 层（view + view model）与 data 层（repository + service）职责边界与数据流向明确；domain 层仅在确有必要时引入
-- 状态管理遵循 Riverpod 技术线（`${CLAUDE_PLUGIN_ROOT}/guides/flutter/constitution.md` 为准），notifier 划分、生命周期（autoDispose）与订阅范围明确，状态不可变
+- 状态管理遵循 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/constitution.md` 的 Provider 选择规则，类型与状态用途一致，保留/释放、失效刷新及订阅范围明确
 - 页面与导航承接（go_router 或项目现有方案）明确，页面关键状态齐全
-- 依赖注入与可测试边界明确；Patrol Demo 主路径已声明（如涉及）
+- 按 `${CLAUDE_PLUGIN_ROOT}/skills/t-design/template-flutter.md` 检查目标平台及受影响的权限、生命周期、状态恢复和离线路径，符合 Flutter 开发规范
+- 依赖注入与可测试边界明确；验证入口、关键断言、环境及阶段承接符合验证证据协议，Demo 平台范围与资产归属符合 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/demo-testing.md`
 - API 依赖只引用契约源，不复制契约字段表
 
 跨端一致性：
@@ -132,7 +133,7 @@ Flutter（`flutter.md`）：
 - 主文档 §8 文件影响范围必须存在，表格包含 `文件 | 操作 | 说明` 三列（可含来源分端列），操作列使用 CREATE/MODIFY/DELETE，来源分端取值限于 backend/frontend/extension/flutter/web-demo/extension-demo/flutter-demo/跨端（Demo 演示资产按交付端标 web-demo/extension-demo/flutter-demo），且全量覆盖各分端文档的文件影响表
 - backend 详细设计包含必要的数据结构、公开签名、错误类型或算法骨架
 - frontend 详细设计包含页面状态转换、关键事件/副作用和公开 hook/schema/query/store 边界
-- Flutter 详细设计包含状态转换、Notifier 事件/副作用和 provider/repository/service/路由边界
+- Flutter 详细设计包含适用的状态转换、用户事件/副作用、查询刷新/失效入口和 provider/repository/service/路由边界
 - 风险与验证动作只记录方向已经确定的风险和不需要用户选择的验证动作，包含风险项、等级、缓解或验证动作、负责人、完成条件
 - 完整 Decision Trace 在主文档 §2.4；分端文档只追踪影响本端的 DEC 子集
 - 现状依据及 MODIFY/DELETE 路径必须存在；CREATE 路径允许尚不存在，但父目录必须存在，并给出相邻实现或项目规范作为命名依据

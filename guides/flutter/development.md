@@ -6,10 +6,10 @@
 
 默认倾向 Flutter stable、Material 3、go_router、Riverpod、dio、freezed/json_serializable；项目事实优先。
 
-- UI：View 负责渲染、布局、动画和简单导航；Notifier/AsyncNotifier 承担 ViewModel 等价职责。
+- UI：View 负责渲染、布局、动画和简单导航；需要公开状态修改操作时，由适用的 Notifier 承担 ViewModel 等价职责；只读数据可直接消费声明式 provider，选型见状态技术线。
 - Data：Repository 是一类应用数据的真相来源；Service 封装 HTTP、存储和平台插件。
 - Domain：仅在复杂或重复业务逻辑挤占多个 Notifier 时引入。
-- 依赖方向：View -> Notifier -> Repository -> Service；provider 负责依赖注入。
+- 依赖方向：View -> provider/Notifier -> Repository -> Service；provider 负责依赖注入。
 - 数据流：事件向下、状态向上；模型优先不可变，View 不直接修改数据源。
 
 - 旧项目渐进收敛，不做无收益重写。
@@ -45,3 +45,13 @@
 - 状态规则见 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/constitution.md`。
 - 平台代码、权限和通道仅在必要时修改，并写入 Handoff。
 - 完成前按 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/validation.md` 验证。
+
+## 平台与恢复边界
+
+仅检查受影响能力；目标平台和最低版本以需求、原生配置及依赖支持范围为准。
+
+- 复用插件/channel 封装，明确调用、错误及不支持平台的行为。
+- 权限申请有需求依据，覆盖拒绝/撤销及从系统设置返回后的重检；状态以平台 API 为准。
+- 区分页面释放、前后台切换与进程重建，明确操作取消/恢复及资源清理；[生命周期通知可能跳过](https://api.flutter.dev/flutter/dart-ui/AppLifecycleState.html)，不依赖退出回调做唯一持久化。
+- 按需区分 UI 恢复、业务持久化和缓存，明确真源、写入/迁移及恢复失败行为；[Android 状态恢复](https://docs.flutter.dev/platform-integration/android/restore-state-android) 不等于业务数据持久化。
+- 离线写入另需同步、幂等、冲突处理与反馈，不能仅靠只读缓存。

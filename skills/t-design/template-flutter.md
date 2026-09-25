@@ -4,17 +4,17 @@
 **状态**: Draft
 **主文档**: `.ai/design/[feature].md`
 
-> 本文档是 Flutter 分端设计，以用户体验流为主，分层、状态与页面结构只做承载体验所需的最小技术映射；目标、范围与跨端决策以主文档为准。API 契约以后端分端设计为唯一来源，本文档只声明依赖。
+> 目标与跨端决策以主文档为准；仅展开本端受影响内容，不适用章节写明原因。
 
 ## 1. 目标与范围（Flutter）
 
 - 承接主文档目标的 Flutter 边界: [摘要]
+- 目标平台与兼容范围: [实际交付平台、最低 OS/浏览器版本、Flutter 与相关依赖锁定版本；依据来自需求及项目配置]
 - 不包含: [范围外项]
 
 ## 2. 需求来源与决策追踪
 
 - 需求来源: [用户故事 / PRD / 技术预研路径引用，见主文档 §2]
-- 关键 UX 期望: [入口、路径、反馈、默认值、错误状态]
 
 | Decision ID | 状态 | 设计落点 | 说明 |
 |---|---|---|---|
@@ -43,23 +43,22 @@
 
 ## 5. 架构与分层设计
 
-- UI 层（view + view model）: [view 只负责渲染与转发用户事件；view model 负责取数、转换和 UI 状态]
-- data 层（repository + service）: [repository 是数据单一来源（缓存、重试、错误处理）；service 无状态包装外部数据源]
-- domain 层（可选）: [仅当多 repository 合并或逻辑被多个 view model 复用时引入；否则写"不引入"]
-- 数据流向: [view ⇄ view model → repository → service → 外部数据源]
+> 按 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/development.md` 的分层规则填写本次最小映射。
+
+- UI/data 层: [实际模块、职责、复用点与变更边界]
+- domain 层（可选）: [需要时给出当前需求依据，否则写“不引入”]
+- 数据流向: [本次功能的调用、状态返回与错误传播路径]
 
 ## 6. 状态管理设计（Riverpod）
 
-- 状态管理方案: Riverpod 技术线，约束以 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/constitution.md` 为准；纯局部 UI 状态用 `StatefulWidget` + `setState`；不引入平行状态系统
-- 状态划分: [哪些状态在 view model、哪些跨页面共享]
-- notifier 划分: [按 feature/screen 划分的 `Notifier` / `AsyncNotifier` 及各自职责；异步数据用 `AsyncNotifier` 承载加载/数据/错误三态]
-- 生命周期: [哪些 provider 需要 `autoDispose`、哪些保持全局]
-- 不可变与事件分离: [状态对象不可变、事件与状态分离的落地方式]
-- 订阅与重建范围: [消费端细粒度订阅（select），哪些 widget 会随状态重建、如何收敛范围]
+按 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/constitution.md` 填写：
+
+- 状态归属与选型: [局部/共享范围、provider 职责、修改方法与返回值形态、类型及依据]
+- 依赖与生命周期: [订阅范围、保留/释放、资源清理及刷新条件；App 恢复见 §8]
 
 ### 6.1 API 依赖（只引用契约源）
 
-- 契约源: `.ai/design/[feature]/backend.md` §4（或现有接口路径 `[METHOD] /api/...`）
+- 契约源: [backend.md §4 或现有 OpenAPI/SDK/接口清单；无后端 API 依赖时标记不适用并删除示例行]
 
 | Operation ID | 方法 | 路径 | 使用的请求字段 | 使用的响应字段 | 用途 |
 |---|---|---|---|---|---|
@@ -76,11 +75,17 @@
 ### 7.2 导航与路由
 
 - 路由承接: [go_router 路由定义或变更；以项目现有路由方案为准]
+- 外部入口与返回（按需）: [深链/通知点击、登录前后承接、返回栈和无效目标的恢复；无变更写不适用]
 - 页面关键状态: [加载、空态、错误、权限受限]
 
 ## 8. 平台与集成（如适用）
 
-- [platform channel / 权限 / 生命周期 / 离线缓存；不涉及时写"不适用"及原因]
+按 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/development.md` 的平台与恢复边界填写：
+
+- 平台能力: [插件/channel、调用与错误边界、原生配置变更及平台差异]
+- 权限: [用途与需求依据、申请时机、拒绝/永久拒绝/撤销后的反馈及恢复]
+- 生命周期与恢复: [前后台/进程重建后的操作、订阅和数据恢复；真源、写入时机与失败路径]
+- 离线数据（按需）: [只读缓存或离线写入的范围、过期/迁移、重连同步与冲突行为]
 
 ## 9. 依赖注入与可测试性
 
@@ -93,13 +98,16 @@
 
 ## 11. Flutter 测试与 Demo 策略
 
-- 单元/widget 测试（按需）: [仅记录 Demo/集成测试难稳定覆盖的重要规则或边界及其可观察回归；无增量价值时写“不新增”及原因]
-- Patrol Demo 主故事路径: [主故事验收路径；无需演示时明确说明]
+按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 填写最小验证表，包含场景、真实入口/关键断言、承接阶段和证据状态；计划标记未执行。
+
+- 测试选择: [单元/widget、集成/平台验证的适用范围；按 Flutter 测试指南说明覆盖缺口或不新增依据]
+- Demo（按需）: [主故事、支持平台、flutter-demo 承接及 patrol_test/ 资产；其余平台的验证承接]
+- 执行条件与门禁: [工作目录、设备/版本、服务与数据准备/清理、环境缺口；按 Flutter 验证指南列出适用检查]
 
 ## 12. 详细设计（Flutter 最小实现映射）
 
 - 状态模型: [AsyncValue/不可变状态及加载、数据、空态、错误、提交中、权限受限转换]
-- 关键事件与副作用: [Notifier 事件、repository 调用、导航或用户反馈]
+- 关键事件与副作用: [用户操作、必要的状态修改方法、repository 调用、导航或用户反馈；只读查询说明刷新/失效入口]
 - 公共边界: [新增或修改的 provider、repository/service 方法、路由；无则写“无”]
 
 ## 13. 风险与验证动作（Flutter 范围）
@@ -112,7 +120,7 @@
 
 ## 14. 文件影响范围（Flutter 文件）
 
-> 只列 Flutter 文件；全量汇总以主文档 §8 为准。MODIFY/DELETE 路径必须存在；CREATE 路径的父目录必须存在并说明命名依据。
+> 包含实现、平台配置和测试/Demo 资产；Demo 汇总到主文档 §8 时标记 flutter-demo。MODIFY/DELETE 路径存在；CREATE 父目录存在且有命名依据。
 
 | 文件 | 操作 | 说明 |
 |---|---|---|
