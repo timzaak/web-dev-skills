@@ -4,6 +4,8 @@
 
 输入为目标 `demo/e2e/extension/**/*.e2e.ts` 文件或 `all`、设计与用户故事来源、构建命令和产物、环境模式、执行日志。只验收当前扩展演示范围，不扫描普通 Web Demo。
 
+`demo/e2e/extension/verification/` 保留给初始化基础设施验证，不属于用户故事演示。故事验收的 `all` 扫描排除此目录，显式传入时提示使用初始化验证入口；不将其判为故事 ACCEPTED 或为其编造故事映射。排除后没有故事用例时报告“无可验收用户故事”，不报告验收通过。批次发现复用 runner 已有的 verification 目录排除规则，初始化流程直接定向执行其中的 smoke。
+
 报告写入 `.ai/quality/extension-demo-accept-[name]-[YYYYMMDD-HHMMSS].md`；批量时另写 `extension-demo-accept-summary-[YYYYMMDD-HHMMSS].md`。报告记录结论、故事与场景映射、构建及运行命令和结果、加载产物/manifest、日志路径、隔离与清理证据、P0/P1/P2 问题及后续责任角色。结构化返回遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`。
 
 验收前按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 核查业务验证责任与证据复用；每次独立输出本轮验收结论，必要现场证据仍须符合本协议。

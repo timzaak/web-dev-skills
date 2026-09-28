@@ -75,7 +75,7 @@ t-prd-publish user-management
 
 每个 phase 的闭环是 `t-task -> [t-task-check]（可选，按风险）-> t-run`，快速上手只以 backend 为例，其余 phase 重复同样闭环。`t-super-run` 是 GPT-5.6 Sol 级强模型的单主会话路径：合并规划与执行，`--phase` 必填，每次调用只执行一个 phase，完成后停止；全部 supported phase（含 extension 和 miniapp）均可走该路径。
 
-扩展项目按 [扩展初始化指南](guides/extension/initialization.md) 准备 WXT 工程（已有工程跳过；`t-init` 尚无扩展模板）。需求来源齐备后，运行 `t-design <feature>`、`t-task <feature> --phase extension`、`t-run <feature> --phase extension`；设计要求用户故事演示时再运行 `t-task <feature> --phase extension-demo` 和 `t-run <feature> --phase extension-demo`。`t-design` 由独立的 [extension-design](agents/extension-design.md) 角色生成 `extension.md`，覆盖入口、权限、消息/存储、生命周期与浏览器验证；Web 与扩展同时交付时分别设计。演示 fixture、环境与验收按 [扩展演示指南](guides/extension/demo-testing.md)。
+扩展项目按 [扩展初始化指南](guides/extension/initialization.md) 准备 WXT 工程（已有工程跳过；`t-init` 不生成 WXT 生产工程）。需要集成测试基础设施时，在目标项目根目录运行 `t-init --extension-demo`；多个扩展目录用 `--extension-dir <path>` 指定，独立工程可指定 `.`。该模式增量生成 Playwright 配置、扩展 fixture、真实加载 smoke 和本地运行说明；保留现有 Web Demo，初始化通过不代表用户故事验收。需求来源齐备后，运行 `t-design <feature>`、`t-task <feature> --phase extension`、`t-run <feature> --phase extension`；设计要求用户故事演示时再运行 `t-task <feature> --phase extension-demo` 和 `t-run <feature> --phase extension-demo`。`t-design` 由独立的 [extension-design](agents/extension-design.md) 角色生成 `extension.md`，覆盖入口、权限、消息/存储、生命周期与浏览器验证；Web 与扩展同时交付时分别设计。演示 fixture、环境与验收按 [扩展演示指南](guides/extension/demo-testing.md)。
 
 ## 使用规则
 

@@ -1,8 +1,8 @@
 # Scripts 模板
 
-Step 6 适配本地脚本后，按下述结构生成目标项目 `scripts/index.md`；测试说明只在该文件维护，AGENTS.md 只提供读取入口。
+全栈 Step 6 或 extension-demo 模式适配本地脚本后，按下述结构生成目标项目 `scripts/index.md`；测试说明只在该文件维护，AGENTS.md 只提供读取入口。
 
-生成时读取 [测试命令契约](${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md)、[后端执行契约](${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md) 和 [Demo 执行契约](${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md)，再核对项目实际脚本、package.json 和测试配置。只列已启用的测试层，用真实路径替换示例参数；未配置的测试标明缺口，不虚构命令。
+生成时读取 [测试命令契约](${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md) 和 [Demo 执行契约](${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md)；包含后端测试时再读 [后端执行契约](${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md)。核对项目实际脚本、package.json 和测试配置。只列已启用的测试层，用真实路径替换示例参数；未配置的测试标明缺口，不虚构命令。
 
 ## scripts/index.md 内容
 
@@ -17,6 +17,8 @@ Step 6 适配本地脚本后，按下述结构生成目标项目 `scripts/index.
 | 前端定向测试（已配置 test:run 时） | `cd frontend && npm run test:run -- <文件或匹配模式>` |
 | Demo 整文件测试 | `uv run scripts/web-demo-test-runner.py "demo/e2e/<file>.e2e.ts" --mode fast --run-id <唯一ID>` |
 | Demo 失败用例重测 | 上述命令追加 `--grep "<完整测试标题>"`，使用新的 run ID；通过后重跑整文件 |
+| 扩展 Demo 构建 | 项目实际构建命令与工作目录；必须先成功构建，再运行下列测试 |
+| 扩展 Demo 整文件测试 | `uv run scripts/web-demo-test-runner.py demo/e2e/extension/<file>.e2e.ts --run-id <唯一ID>`；fixture 独立管理环境时追加 `--no-auto-env` |
 
 后端执行前用 `cargo nextest list` 的对应筛选参数确认选中预期测试；漏选或零用例不算覆盖通过。`cargo check --tests`、前端 type-check / build 仅是编译或静态检查，不替代测试。
 
@@ -30,5 +32,7 @@ Step 6 适配本地脚本后，按下述结构生成目标项目 `scripts/index.
 ### 批量 Demo 与维护
 
 批量执行与修复使用 `/t-tools:t-web-demo-run-all`，中断后用 `/t-tools:t-web-demo-run-all continue`；`web-demo-run-all.py discover` 只发现用例，不执行测试。批次编排由 skill 负责，不在此复制调度流程。
+
+扩展目录使用 `/t-tools:t-extension-demo-run-all` 及其 `continue`，单文件用 `/t-tools:t-extension-demo-run`，故事验收用 `/t-tools:t-extension-demo-accept`。独立扩展只列扩展入口，不指向默认 Web 启停脚本。记录扩展源码/产物路径、ID 来源（需要时）、宿主/stub 与真实服务依赖，重跑沿用环境模式；初始化 smoke 通过不代表故事已验收。
 
 新增或修改测试入口时同步更新本索引。

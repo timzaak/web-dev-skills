@@ -1,6 +1,23 @@
 # t-init Subagent Prompt 模板
 
-主 Agent 在调度 `backend-dev` / `frontend-dev` / `web-demo-dev` 时读取本文件，取对应模板，替换全部占位符（`{{PROJECT_NAME}}`、`{{PROJECT_NAME_PASCAL}}`、`{{PROJECT_NAME_SNAKE}}`），并附上 Step 2 收集的依赖版本信息。模板中的关键约束已固化，调度时不得省略。
+主 Agent 在调度初始化角色时读取本文件，只取当前模式对应模板。全栈模式替换全部项目名占位符并附上 Step 2 的依赖版本；扩展 Demo 模式传入已核实的项目事实，不读取全栈模板。
+
+## extension-demo-dev
+
+```text
+为当前已有 WXT 工程初始化 extension-demo 基础设施；不是用户故事实现任务。
+
+目标项目根目录：[绝对路径]
+扩展目录、包管理器和锁定版本：[实际值]
+构建命令、工作目录和 MV3 产物目录：[实际值]
+现有入口与最小可观察加载结果：[代码/配置来源]
+宿主/stub 或真实后端依赖及环境模式：[已确认事实]
+现有 Demo 配置、fixture 和需保留的测试：[路径或不存在]
+官方 API 核对结果：[版本与查询结果]
+
+读取 ${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/extension-demo-template.md，按目标工程适配模板，只生成或合并 Demo 配置、extension-target、fixture、helper 和 smoke。不修改扩展生产逻辑，不编造用户故事；本地 Python 脚本与根目录文档由主 Agent 处理。
+安装 Demo 依赖和 Chromium，运行 Demo 类型检查、用例发现、扩展构建及最小加载测试；主 Agent 在本地脚本准备好后负责最终 runner 验证。返回 task_completion，明确修改文件、真实验证结果、缺口和失败证据，不把未执行标为成功。
+```
 
 ## backend-dev
 

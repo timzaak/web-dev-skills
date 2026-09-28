@@ -4,6 +4,8 @@
 
 ## 输入和资产
 
+已有 WXT 工程缺少 Demo 基础设施时，执行 `/t-tools:t-init --extension-demo [--extension-dir <path>]`，见 [初始化流程](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/extension-demo-init.md)。初始化只验证基础设施与选定入口的实际加载，不替代本阶段的用户故事交付与验收。
+
 - 从设计主文档及 `extension.md` 确认用户故事、扩展入口、宿主站点、权限、消息/存储、生命周期、后端依赖与环境模式。未规划用户故事演示时不启用本阶段。
 - 测试资产置于目标项目 `demo/e2e/extension/`，按实际故事分组；fixture、helper 和用例由 `extension-demo-dev` 维护。任务或报告保留 draft 或 published 故事的真实来源路径，不把草稿写成已发布事实；代码注释遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md`，不引用临时工作流路径。
 - 每个用例覆盖可观察的完整路径：加载构建产物、触发 popup/options/content script/background 的实际交互、验证持久结果或明确错误态。按故事风险覆盖权限拒绝、消息失败、状态恢复等分支；不得用 Vitest mock 结果代替浏览器证据。

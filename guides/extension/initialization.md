@@ -1,6 +1,6 @@
 # Chrome 扩展工程初始化
 
-从零搭建 WXT 工程时使用；`t-init` 尚无扩展模板。已有工程跳过初始化，后续按需求来源进入设计与任务阶段。
+从零搭建 WXT 工程时使用；`t-init` 不生成 WXT 生产工程。已有工程跳过本指南；需要 Playwright 集成测试基础设施时，在目标项目根目录执行 `/t-tools:t-init --extension-demo [--extension-dir <path>]`，按 [扩展 Demo 初始化流程](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/extension-demo-init.md) 增量接入，后续按需求来源进入设计与任务阶段。
 
 ## 1. 创建工程
 
