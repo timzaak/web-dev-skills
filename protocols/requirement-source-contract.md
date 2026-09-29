@@ -29,6 +29,7 @@
 
 ## Read Rules
 
+- `/t-prd` 先按 feature 查找并读取 `.ai/decision/<feature>.md`、`.ai/decision-log/<feature>.md` 和 `.ai/tech-research/<feature>.md`（存在时）；随后检查 `docs/prd/` 和 `.ai/prd/`，必须读取同名 PRD 及与当前 feature 的领域、流程或业务规则相关的已有 PRD，即使没有独立的“需求文档”或 user story。已有 PRD 用于确定已发布基线、现有能力边界和候选变更关系；缺少 PRD 或 user story 时不得因此要求用户提供文档或停止。
 - Pre-publish 阶段必须同时读取相关 published sources 和 draft sources。
 - Pre-publish 阶段在提问或作出新决策前必须读取相关 `.ai/decision-log/<feature>.md`；已解决问题不得重复询问。
 - 同一 feature 存在 `.ai/prd` 或 `.ai/user-stories` 时，它们表达本轮候选变更意图；`docs/prd` 和 `docs/user-stories` 表达已发布基线。

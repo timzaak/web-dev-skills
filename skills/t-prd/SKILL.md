@@ -20,7 +20,7 @@ allowed-tools:
 
 ## 目标
 
-基于 Decision Brief、现有 user story、正式 PRD、已有 PRD 草稿和用户补充信息，先补齐必要的 draft user story，再创建或更新一份 PRD 草稿，供人类快速审阅。`.ai/prd` 和 `.ai/user-stories` 是实现前和实现期间的临时候选需求工作区，不是长期权威源。
+优先基于同一 feature 的 Decision Brief、Decision Log 和技术预研报告，结合用户补充信息创建或更新 PRD 草稿；已有相关 PRD 必须查阅，用于确定业务基线和本次变更关系。先补齐必要的 draft user story，再创建或更新一份 PRD 草稿，供人类快速审阅。`.ai/prd` 和 `.ai/user-stories` 是实现前和实现期间的临时候选需求工作区，不是长期权威源。
 
 输出文件：
 - `.ai/prd/<domain>/[feature].md` — PRD 草稿，至少包含：相关用户故事引用、范围界定、需求概述、业务规则与状态、功能需求与验收目标、API 相关约束 / 前端交互约束（各标明适用或不适用）、已确认决策及 Decision ID、参考资料
@@ -80,25 +80,31 @@ PRD Grill Snapshot
 
 ## Input Contract
 
-上游输入（可选，存在时提升质量；先索引、后明细，`.ai/decision-log` 和 `.ai/decision` 必须最先检查）：
+本轮上游输入（先按 feature 精确查找；存在时必须读取）：
 - `.ai/decision/[feature].md` — 产品立项决策简报（必须检查；存在时必须读取，来自 `/t-decision`）
 - `.ai/decision-log/[feature].md` — 跨阶段决策账本（存在时必须读取）
+- `.ai/tech-research/[feature].md` — 技术可行性研究报告（必须检查；存在时必须读取，来自 `/t-tech-research`）
+
+已有 PRD（存在时必须检查并读取同名或相关文件，不要求新 feature 事先具备）：
+- `docs/prd/00-index.md` — 正式 PRD 索引，存在时用于定位相关 PRD
+- `docs/prd/**/*.md` — 同名或与当前 feature 的领域、流程、业务规则相关的正式 PRD
+- `.ai/prd/**/*.md` — 同名或相关的 PRD 草稿；同名草稿用作更新基线
+
+已有 user story（相关文件存在时读取，用于查重和关联）：
 - `docs/user-stories/**/*.md` — 用户故事文档
 - `.ai/user-stories/**/*.md` — draft 用户故事文档
-- `docs/prd/00-index.md` — 正式 PRD 索引
-- `docs/prd/<domain>/[feature].md` — 已发布正式 PRD（可选，用作草稿基线）
-- `.ai/prd/<domain>/[feature].md` — 已有 PRD 草稿（可选，用作更新基线）
-- `.ai/tech-research/[feature].md` — 技术可行性研究报告（可选，来自 `/t-tech-research`）
+
+写作规范（生成相应内容时读取）：
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/index.md` — 产品规范入口
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/user-story.md` — 用户故事规范
 
-上游输入缺失时按 Decision Exposure Gate 分类：可查事实由 skill 调查；需要用户裁决的信息必须提问；只有不需要用户选择的证据限制可以写入文档。
+Decision Brief 缺失时先确认当前对话是否已有明确、可追踪的产品决策；若缺少会改变目标、范围或成功标准的裁决，提示先运行 `/t-decision [feature]`。技术预研缺失时，仅当技术未知会改变产品范围、业务规则、用户流程或验收目标，才提示先运行 `/t-tech-research [feature]`；否则继续创建草稿。独立需求文档、PRD、user story 或其索引缺失是正常的新建路径，不得据此要求用户提供文档；若已有相关 PRD，则必须读取。其他缺口按 Decision Exposure Gate 分类：可查事实由 skill 调查；需要用户裁决的信息必须提问；只有不需要用户选择的证据限制可以写入文档。
 
 ## 工作流程
 
 ### 1. 选择目标域并检查已有文件
 
-按 Input Contract 读取上游输入，根据已发布/候选用户故事、草稿/正式 PRD 和需求语义推断目标域；无法推断时用 `AskUserQuestion` 询问一次。检查 `.ai/prd/<domain>/[feature].md` 和 `docs/prd/<domain>/[feature].md`，按"更新行为"选择 create / draft-from-published / update 路径。
+先按 feature 检查 Decision Brief、Decision Log 和技术预研报告，按缺失输入规则处理。随后检查 `docs/prd/00-index.md`（如存在）及 `docs/prd/`、`.ai/prd/`：读取同名 PRD，并按上游产物中的领域、角色、流程和业务规则检索、读取相关 PRD；没有独立需求文档也不能跳过这一步。根据上游产物和已有 PRD 推断目标域，无法推断时用 `AskUserQuestion` 询问一次。检查 `.ai/prd/<domain>/[feature].md` 和 `docs/prd/<domain>/[feature].md`，按"更新行为"选择 create / draft-from-published / update 路径；同名文件都不存在时，在已查阅相关 PRD 的基础上走 create，并记录与已有能力的关系。
 
 ### 2. 收集信息
 
@@ -114,7 +120,7 @@ PRD Grill Snapshot
 
 ### 4. 检查、补齐并关联 user story
 
-读取 `docs/user-stories/00-index.md`、`_README.md`、`_roles.md`、`${CLAUDE_PLUGIN_ROOT}/guides/product/index.md` 和 `user-story.md`，并搜索 `docs/user-stories/**/*.md`、`.ai/user-stories/**/*.md`、`docs/prd/**/*.md` 和 `.ai/prd/**/*.md`。
+读取 `${CLAUDE_PLUGIN_ROOT}/guides/product/index.md` 和 `user-story.md`；`docs/user-stories/00-index.md`、`_README.md`、`_roles.md` 存在时再读取。搜索与当前 feature、角色或领域相关的已有 `docs/user-stories/`、`.ai/user-stories/` 文件；已有 PRD 已在步骤 1 查阅。相关 user story 不存在时继续生成本轮 user story 与 PRD 草稿。
 
 执行：
 - 已存在足够覆盖的 user story → 直接引用，不重复创建

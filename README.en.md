@@ -36,9 +36,11 @@ t-decision user-management
 # no fixed order with PRD — converge before design
 t-tech-research user-management
 
+# Read the feature's Decision Brief and tech research first; review existing related PRDs
 # Generate .ai/prd and .ai/user-stories drafts
 t-prd user-management
 
+# Run t-prd-check by risk, or proceed directly to design
 # Generate technical design (master + per-stack)
 t-design user-management
 

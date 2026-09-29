@@ -33,9 +33,11 @@ t-decision user-management
 # 技术可行性、依赖或成本影响产品范围时先做预研；与 PRD 无固定顺序，进设计前收敛
 t-tech-research user-management
 
+# 优先读取同一 feature 的 Decision Brief 和技术预研；已有相关 PRD 必须查阅
 # 生成 .ai/prd 与 .ai/user-stories 草稿
 t-prd user-management
 
+# 可按风险运行 t-prd-check，或直接进入设计
 # 生成技术设计（主文档 + 分端设计）
 t-design user-management
 

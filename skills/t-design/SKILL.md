@@ -52,7 +52,7 @@ allowed-tools:
 - 业务功能设计：
   - `.ai/decision/<feature>.md` — 产品立项决策简报（如存在，作为 PRD 之前的方向约束）
   - `.ai/decision-log/<feature>.md` — 跨阶段决策账本（存在时必须读取）
-  - `.ai/prd/<domain>/<feature>.md` — PRD 草稿（如存在，作为当前候选需求）
+  - `.ai/prd/<domain>/<feature>.md` — `/t-prd` 产出的 PRD 草稿；按 feature 在 `.ai/prd/` 下查找，存在时必须读取，作为当前候选需求（也兼容 `.ai/prd/<feature>.md`）
   - `docs/prd/<domain>/<feature>.md` — 已发布 PRD 基线（如存在，作为正式需求基线）
   - `.ai/user-stories/**/*.md` — draft 用户故事（如存在，作为当前候选需求）
   - `docs/user-stories/**/*.md` — 已发布相关用户故事
@@ -135,6 +135,8 @@ D2 工程取舍由设计阶段明确选择并写入 Design；符合 Decision Con
 - `docs/design/**/*.md`、`.ai/design/**/*.md`（如果存在相关先例）
 
 优先做法：先从索引定位候选文档，再对候选文档做 `Grep`，最后 `Read` 真正相关的少量文件。
+
+无论索引是否收录草稿，都要按 `$ARGUMENTS` 在 `.ai/prd/` 下查找同名 PRD（包括 `<domain>/$ARGUMENTS.md` 和 `$ARGUMENTS.md`）；找到后必须读取，并与相关 `docs/prd/` 已发布基线核对。若找到多个同名草稿且无法确定对应领域，先按决策纪律确认，不得自行选取其中一份。
 
 业务功能设计至少提取：用户故事 ID/标题/优先级/来源文件、场景概述或验收目标摘要、PRD 草稿中的当前候选业务边界/规则/非功能要求、已发布 PRD 基线及草稿相对基线的差异、draft 用户故事相对已发布故事的新增或变更场景、Decision Log 中影响设计的 Active Decisions / 已解决问题 / 本阶段到期的 Deferred Questions。草稿与正式来源的并存裁决按需求来源边界协议执行；冲突无法确认覆盖关系时停止并提示修正草稿，必要时运行 `/t-prd-check [feature]`。
 
