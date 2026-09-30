@@ -20,7 +20,7 @@ allowed-tools:
 设计生成状态：`${CLAUDE_PLUGIN_ROOT}/protocols/design-state-contract.md`（校验设计 .state.json 时读）
 评分维度、Clarification Gate、严重级别、报告结构与 Pass Gate：`${CLAUDE_PLUGIN_ROOT}/protocols/design-check-rubric.md`（评分或生成分级结论前读）
 
-本检查为可选，不作为 `/t-task` 的硬性前置；质量结论只约束本次检查报告，是否跳过修复继续 `/t-task` 由用户按风险决定。
+本检查为可选，不作为 `/t-super-run` 的硬性前置；质量结论只约束本次检查报告，是否跳过修复继续 `/t-super-run` 由用户按风险决定。
 
 ## 输入范围
 
@@ -48,9 +48,9 @@ allowed-tools:
 - 核对设计文档与需求来源的一致性。设计引用 `.ai/user-stories` 时确认其为 draft 候选来源且路径存在；同时存在相关 `docs/user-stories` 时检查是否有未说明冲突。纯技术方案可接受 `.ai/tech-research/[feature].md` 作为唯一需求来源，不得因缺少 PRD/用户故事扣 P0。
 - 核对设计文档与项目规范的一致性。
 - 按 rubric 的维度和 Detailed Checks 分别检查：主文档（需求追溯、跨端契约与汇总）、backend 分端（API、数据库、领域逻辑）、frontend 分端（页面、状态与数据流）、extension 分端（权限、消息/存储与生命周期）、flutter 分端（分层、状态管理、导航）与测试策略。
-- 评估设计方案的章节组织是否内聚：若同一业务闭环、同一数据模型或同一外部契约被拆分为多个独立章节，应在设计阶段合并，避免 `/t-task` 产出颗粒度过细的 item；分端文档内部不得重复其他端的设计内容。
+- 评估设计方案的章节组织是否内聚：若同一业务闭环、同一数据模型或同一外部契约被拆分为多个独立章节，应在设计阶段合并，避免 `/t-super-run` 拆出颗粒度过细的任务；分端文档内部不得重复其他端的设计内容。
 - 按 rubric 的归一化规则生成评分与问题清单，并按其 Pass Gate 输出 `PASS / CONDITIONAL PASS / FAIL`，不得只凭总分宣布通过。
-- 输出下一步建议：通过或风险可接受时进入 `/t-task [feature]`；修复后可重新运行 `/t-design-check [feature]`。
+- 输出下一步建议：通过或风险可接受时进入 `/t-super-run [feature] --phase <phase>`；修复后可重新运行 `/t-design-check [feature]`。
 - 写入报告：`.ai/quality/design-check-[feature]-[YYYYMMDD-HHMMSS].md`。
 
 ## 错误处理

@@ -20,7 +20,7 @@ allowed-tools:
 ## 目标
 
 - 找出本次变更引入的正确性缺陷：逐行扫描、删除行为审计、跨文件追踪三个角度并行审查，经独立验证后输出可复核报告。
-- 只报告不修复：缺陷修复属于 dev 职责（`t-run` 或主会话确认后执行）。
+- 只报告不修复：缺陷修复属于 dev 职责（`t-super-run` 或主会话确认后执行）。
 - 不做质量清理——复用/简化/效率/抽象层级属于 `/t-tools:t-simplify`。
 
 ## 使用方式
@@ -33,7 +33,7 @@ allowed-tools:
 |---|---|
 | `[<target>]` | 可选审查目标（PR 号 / 分支名 / 文件路径）；传入时直接替换默认审查范围，提示词以 `Review target: \`<target>\`` 前缀注入 |
 
-推荐位置：`/t-run`（或 `/t-super-run`）完成实现与测试后、`/t-tools:t-simplify` 之前；`/t-tools:t-push` 提交前是最后窗口。
+推荐位置：`/t-super-run` 完成实现与测试后、`/t-tools:t-simplify` 之前；`/t-tools:t-push` 提交前是最后窗口。
 
 ## 共享契约
 
@@ -66,7 +66,7 @@ allowed-tools:
 1. 聚合全部候选，按契约 Dedup 规则去重。
 2. Read `${CLAUDE_PLUGIN_ROOT}/agents/review-verifier.md` 全文，启动 1 个 `review-verifier` sub agent，注入全部去重后候选与获取 diff 的命令，逐条获得 CONFIRMED / PLAUSIBLE / REFUTED。
 3. 保留 CONFIRMED 与 PLAUSIBLE，按严重度排序、上限 8 条，按契约把报告写入 `.ai/quality/review-[YYYYMMDD-HHMMSS].md`。
-4. 以简要总结收尾：几项确认、几项存疑、排除了多少误报；有发现时给出修复入口建议（t-run / 主会话修复后可重跑复核），无发现时明确"未发现正确性缺陷"。
+4. 以简要总结收尾：几项确认、几项存疑、排除了多少误报；有发现时给出修复入口建议（t-super-run / 主会话修复后可重跑复核），无发现时明确"未发现正确性缺陷"。
 
 ## Inline 降级
 

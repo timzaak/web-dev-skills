@@ -84,7 +84,7 @@ finder 不得自行过滤“半信半疑”的候选：凡 `failure_scenario` �
 
 ## 结论
 - N 项 CONFIRMED / M 项 PLAUSIBLE；或未发现正确性缺陷
-- 下一步: 修复入口（t-run / 主会话确认后修复），或确认可进入 t-simplify / t-push
+- 下一步: 修复入口（t-super-run / 主会话确认后修复），或确认可进入 t-simplify / t-push
 ```
 
 超出上限时按严重度截断；无存留发现时“发现”节为空并如实写入结论。

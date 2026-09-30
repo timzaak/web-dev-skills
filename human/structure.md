@@ -34,8 +34,7 @@ t-decision
 ├─ 产品边界决定技术选择 -> t-prd -> [t-tech-research -> t-prd（更新）] -> [t-prd-check] -> t-design
 └─ 纯技术且不改变业务逻辑 -> t-tech-research -> t-design
 
-t-design -> [t-design-check] -> t-task -> [t-task-check]
--> t-run
+t-design -> [t-design-check] -> t-super-run
 -> t-web-demo-run / t-flutter-demo-run -> 对应 demo accept
 -> t-prd-publish -> t-push -> t-release
 ```
@@ -128,7 +127,9 @@ Demo 阶段不是后端或前端测试的重复。它用 Playwright E2E 按用�
 
 ## 执行模型
 
-`t-task` 会把设计拆成标准任务目录：
+`t-super-run` 是默认执行模型。它不生成 item；dev/test 在主会话中按当前 task 读取对应 agent 规范和关联 guide 直接执行，accept 派发对应只读 accept subagent 并把报告结论映射回状态，执行后把状态与证据写入 `.ai/super-run/[feature]/`，再切换下一个角色。非 demo 端（backend/frontend/extension/miniapp/flutter）固定为 `dev -> test -> accept`，demo 为 `dev -> accept`；`--phase` 必填，Goal 只在请求的 phase 内持续推进，该 phase 完成后停止，状态文件负责跨上下文恢复。
+
+需要 dev/test 层面的显式 subagent 分工或细粒度 handoff 时，继续使用 `t-task` / `t-run` 标准链路。`t-task` 会把设计拆成标准任务目录：
 
 ```text
 .ai/task/[feature]/
@@ -138,15 +139,13 @@ Demo 阶段不是后端或前端测试的重复。它用 Playwright E2E 按用�
 └── demo/
 ```
 
-执行模型是 `phase -> slot -> item`：
+标准链路的执行模型是 `phase -> slot -> item`：
 
 - `phase`：通常是 `backend -> frontend -> demo`。
 - `slot`：例如 `dev -> test -> accept`。
 - `item`：真正可执行的最小任务文件。
 
 `t-run` 只执行 item，不直接执行 `index.md`、`dev.md`、`test.md`、`accept.md` 这类 manifest。任意时刻最多一个 item 处于 `running`，这样牺牲一些并发速度，换来更小上下文、更清楚的失败定位和可恢复状态。
-
-`t-super-run` 提供单主会话执行模型。它不生成 item；dev/test 在主会话中按当前 task 读取对应 agent 规范和关联 guide 直接执行，accept 派发对应只读 accept subagent 并把报告结论映射回状态，执行后把状态与证据写入 `.ai/super-run/[feature]/`，再切换下一个角色。非 demo 端（backend/frontend/extension/miniapp/flutter）固定为 `dev -> test -> accept`，demo 为 `dev -> accept`；`--phase` 必填，Goal 只在请求的 phase 内持续推进，该 phase 完成后停止，状态文件负责跨上下文恢复。需要 dev/test 层面的显式 subagent 分工或细粒度 handoff 时继续使用标准链路。
 
 修复 agent 必须返回 `tests_to_run`，说明修复后应该补跑哪些后端、前端或 Demo 命令，避免“Demo 通过但底层回归失败”的风险被藏起来。
 

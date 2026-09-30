@@ -34,8 +34,7 @@ t-decision
 ├─ product boundaries determine technical choices -> t-prd -> [t-tech-research -> t-prd update] -> [t-prd-check] -> t-design
 └─ purely technical, no business-logic change -> t-tech-research -> t-design
 
-t-design -> [t-design-check] -> t-task -> [t-task-check]
--> t-run
+t-design -> [t-design-check] -> t-super-run
 -> t-web-demo-run / t-flutter-demo-run -> matching demo accept
 -> t-prd-publish -> t-push -> t-release
 ```
@@ -128,7 +127,9 @@ It verifies deliverable demonstrability and user story closure, not only whether
 
 ## Execution Model
 
-`t-task` decomposes design into a standard task directory:
+`t-super-run` is the default execution model. It generates no items. For dev and test, the main session reads the current task's agent specification and related guides and executes the work directly; accept dispatches the matching read-only accept subagent and maps its verdict back into the state. Status and evidence are checkpointed under `.ai/super-run/[feature]/` between roles. Non-demo phases (backend/frontend/extension/miniapp/flutter) use `dev -> test -> accept`; demo uses `dev -> accept`. `--phase` is required; Goal mode keeps only the requested phase moving and stops when it completes, while the state file supports recovery across context compaction.
+
+When explicit subagent ownership for dev/test or fine-grained handoffs are required, keep the standard `t-task` / `t-run` chain. `t-task` decomposes design into a standard task directory:
 
 ```text
 .ai/task/[feature]/
@@ -138,15 +139,13 @@ It verifies deliverable demonstrability and user story closure, not only whether
 └── demo/
 ```
 
-The model is `phase -> slot -> item`:
+The standard chain's model is `phase -> slot -> item`:
 
 - `phase`: usually `backend -> frontend -> demo`.
 - `slot`: for example, `dev -> test -> accept`.
 - `item`: the smallest executable task file.
 
 `t-run` executes only items. It does not directly execute manifests such as `index.md`, `dev.md`, `test.md`, or `accept.md`. At most one item may be `running` at a time. This trades some concurrency for smaller context, clearer failure localization, and recoverable state.
-
-`t-super-run` provides a single-main-session execution model. It generates no items. For dev and test, the main session reads the current task's agent specification and related guides and executes the work directly; accept dispatches the matching read-only accept subagent and maps its verdict back into the state. Status and evidence are checkpointed under `.ai/super-run/[feature]/` between roles. Non-demo phases (backend/frontend/extension/miniapp/flutter) use `dev -> test -> accept`; demo uses `dev -> accept`. `--phase` is required; Goal mode keeps only the requested phase moving and stops when it completes, while the state file supports recovery across context compaction. Keep the standard path when explicit subagent ownership or fine-grained handoffs are required.
 
 A fixing agent must return `tests_to_run`, explaining which backend, frontend, or Demo commands should be rerun after the fix. This keeps the risk of "Demo passes but lower-level regression fails" visible.
 

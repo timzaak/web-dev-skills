@@ -59,7 +59,7 @@ No argument → run `ls <CLONE_PATH>/skills/` to list available sub-skills, then
 
 ### 3. 配置 Context7 MCP
 
-见下文 [安装 Context7](#安装-context7)。Context7 是 `requiredMcpServers`,不配会导致 `t-design`、`t-run` 等阶段失败。
+见下文 [安装 Context7](#安装-context7)。Context7 是 `requiredMcpServers`,不配会导致 `t-design`、`t-super-run` 等阶段失败。
 
 ## 调用方式
 
@@ -69,7 +69,6 @@ Claude Code 里的 `/t-tools:t-<skill>` 在 Codex / ZCode 里对应 `/t-tool <sk
 | --- | --- |
 | `/t-tools:t-prd user-management` | `/t-tool t-prd user-management` |
 | `/t-tools:t-prd-check user-management` | `/t-tool t-prd-check user-management` |
-| `/t-tools:t-run user-management --phase backend` | `/t-tool t-run user-management --phase backend` |
 | `/t-tools:t-super-run user-management --phase backend` | `/t-tool t-super-run user-management --phase backend` |
 
 不带参数运行 `/t-tool` 会列出本仓库 `skills/` 下所有可用子 skill。
@@ -91,7 +90,7 @@ ZCode / Codex 等非 Claude 工具通常不会像 `claude --plugin-dir` 那样�
 
 ## 安装 Context7
 
-Context7 提供第三方库的最新版本文档,在 `t-design`、`t-run` 等阶段会被查询。它是一个基于 Streamable HTTP 的 MCP server,通用配置要素:
+Context7 提供第三方库的最新版本文档,在 `t-design`、`t-super-run` 等阶段会被查询。它是一个基于 Streamable HTTP 的 MCP server,通用配置要素:
 
 - Server URL:`https://mcp.context7.com/mcp`
 - 鉴权:通过 HTTP header `CONTEXT7_API_KEY` 传入你在 [context7.com](https://context7.com) 申请的 API key

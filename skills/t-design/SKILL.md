@@ -39,7 +39,7 @@ allowed-tools:
 
 ## 目标
 
-基于用户故事、PRD 草稿、已发布 PRD 基线、技术预研、用户已准备的仓库内资料和现有代码，生成可实施、可追踪、可用于 `/t-task` 的技术设计。`/t-prd-check` 是推荐的可选上游检查；未运行时，本 skill 必须自行完成关键需求来源混合验证。
+基于用户故事、PRD 草稿、已发布 PRD 基线、技术预研、用户已准备的仓库内资料和现有代码，生成可实施、可追踪、可直接进入 `/t-super-run` 的技术设计。`/t-prd-check` 是推荐的可选上游检查；未运行时，本 skill 必须自行完成关键需求来源混合验证。
 
 设计拆分为一份主文档加按端拆分的分端设计文档；每个适用端由对应设计 subagent 生成，主会话负责编排、跨端裁决和汇总。不适用端不创建分端文档，只在主文档 §4.2 标记"不适用"及原因。
 
@@ -84,7 +84,7 @@ allowed-tools:
   - 分端设计摘要
   - 测试与验收策略（跨端汇总）
   - 风险与验证动作（汇总）
-  - 文件影响范围（全量汇总，`/t-task` 的唯一拆分依据）
+  - 文件影响范围（全量汇总，`/t-super-run` 的唯一拆分依据）
 - `.ai/design/$ARGUMENTS/backend.md` — 后端分端设计（适用时），包含 API 契约（唯一设计源）、数据库设计、领域逻辑、权限安全、详细设计、后端测试策略
 - `.ai/design/$ARGUMENTS/frontend.md` — 前端分端设计（适用时），包含页面/组件/线框、状态与数据流、交互与关键状态、性能、测试与 Demo 策略
 - `.ai/design/$ARGUMENTS/extension.md` — 扩展分端设计（适用时），包含入口、消息/存储、权限、生命周期与浏览器验证策略
@@ -193,7 +193,7 @@ D2 工程取舍由设计阶段明确选择并写入 Design；符合 Decision Con
 - 分端设计摘要（来自各端 `task_completion.summary`，每端 3-5 行）
 - 测试与验收策略跨端汇总（来自各分端文档测试章节）
 - 风险与验证动作汇总
-- §8 文件影响范围：逐行合并各分端文档的文件影响表，标注来源分端（取值 backend/frontend/extension/flutter/web-demo/extension-demo/flutter-demo/跨端；设计要求用户故事演示时，Web Playwright 资产标 `web-demo`、扩展 Playwright 资产标 `extension-demo`、Patrol 资产标 `flutter-demo`，供 `/t-task` 与 `/t-super-run` 识别 demo 交付端）；此表是 `/t-task` 的唯一拆分依据，必须覆盖全部适用端
+- §8 文件影响范围：逐行合并各分端文档的文件影响表，标注来源分端（取值 backend/frontend/extension/flutter/web-demo/extension-demo/flutter-demo/跨端；设计要求用户故事演示时，Web Playwright 资产标 `web-demo`、扩展 Playwright 资产标 `extension-demo`、Patrol 资产标 `flutter-demo`，供 `/t-super-run` 识别 demo 交付端）；此表是 `/t-super-run` 的唯一拆分依据，必须覆盖全部适用端
 
 不适用章节保留并标记"不适用"及原因。写入后对所有实际生成的文档运行：
 
@@ -220,7 +220,7 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py ".ai/design/$ARGU
 - 关键风险和验证动作
 - 无上下文读者测试：`passed` 或 `skipped` 及原因
 - 延期问题：明确说明"无"，或列出已告知用户、写入 Decision Log 且尚未到最迟解决阶段的 Q ID
-- 下一步命令：高风险或复杂设计建议运行 `/t-design-check $ARGUMENTS`；简单设计可直接进入 `/t-task $ARGUMENTS`
+- 下一步命令：高风险或复杂设计建议运行 `/t-design-check $ARGUMENTS`；简单设计可直接进入 `/t-super-run $ARGUMENTS --phase <phase>`
 - 如文档内容较多或结构复杂，可使用 `/t-html-show .ai/design/$ARGUMENTS.md` 生成 HTML 可视化预览
 
 ## 质量检查清单

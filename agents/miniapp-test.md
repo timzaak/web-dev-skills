@@ -72,7 +72,7 @@ cd miniapp && npm run prepublish:check
 cd miniapp && npm run starter:ci-gate -- --target taro-react-taroify-tailwind
 ```
 
-### t-task 规划约束
+### 任务规划约束
 
 测试编写与执行的合并条件、集中 runner、Expected Test Manifest 和失败恢复统一按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Test Execution Consolidation；小范围同角色闭环默认合并。验证范围来自本次资产与风险，不默认全量。运行后按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 保存可供 accept 核查的证据。
 

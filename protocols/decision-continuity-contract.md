@@ -46,7 +46,7 @@
 
 | ID | Topic | Why Non-blocking Now | Owner Stage | Must Resolve Before | User Informed |
 |---|---|---|---|---|---|
-| Q-...-002 | stable.topic.key | ... | t-design | t-task | yes |
+| Q-...-002 | stable.topic.key | ... | t-design | t-super-run | yes |
 
 ## Superseded Decisions
 

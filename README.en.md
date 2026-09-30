@@ -44,11 +44,7 @@ t-prd user-management
 # Generate technical design (master + per-stack)
 t-design user-management
 
-# Generate tasks and implement per phase; repeat the loop for other phases
-t-task user-management --phase backend
-t-run user-management --phase backend
-
-# Single-main-session path for GPT-5.6 Sol-class models, merging planning and execution
+# Merge task planning, implementation, and testing per phase; repeat the loop for other phases
 t-super-run user-management --phase backend
 
 # Web Demo/E2E and final acceptance (extensions and Flutter have separate commands)
@@ -78,9 +74,9 @@ A typical web order is `backend -> frontend -> web-demo`; a typical extension or
 - `extension-demo`: Playwright integration demos with a loaded extension, covering user paths across contexts, permissions, and lifecycle behavior.
 - `flutter-demo`: Android Patrol demos based on user stories, including real App actions and native system UI.
 
-Each phase runs the loop `t-task -> [t-task-check] (optional, by risk) -> t-run`; the quick start shows backend as the example and other phases repeat it. `t-super-run` is the single-main-session path for GPT-5.6 Sol-class models: it merges planning and execution, requires `--phase`, executes exactly one phase per call, then stops. Every supported phase, including extension and miniapp, can use this path.
+Each phase runs the `t-super-run` loop by default: it merges planning and execution, requires `--phase`, executes exactly one phase per call, then stops. The quick start shows backend as the example and other phases repeat it; every supported phase, including extension and miniapp, can use this path. When explicit subagent ownership for dev/test or fine-grained items is required, fall back to the standard `t-task -> [t-task-check] (optional, by risk) -> t-run` chain.
 
-Prepare a WXT project using the [extension initialization guide](guides/extension/initialization.md) (skip for existing projects; `t-init` does not generate the WXT production project). To add integration-test infrastructure, run `t-init --extension-demo` from the target project root; select among multiple extension directories with `--extension-dir <path>`, or use `.` for a standalone project. This mode incrementally adds Playwright configuration, extension fixtures, a real-loading smoke test, and local execution instructions while preserving existing Web demos. Initialization success does not constitute user story acceptance. Once requirement sources are ready, run `t-design <feature>`, `t-task <feature> --phase extension`, and `t-run <feature> --phase extension`. When design requires a user story demo, also run `t-task <feature> --phase extension-demo` and `t-run <feature> --phase extension-demo`. In `t-design`, the dedicated [extension-design](agents/extension-design.md) role produces `extension.md`, covering entrypoints, permissions, messaging/storage, lifecycle, and browser verification; Web and extension deliverables receive separate designs when both apply. See the [extension demo guide](guides/extension/demo-testing.md) for fixtures, environment selection, and acceptance.
+Prepare a WXT project using the [extension initialization guide](guides/extension/initialization.md) (skip for existing projects; `t-init` does not generate the WXT production project). To add integration-test infrastructure, run `t-init --extension-demo` from the target project root; select among multiple extension directories with `--extension-dir <path>`, or use `.` for a standalone project. This mode incrementally adds Playwright configuration, extension fixtures, a real-loading smoke test, and local execution instructions while preserving existing Web demos. Initialization success does not constitute user story acceptance. Once requirement sources are ready, run `t-design <feature>` and `t-super-run <feature> --phase extension`. When design requires a user story demo, also run `t-super-run <feature> --phase extension-demo`. In `t-design`, the dedicated [extension-design](agents/extension-design.md) role produces `extension.md`, covering entrypoints, permissions, messaging/storage, lifecycle, and browser verification; Web and extension deliverables receive separate designs when both apply. See the [extension demo guide](guides/extension/demo-testing.md) for fixtures, environment selection, and acceptance.
 
 ## Usage Rules
 

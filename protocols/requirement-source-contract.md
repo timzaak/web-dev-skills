@@ -41,7 +41,7 @@
 
 ### 同一 feature 草稿与正式来源并存的裁决
 
-消费需求来源的阶段（`/t-design`、`/t-task`、检查类 skill）按以下规则处理：
+消费需求来源的阶段（`/t-design`、`/t-super-run`、检查类 skill）按以下规则处理：
 
 - 草稿与正式来源一致，或草稿明确声明为增量/替换 → 继续工作，在产物中同时引用两者并给出差异摘要。
 - 在核心业务边界、角色、权限、业务状态或验收目标上冲突且无法确认覆盖关系 → 停止，提示先修正草稿；必要时运行 `/t-prd-check [feature]` 定位冲突。
@@ -52,7 +52,7 @@
 
 - `/t-prd` 只写 `.ai/prd/**/*.md` 和 `.ai/user-stories/**/*.md`。
 - `/t-prd-check` 只写质量报告，不写 `docs/prd` 或 `docs/user-stories`。
-- `/t-design`、`/t-task`、`/t-run`、`/t-super-run` 和 Demo 阶段可以读取 draft sources，不得把 draft user story 发布到 `docs/user-stories`。
+- `/t-design`、`/t-super-run` 和 Demo 阶段可以读取 draft sources，不得把 draft user story 发布到 `docs/user-stories`。
 - `/t-prd-publish` 是把仍然成立的 PRD 草稿和 draft user stories 合并进 `docs/` 的标准入口。
 - `t-dream --govern-prd` 可以治理已发布 PRD 和用户故事，但必须先区分 draft sources 与 published sources，并说明写入范围。
 
