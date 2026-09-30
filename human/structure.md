@@ -127,9 +127,9 @@ Demo 阶段不是后端或前端测试的重复。它用 Playwright E2E 按用�
 
 ## 执行模型
 
-`t-super-run` 是默认执行模型。它不生成 item；dev/test 在主会话中按当前 task 读取对应 agent 规范和关联 guide 直接执行，accept 派发对应只读 accept subagent 并把报告结论映射回状态，执行后把状态与证据写入 `.ai/super-run/[feature]/`，再切换下一个角色。非 demo 端（backend/frontend/extension/miniapp/flutter）固定为 `dev -> test -> accept`，demo 为 `dev -> accept`；`--phase` 必填，Goal 只在请求的 phase 内持续推进，该 phase 完成后停止，状态文件负责跨上下文恢复。
+`t-super-run` 是默认执行模型。主会话是唯一调度者与状态写入者：`super-run-planner` 生成请求 phase 的版本化 index、slot manifest、item 和覆盖映射，主会话审计后串行派发对应角色执行。worker 不继续派发，测试发现的生产缺陷交回主会话路由给 dev，accept 独立只读验收并写报告。默认顺序为 `dev -> accept`，非 Demo 阶段需要独立测试资产时插入 test。状态、证据入口和有效计划版本保存在 `.ai/super-run/[feature]/`；`--phase` 必填，完成后停止，中断后用同一命令核查证据并恢复。具体契约见 [super-run 状态协议](/protocols/super-run-state-contract.md)。
 
-需要 dev/test 层面的显式 subagent 分工或细粒度 handoff 时，继续使用 `t-task` / `t-run` 标准链路。`t-task` 会把设计拆成标准任务目录：
+需要单独审阅计划或分开控制规划与执行时，使用 `t-task` / `t-run` 标准链路；其状态与 super-run 独立。`t-task` 会把设计拆成标准任务目录：
 
 ```text
 .ai/task/[feature]/

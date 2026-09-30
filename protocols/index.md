@@ -15,7 +15,7 @@
 | `.ai/task/.../.state.json` 的唯一结构真相 | [task-state-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md) |
 | 行为验证责任、跨阶段交接、完成门禁和运行证据复用 | [verification-evidence-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md) |
 | phase/slot/item 的执行顺序与前置规则 | [task-phase-execution.md](${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md) |
-| `.ai/super-run/...` 的目标级计划、状态、主会话执行、accept 派发与 Goal 闭环 | [super-run-state-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/super-run-state-contract.md) |
+| `.ai/super-run/...` 的版本化 item 计划、扁平调度、checkpoint、修复与独立验收 | [super-run-state-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/super-run-state-contract.md) |
 | backend-test 的默认收敛与升级策略 | [backend-test-execution.md](${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md) |
 | 设计检查评分标准 | [design-check-rubric.md](${CLAUDE_PLUGIN_ROOT}/protocols/design-check-rubric.md) |
 | PRD / user story 检查评分标准 | [prd-check-rubric.md](${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md) |

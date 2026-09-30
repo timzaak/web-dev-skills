@@ -127,9 +127,9 @@ It verifies deliverable demonstrability and user story closure, not only whether
 
 ## Execution Model
 
-`t-super-run` is the default execution model. It generates no items. For dev and test, the main session reads the current task's agent specification and related guides and executes the work directly; accept dispatches the matching read-only accept subagent and maps its verdict back into the state. Status and evidence are checkpointed under `.ai/super-run/[feature]/` between roles. Non-demo phases (backend/frontend/extension/miniapp/flutter) use `dev -> test -> accept`; demo uses `dev -> accept`. `--phase` is required; Goal mode keeps only the requested phase moving and stops when it completes, while the state file supports recovery across context compaction.
+`t-super-run` is the default execution model. The main session is the sole dispatcher and state writer: `super-run-planner` produces a versioned index, slot manifests, items, and coverage mapping for the requested phase, then the main session audits the plan and dispatches each role serially. Workers do not delegate; production defects found in testing return to the controller for dev repair, and accept independently inspects the work and writes a report. The default order is `dev -> accept`; non-Demo phases add test when separate test assets are needed. `.ai/super-run/[feature]/` stores state, evidence references, and the active plan revision. `--phase` is required; execution stops when that phase completes. Repeat the same command after interruption to check evidence and recover. See the [super-run state contract](/protocols/super-run-state-contract.md).
 
-When explicit subagent ownership for dev/test or fine-grained handoffs are required, keep the standard `t-task` / `t-run` chain. `t-task` decomposes design into a standard task directory:
+Use the standard `t-task` / `t-run` chain when plans need separate review or planning and execution need separate control. Its state remains independent of super-run. `t-task` decomposes design into a standard task directory:
 
 ```text
 .ai/task/[feature]/
