@@ -5,7 +5,7 @@
 - 适用于 backend/test `test_item_type: runner`。
 - 不适用于场景测试 authoring；authoring 由 `backend-test` item 完成。
 - runner item 的 `agent` 必须为 `general-purpose`，并直接按本协议执行。
-- 输入带 `dispatch_owner: controller` 时，下面的“委派”均改为按 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md` 返回 repair_request；runner 本身不调用 Agent/Task 或启动其他 agent。控制器完成修复后恢复原 runner 复测。未指定时沿用现有委派方式。
+- `t-super-run` 的 backend/test 由主会话直接执行：以 phase 计划中的测试清单替代 runner item/Expected Test Manifest，`source_item` 改为来源 task；不生成 runner item、不默认发现 `.ai/task/`。覆盖核查使用 `cargo nextest list` 等价确认预期测试；生产修复由主会话切换 `backend-dev` 规范后执行，再切回测试执行边界复测，不调用 subagent。定向范围、全量升级、证据和测试语义门禁仍按本文执行。
 
 ## Default Principle
 

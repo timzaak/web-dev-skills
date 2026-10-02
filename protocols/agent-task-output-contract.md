@@ -126,19 +126,6 @@
 - `change_scope` 必须按已产生或可能影响的层填写；字段为 `backend/frontend/extension/miniapp/flutter/web_demo/extension_demo/flutter_demo`。无法判断时八项都保留并在 `error.details` 说明不确定性。
 - 若失败发生在修复或验证闭环中，`tests_to_run` 可以为空数组，但必须在 `error.details` 或 `suggested_fix` 中说明无法给出补测命令的原因。
 
-## Controller Dispatch
-
-调用方明确传入 `dispatch_owner: controller` 时，worker 不自行委派；保留本协议的 `task_completion.status`、`change_scope`、`tests_to_run`，在 `task_completion` 内补充以下字段。其他调用方继续使用原有 envelope，不要求新增字段。
-
-- `dispatch`: 原样返回输入的 `phase/revision/item_id/attempt`，用于拒绝过期结果。
-- `evidence_refs`: 已写入当前 item Handoff 或现有报告的路径；验证内容按 verification-evidence-contract，不在短返回中复制日志。
-- `concerns`: `{message, blocking, evidence}` 数组；没有则为空。必要验证未完成不能返回 success。
-- `context_requests`: `{question, evidence, decision_point, blocked_action, needs_user_answer}` 数组；需要补上下文返回 partial，用户决策由控制器处理。
-- `blocked_by`: 当前无法自行解决的外部条件数组；与可修复的实现失败区分。
-- `repair_request`: 需要其他责任角色时返回 `{agent, reason, evidence_refs, tests_to_run}`；原 item 返回 failed，等待控制器派发修复后重测。不授予 worker 修改其他角色文件的权限。
-
-`success` 必须没有 blocking concerns、context_requests、blocked_by 或 repair_request。不能同时提出修复请求又宣称已完成。accept 仍返回其角色规定的验收结论与独立报告路径，不能用通用 success 替代 verdict。
-
 ## Role-Specific Extensions
 
 - `frontend-dev` 可补充 `validation_results`、`components_added`、`components_modified`

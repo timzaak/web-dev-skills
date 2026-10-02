@@ -1,191 +1,203 @@
 # Super Run State And Execution Contract
 
-`t-super-run` 是唯一调度者与状态写入者。planner 产出候选计划，角色 worker 串行执行，accept 独立验收。本文定义 super-run 的状态与调度；不读取、迁移或覆盖 `.ai/task/` 状态。
+dev/test 由主会话按角色规范执行，accept 派发只读 subagent，用 `.state.json` 恢复执行。
+
+super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相互独立，不得互相迁移、覆盖或推导。
 
 ## Runtime Artifacts
 
 ```text
 .ai/super-run/<feature>/
 ├── .state.json
-├── .state.next.json
-└── <phase>/r<revision>/
-    ├── index.md
-    ├── coverage.json
-    ├── proposal.json
-    ├── dev.md
-    ├── dev/<ITEM-ID>-<name>.md
-    ├── test.md                    # 需要独立测试资产时才生成
-    ├── test/<ITEM-ID>-<name>.md
-    ├── accept.md
-    └── accept/<ITEM-ID>-<name>.md
+├── backend.md
+├── frontend.md
+├── extension.md
+├── miniapp.md
+├── web-demo.md
+├── extension-demo.md
+├── flutter.md
+└── flutter-demo.md
 ```
 
-- `.state.json` 是执行状态唯一真源；只有它指向的 revision 才生效。`.state.next.json` 是主会话准备的下一快照，不是恢复入口。
-- revision 从 1 递增；重规划写新目录，校验通过后切换指针，保留旧目录供核查。未引用的候选目录不代表已规划或已执行。
-- `index.md` 是该 revision 唯一阶段计划：范围与完成条件、Source Trace、Decision Trace、验证责任表、测试选择、共享文件/接口冲突表、Rulings 和恢复说明。无需再写 `<phase>.md`。
-- slot manifest 包含 `## Items` 表：`id | title | agent | file`，行序是执行顺序唯一真源；file 使用目标项目根相对路径。state 不维护第二份 order。
-- item 的稳定 ID、五章节、责任闭环与拆分上限引用 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Item Contract、Splitting Heuristics 和测试规则。头部使用 `id: ...`、`title: ...`、`agent: ...`；相关文档列在 Work，不能把 item 当成高于 PRD/设计/Active Decision 的事实源。
-- 生效后 worker 只可追加当前 item 的 Handoff，不修改计划目标、Validation、manifest 或 state。计划变化交回主会话重规划。
+- `.state.json` 是 super-run 状态的唯一事实源。
+- `<phase>.md` 是当前 phase 的目标级计划，不生成 slot manifest、item 目录或 item 文件。
+- 只创建本次显式请求且适用的 phase 对应的计划文件。
+
+## Supported Phases And Tasks
+
+`supported_phases` 固定为 `backend | frontend | extension | miniapp | web-demo | extension-demo | flutter | flutter-demo`。一个 feature 通常只命中单一端栈，`active_phases` 的启用判定统一按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Phases 规则执行：设计主文档声明 Demo 主路径或文件影响表出现 `web-demo`/`extension-demo`/`flutter-demo` 行时，对应 demo phase 纳入 `active_phases`，demo 演示资产不得并入 frontend/extension/flutter phase 交付。
+
+| phase | task 顺序 | agent 规范 |
+| --- | --- | --- |
+| backend | `dev -> accept`；需测试角色编写场景测试时插入 `test` | `backend-dev -> backend-test（按需）-> backend-accept` |
+| frontend | `dev -> accept`；需测试角色编写 Vitest 测试时插入 `test` | `frontend-dev -> frontend-test（按需）-> frontend-accept` |
+| extension | `dev -> accept`；需测试角色编写 Vitest 测试时插入 `test` | `extension-dev -> extension-test（按需）-> extension-accept` |
+| miniapp | `dev -> accept`；需测试角色编写测试或专项 gate 时插入 `test` | `miniapp-dev -> miniapp-test（按需）-> miniapp-accept` |
+| flutter | `dev -> accept`；需测试角色编写单元/widget/integration 测试时插入 `test` | `flutter-dev -> flutter-test（按需）-> flutter-accept` |
+| web-demo | `dev -> accept` | `web-demo-dev -> web-demo-accept` |
+| extension-demo | `dev -> accept` | `extension-demo-dev -> extension-demo-accept` |
+| flutter-demo | `dev -> accept` | `flutter-demo-dev -> flutter-demo-accept` |
+
+按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 判断是否需要测试角色编写测试用例、fixture/helper 或专项验证脚本。仅运行现有测试、编译、类型检查或构建时，phase 计划和 state 都不包含 test task；phase 计划记录原因、dev 中至少一项可执行验证及后续 Demo 计划（适用时）。accept 按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 独立复核有效执行证据和行为验证承接；阶段结束报告尚未完成的业务验收，最终承接阶段核对全部必要场景。dev 发现需要上述测试编写工作时，在 accept 前更新计划和 state，插入 test task。
+
+`--phase` 必填，每次调用只执行显式请求的一个 phase。`active_phases` 只包含按上述启用规则激活的 phase，用于校验请求 phase 的适用性并报告剩余工作。执行规则：
+
+1. 首次规划时从设计与需求来源识别 `active_phases`；请求的 phase 不在其中时终止，不得为满足命令而编造交付范围。
+2. 已有状态且请求 phase 为 `completed | skipped` 时先按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 核对证据适用性；仍有效则报告结果和待承接验证，不重新执行、不选择其他 phase。相关输入已变化时只重新打开受影响 task 及其验收。
+3. 请求 phase 完成后结束本次调用，报告剩余未完成 phase；剩余 phase 由用户再次显式请求启动。
+
+`phases` 只包含已规划的 active phase，不预生成其他阶段的计划。`current_phase` 指向本次执行的请求 phase；该 phase 聚合为 `completed | skipped` 后写为 `null`，不自动进入下一个 phase。
 
 ## State Shape
 
 ```json
 {
-  "schema_version": 2,
-  "sequence": 1,
   "feature": "sample-feature",
   "current_phase": "backend",
-  "active_phases": ["backend", "frontend"],
+  "active_phases": ["backend", "frontend", "web-demo"],
   "phases": {
     "backend": {
       "status": "pending",
-      "revision": 1,
-      "index": ".ai/super-run/sample-feature/backend/r1/index.md",
-      "design_fingerprint": "sha256:...",
-      "slots": {
+      "plan": ".ai/super-run/sample-feature/backend.md",
+      "tasks": {
         "dev": {
-          "status": "pending",
-          "manifest": ".ai/super-run/sample-feature/backend/r1/dev.md",
-          "items": {
-            "BE-D01": {
-              "status": "pending",
-              "file": ".ai/super-run/sample-feature/backend/r1/dev/BE-D01-implement.md",
-              "agent": "backend-dev",
-              "attempt": 0,
-              "failures_without_progress": 0,
-              "evidence": []
-            }
-          }
+          "status": "completed",
+          "agent_spec": "${CLAUDE_PLUGIN_ROOT}/agents/backend-dev.md",
+          "references": [
+            "${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md"
+          ],
+          "evidence": ["backend/src/..."]
         },
         "accept": {
           "status": "pending",
-          "manifest": ".ai/super-run/sample-feature/backend/r1/accept.md",
-          "items": {
-            "BE-A01": {
-              "status": "pending",
-              "file": ".ai/super-run/sample-feature/backend/r1/accept/BE-A01-review.md",
-              "agent": "backend-accept",
-              "attempt": 0,
-              "failures_without_progress": 0,
-              "evidence": []
-            }
-          }
+          "agent_spec": "${CLAUDE_PLUGIN_ROOT}/agents/backend-accept.md",
+          "references": [],
+          "evidence": []
         }
       }
     }
+  },
+  "sources": {
+    "design": {
+      "main": ".ai/design/sample-feature.md",
+      "documents": [
+        ".ai/design/sample-feature.md",
+        ".ai/design/sample-feature/backend.md",
+        ".ai/design/sample-feature/frontend.md"
+      ],
+      "fingerprint": "sha256:..."
+    },
+    "requirements": [],
+    "decisions": [],
+    "research": []
   }
 }
 ```
 
-- `active_phases` 按 task-phase-execution 的 Phases 判定；`phases` 只包含已规划阶段，不为其他阶段自动建计划。支持八个 phase，slot 顺序与角色映射沿用 task-phase-execution；通常为 `<phase>-<slot>`。backend/test authoring 用 `backend-test`，runner 用 `general-purpose` 并保留 `test_item_type`。
-- `sequence` 每次 checkpoint 加 1；state 不记录时间元数据。`revision` 表示计划版本，`attempt` 表示 item 派发次数，不能用它们相互替代。
-- checkpoint 自动写入 `plan_fingerprint`，覆盖 manifest、coverage 和 item 的执行正文；Handoff 和 index 的进度记录不参与。执行正文变更必须创建新 revision。重规划记录 `replan_reason`；移除旧 item 时用 `retired_items: {ID: 原因}` 说明责任承接或来源变化，不得用删除规避未完成目标。
-- item 必含示例中的六字段。失败/阻塞记录 `last_error`；重开/跳过记录 `reason`；派发后可记录 `worker_id`。`evidence` 是已落盘 Handoff、日志或报告路径，不存大段输出。accept 完成还必含 `acceptance_result`、`blocking_findings: 0` 和 `report_path`。
-- 完成后清除过期 last_error；清零无进展计数时记录 `progress_evidence`，说明新增证据或已完成修复，不以“换模型重试”作为进展。
-- `current_phase` 指向请求阶段；该阶段完成或全部 skipped 后置 null，不切换到其他 phase。
+Task 必填字段：
 
-## Planning Contract
+- `status`
+- `agent_spec`
+- `references`
+- `evidence`
 
-主会话在首次规划或设计指纹变化时先运行 `check-design.py --require-complete --json`。校验只在来源门禁执行，不在每个 item 之后重新验证设计中的 CREATE/MODIFY/DELETE 前置路径；这些路径可能已被本轮合法修改或删除。恢复时检查设计生成状态仍为 complete，重新计算文档指纹，并按证据协议复核相关输入。
+失败或阻塞时增加 `last_error`。无进展重试计数 `failures_without_progress` 持久化在当前 task 中，首次使用缺省为 0；失败签名与证据也写入该 task，实质进展后才能清零。`.state.json` 不记录时间类元数据。
 
-planner 输入：feature、请求 phase、完整 `design_documents` 与指纹、相关需求/决策/预研入口、项目 AGENTS.md、现有有效 index/items/证据、重规划原因、候选 revision 目录。按 phase 读取分端设计：backend；frontend/web-demo；extension/extension-demo；flutter/flutter-demo；miniapp 读主文档相关章节。消费后端契约时补读 backend.md。按相关角色 Read Order 读取实际需要的规范和 guide，不能只凭角色名称推测。
+只接受上述 `phase -> tasks` 结构。发现版本化 item/slots 状态或损坏 JSON 时停止并保留原目录，不自动转换或按旧 dev/test 完成状态推定目标已完成；恢复方案需先由用户确认。
 
-planner 依次完成来源加载、active phases 判定、slot/item 规划、验证承接、冲突扫描；不调度其他 agent，不实现代码，不写 `.state.json`。读取 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`，发现 `needs_user_answer` 时仅返回问题与已有诊断，不将未确认假设写入候选计划。超拆分上限沿用共享协议的用户授权门禁。
+## Design Source Gate
 
-用以下只读命令取得覆盖清单：
+首次规划运行：
 
 ```bash
-python "${CLAUDE_PLUGIN_ROOT}/scripts/check-super-run-plan.py" ".ai/super-run/<feature>/.state.next.json" --phase <phase> --inventory --json
+python "${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py" ".ai/design/<feature>.md" --require-complete --json
 ```
 
-inventory 不要求 state 文件存在；从该路径推导 feature。它复用设计解析器，列出主文档覆盖矩阵、跨端 Operation ID、全量文件影响行的 `source_id/kind/content`。`coverage.json` 是数组，每个 source_id 恰好一项：
+- 校验失败：停止，不执行 task。
+- 首次规划：把 `design_documents` 和 `design_fingerprint` 写入 `sources.design`。
+- 指纹相同：继续恢复。
+- 指纹变化：重读设计覆盖矩阵、Operation ID、文件影响和 Decision Trace；更新 phase 计划，重新打开受影响的已规划 task，再写入新指纹。无法确定影响范围时停止并请求用户裁决。
 
-```json
-[
-  {"source_id": "coverage:hash", "disposition": "implement", "items": ["BE-D01"], "reason": "本阶段实现此能力"},
-  {"source_id": "impact:hash", "disposition": "other_phase", "items": [], "phase": "frontend", "reason": "客户端文件由 frontend 承接"}
-]
-```
+恢复及每个 task 开始前，检查设计生成状态仍为 `complete`、适用的设计文档存在，并复用 `${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py` 的 `design_documents` / `design_fingerprint` 计算当前来源。指纹未变时不重复运行文件操作前置校验；本轮已合法删除的 DELETE 目标不能因此阻塞恢复。来源变化时重新检查设计契约及受影响路径，已执行的操作按工作区和有效证据核对，不能把历史操作一律当作尚未执行。PRD、Decision、测试、配置或环境变化另按 verification-evidence-contract 判断证据失效。
 
-`disposition` 为 `implement | consume | other_phase | not_applicable`。implement/consume 必须指向当前阶段实际 item；other_phase 必须指向另一个 active phase；not_applicable 必须给出依据。逐行分类用于检查当前阶段责任，不能为覆盖全量设计而生成其他阶段 item。脚本检查结构与完整性，主会话负责判断分类和 item 内容是否真正覆盖来源。
+不得仅因文件路径相同而跳过指纹比较。
 
-planner 将阶段状态对象写入候选目录的 `proposal.json`，新 item 为 pending；重规划沿用责任不变的稳定 ID，不自行继承 completed。返回：
+## Status Rules
 
-```json
-{
-  "task_completion": {"status": "success", "summary": "阶段计划已写入候选目录"},
-  "plan_result": {
-    "phase": "backend", "revision": 1,
-    "proposal_path": ".ai/super-run/sample-feature/backend/r1/proposal.json",
-    "active_phases": ["backend", "frontend"],
-    "needs_user_answer": [],
-    "self_check": {"sources_classified": true, "conflicts_checked": true, "verification_assigned": true}
-  }
-}
-```
+状态只允许：
 
-`partial | failed`、问题非空或 self_check 未全通过均不得激活。主会话复核分类、共享文件/接口的生产消费关系、测试价值及真实命令；确认可保留的完成证据后合并 proposal 至 `.state.next.json`。对全部候选 Markdown 运行 `check-decision-closure.py`，按决策协议处理命中项。
+- `pending`：尚未执行。
+- `in_progress`：已开始且尚未得到完成证据。
+- `failed`：当前尝试失败，但可由执行闭环继续修复。
+- `blocked`：需要用户决策、权限、外部系统变化或其他当前无法自行解决的条件。
+- `completed`：交付物与当前 task 的验证均完成。
+- `skipped`：已有证据证明已规划的 task 或 phase 不适用。
 
-## Checkpoint And Audit
+执行 task 前先写 `in_progress`。成功后写 `completed`、删除旧 `last_error`，并追加文件、命令、报告或日志证据；失败后先写 `failed` 和 `last_error`，再决定自动修复或转为 `blocked`。状态写入失败时重试一次，仍失败则停止，避免继续产生无法恢复的修改。
 
-主会话准备完整下一快照，再执行：
+按 `dev -> test（适用时）-> accept` 选择首个未完成 task；前序 `blocked` 先核对解除条件，未解除则停止，不能越过。每次状态变化后聚合 phase：任一 blocked → blocked；否则任一 failed → failed；否则任一 in_progress → in_progress；否则任一 pending → pending；全部 skipped → skipped；其余 completed/skipped → completed。accept 不可单独 skipped 绕过门禁，仅整个 phase 有不适用依据且全部 task skipped 时允许。
 
-```bash
-python "${CLAUDE_PLUGIN_ROOT}/scripts/check-super-run-plan.py" ".ai/super-run/<feature>/.state.next.json" --phase <phase> --commit --expected-sequence <previous-sequence> --json
-```
+按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 发现完成证据失效时，将受影响的 completed task 及对应 accept 置为 pending，失效的已完成下游验证同步重新打开，记录原因并重新聚合 phase；无关 task 保持原状态。仅更新恢复入口，不执行未请求的 phase。缺失证据同样需要补验；skipped 复核不适用依据。
 
-首次 previous-sequence 为 0。脚本在短时文件锁内读取旧 `.state.json`，校验 sequence、结构、计划文件、覆盖映射、状态迁移和聚合，随后原子替换正式 state；失败不覆盖旧状态。commit 总是检查 completed 的证据路径与验收字段。不带 `--commit` 为只读审计，可加 `--evidence` 检查证据；只读审计不验证历史迁移。
+恢复 `in_progress` task 时，先检查工作区、已有交付物和验证证据，再从未满足的完成条件继续；不得把中断状态直接视为成功，也不得无条件重复可能产生副作用的动作。
 
-激活计划、新派发和新完成项必须通过当前设计指纹与覆盖校验。来源变动后，允许先以旧 revision 将未结束项转 failed/blocked/pending、重开失效证据；此类停止或失效 checkpoint 不要求新设计已经可用，但不能派发或完成工作。先持久化恢复现场，再校验新来源并重规划，避免旧 in_progress 与新设计门禁互相阻塞。
+## Phase Plan Contract
 
-脚本只验证证据存在性，内容适用性按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 复核。state 写入失败重试一次，仍失败则停止。锁已存在时不得删除后强写；先确认没有并行控制器，确认遗留锁后才清除并从正式 state 恢复。同一 feature 只允许一个执行会话，短时写锁不隔离代码工作区。
+`<phase>.md` 只包含：
 
-旧 schema 或损坏 JSON：停止并保留文件，不按新结构猜测。用户选择升级时先备份旧 super-run 目录，再由 planner 按当前来源重建候选计划；逐项复核旧产物与证据后由主会话设置状态，不按旧 dev/test completed 批量推定所有新 item 完成。
+- phase 目标、范围和完成条件，以及恢复所需的状态、证据与进度记录。
+- Source Trace：本轮实际读取的设计文件与指纹、PRD、用户故事、Decision Brief、Decision Log、技术预研和项目事实。
+- Decision Trace：影响当前 phase 的 Active Decision 及应用位置。
+- task 表：`task | goal | agent spec | related documents | deliverable | validation`。
+- 验证责任表及上游待验证场景（字段和交接规则按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`）；无行为验证时记录适用性依据。
+- 必要的恢复说明和上游 handoff。
 
-## Status And Recovery
+每个 task 固定为一个目标级责任闭环，不继续拆 item。`related documents` 必须包含设计主文档、适用的当前 phase 分端设计（miniapp 使用主文档相关章节）、消费后端契约时的 `backend.md`，以及 agent Read Order 中实际需要的文件；不得只写“按需阅读相关指南”。
 
-super-run 独立使用 `pending | in_progress | failed | blocked | completed | skipped`，不继承标准 task 的 generated 迁移。
+计划采用 outcome-first 结构：明确当前层级、完成条件、约束、工具/证据入口和停止规则，不预先规定可从仓库事实判断的逐步操作。阶段切换时记录简短 handoff；例行工具调用不写成长篇过程日志。
 
-| 原状态 | 允许后继 | 条件 |
-| --- | --- | --- |
-| pending | in_progress / blocked / skipped | 派发前 attempt 加 1；blocked 写 last_error；skipped 写不适用依据 |
-| in_progress | completed / failed / blocked / pending | 证据通过才完成；恢复至 pending 必须记录核查与未完成动作 |
-| failed | in_progress / blocked / pending | 重试 attempt 加 1；重新规划或修复归位可 pending 并写 reason |
-| blocked | pending | 阻塞条件已解除并写 reason，不自动升级模型反复尝试 |
-| completed / skipped | pending | 证据失效、accept 拒绝或来源变化，写 reason |
+已有计划恢复执行时重新读取上游来源。若来源变化影响未执行 task，更新计划与状态；若变化使已完成工作失效，重新打开受影响 task 及其已规划的下游 task，并在计划中记录原因。
 
-同状态 checkpoint 允许追加 evidence/worker_id，不产生新 attempt。聚合 slot，再聚合 phase：任一 blocked → blocked；否则任一 failed → failed；否则任一 in_progress → in_progress；否则任一 pending → pending；全部 skipped → skipped；其余全为 completed/skipped → completed。空 slot 非法。
+## Role Loading And Accept Dispatch
 
-恢复先检查顺序中的 `in_progress`：worker 仍运行则等待；可恢复则继续同一 attempt；worker 丢失时核对工作区、Handoff 和副作用，记录缺失动作后转 pending，再派新 attempt。已产出有效完成结果时可核查后完成，不能仅凭文件存在判成功。accept 中断重新派发，旧报告不能自动代表本轮验收。未经核对不得重复迁移、外部写入或其他有副作用动作。
+`/t-super-run` 不为 dev/test 调用 `Agent` 或其他 subagent 调度工具；accept task 按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 派发只读 accept subagent。每个 dev/test task 开始前，主会话必须：
 
-按 manifest 找第一个非 completed/skipped item；in_progress/blocked 先恢复或停止，不能越过。新 dispatch 必须在上一 worker 已结束后进行；超时不等于进程已退出。返回结果必须匹配 phase/revision/item/attempt；过期结果只保留诊断，不推进状态。
+1. 读取 `agent_spec` 全文，把它作为当前 task 的角色边界。
+2. 按 agent 规范的 Read Order 读取计划列出的关联文档。
+3. 只加载当前 task 所需的 feature 上下文，不预读后续角色的全部 guide。
+4. 完成 task 后把状态、证据、剩余风险和 handoff 写入运行时产物，再切换角色。
 
-设计指纹变化时停止派发，重读来源并重派 planner；对受影响 item、验收和已完成的下游验证重开，保留无关完成证据。不自动执行其他 phase。PRD/Decision/测试/配置/运行环境变化也按证据协议判断失效，设计指纹不是全部证据的替代品。
+对 dev/test，agent 规范是主会话执行指南，不适用 `subagent-dispatch.md` 的 prompt 注入步骤。
 
-## Dispatch Contract
+accept task 到达执行位时，主会话按 `subagent-dispatch.md` 派发 `agent_spec` 对应的只读 accept agent：
 
-按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 注入角色规范。必要上下文：`feature/phase/slot/item_id/agent/revision/attempt`、item 全文与路径、阶段 index（含验证责任表）、slot manifest、相关来源、已完成上游的必要 Handoff、失败证据与本轮补测范围。每次 prompt 明确 `dispatch_owner: controller`，禁止 worker 调用 Agent/Task/Skill 再派发、通过 CLI 启动其他 agent，或写 state；内置 general-purpose runner 同样适用。运行时支持工具限制时移除调度工具，不能依赖角色正文注入来修改真实工具权限。
+1. 读取 accept agent 规范全文并按该协议注入为 `# Agent Role:`，追加最小上下文：设计主文档与当前 phase 分端设计、消费后端契约时的 `backend.md`、改动范围与上游 handoff、dev/test 的证据入口、当前验证责任表及上游待验证场景，并提供 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`。
+2. 写入 `in_progress` 后串行派发，一次只派发一个 accept subagent。
+3. subagent 只产出验收报告与结论，不读写 `.state.json`，不修改生产代码或测试。主会话把结论映射为状态，不得代出、改写或降级 subagent 结论：
+   - `ACCEPTED`，或没有 P0/P1 的 `ACCEPTED_WITH_IMPROVEMENTS`：写 `completed`，把报告路径追加进 `evidence`。
+   - `REJECTED`：按证据重新打开 dev 或 test，accept 重置为 `pending`；修复、重测后重新派发验收。
+4. 派发失败或 subagent 未产出报告与有效结论时，accept 写 `failed` 与 `last_error` 后重新派发；连续三次没有有效结论转 `blocked`。
+5. 恢复到 `in_progress` 的 accept task 时，先确认旧 subagent 已结束；仍运行则等待，不能并行派发第二个 accept。旧调用已中断且无法取得有效结果时重新派发，不得把中断当作通过。
 
-角色 worker 按 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md` 返回 `task_completion` 和 Controller Dispatch 扩展。先在 Handoff/现有报告记录命令、cwd、范围、退出码、预期/实际结果、版本与环境、日志入口，再返回短摘要和 evidence_refs。主会话核对当前 Validation 和原始证据，不能要求 worker 只返回一行却由主会话补造执行记录。
+## Test And Acceptance Loop
 
-| 返回信息 | 主会话动作 |
-| --- | --- |
-| success，无阻塞关注点 | 验证结果和证据后 completed |
-| success，含 concerns | 正确性/范围/必要验证问题重新归类为未完成；非阻塞维护建议写 Rulings |
-| partial，context_requests 非空 | 可查事实由主会话补充后重派；用户决策按 Decision Exposure Gate 阻塞 |
-| failed，repair_request 非空 | 先 failed，主会话按责任派发修复，再重跑受影响验证 |
-| partial/failed，blocked_by 非空 | 写 blocked、停止依赖该项的执行，报告解除条件 |
-| 输出缺失/格式错误/无解释的 partial | failed 并附原始结果；要求补齐，不推断成功 |
+- backend/test 先按 `backend-test` 规范编写或维护场景测试并做编译验证，再由主会话按 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md` 执行定向测试与失败分类。
+- frontend/test 按 `frontend-test` 规范完成测试资产和定向执行。
+- extension/test 按 `extension-test` 规范完成 Vitest 测试资产和定向执行；浏览器用户故事用例归 extension-demo/dev。dev/test 涉及用户当前浏览器现场时，按 `${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md` 接入并按 `${CLAUDE_PLUGIN_ROOT}/protocols/extension-acceptance-contract.md` 采集现场证据，浏览器工具仅用于观察。
+- miniapp/test 按 `miniapp-test` 规范完成独立测试或专项 gate 资产及其验证；没有 test task 时，typecheck 和构建回归归 dev task。
+- 测试发现生产代码缺陷时，在同一个 test task 中记录失败证据，主会话切换到对应 dev agent 规范修复，再切回测试执行边界重新执行受影响测试；测试角色本身不接管生产修复，不得弱化断言、权限预期或业务规则。修复影响已完成的验证或其他 phase 时，按证据失效规则重开并报告恢复入口，不自动执行其他 phase。
+- web-demo/dev 同时承担 Playwright 资产维护和定向执行，不新增独立 test task。失败时读取 `web-demo-diagnose` 规范分类，再切换对应 dev 规范修复并补跑底层定向测试。
+- extension-demo/dev 同时承担扩展 Playwright 资产维护和定向执行，不新增独立 test task。失败时读取 `extension-demo-diagnose` 分类，再切换对应 dev 规范修复、重建加载产物并补跑定向测试。
+- flutter-demo/dev 同时承担 Patrol 资产维护和定向执行，不新增独立 test task。失败时读取 `flutter-demo-diagnose` 规范分类，再切换 `flutter-demo-dev`、`flutter-dev` 或 `backend-dev` 规范修复并补跑整文件测试；Android device 选定值写入 `flutter-demo.md` plan，运行时缺失则询问用户。
+- accept 由只读 accept subagent 执行（见 Role Loading And Accept Dispatch），必须保持该 agent 规范的只读验收边界；允许写验收报告，不得直接修改生产代码或测试来制造通过结果。
+- accept 拒绝时由主会话按证据重新打开 dev 或已规划的 test，并把 accept 重置为 `pending`。修复、重测后重新派发验收，直到通过或进入 `blocked`。
 
-用户决策门禁优先于自动修复。Rulings 只记录 D2 工程取舍、证据和影响；跨阶段或高反转成本的决定按 decision-continuity 的 Entry Gate 写账本，不能据此改变业务规则、风险接受或验收目标。
+## Failure Rules
 
-## Repair And Acceptance
-
-- 测试 worker 不接管生产修复。backend/test runner 遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md` 的 controller 模式，向主会话返回 repair_request；其他 test/Demo worker 同理。测试资产问题交测试拥有者，生产缺陷交相应 dev。
-- 同阶段已有对应 dev item 时重开该 item 及受影响的已完成验证/accept，先持久化再派发；原测试 item 保留失败证据，修复后转 pending 重测。Demo 发现同一已授权功能的客户端/后端缺陷时，可重规划当前 phase，在 dev slot 增加由对应 dev 负责的修复 item，记录 `repair_for`（原失败 item ID）、`reason` 和 `repair_evidence`；manifest 将修复放在原失败 item 前。这类 item 的 agent 可为相关端 dev；只修有证据的缺陷，不顺带执行其他 phase 的计划。受影响的上游验收证据按规则失效重开，报告其恢复入口。新增业务范围或未授权行为变更仍先触发决策门禁。
-- Demo 归因不明时串行派发对应 `web-demo-diagnose | extension-demo-diagnose | flutter-demo-diagnose`，读取 `${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-contract.md`。非 Demo 由当前角色提供最小复现与证据，不套用 Demo diagnose。
-- backend runner 覆盖检查显式传当前 runner 的 `--runner-file` 给目标项目 `scripts/check-test-runner-coverage.py`，或用协议允许的 nextest list 等价核查，避免默认发现 `.ai/task/`。测试命令仍使用目标项目脚本。
-- extension 现场观察读取 `${CLAUDE_PLUGIN_ROOT}/protocols/extension-acceptance-contract.md` 和 `${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md`；extension-demo 读取 `${CLAUDE_PLUGIN_ROOT}/guides/extension/demo-testing.md`。设备/环境选择写 index；Flutter Demo 必须记录实际 Android device，不能猜测。
-- 每个 item 持久化 failures_without_progress 和 last_error；失败签名相同、没有新证据时累计，实质进展后才能清零，重派/换模型/会话恢复不清零。前两次可修复并重试；第三次仍无进展转 blocked。仅在上限内、有具体原因且运行时支持时调整模型或补诊断；planner 生成、上下文补充和 accept 无效返回同样不得无界重试，在 index 记录计数。
-- accept 按原角色边界只读检查代码/测试，可写独立验收报告；读取全阶段范围、dev/test evidence、上游待验证场景和 verification-evidence-contract。只允许 `ACCEPTED` 或无 P0/P1 的 `ACCEPTED_WITH_IMPROVEMENTS` 完成；REJECTED 重开对应 dev/test 及受影响下游，accept 转 pending，修复重测后重新验收。主会话不得代出、改写或降级 verdict。
-- accept 不能单独 skipped 来绕过门禁；只有整个 phase 有不适用依据且全部 item skipped 时允许。阶段完成与 feature 业务交付的区别按 verification-evidence-contract。
+- `--phase` 缺失或不合法：终止并提示 `--phase <backend|frontend|extension|miniapp|web-demo|extension-demo|flutter|flutter-demo>` 用法。
+- 设计文档缺失：终止并提示先运行 `/t-design <feature>`。
+- 设计状态未完成或 `check-design.py` 失败：终止并提示恢复 `/t-design <feature>`。
+- 状态 JSON 损坏或结构非法：停止并报告具体字段，不覆盖原文件。
+- 需求来源或 Active Decision 冲突：写入 `blocked`，按 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md` 处理。
+- 验证命令不存在：先从目标项目配置和脚本查明真实入口；无法查明时标记 `blocked`，不得编造命令。
+- 自动修复连续三次得到相同失败且没有新证据：保留失败证据并转为 `blocked`，不要用无界重试掩盖阻塞。计数跨恢复保留；重派 accept 或切换角色不清零，没有实际修复或新增诊断证据不能重置计数。

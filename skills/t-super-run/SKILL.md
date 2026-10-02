@@ -1,6 +1,6 @@
 ---
 name: t-super-run
-description: Plan, execute, repair, and independently accept one explicitly requested delivery phase through a planner and serial role subagents, with persisted item progress and interruption recovery. Use after technical design when planning and execution should run together; use t-task and t-run when the plan needs separate review or execution.
+description: Plan and continuously execute one explicitly requested delivery phase in the main session, with outcome-level status, role-guide switching for dev/test and repairs, persisted recovery, and independent read-only acceptance. Use after technical design to combine planning and execution; use t-task and t-run for separate plan review or item-based subagent execution.
 argument-hint: "[任务名称] --phase <backend|frontend|extension|miniapp|web-demo|extension-demo|flutter|flutter-demo>"
 allowed-tools:
   - Agent
@@ -11,39 +11,117 @@ allowed-tools:
   - Glob
   - Grep
   - Bash
+  - WebSearch
+  - mcp__context7__resolve-library-id
+  - mcp__context7__query-docs
+  - mcp__chrome-devtools__list_pages
+  - mcp__chrome-devtools__select_page
+  - mcp__chrome-devtools__take_snapshot
+  - mcp__chrome-devtools__take_screenshot
+  - mcp__chrome-devtools__list_console_messages
+  - mcp__chrome-devtools__get_console_message
+  - mcp__chrome-devtools__list_network_requests
+  - mcp__chrome-devtools__get_network_request
 ---
 
 # Super Run
 
-一次调用规划、执行并验收 `--phase` 指定的一个阶段。主会话负责门禁、派发、状态、修复路由和遗漏检查；规划交给 `super-run-planner`，实现、测试、验收串行交给对应角色。主会话不写生产代码或测试，不自动执行其他 phase。
+把任务规划与阶段执行合并为一个可恢复闭环。只做 `phase -> task` 目标级规划，由当前主会话直接完成实现、测试和修复；验收按共享协议派发对应只读 accept subagent，除此之外不调用 subagent。每次调用只执行 `--phase` 显式指定的一个 phase；该 phase 完成后停止并报告剩余未完成 phase，不自动进入下一个 phase。
 
-## 入口与来源
+运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+设计生成状态统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-state-contract.md`
 
-1. 校验 feature 和必填 `--phase`；支持列表见参数提示。feature 是单个目录名，允许中文、空格、数字、下划线和连字符，拒绝路径分隔符、`.`、`..`。不适用的 phase 终止，不编造交付端。
-2. 读取 `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`、`${CLAUDE_PLUGIN_ROOT}/protocols/super-run-state-contract.md`。状态、计划产物、恢复和执行规则以该状态协议为准；`.ai/task/` 与本流程独立。
-3. 首次规划或来源变化时运行 `python "${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py" ".ai/design/<feature>.md" --require-complete --json`。失败时停止并报告具体问题；`t-design-check`、`t-prd-check`、`t-task-check` 均不作为强制前置。
-4. 读取 `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md` 和 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`；查阅已有 Decision Log、设计引用和相关来源，避免重复提问。把到期的 Deferred Questions 纳入门禁。纯技术方案绕过 PRD 的条件仍由来源协议约束。
+需求与决策边界统一参考：
 
-## 规划与恢复
+- `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`
 
-- 首次规划、请求 phase 尚未规划或需要重规划时，按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 派发 `${CLAUDE_PLUGIN_ROOT}/agents/super-run-planner.md`。提供目标 phase、设计校验结果、相关来源入口、现有有效计划和证据、待解决问题、下一 revision 的候选目录；只规划请求 phase。
-- planner 的输入、输出和审计规则见状态协议的 Planning Contract。先处理 `needs_user_answer`，再接收计划。用户回答先写 Decision Log 并更新事实所属来源，再重派 planner。
-- 主会话检查来源分类、责任边界、共享文件/接口冲突、测试选择和验证承接。运行计划审计与决策闭合扫描；通过后由主会话合并状态提案并提交 checkpoint。planner 不得覆盖有效计划或 `.state.json`。
-- 重入时先按状态协议处理 `in_progress`、证据失效和旧版本状态，再选择待执行项。相关来源未变且证据有效的 completed item 不重复执行；设计缺失、生成态非 complete 或指纹变化时不得继续派发。
+计划、状态、角色映射、执行顺序、恢复和验收回退规则统一参考：
 
-## 串行派发循环
+- `${CLAUDE_PLUGIN_ROOT}/protocols/super-run-state-contract.md`
 
-1. 按 manifest 顺序选出首个未完成 item；前序 `in_progress` 或 `blocked` 不能被越过。写入本次 attempt 和 `in_progress`，checkpoint 成功后才派发。
-2. 按 subagent-dispatch 注入角色规范，并提供当前 item 全文、阶段 index、必要上游 Handoff、来源与证据入口，以及状态协议的 Dispatch Contract。一次只允许一个 worker 执行；包括内置 runner 在内的 worker 均不得继续派发。
-3. worker 先将验证证据写入 item Handoff 或已有运行报告，再返回 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md` 的结构化结果。主会话核对 revision/attempt、实际交付与证据，按状态协议决定完成、补上下文、修复或阻塞。
-4. 生产缺陷由主会话派发对应 dev 修复；测试角色保持测试边界。修复、复测、accept 拒绝后的重开均按状态协议执行；accept 独立报告，主会话不得代出或降级其结论。
-5. 每次结果、重开或阻塞均提交 checkpoint，重新聚合 slot/phase。仍有可执行 item 时继续，不在 item 之间例行询问是否继续。
+规划测试与验收时读取 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`，将受影响行为的验证入口、关键断言和承接位置写入现有设计测试章节/阶段计划；交付收尾按同一协议核对证据和待验证项。
 
-只加载当前执行所需内容；主会话可以读取当前 Validation、Handoff 和冲突相关正文，不批量加载全部 item 或后续角色 guide。运行与验收读取 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`，不能以文件存在或 worker 自报成功替代验证。
+## 参数
 
-## 完成与停止
+| 参数 | 说明 |
+| --- | --- |
+| `[feature]` | 必填；允许中文、英文、数字、空格、下划线和连字符 |
+| `--phase <backend\|frontend\|extension\|miniapp\|web-demo\|extension-demo\|flutter\|flutter-demo>` | 必填；本次调用只执行该 phase，完成后停止 |
 
-- 只有请求 phase 全部 item 完成或有不适用依据、必要验证有效、accept 通过且最终 checkpoint 成功，才能报告阶段完成。当前 phase 完成后停止，列出其他 phase 和待承接业务验证。
-- 最后承接阶段按证据协议核对所有必要场景；不能把“本阶段通过”当成整个 feature 已验收。
-- 用户决策、权限或外部条件缺失、无进展重试达到上限、状态无法持久化时保留可恢复现场并停止；不弱化断言、删掉必要 item 或用裁决跳过验收。
-- 中断后由同一命令恢复。收尾提供当前 phase/item、改动摘要、证据入口、未完成项和恢复命令。
+## 前置条件
+
+- `--phase` 缺失或不在支持列表内时终止，提示 `--phase <backend|frontend|extension|miniapp|web-demo|extension-demo|flutter|flutter-demo>` 用法。
+- feature 必须是单个目录名，拒绝路径分隔符、`.` 和 `..`。
+- `.ai/design/[feature].md` 必须存在。
+- 按状态协议的 Design Source Gate 校验来源；首次规划运行 `python "${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py" ".ai/design/[feature].md" --require-complete --json`，恢复时核对生成状态、设计文档与指纹。失败时停止，不进入执行；`t-prd-check`、`t-design-check` 和 `t-task-check` 均不是强制前置。
+- 只支持 `backend | frontend | extension | miniapp | web-demo | extension-demo | flutter | flutter-demo`；请求的 phase 不在设计与需求来源识别出的真实交付端内时终止，不得为满足命令而编造交付范围。
+- 不读取或修改 `.ai/task/[feature]/` 作为 super-run 状态。
+- 已有状态且请求的 phase 为 `completed | skipped` 时，按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 核对证据适用性；仍有效则报告阶段结果和待验证项，相关输入变化时按状态协议只重新打开受影响 task 及验收，不选择其他 phase。
+
+## 来源加载
+
+在规划或恢复前：
+
+1. 读取来源门禁取得的全部 `design_documents`、`design_fingerprint` 和现有 `.ai/super-run/[feature]/`。
+2. 按 phase 确认设计输入：backend 读 `backend.md`；frontend/web-demo 读 `frontend.md`；extension/extension-demo 读 `extension.md`；flutter/flutter-demo 读 `flutter.md`；miniapp 读主文档小程序相关部分（当前无 miniapp 分端设计文档）；客户端依赖后端契约时同时读 `backend.md`。
+3. 读取相关 `.ai/prd/**/*.md`、`docs/prd/**/*.md`、`.ai/user-stories/**/*.md` 与 `docs/user-stories/**/*.md`，保留 draft/published 来源边界。
+4. 在任何提问前读取 `.ai/decision-log/[feature].md`；存在时按需读取 `.ai/decision/[feature].md` 与 `.ai/tech-research/[feature].md`。
+5. 按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Phases 启用规则，从设计覆盖矩阵、Operation ID、文件影响表、Decision Trace、代码和配置确定 active phases、task 闭环与真实验证入口；设计主文档声明 Demo 主路径或文件影响表含 `web-demo`/`extension-demo`/`flutter-demo` 行且项目存在对应交付端时，对应 demo phase 计入 active phases，demo 资产由该 phase 交付，不并入 frontend/extension/flutter。
+6. 按 Decision Exposure Gate 分类缺口；`needs_user_answer` 未解决时不得进入实现。
+
+不要无差别加载所有 PRD、用户故事或 guide。先通过 feature 名、设计引用和内容检索定位相关文件，再读取全文。
+
+## 计划与状态
+
+- 按 `${CLAUDE_PLUGIN_ROOT}/protocols/super-run-state-contract.md` 创建或更新：
+  - `.ai/super-run/[feature]/.state.json`
+  - `.ai/super-run/[feature]/[phase].md`
+- backend/frontend/extension/miniapp/flutter 默认规划 `dev -> accept`；需要测试角色编写测试用例、fixture/helper 或专项验证脚本时规划 `dev -> test -> accept`。web-demo/extension-demo/flutter-demo 规划 `dev -> accept`。仅运行现有测试或编译、类型检查、构建时，验证归 dev；accept 核查实际执行证据。
+- 每个 task 只规划一个责任闭环，不生成 item。
+- 把校验结果的 `design_documents` 和 `design_fingerprint` 写入 super-run state；恢复规则见共享协议。
+- 计划必须写明每个 task 要读取的 agent 规范及其关联文档的具体路径。
+- 每个 task 的关联文档必须包含设计主文档和当前 phase 分端设计；消费后端契约时同时包含 `backend.md`。
+- web-demo/dev 的关联文档必须包含 `${CLAUDE_PLUGIN_ROOT}/agents/web-demo-diagnose.md`，用于把 Playwright 失败归因到测试资产、frontend 或 backend 后再切换对应规范修复。
+- extension-demo/dev 的关联文档必须包含 `${CLAUDE_PLUGIN_ROOT}/agents/extension-demo-diagnose.md` 和 `${CLAUDE_PLUGIN_ROOT}/guides/extension/demo-testing.md`，用于把 Playwright 失败归因到测试资产、extension 或 backend 后切换对应规范修复。
+- flutter-demo/dev 的关联文档必须包含 `${CLAUDE_PLUGIN_ROOT}/agents/flutter-demo-diagnose.md`，用于把 Patrol 失败归因到测试资产、Flutter 或 backend 后再切换对应规范修复。
+- extension/dev 或 extension/test 涉及用户当前浏览器现场时，关联文档必须包含 `${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md`；现场证据与角色浏览器工具边界按 `${CLAUDE_PLUGIN_ROOT}/protocols/extension-acceptance-contract.md` 执行，浏览器工具仅用于观察，重载扩展、刷新宿主页面等动作由主会话在任务授权范围内完成。
+
+规划写清目标、成功标准、权限边界、当前角色、证据入口和停止条件，具体实现路径根据仓库事实决定。不要把 `t-task` 的细粒度 item 换一种格式复制进来，也不要用长篇过程指令占用主会话上下文。
+
+## 执行
+
+循环执行直到 phase 完成或进入真正阻塞：
+
+1. 按 Design Source Gate 核对设计生成状态、文档与指纹；变化时先按共享协议重规划。
+2. 按状态协议选择首个未完成 task；`blocked` 先核对解除条件，未解除则停止，不能跳到后续 task。
+3. dev/test task：读取该 task 的 agent 规范全文及计划列出的关联文档，把它们作为主会话当前角色边界。accept task：按共享协议派发对应只读 accept subagent，并把报告结论映射回状态。
+4. 写入 `in_progress`，执行交付、最小可靠验证和必要修复。
+5. 写入 `completed` 与证据，重新聚合 phase，继续下一个 task。
+6. 失败时先写 `failed` 与证据；能够基于新证据修复时继续闭环，否则写 `blocked` 并停止本次执行。
+7. accept 拒绝时按共享协议重新打开 dev 或已规划的 test，再次验证和验收。
+
+每次显著步骤后把完成内容、验证证据、剩余工作和 handoff 写入状态或 phase 计划，确保上下文压缩后能从文件恢复。
+
+持续执行由本 skill 的循环推进；仍有可执行 task 时继续，不在 task 之间例行询问是否继续。中断后用同一命令从已落盘状态恢复。
+
+## 禁止事项
+
+- 为 dev/test 调用 `Agent`、并行 subagent 或任何以 subagent 做上下文隔离的调度；accept 只允许串行派发计划中对应的只读 accept agent，不得派发其他角色。
+- 自动进入、规划或恢复未被本次调用显式请求的 phase。
+- 生成 `.ai/task/` 的 manifest/item，或修改 `t-task/t-run` 状态。
+- 把 accept 角色改为实现角色，或让 accept 直接修复代码。
+- 跳过测试、弱化断言、忽略失败或把 `blocked` 当作阶段完成。
+- 在无真实兼容约束时保留被设计明确替换的旧路径。
+
+## 完成条件
+
+只有同时满足以下条件才报告当前 phase 完成：
+
+- 当前 phase 的全部 task 为 `completed | skipped`。
+- 当前设计来源门禁通过且指纹与 `sources.design.fingerprint` 一致。
+- 计划中的验证已经执行并有证据。
+- accept task 给出允许进入下游的结论；整个 phase 为 `skipped` 时必须有明确不适用证据。
+- `.state.json` 已按最终结果聚合。
+
+输出当前 phase、task 状态、主要变更、验证证据和剩余未完成 phase，然后停止本次调用；剩余 phase 由用户再次显式传入 `--phase` 启动。仅当全部 active phases 已完成且按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 核对全部必要场景均有有效证据时，报告 feature 的 super-run 已完成；否则列出待验证项并按共享协议重新打开承接验收，不宣称交付完成。
