@@ -44,6 +44,9 @@ t-design user-management
 # 合并任务规划、实现与测试，按 phase 执行；其他 phase 重复同样闭环
 t-super-run user-management --phase backend
 
+# 或无人值守连跑全部剩余 phase：每 phase 完成后自动接续 t-review --fix -> t-simplify -> t-push
+t-super-run-all user-management
+
 # Web Demo/E2E 与最终验收（扩展、Flutter 有独立入口）
 t-web-demo-run demo/e2e/<role>/<scenario>.e2e.ts
 t-web-demo-accept <role>
@@ -71,7 +74,7 @@ t-prd-publish user-management
 - `extension-demo`：基于用户故事维护真实加载扩展的 Playwright 集成演示，验收跨上下文用户路径、权限和生命周期。
 - `flutter-demo`：基于用户故事维护 Android Patrol 演示，覆盖真实 App 操作与原生系统 UI。
 
-每个 phase 的默认闭环是 `t-super-run`：主会话生成目标级阶段计划，并按当前角色规范持续完成实现、测试和修复；accept 派发对应只读 subagent 独立验收。不生成细粒度 item，也不依赖额外的持续运行命令。`--phase` 必填，每次只执行一个 phase，完成后停止；中断后用同一命令恢复。`.ai/super-run/` 保存阶段计划、执行状态和证据入口。快速上手以 backend 为例，全部 supported phase（含 extension 和 miniapp）均可走该路径。需要单独审阅任务计划、细粒度 item 或 dev/test 子 agent 分工时，使用 `t-task -> [t-task-check]（可选，按风险）-> t-run` 标准链路；两套状态互相独立。
+每个 phase 的默认闭环是 `t-super-run`：主会话生成目标级阶段计划，并按当前角色规范持续完成实现、测试和修复；accept 派发对应只读 subagent 独立验收。不生成细粒度 item，也不依赖额外的持续运行命令。`--phase` 必填，每次只执行一个 phase，完成后停止；中断后用同一命令恢复。`.ai/super-run/` 保存阶段计划、执行状态和证据入口。快速上手以 backend 为例，全部 supported phase（含 extension 和 miniapp）均可走该路径。需要无人值守一次跑完剩余 phase 时，运行 `t-super-run-all <feature>`：按规范顺序逐 phase 执行同一闭环，每个 phase 完成后自动接续 `t-review --fix -> t-simplify -> t-push` 质量链再进入下一个 phase（`t-prd-publish`、`t-release` 仍手工触发）；接力与游标规则见 [super-run-all-pipeline 协议](protocols/super-run-all-pipeline.md)。需要单独审阅任务计划、细粒度 item 或 dev/test 子 agent 分工时，使用 `t-task -> [t-task-check]（可选，按风险）-> t-run` 标准链路；两套状态互相独立。
 
 扩展项目按 [扩展初始化指南](guides/extension/initialization.md) 准备 WXT 工程（已有工程跳过；`t-init` 不生成 WXT 生产工程）。需要集成测试基础设施时，在目标项目根目录运行 `t-init --extension-demo`；多个扩展目录用 `--extension-dir <path>` 指定，独立工程可指定 `.`。该模式增量生成 Playwright 配置、扩展 fixture、真实加载 smoke 和本地运行说明；保留现有 Web Demo，初始化通过不代表用户故事验收。需求来源齐备后，运行 `t-design <feature>`、`t-super-run <feature> --phase extension`；设计要求用户故事演示时再运行 `t-super-run <feature> --phase extension-demo`。`t-design` 由独立的 [extension-design](agents/extension-design.md) 角色生成 `extension.md`，覆盖入口、权限、消息/存储、生命周期与浏览器验证；Web 与扩展同时交付时分别设计。演示 fixture、环境与验收按 [扩展演示指南](guides/extension/demo-testing.md)。
 

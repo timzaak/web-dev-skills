@@ -13,6 +13,8 @@
 - Flutter 项目：`backend -> flutter -> flutter-demo`
 - 多端项目：`backend -> frontend/extension/miniapp/flutter -> web-demo/extension-demo/flutter-demo`，只包含实际交付端，固定排序为 `frontend -> extension -> miniapp -> flutter -> web-demo -> extension-demo -> flutter-demo`
 
+`t-super-run-all` 连跑全部 phase 时的 pipeline 投影顺序与每阶段质量链见 `${CLAUDE_PLUGIN_ROOT}/protocols/super-run-all-pipeline.md`。
+
 业务行为的验证责任、后续阶段承接和最终交付门禁按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 执行；未启用 Demo 时也必须为受影响行为安排适用的运行验证。
 
 ## Slot Order

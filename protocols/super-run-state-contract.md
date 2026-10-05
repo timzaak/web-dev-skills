@@ -22,6 +22,7 @@ super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相
 - `.state.json` 是 super-run 状态的唯一事实源。
 - `<phase>.md` 是当前 phase 的目标级计划，不生成 slot manifest、item 目录或 item 文件。
 - 只创建本次显式请求且适用的 phase 对应的计划文件。
+- `.pipeline.json`（如存在）属于 `t-super-run-all` 的质量链游标，契约见 `${CLAUDE_PLUGIN_ROOT}/protocols/super-run-all-pipeline.md`；`t-super-run` 不读取、不校验、不修改该文件，其存在与否不影响状态结构判定。
 
 ## Supported Phases And Tasks
 
