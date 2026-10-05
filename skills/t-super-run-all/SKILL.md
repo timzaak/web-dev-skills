@@ -65,7 +65,7 @@ phase 内来源加载、计划、状态、执行与验收规则统一参考：
 
 ## 执行循环
 
-每轮迭代先运行下一步计算，按返回的 `action` 执行；禁止凭内存中的 phase 列表推进：
+每轮迭代先按 pipeline 契约的 Push 前门禁核对来源和已完成证据，再运行下一步计算，按返回的 `action` 执行；禁止凭内存中的 phase 列表推进：
 
 ```bash
 python "${CLAUDE_PLUGIN_ROOT}/scripts/super-run-next.py" "<feature>" --json
@@ -73,9 +73,11 @@ python "${CLAUDE_PLUGIN_ROOT}/scripts/super-run-next.py" "<feature>" --json
 
 - `plan_first_phase`：按 `super-run-state-contract` 的来源加载与计划规则识别 `active_phases`、创建 `.state.json` 和首个 phase 计划，然后执行该 phase。
 - `run_phase`：按 `super-run-state-contract` 完整执行或恢复该 phase 的闭环（来源加载、计划与状态、执行循环、完成条件全部继承）；phase 聚合为 `completed | skipped` 后进入质量链。
-- `review`：先写 `in_progress`，读取 `${CLAUDE_PLUGIN_ROOT}/skills/t-review/SKILL.md` 并按 `--fix` 模式完整执行；存在未修复的 CONFIRMED 发现或阻塞级未决 PLAUSIBLE 时不得写 `completed`，需要用户裁决时写 `blocked`。
+- `reset_quality`：按 pipeline 的输入绑定与失效规则重置指定 phase 的质量链，再重算动作。
+- `check_blocked`：按 pipeline 的失败与恢复规则先复核解除条件；有新证据时只恢复对应 task/step，无变化则保留 blocked 并停止，不能直接重试。
+- `review`：首次绑定脚本返回的 `input_fingerprint`，先写 `in_progress`，读取 `${CLAUDE_PLUGIN_ROOT}/skills/t-review/SKILL.md` 并按 `--fix` 模式完整执行；完整发现集存在未修复的 CONFIRMED 或阻塞级未决 PLAUSIBLE 时不得写 `completed`，需要用户裁决时写 `blocked`。
 - `simplify`：先把 `.pipeline.json` 对应 step 写 `in_progress`，读取 `${CLAUDE_PLUGIN_ROOT}/skills/t-simplify/SKILL.md` 并按其完整流程执行，覆盖 review --fix 的修复代码；`NO_CHANGES` 视为完成。
-- `push`：先写 `in_progress`，读取 `${CLAUDE_PLUGIN_ROOT}/skills/t-push/SKILL.md` 并按其固定流程执行（注释清理、commit message 总结、`push.py` 同一 session 复用规则）；CI 或 push 失败按该 skill 的失败规则修复后重跑。
+- `push`：先写 `in_progress` 并持久化本 step 的 CI session，读取 `${CLAUDE_PLUGIN_ROOT}/skills/t-push/SKILL.md`；按 pipeline 的 Push 前门禁执行预检查、证据核对及必要重新验收，再带已验收指纹提交推送。失败按其恢复契约处理，远端确认目标 commit 后才写 `completed`。
 - `status=done`：进入完成报告。
 - `status=blocked` 或 `error`：停止并报告阻塞点、证据与恢复入口。
 
@@ -100,7 +102,7 @@ python "${CLAUDE_PLUGIN_ROOT}/scripts/super-run-next.py" "<feature>" --json
 
 ## 失败处理
 
-- phase 或质量链步骤 `blocked`：停止，报告阻塞点、证据与建议的用户裁决。
+- phase 或质量链步骤 `blocked`：先复核解除条件，仍阻塞时停止，报告阻塞点、证据与建议的用户裁决。
 - 同一质量链步骤连续三次失败且无新证据：写 `blocked` 并停止，不用无界重试掩盖阻塞。
 - `super-run-next.py` 返回 `error`（状态或游标损坏、结构非法）：停止并保留原文件，恢复方案需先由用户确认。
 - 设计指纹变化按 `super-run-state-contract` 的 Design Source Gate 处理（重读设计、只重开受影响 task），不额外停车；无法确定影响范围时按该协议停止并请求用户裁决。

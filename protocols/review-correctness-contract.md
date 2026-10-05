@@ -71,7 +71,7 @@ finder 不得自行过滤“半信半疑”的候选：凡 `failure_scenario` �
 - CONFIRMED 发现由主会话切换到受影响端的 dev 角色边界修复：从 `${CLAUDE_PLUGIN_ROOT}/agents/` 读取对应的 dev agent 规范（`backend-dev.md`、`frontend-dev.md`、`extension-dev.md`、`miniapp-dev.md`、`flutter-dev.md`、`web-demo-dev.md`、`extension-demo-dev.md`、`flutter-demo-dev.md`）作为当前角色边界（与 `t-super-run` 的主会话角色切换一致），不为此新派 subagent。
 - PLAUSIBLE 发现先按其 `failure_scenario` 复现或确认；能确认的视同 CONFIRMED 修复，无法确认的保留为 pending 并写明确认途径。
 - 会改变预期行为的修法跳过并标记 pending；不得用弱化断言、放宽校验、改需求含义或改写 verifier 结论的方式消除发现。
-- 每条修复后运行覆盖所改文件的最小定向验证；结果以 `## Fixes` 小节追加进同一报告。
+- 修复与下游门禁消费完整 CONFIRMED/PLAUSIBLE 集合，不受报告摘要的 8 条上限约束；每条修复后运行覆盖所改文件的最小定向验证，结果以 `## Fixes` 小节追加进同一报告。修复使阶段证据失效时交回编排层补跑必要回归并重新独立 accept，不能把 fixed 当作重新验收通过。
 - 同一发现连续三次修复失败且无新证据时标记 blocked 并停止，保留失败证据。
 
 ## Report
@@ -102,6 +102,6 @@ finder 不得自行过滤“半信半疑”的候选：凡 `failure_scenario` �
 - file:line | pending | 原因或确认途径
 ```
 
-超出上限时按严重度截断；无存留发现时“发现”节为空并如实写入结论。
+“发现”摘要最多展示 8 条；超出时在同一报告追加 `## 完整发现集`，保留全部 CONFIRMED/PLAUSIBLE 的定位、failure_scenario、证据和处置状态。结论统计与 `## Fixes` 覆盖完整集合，未展示在摘要中不代表已排除或已解决；中断恢复从完整集合继续。无存留发现时“发现”节为空并如实写入结论。
 
 inline 降级模式（Agent tool 不可用）的报告必须在结论中声明：这是单主会话单遍审查，未经独立 verifier 验证。

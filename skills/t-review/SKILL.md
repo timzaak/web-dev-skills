@@ -67,13 +67,13 @@ allowed-tools:
 
 1. 聚合全部候选，按契约 Dedup 规则去重。
 2. Read `${CLAUDE_PLUGIN_ROOT}/agents/review-verifier.md` 全文，启动 1 个 `review-verifier` sub agent，注入全部去重后候选与获取 diff 的命令，逐条获得 CONFIRMED / PLAUSIBLE / REFUTED。
-3. 保留 CONFIRMED 与 PLAUSIBLE，按严重度排序、上限 8 条，按契约把报告写入 `.ai/quality/review-[YYYYMMDD-HHMMSS].md`。
+3. 保留完整 CONFIRMED 与 PLAUSIBLE 集合，按契约把报告写入 `.ai/quality/review-[YYYYMMDD-HHMMSS].md`；摘要展示与完整集合的持久化规则以共享契约为准。
 4. 以简要总结收尾：几项确认、几项存疑、排除了多少误报；有发现时给出修复入口建议（t-super-run / 主会话修复后可重跑复核），无发现时明确"未发现正确性缺陷"。
 5. 传入 `--fix` 时继续执行 Phase 3 — 修复。
 
 ### Phase 3 — 修复（仅 `--fix`）
 
-报告写入后处置全部保留发现；Phase 1/2 与报告内容保持只读不变：
+报告写入后处置完整发现集（含摘要未展示项）；Phase 1/2 与原始审查结论保持只读不变。恢复时读取同一报告的完整集合与 Fixes，从未解决项继续：
 
 1. PLAUSIBLE 发现先按其 `failure_scenario` 尝试复现或确认；能确认的视同 CONFIRMED 处置，无法确认的保留为 pending 并写明确认途径。
 2. CONFIRMED 发现由主会话切换到受影响端的 dev 角色边界修复：读取对应 `agents/<端>-dev.md` 作为当前角色边界（与 `t-super-run` 的主会话角色切换一致），不为此新派 subagent。

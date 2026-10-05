@@ -2,6 +2,7 @@
 import argparse
 import hashlib
 import json
+import os
 import shlex
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -339,7 +340,128 @@ def normalize_commit_message(explicit_message: str | None) -> str | None:
     return message or None
 
 
-def stage_commit_push(message: str) -> str:
+def worktree_fingerprint() -> str:
+    files = git("ls-files", "--cached", "--others", "--exclude-standard", "-z", capture=True)
+    ensure_success(files, "Unable to snapshot the working tree.")
+    digest = hashlib.sha256()
+    for name in sorted(set(split_z_output(files.stdout))):
+        if name.replace("\\", "/").startswith(".ai/"):
+            continue
+        path = REPO_ROOT / name
+        if not path.exists() and not path.is_symlink():
+            continue
+        digest.update(name.encode("utf-8") + b"\0")
+        if path.is_symlink():
+            digest.update(b"symlink\0" + os.readlink(path).encode("utf-8"))
+        elif path.is_file():
+            digest.update(str(path.stat().st_mode & 0o111).encode("ascii") + b"\0")
+            content = hashlib.sha256()
+            with path.open("rb") as stream:
+                for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                    content.update(chunk)
+            digest.update(content.digest())
+        else:
+            raise RuntimeError(f"Cannot snapshot non-file git entry: {name}")
+        digest.update(b"\0")
+    return "sha256:" + digest.hexdigest()
+
+
+def push_record_path(session: str) -> Path:
+    return git_private_path(f"t-tools-push-ci/{session}-push.json")
+
+
+def save_push_record(session: str, record: dict) -> None:
+    path = push_record_path(session)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_suffix(".tmp")
+    temporary.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+    temporary.replace(path)
+
+
+def load_push_record(session: str) -> dict | None:
+    path = push_record_path(session)
+    if not path.exists():
+        return None
+    try:
+        record = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f"Invalid push recovery record: {path}") from exc
+    if not isinstance(record, dict) or record.get("status") not in ("committing", "pending", "completed"):
+        raise RuntimeError(f"Invalid push recovery record: {path}")
+    for field in ("branch", "remote", "ref", "base_head", "message", "fingerprint"):
+        if not isinstance(record.get(field), str) or not record[field]:
+            raise RuntimeError(f"Invalid push recovery field: {field}")
+    if record["status"] != "committing" and (not isinstance(record.get("commit"), str) or not record["commit"]):
+        raise RuntimeError("Push recovery record is missing its commit.")
+    return record
+
+
+def current_head() -> str:
+    result = git("rev-parse", "HEAD", capture=True)
+    ensure_success(result, "Unable to resolve HEAD.")
+    return result.stdout.strip()
+
+
+def push_target() -> tuple[str, str, str]:
+    branch = git("symbolic-ref", "--quiet", "--short", "HEAD", capture=True)
+    ensure_success(branch, "Push requires a branch, not detached HEAD.")
+    name = branch.stdout.strip()
+    remote = git("config", "--get", f"branch.{name}.remote", capture=True)
+    ref = git("config", "--get", f"branch.{name}.merge", capture=True)
+    ensure_success(remote, "Configure an upstream remote before pushing.")
+    ensure_success(ref, "Configure an upstream branch before pushing.")
+    if remote.stdout.strip() == "." or not ref.stdout.strip().startswith("refs/heads/"):
+        raise RuntimeError("Push requires an external upstream branch.")
+    return name, remote.stdout.strip(), ref.stdout.strip()
+
+
+def remote_contains(record: dict) -> bool:
+    result = git("ls-remote", "--exit-code", record["remote"], record["ref"], capture=True)
+    if result.returncode == 2:
+        return False
+    ensure_success(result, "Unable to confirm the remote branch.")
+    remote_head = result.stdout.split()[0]
+    if remote_head == record["commit"]:
+        return True
+    fetched = git("fetch", "--no-tags", record["remote"], record["ref"], capture=True)
+    ensure_success(fetched, "Unable to inspect the remote commit ancestry.")
+    ancestor = git("merge-base", "--is-ancestor", record["commit"], "FETCH_HEAD", capture=True)
+    if ancestor.returncode not in (0, 1):
+        ensure_success(ancestor, "Unable to confirm remote commit ancestry.")
+    return ancestor.returncode == 0
+
+
+def finish_push(session: str, record: dict) -> str:
+    if not remote_contains(record):
+        result = git("push", record["remote"], f"{record['commit']}:{record['ref']}")
+        ensure_success(result, f"Push failed. Commit {record['commit']} remains local; reuse CI session {session}.")
+    if not remote_contains(record):
+        raise RuntimeError(f"Remote has not confirmed commit {record['commit']}.")
+    record["status"] = "completed"
+    save_push_record(session, record)
+    return record["commit"]
+
+
+def resume_push(session: str, record: dict) -> str | None:
+    if push_target() != (record["branch"], record["remote"], record["ref"]):
+        raise RuntimeError("Push target changed; preserve the recovery record and resolve it before retrying.")
+    head = current_head()
+    if record["status"] == "committing":
+        if head == record["base_head"]:
+            return None
+        parent = git("rev-parse", "HEAD^", capture=True)
+        message = git("log", "-1", "--format=%B", capture=True)
+        if parent.returncode != 0 or parent.stdout.strip() != record["base_head"] or message.stdout.strip() != record["message"]:
+            raise RuntimeError("Cannot identify the interrupted commit; preserve the recovery record.")
+        record.update(status="pending", commit=head)
+        save_push_record(session, record)
+    if head != record["commit"] or worktree_fingerprint() != record["fingerprint"] or any(not name.startswith(".ai/") for name in changed_files()):
+        raise RuntimeError("Code changed after the recorded commit; revalidate it before starting a new push session.")
+    return finish_push(session, record)
+
+
+def stage_commit_push(message: str, *, ci_session: str, expected_fingerprint: str | None = None) -> str:
+    branch, remote, ref = push_target()
     add = git("add", "-A")
     ensure_success(add, "Unable to stage changes.")
 
@@ -353,30 +475,57 @@ def stage_commit_push(message: str) -> str:
     print(cached_stat.stdout.rstrip(), flush=True)
     print(f"Commit message: {message}", flush=True)
 
+    fingerprint = worktree_fingerprint()
+    if expected_fingerprint is not None and fingerprint != expected_fingerprint:
+        raise RuntimeError("Working tree changed after acceptance; revalidate before committing.")
+    record = {
+        "status": "committing", "branch": branch, "remote": remote, "ref": ref,
+        "base_head": current_head(), "message": message, "fingerprint": fingerprint,
+    }
+    save_push_record(ci_session, record)
+
     commit = git("commit", "-m", message)
     ensure_success(commit, "Unable to create commit.")
 
-    rev = git("rev-parse", "--short", "HEAD", capture=True)
-    ensure_success(rev, "Unable to resolve commit hash.")
-    commit_hash = rev.stdout.strip()
-
-    push_result = git("push")
-    if push_result.returncode != 0:
-        raise RuntimeError(f"Push failed. Commit {commit_hash} remains local.")
-    return commit_hash
+    record.update(status="pending", commit=current_head())
+    save_push_record(ci_session, record)
+    if worktree_fingerprint() != fingerprint or any(not name.startswith(".ai/") for name in changed_files()):
+        raise RuntimeError("Commit hooks changed the working tree; revalidate before pushing.")
+    return finish_push(ci_session, record)
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Run scoped local CI, then commit and push git changes.")
-    parser.add_argument("-m", "--message", required=True, help="Commit message summarized by the AI from the actual git changes.")
+    parser.add_argument("-m", "--message", help="Commit message summarized by the AI from the actual git changes.")
     parser.add_argument("--ci-session", required=True, help="Fresh id for this t-push execution; reuse only for its retries.")
     parser.add_argument("--force-checks", action="store_true", help="Ignore cached successful area checks and rerun selected local CI.")
-    args = parser.parse_args()
+    parser.add_argument("--check-only", action="store_true", help="Run local CI and print a worktree fingerprint without committing or pushing.")
+    parser.add_argument("--expected-fingerprint", help="Require the accepted worktree fingerprint before and after CI, and before commit.")
+    args = parser.parse_args(argv)
 
     try:
+        ci_session = normalize_ci_session(args.ci_session)
+        if args.expected_fingerprint is not None and worktree_fingerprint() != args.expected_fingerprint:
+            raise RuntimeError("Working tree differs from the accepted fingerprint; revalidate before pushing.")
+        if not args.check_only:
+            record = load_push_record(ci_session)
+            if record is not None:
+                commit_hash = resume_push(ci_session, record)
+                if commit_hash is not None:
+                    print(f"Changes committed and pushed: {commit_hash}")
+                    return 0
         status = git_status_short()
         if not status:
-            print("No git changes detected; nothing to push.")
+            if args.check_only:
+                print(f"Validated worktree fingerprint: {worktree_fingerprint()}")
+                return 0
+            branch, remote, ref = push_target()
+            record = {"status": "pending", "branch": branch, "remote": remote, "ref": ref,
+                      "base_head": current_head(), "commit": current_head(),
+                      "message": args.message or "Retry existing commit", "fingerprint": worktree_fingerprint()}
+            save_push_record(ci_session, record)
+            commit_hash = finish_push(ci_session, record)
+            print(f"Existing commit confirmed on remote: {commit_hash}")
             return 0
 
         print("Git status:")
@@ -388,9 +537,8 @@ def main() -> int:
 
         areas = detect_areas(files)
         message = normalize_commit_message(args.message)
-        if message is None:
+        if message is None and not args.check_only:
             raise RuntimeError("Commit message is required.")
-        ci_session = normalize_ci_session(args.ci_session)
         checks = ", ".join(sorted(areas)) if areas else "none"
         print(f"Changed files: {len(files)}")
         print(f"Selected CI areas: {checks}")
@@ -398,7 +546,13 @@ def main() -> int:
         print(f"Commit message: {message}")
 
         run_ci(areas, ci_session=ci_session, force_checks=args.force_checks)
-        commit_hash = stage_commit_push(message)
+        fingerprint = worktree_fingerprint()
+        if args.expected_fingerprint is not None and fingerprint != args.expected_fingerprint:
+            raise RuntimeError("Local CI modified the accepted code; revalidate before committing or pushing.")
+        if args.check_only:
+            print(f"Validated worktree fingerprint: {fingerprint}")
+            return 0
+        commit_hash = stage_commit_push(message, ci_session=ci_session, expected_fingerprint=args.expected_fingerprint)
         print(f"Changes committed and pushed: {commit_hash}")
         return 0
     except Exception as exc:

@@ -9,6 +9,8 @@ allowed-tools:
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
+提交前输入门禁、调用模式和中断恢复统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/push-execution-contract.md`；执行脚本前读取。pipeline 调用时先预检查、核对必要验证及独立 accept，再带已验收指纹提交。
+
 ## Fixed Flow
 
 先由 AI 读取 `git status --short` 和必要的 `git diff`，识别本次变更涉及的源码文件。
@@ -25,7 +27,7 @@ uv run ${CLAUDE_PLUGIN_ROOT}/scripts/push.py --ci-session "<本次 t-push sessio
 
 session 规则只说一次：同一次 `/t-push` 执行内（含 CI 失败后 AI 修复重跑）复用同一 session id；新的 `/t-push` 执行必须生成新 session id，避免复用上一次的区域通过缓存。
 
-脚本负责：检测 backend/frontend/demo 变更范围并为受影响区域并发运行本地 CI（区域 CI 内容见下节）；按 session 记录每个区域通过 CI 时的 diff 指纹，重跑时已通过且 diff 未变的区域直接跳过；CI 全部通过后执行 `git add -A`、`git commit` 和 `git push`。无变更或缺少 `--message` 时脚本自行停止。
+脚本负责：检测 backend/frontend/demo 变更范围并为受影响区域并发运行本地 CI（区域 CI 内容见下节）；按 session 记录每个区域通过 CI 时的 diff 指纹，重跑时已通过且 diff 未变的区域直接跳过；CI 全部通过后执行 `git add -A`、`git commit` 和推送目标分支。无 diff 时仍核对并补推现有 commit；预检查和提交前指纹参数见共享契约。未提交变更需要 `--message`。
 
 ## CI Rules
 
@@ -39,4 +41,4 @@ session 规则只说一次：同一次 `/t-push` 执行内（含 CI 失败后 AI
 ## Failure
 
 - 任一 CI 步骤失败：脚本停止且不 commit/push，并输出失败区域和步骤；AI 根据错误信息修复代码后，用同一 session id 重新运行脚本，直到通过。
-- commit/push 失败：脚本停止并报告错误；push 失败时本地 commit 已保留。
+- commit/push 失败：脚本停止并报告错误；按共享契约用同一 session 恢复本地 commit 并确认远端，不生成重复提交；代码变化时先重新验证和验收。

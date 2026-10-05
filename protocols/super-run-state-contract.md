@@ -106,6 +106,10 @@ Task 必填字段：
 
 只接受上述 `phase -> tasks` 结构。发现版本化 item/slots 状态或损坏 JSON 时停止并保留原目录，不自动转换或按旧 dev/test 完成状态推定目标已完成；恢复方案需先由用户确认。
 
+校验时 `feature` 必须与请求目录一致；`active_phases` 是非空、无重复的 supported phase 字符串列表，`phases` 只包含其已规划成员。每个已规划 phase 必须有非空 `plan`、合法 `status` 和包含 dev/accept（非 Demo 可额外含 test）的 `tasks`；task 的 agent_spec 为非空字符串，references/evidence 为字符串列表，计数为非负整数且不接受布尔值。`sources.design` 必须包含 main、非空 documents 列表和 fingerprint，requirements/decisions/research 为列表。phase 状态必须与 task 聚合一致，accept 不可单独 skipped。非法字段必须返回具体错误，不把结构非法视为新 phase 或已完成。
+
+completed/skipped task 的 evidence 不可为空，分别指向完成或不适用依据；字段非空不代表证据有效，执行时仍按 verification-evidence-contract 复核。
+
 ## Design Source Gate
 
 首次规划运行：
@@ -139,6 +143,8 @@ python "${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py" ".ai/design/<feature>.md"
 按 `dev -> test（适用时）-> accept` 选择首个未完成 task；前序 `blocked` 先核对解除条件，未解除则停止，不能越过。每次状态变化后聚合 phase：任一 blocked → blocked；否则任一 failed → failed；否则任一 in_progress → in_progress；否则任一 pending → pending；全部 skipped → skipped；其余 completed/skipped → completed。accept 不可单独 skipped 绕过门禁，仅整个 phase 有不适用依据且全部 task skipped 时允许。
 
 按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 发现完成证据失效时，将受影响的 completed task 及对应 accept 置为 pending，失效的已完成下游验证同步重新打开，记录原因并重新聚合 phase；无关 task 保持原状态。仅更新恢复入口，不执行未请求的 phase。缺失证据同样需要补验；skipped 复核不适用依据。
+
+每个 phase 的 `validation_revision` 初始缺省为 0，必须为非负整数。因输入变化、缺失/失效证据或验收拒绝而重新打开已完成/跳过的 task 时，在同一次状态写入中将对应 phase 的 revision 加一；同一轮失效一次即可，不在例行重试、in_progress 恢复或状态聚合时递增。修复并重新验收后保留新 revision，不归零；即使计划和报告路径复用也能区分不同验收轮次。`t-super-run` 只更新自己的 phase 记录，不操作 pipeline 游标。
 
 恢复 `in_progress` task 时，先检查工作区、已有交付物和验证证据，再从未满足的完成条件继续；不得把中断状态直接视为成功，也不得无条件重复可能产生副作用的动作。
 
