@@ -25,7 +25,7 @@
 
 这些文件表达当前工作流中的候选需求、决策和技术事实。它们可供设计、任务、实现、测试和 Demo 阶段追溯，但不是长期权威源。
 
-`.ai/decision-log/**/*.md` 是当前 feature 跨阶段决策连续性的结构化来源。其记录规则、稳定 ID 和用户决策暴露门禁统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`。
+`.ai/decision-log/**/*.md` 是当前 feature 跨阶段决策连续性的结构化来源。其记录规则、稳定 ID 和用户决策暴露门禁统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`。已发布 feature 的账本随 `/t-prd-publish` 内化进正式 PRD 后移除；后续轮次从已发布产物重建，不得因账本缺失停止。
 
 ## Read Rules
 
