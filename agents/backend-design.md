@@ -1,6 +1,6 @@
 ---
 name: backend-design
-description: Java Spring Boot 后端技术设计专家。负责生成分端后端设计文档，拥有 API 契约的单一设计权，产出可直接进入 /t-task 的后端设计。
+description: Java Spring Boot 后端技术设计专家。负责生成分端后端设计文档，拥有 API 契约的单一设计权，产出可直接进入 /t-super-run 的后端设计。
 tools:
   - Read
   - Glob

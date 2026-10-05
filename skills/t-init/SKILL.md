@@ -1,7 +1,7 @@
 ---
 name: t-init
-description: Initialize a full-stack project skeleton with Java Spring Boot backend and React frontend (TypeScript + TanStack + Tailwind).
-argument-hint: "<project-name>"
+description: Initialize a full-stack project skeleton with Java Spring Boot backend and React frontend (TypeScript + TanStack + Tailwind), or use --extension-demo to add Playwright integration-test infrastructure to an existing WXT extension; does not implement feature stories or perform their acceptance.
+argument-hint: "<project-name> | --extension-demo [--extension-dir <path>]"
 allowed-tools:
   - AskUserQuestion
   - Read
@@ -17,22 +17,34 @@ allowed-tools:
 
 # 项目初始化
 
-初始化一个全栈项目骨架：Java Spring Boot 后端 + React 前端 (TypeScript + TanStack + Tailwind) + Demo E2E。
+初始化全栈项目骨架（Java Spring Boot 后端 + React 前端 + Demo E2E），或为已有 WXT 扩展补齐 extension-demo 基础设施。先按参数选择模式；两个模式不串行执行。
+
+## 模式路由
+
+| 参数 | 目标与执行入口 |
+| --- | --- |
+| `<project-name>` | 创建 Java Spring Boot + React + Web Demo 全栈工程，执行下文流程 |
+| `--extension-demo [--extension-dir <path>]` | 在当前目标项目根目录增量初始化扩展 Demo，仅读取并执行 [extension-demo 初始化流程](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/extension-demo-init.md)，完成后返回 |
+
+拒绝混用项目名和 `--extension-demo`、单独使用 `--extension-dir` 或未知参数，并给出以上用法。扩展模式不创建新的 WXT 工程、不执行下文全栈生成步骤。
 
 ## 适用范围
 
 仅在以下场景使用：
 - 用户明确执行 `/t-init <project-name>`
+- 用户明确执行 `/t-init --extension-demo` 或要求为已有扩展搭建集成测试基础设施
 - 用户要求创建新项目、初始化全栈项目骨架
 - 用户提到 "搭建项目""新建项目""项目初始化"
 
 不要用于：
-- Chrome 扩展初始化：本入口尚无 WXT 模板；按 [extension 初始化指南](${CLAUDE_PLUGIN_ROOT}/guides/extension/initialization.md) 搭建 WXT 工程，再走设计与 extension 标准任务阶段
-- 已有项目的增量开发
+- Chrome 扩展生产工程初始化：按 [extension 初始化指南](${CLAUDE_PLUGIN_ROOT}/guides/extension/initialization.md) 搭建 WXT 工程；工程就绪后可用扩展模式补齐 Demo
+- 已有项目的业务增量开发（扩展 Demo 基础设施初始化除外）
 - 代码修改或重构
 - 单纯的前端或后端初始化（如果明确只做一侧，提示用户本 skill 生成完整全栈）
 
 ## 参数
+
+以下参数与流程仅适用于全栈模式。
 
 - `$ARGUMENTS` = 项目名称（必须）
 - 仅允许英文、数字、连字符、下划线；拒绝 `..`、`/`、`\`；长度 1-50 字符

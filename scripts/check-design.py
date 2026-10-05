@@ -30,7 +30,7 @@ STACK_HEADINGS = {
     "backend": ("## 4. API 接口设计", "## 9. 详细设计", "## 12. 文件影响范围"),
     "frontend": ("## 4. 用户体验流", "### 5.3 页面结构 / 线框说明", "## 9. 详细设计", "## 11. 文件影响范围"),
     "extension": ("## 4. 入口与交互", "## 5. 权限与上下文", "## 6. 消息与存储", "## 7. 测试与验收", "## 9. 文件影响范围"),
-    "flutter": ("## 4. 用户体验流", "### 6.1 API 依赖", "## 12. 详细设计", "## 14. 文件影响范围"),
+    "flutter": ("## 4. 用户体验流", "### 6.1 API 依赖", "详细设计（Flutter", "文件影响范围（Flutter"),
 }
 PLACEHOLDERS = re.compile(
     r"\[(?:方案名称|feature|真实仓库路径|operationId|REQ/US-ID)\]"
@@ -171,14 +171,17 @@ def validate(main_path: Path, repo_root: Path, require_complete: bool = False) -
     main_text = documents["main"][1]
     design_dir = main_path.with_suffix("")
     state_path = design_dir / ".state.json"
-    if require_complete and state_path.exists():
-        try:
-            state = json.loads(state_path.read_text(encoding="utf-8"))
-        except (OSError, UnicodeError, json.JSONDecodeError) as exc:
-            findings.append(Finding("DESIGN_STATE_INVALID", str(state_path), str(exc)))
+    if require_complete:
+        if not state_path.is_file():
+            findings.append(Finding("DESIGN_GENERATION_INCOMPLETE", str(state_path), "design state file missing"))
         else:
-            if state.get("status") != "complete":
-                findings.append(Finding("DESIGN_GENERATION_INCOMPLETE", str(state_path), str(state.get("status"))))
+            try:
+                state = json.loads(state_path.read_text(encoding="utf-8"))
+            except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+                findings.append(Finding("DESIGN_STATE_INVALID", str(state_path), str(exc)))
+            else:
+                if state.get("status") != "complete":
+                    findings.append(Finding("DESIGN_GENERATION_INCOMPLETE", str(state_path), str(state.get("status"))))
     for heading in MAIN_HEADINGS:
         if heading not in main_text:
             findings.append(Finding("MAIN_HEADING_MISSING", str(main_path), heading))

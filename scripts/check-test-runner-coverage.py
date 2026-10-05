@@ -4,7 +4,7 @@
 This is a planning gate. It does not execute tests. For Java/Maven backend
 runners it statically enumerates the @Test methods selected by the documented
 --module / --tests filter. Frontend, extension, miniapp, Flutter, Web Demo,
-and Flutter Demo runners are checked statically because project scripts vary.
+Extension Demo, and Flutter Demo runners are checked statically because project scripts vary.
 """
 
 from __future__ import annotations
@@ -25,6 +25,7 @@ COMMAND_MARKERS = {
     "miniapp": "npm run",
     "flutter": "",
     "web-demo": "web-demo-test-runner.py",
+    "extension-demo": "web-demo-test-runner.py",
     "flutter-demo": "flutter-demo-test-runner.py",
 }
 
@@ -63,7 +64,7 @@ def normalize_path(path: Path, root: Path) -> str:
 
 def infer_layer(path: Path) -> str | None:
     parts = [part.lower() for part in path.parts]
-    for layer in ("backend", "frontend", "extension", "miniapp", "flutter", "web-demo", "flutter-demo"):
+    for layer in ("backend", "frontend", "extension", "miniapp", "flutter", "web-demo", "extension-demo", "flutter-demo"):
         if layer in parts:
             return layer
     return None
@@ -74,10 +75,10 @@ def find_runner_files(root: Path, feature: str, layer: str | None) -> list[Path]
     if not task_root.is_dir():
         raise SystemExit(f"Task directory not found: {task_root}")
 
-    layers = [layer] if layer else ["backend", "frontend", "extension", "miniapp", "flutter", "web-demo", "flutter-demo"]
+    layers = [layer] if layer else ["backend", "frontend", "extension", "miniapp", "flutter", "web-demo", "extension-demo", "flutter-demo"]
     files: list[Path] = []
     for current_layer in layers:
-        if current_layer in {"web-demo", "flutter-demo"}:
+        if current_layer in {"web-demo", "extension-demo", "flutter-demo"}:
             candidates = list((task_root / current_layer).glob("*/*.md"))
         else:
             candidates = list((task_root / current_layer / "test").glob("*.md"))
@@ -97,11 +98,12 @@ def find_runner_files(root: Path, feature: str, layer: str | None) -> list[Path]
 
 
 def section_text(content: str, heading: str) -> str | None:
-    match = re.search(rf"^##\s+{re.escape(heading)}\s*$", content, re.MULTILINE | re.IGNORECASE)
+    match = re.search(rf"^(#{{2,3}})\s+{re.escape(heading)}\s*$", content, re.MULTILINE | re.IGNORECASE)
     if not match:
         return None
     start = match.end()
-    next_heading = re.search(r"^##\s+", content[start:], re.MULTILINE)
+    level = len(match.group(1))
+    next_heading = re.search(rf"^#{{1,{level}}}\s+", content[start:], re.MULTILINE)
     end = start + next_heading.start() if next_heading else len(content)
     return content[start:end]
 
@@ -115,7 +117,7 @@ def is_probable_test_token(token: str) -> bool:
         return False
     if lower.startswith(("uv ", "cd ", "npm ", "mvn ", "skills/")):
         return False
-    if lower in {"backend", "frontend", "extension", "miniapp", "flutter", "web-demo", "flutter-demo", "authoring", "runner", "none"}:
+    if lower in {"backend", "frontend", "extension", "miniapp", "flutter", "web-demo", "extension-demo", "flutter-demo", "authoring", "runner", "none"}:
         return False
     return bool(re.search(r"[A-Za-z0-9_\u4e00-\u9fff]", token))
 
@@ -164,8 +166,13 @@ def is_full_suite_command(command: str, layer: str) -> bool:
         return re.fullmatch(r"(?:cd\s+\S+\s+&&\s+)?(?:fvm\s+)?flutter\s+test", normalized) is not None
     if layer == "web-demo":
         return (
-            "web-demo-test-runner.py demo/e2e/" in normalized
+            re.search(r"web-demo-test-runner\.py\s+demo/e2e/?(?:\s|$)", normalized) is not None
             or re.fullmatch(r"uv\s+run\s+scripts[/\\]web-demo-test-runner\.py", normalized) is not None
+        )
+    if layer == "extension-demo":
+        return (
+            re.fullmatch(r"uv\s+run\s+scripts[/\\]web-demo-test-runner\.py", normalized) is not None
+            or re.search(r"web-demo-test-runner\.py\s+demo/e2e/extension/?(?:\s|$)", normalized) is not None
         )
     if layer == "flutter-demo":
         return re.fullmatch(r"uv\s+run\s+scripts[/\\]flutter-demo-test-runner\.py", normalized) is not None
@@ -403,7 +410,7 @@ def check_runner(root: Path, path: Path, dynamic: bool) -> RunnerCheck:
         missing = {test for test in expected if test not in selected}
         if missing:
             errors.append("Expected backend tests not selected by runner command: " + ", ".join(sorted(missing)))
-    elif layer in {"frontend", "extension", "miniapp", "flutter", "web-demo", "flutter-demo"} and expected and commands:
+    elif layer in {"frontend", "extension", "miniapp", "flutter", "web-demo", "extension-demo", "flutter-demo"} and expected and commands:
         mentioned: set[str] = set()
         for command in commands:
             mentioned.update(command_mentions_expected(command, expected, layer))
@@ -446,7 +453,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Validate task runner test coverage.")
     parser.add_argument("feature", help="Feature name under .ai/task/")
     parser.add_argument("--project-root", type=Path, default=Path.cwd(), help="Target project root. Defaults to cwd.")
-    parser.add_argument("--layer", choices=["backend", "frontend", "extension", "miniapp", "flutter", "web-demo", "flutter-demo"], help="Limit to one layer.")
+    parser.add_argument("--layer", choices=["backend", "frontend", "extension", "miniapp", "flutter", "web-demo", "extension-demo", "flutter-demo"], help="Limit to one layer.")
     parser.add_argument("--runner-file", type=Path, action="append", help="Specific runner item file to check.")
     parser.add_argument("--no-dynamic", action="store_true", help="Skip dynamic backend test-listing checks.")
     args = parser.parse_args()

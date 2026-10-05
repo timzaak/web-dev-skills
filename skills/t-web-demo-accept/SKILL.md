@@ -35,18 +35,20 @@ allowed-tools:
 - 若是文件路径：仅处理该文件。
 - 若是角色名：匹配 `demo/e2e/**` 下对应文件。
 - 若是 `all` 或空：扫描 `demo/e2e/**/*.e2e.ts`，排除 `fixtures/`、`templates/`、`verification/`。
+- 扫描与文件参数均排除 `demo/e2e/extension/`；扩展演示使用 `/t-tools:t-extension-demo-accept`。
 
 - 用户故事一致性检查（必须）。
 - 读取测试文件顶部注释中的用户故事路径。
 - 校验用户故事文件存在；交付测试文件只允许引用 `docs/user-stories/...`，不接受 `.ai/user-stories/...`（见 `${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md`）。
 - 核对场景覆盖、角色匹配、关键断言与验收标准。
 
-- 编译检查（必须）。
+- 按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 独立核查有效运行证据及上游承接场景；可复用的命令结果不重复执行，缺失或失效时补跑下列命令。
+- 编译证据检查（必须）。
 ```bash
 cd demo && npm run build
 ```
 
-- 测试执行检查（必须）。
+- 整文件测试执行证据检查（必须）。
 ```bash
 uv run scripts/web-demo-test-runner.py "[测试文件]" --mode fast --log-level mini
 ```
@@ -83,7 +85,7 @@ wc -l [测试文件路径]
 ## 失败处理
 - 用户故事不存在（`docs/user-stories` 未找到，或测试文件引用的是已被/将被删除的 `.ai/user-stories` 草稿）：直接拒绝验收。
 - 编译失败：直接拒绝验收。
-- 测试失败或超时：直接拒绝验收。
+- 测试失败、超时或必要场景无有效执行证据：直接拒绝验收。
 - 批量模式下：记录失败并继续处理后续文件。
 
 ## 质量门禁

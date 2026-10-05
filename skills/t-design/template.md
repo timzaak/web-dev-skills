@@ -125,7 +125,7 @@
 
 ## 6. 测试与验收策略（跨端汇总）
 
-> 各端测试细节在分端文档；本节汇总跨端测试入口和主验收路径，供 `/t-task` 直接消费。
+> 各端测试细节在分端文档；本节汇总跨端测试入口和主验收路径，供 `/t-super-run` 直接消费。按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 记录验证责任表，业务行为变更不能只填编译/类型检查；尚未执行的场景标明承接阶段。
 
 ### 6.1 各端测试入口
 - 后端: [单元/场景测试入口摘要；不适用写"不适用"]
@@ -151,13 +151,13 @@
 
 ## 8. 文件影响范围（全量汇总）
 
-> 汇总所有适用分端文档的文件影响范围；`/t-task` 直接对照本表拆分 item。
+> 汇总所有适用分端文档的文件影响范围；`/t-super-run` 直接对照本表拆分任务。
 > MODIFY/DELETE 路径必须存在。CREATE 路径允许尚不存在，但父目录必须存在，并在说明中给出相邻实现或命名规范依据。
-> 设计要求用户故事演示时，Playwright `demo/e2e/` 演示资产标 `web-demo`，Patrol 演示资产标 `flutter-demo`；无需演示时不出现这两个值。
+> 设计要求用户故事演示时，Web Playwright 资产标 `web-demo`，扩展 Playwright `demo/e2e/extension/` 资产标 `extension-demo`，Patrol 资产标 `flutter-demo`；无需演示时不出现对应值。
 
 | 文件 | 操作 | 说明 | 来源分端 |
 |---|---|---|---|
-| `[真实仓库路径]` | CREATE / MODIFY / DELETE | [变更摘要] | backend / frontend / extension / flutter / web-demo / flutter-demo / 跨端 |
+| `[真实仓库路径]` | CREATE / MODIFY / DELETE | [变更摘要] | backend / frontend / extension / flutter / web-demo / extension-demo / flutter-demo / 跨端 |
 
 ## 9. 外部参考
 
@@ -167,4 +167,4 @@
 ## 10. 下一步
 - 检查技术设计（可选）：`/t-design-check [方案名称]`
 - 如文档较复杂，生成可视化预览：`/t-html-show .ai/design/[方案名称].md`
-- 下一步：`/t-task [方案名称]`；复杂或高风险设计建议先运行 `/t-design-check`
+- 下一步：`/t-super-run [方案名称] --phase <phase>`；复杂或高风险设计建议先运行 `/t-design-check`

@@ -82,7 +82,7 @@
 
 ### EXTENSION
 
-检查生产构建、worker 日志、消息处理和权限证据，区分扩展实现缺陷与 fixture 加载失败；前者按诊断协议交给 `extension-dev`，后者交给 `web-demo-dev`。不要仅凭浏览器 UI 报错归入 FRONTEND。
+扩展演示由 `${CLAUDE_PLUGIN_ROOT}/agents/extension-demo-diagnose.md` 诊断；检查生产构建、worker 日志、消息处理和权限证据，区分扩展实现缺陷与 fixture 加载失败，分别交 `extension-dev` 和 `extension-demo-dev`。不要仅凭浏览器 UI 报错归入 FRONTEND。
 
 ### BACKEND
 

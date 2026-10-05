@@ -1,6 +1,6 @@
 # 输出文件清单
 
-`/t-init` 完成后必须确认以下文件存在。用于 Step 1 创建目录结构和 Step 8 验证（读取时机：创建目录或执行收尾验证时）。
+`/t-init <project-name>` 全栈模式完成后必须确认以下文件存在。用于 Step 1 创建目录结构和 Step 8 验证。扩展 Demo 模式只核对 [extension-demo 初始化流程](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/extension-demo-init.md) 的输出清单，不要求下列全栈产物。
 
 **后端（必须）：**
 - [ ] `backend/pom.xml`

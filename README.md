@@ -10,6 +10,10 @@ Decision -> PRD / 技术预研（按主要未知项选择，可回环）-> 设�
 
 T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和 Demo 交付链路的项目。它的重点不是让模型自由发挥，而是用 skill 编排阶段、用 subagent 分工执行、用 protocol 固化共享契约，并在需要时用 check / accept 阶段收口质量。
 
+测试默认围绕后端场景和用户故事 Demo 规划；只有这些测试难稳定覆盖重要规则或边界时才新增局部测试。需要测试角色编写测试用例或专项验证脚本时才规划 test slot；运行现有测试、类型检查和构建归 dev，accept 核查证据。
+
+业务行为变更必须有运行验证，或明确交给后续阶段并报告“业务验收待完成”；编译通过不能替代业务结果。小程序复用已有自动化或开发者工具/真机验证；扩展按实际覆盖缺口接入 Vitest，不默认补冒烟单测。同角色的小测试闭环可合并编写与运行，backend/test 保留 authoring/runner 分工。accept 独立审查并可复用仍有效的运行证据，输入变化或证据不足时补跑；详见 [验证证据协议](protocols/verification-evidence-contract.md)。
+
 推荐先读 [human/structure.md](human/structure.md)，理解 skill、subagent、protocol 如何协同；做需求前可用 [human/speech-template.md](human/speech-template.md) 先口述一遍真实意图。
 
 本项目迭代的开发日志记录在 [linux.do](https://linux.do/t/topic/1988118/4)。
@@ -20,13 +24,7 @@ T-Tools 适合已经有产品文档、设计、任务拆解、开发、测试和
 
 不知道从哪个命令开始时，运行 `t-how`：它按你的目标讲解工作流并推荐入口命令。
 
-前置条件：
-
-- 已按 [安装](#安装) 加载插件
-- 目标项目具备 `docs/` 和 `.ai/` 运行时目录
-- 已配置 [`context7`](https://github.com/upstash/context7)
-
-最短闭环：
+按 [安装](#安装) 加载插件并满足前置条件后，最短闭环：
 
 ```bash
 # 产品立项判断，按主要未知项进入技术预研或 PRD
@@ -35,22 +33,27 @@ t-decision user-management
 # 技术可行性、依赖或成本影响产品范围时先做预研；与 PRD 无固定顺序，进设计前收敛
 t-tech-research user-management
 
+# 优先读取同一 feature 的 Decision Brief 和技术预研；已有相关 PRD 必须查阅
 # 生成 .ai/prd 与 .ai/user-stories 草稿
 t-prd user-management
 
+# 可按风险运行 t-prd-check，或直接进入设计
 # 生成技术设计（主文档 + 分端设计）
 t-design user-management
 
-# 生成任务并按 phase 实现与测试；其他 phase 重复同样闭环
-t-task user-management --phase backend
-t-run user-management --phase backend
-
-# GPT-5.6 Sol 级强模型的单主会话路径，合并规划与执行
+# 合并任务规划、实现与测试，按 phase 执行；其他 phase 重复同样闭环
 t-super-run user-management --phase backend
 
-# Web Demo/E2E 与最终验收（Flutter 对应 t-flutter-demo-run / t-flutter-demo-accept）
+# 或无人值守连跑全部剩余 phase：每 phase 完成后自动接续 t-review --fix -> t-simplify -> t-push
+t-super-run-all user-management
+
+# Web Demo/E2E 与最终验收（扩展、Flutter 有独立入口）
 t-web-demo-run demo/e2e/<role>/<scenario>.e2e.ts
 t-web-demo-accept <role>
+# Chrome 扩展真实加载演示与验收
+t-extension-demo-run demo/e2e/extension/<scenario>.e2e.ts
+t-extension-demo-run-all
+t-extension-demo-accept all
 
 # 实现和验收后发布正式 PRD / 用户故事
 t-prd-publish user-management
@@ -60,19 +63,20 @@ t-prd-publish user-management
 
 ## 阶段拆分
 
-典型 Web 顺序是 `backend -> frontend -> web-demo`；典型 Flutter 顺序是 `backend -> flutter -> flutter-demo`。
+典型 Web 顺序是 `backend -> frontend -> web-demo`；典型扩展顺序是 `extension -> extension-demo`（有后端改动时前置 backend）；典型 Flutter 顺序是 `backend -> flutter -> flutter-demo`。
 
 - `backend`：后端接口、数据模型、权限、业务逻辑、后端测试和只读验收。
 - `frontend`：React 页面、组件、状态、前端测试和只读验收。
-- `extension`：WXT / Chrome MV3 入口、消息、存储、权限、Vitest 测试和只读验收；浏览器演示归 `web-demo`。
+- `extension`：WXT / Chrome MV3 入口、消息、存储、权限、Vitest 测试和只读验收。
 - `miniapp`：小程序页面、平台能力、构建验证和只读验收。
 - `flutter`：Flutter View、Riverpod 状态、数据层、单元/widget/integration 测试和只读验收。
 - `web-demo`：基于用户故事维护 Playwright Demo/E2E，并验收浏览器用户路径。
+- `extension-demo`：基于用户故事维护真实加载扩展的 Playwright 集成演示，验收跨上下文用户路径、权限和生命周期。
 - `flutter-demo`：基于用户故事维护 Android Patrol 演示，覆盖真实 App 操作与原生系统 UI。
 
-每个 phase 的闭环是 `t-task -> [t-task-check]（可选，按风险）-> t-run`，快速上手只以 backend 为例，其余 phase 重复同样闭环。`t-super-run` 是 GPT-5.6 Sol 级强模型的单主会话路径：合并规划与执行，`--phase` 必填，每次调用只执行一个 phase，完成后停止；全部 supported phase（含 extension 和 miniapp）均可走该路径。
+每个 phase 的默认闭环是 `t-super-run`：主会话生成目标级阶段计划，并按当前角色规范持续完成实现、测试和修复；accept 派发对应只读 subagent 独立验收。不生成细粒度 item，也不依赖额外的持续运行命令。`--phase` 必填，每次只执行一个 phase，完成后停止；中断后用同一命令恢复。`.ai/super-run/` 保存阶段计划、执行状态和证据入口。快速上手以 backend 为例，全部 supported phase（含 extension 和 miniapp）均可走该路径。需要无人值守一次跑完剩余 phase 时，运行 `t-super-run-all <feature>`：按规范顺序逐 phase 执行同一闭环，每个 phase 完成后自动接续 `t-review --fix -> t-simplify -> t-push` 质量链再进入下一个 phase（`t-prd-publish`、`t-release` 仍手工触发）；接力与游标规则见 [super-run-all-pipeline 协议](protocols/super-run-all-pipeline.md)。需要单独审阅任务计划、细粒度 item 或 dev/test 子 agent 分工时，使用 `t-task -> [t-task-check]（可选，按风险）-> t-run` 标准链路；两套状态互相独立。
 
-扩展项目按 [扩展初始化指南](guides/extension/initialization.md) 准备 WXT 工程（已有工程跳过；`t-init` 尚无扩展模板）。需求来源齐备后，运行 `t-design <feature>`、`t-task <feature> --phase extension`、`t-run <feature> --phase extension`。设计独立输出 `extension.md`；独立扩展 Demo 的 fixture 与 `--no-auto-env` 用法见 [扩展测试指南](guides/extension/testing.md)。
+扩展项目按 [扩展初始化指南](guides/extension/initialization.md) 准备 WXT 工程（已有工程跳过；`t-init` 不生成 WXT 生产工程）。需要集成测试基础设施时，在目标项目根目录运行 `t-init --extension-demo`；多个扩展目录用 `--extension-dir <path>` 指定，独立工程可指定 `.`。该模式增量生成 Playwright 配置、扩展 fixture、真实加载 smoke 和本地运行说明；保留现有 Web Demo，初始化通过不代表用户故事验收。需求来源齐备后，运行 `t-design <feature>`、`t-super-run <feature> --phase extension`；设计要求用户故事演示时再运行 `t-super-run <feature> --phase extension-demo`。`t-design` 由独立的 [extension-design](agents/extension-design.md) 角色生成 `extension.md`，覆盖入口、权限、消息/存储、生命周期与浏览器验证；Web 与扩展同时交付时分别设计。演示 fixture、环境与验收按 [扩展演示指南](guides/extension/demo-testing.md)。
 
 ## 使用规则
 
@@ -93,13 +97,17 @@ cd /your-project
 claude --plugin-dir /path/to/skills
 ```
 
-前置依赖：
+前置条件：
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI 能正常使用
 - MCP Server [`context7`](https://github.com/upstash/context7) 已配置
 - 使用 Figma 工作流时，官方 [Figma MCP Server](https://developers.figma.com/docs/figma-mcp-server/) 与 Chrome DevTools MCP 已配置（后者用于验收目视比对）
 - 使用 Figma 素材转换时，`ffmpeg` 与 `ffprobe` 已安装并可从 PATH 调用；SVG 优化还需要 `svgo`（`npm install -g svgo`）
-- `t-figma-impl` / `t-figma-ux` 需要用户提供可访问的 preview URL；dev server 由用户负责启动
+- `t-figma-assets` 的 PNG 转 WebP 依赖 [kyz](https://github.com/timzaak/kyz) 凭据代理：需 `kyz daemon start` 并配置 tinify 规则（tinify 凭据存入 vault，方法见 kyz 仓库 `docs/proxy.md`），TinyPNG API key 不落本仓库
+
+`t-figma-assets` 根据节点信息和转换脚本结果处理素材，不逐张目视检查；页面视觉比对由后续实现与验收阶段完成。
+
+`.ai/` 与 `docs/` 运行时目录无需预先创建，工作流执行过程中会自行创建。`docs/` 可能已被你用于其它事情：t-tools 只写入自己的固定文档路径（`docs/prd/`、`docs/user-stories/`、`docs/design/` 等），不改动其中的无关内容。
 
 使用 Codex、ZCode 等不支持 `claude --plugin-dir` 的工具时，见 [在其它 AI 编程工具中使用 t-tools](human/use-in-other-agents.md)：通过在 `~/.agents/skills/` 下放置路由 skill，把 `/t-tool <skill>` 指向克隆后的仓库目录。
 

@@ -11,10 +11,10 @@
 }
 ```
 
-- 适用端取值为 backend / frontend / extension / flutter；extension 使用独立完成/失败记录，即使与 frontend 复用同一设计角色也不能合并状态。
+- 适用端取值为 backend / frontend / extension / flutter；各端使用独立完成/失败记录，extension 与 frontend 不能合并状态。
 - 调度前写 `in_progress`。
 - 每个端成功后更新 `completed_stacks`。
 - 无法恢复时写 `failed` 和 `failed_stack`。
 - 主文档、分端文档、决策闭合扫描和结构校验全部通过后写 `complete`。
-- `/t-task` 和 `/t-design-check` 遇到非 `complete` 状态时停止。
-- 状态文件缺失时兼容旧设计产物。
+- `/t-super-run` 和 `/t-design-check` 遇到非 `complete` 状态时停止。
+- 状态文件缺失时停止，提示运行 `/t-design <feature>` 生成完整设计状态。

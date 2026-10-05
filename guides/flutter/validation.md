@@ -12,16 +12,17 @@ dart format --set-exit-if-changed .
 dart run build_runner build --delete-conflicting-outputs
 
 flutter analyze
-flutter test
+# 仅运行本次受影响的现有或新增局部测试；路径取自项目
+flutter test test/<affected-path>
 ```
 
-要求：格式无漂移、analyze 零 issue、受影响单元/widget 测试通过。生成器是可选能力；未采用的项目不运行 build_runner，不手工编辑生成物。
+要求：格式无漂移、analyze 零 issue、受影响单元/widget 测试通过。无适用局部测试时不为运行命令补占位测试；业务验证责任及证据复用按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`。生成器是可选能力；未采用的项目不运行 build_runner，不手工编辑生成物。
 
 ## 按范围追加
 
 | 改动 | 验证 |
 | --- | --- |
-| 重要用户用例 | 定向 `flutter test integration_test/<file> -d <device-id>` |
+| 重要用户用例 | 复用适用 Demo 或定向 `flutter test integration_test/<file> -d <device-id>`；不重复覆盖，后续承接按验证证据协议 |
 | Flutter Web integration | ChromeDriver + `flutter drive`，见 `integration-testing.md` |
 | 原生 UI | `patrol test --target <file>` 或设计批准的等价方案 |
 | manifest、平台代码、依赖或发版 | 对应 `flutter build apk/ios/web` |

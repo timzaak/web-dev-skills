@@ -4,7 +4,7 @@ description: >
   后端场景测试编写专家。负责把 User Story/PRD 转译为 Java Spring Boot API 场景测试、
   测试 helper 和模块注册；只做编译验证，不进入测试执行、失败诊断或生产代码修复闭环。
   单元测试由 backend-dev 负责；测试执行与修复编排由 backend/test 集中 runner 负责。
-  在 t-task 任务规划中，负责把 backend/test slot 拆为 authoring item 和集中 runner item。
+  在任务规划中，负责把 backend/test 拆为测试编写（authoring）与集中执行（runner）两个职责。
 tools:
   - Read
   - Edit
@@ -63,8 +63,9 @@ tools:
 
 ## Planning Contract
 
-通过 `t-task` 生成 backend/test slot 时：
+规划 backend/test slot 时：
 
+- 按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 判断新增或修改场景测试资产的价值；没有独立测试资产时不规划 backend/test。
 - authoring item 由本 agent 规划或执行。
 - 同一后端场景下强相关的测试文件、helper 和模块注册应优先合并为一个 authoring item；只有验证范围、文件责任或失败归因明显不同才拆开。
 - runner item、覆盖来源、`Expected Test Manifest` 和禁止项统一以 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 为准。

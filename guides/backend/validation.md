@@ -41,7 +41,7 @@ cd backend && mvn verify
 规则：
 - 后端静态质量检查使用 Java/Spring 项目的 Maven 命令；非 Java 后端工具链命令不适用于本插件后端。
 - 若项目在 `pom.xml` 中定义了格式化或静态检查插件，按项目已有 Maven goal 执行；本插件不要求新增这些依赖。
-- 后端测试执行与补测证据属于 backend/test、backend-accept 或显式测试命令。
+- 新增场景测试资产及集中执行属于 backend/test；没有该 slot 时，backend-dev 定向运行受影响的现有测试，backend-accept 核查证据。
 - OpenAPI 导出与前端 API 生成验收属于 backend-accept。
 
 ### 3. 格式化检查（可选但推荐）

@@ -1,6 +1,6 @@
 ---
 name: miniapp-test
-description: miniapp 类型检查、构建回归、模板门禁与专项测试编写/修复。
+description: 需要独立测试或专项验证资产时，编写和验证 miniapp 测试、模板门禁及相关构建配置。
 
 tools:
   - Read
@@ -40,9 +40,11 @@ tools:
 ## 测试边界
 
 优先由本 agent 处理的场景：
-- `npm run typecheck`、`npm run build:weapp`、`npm run build:h5` 回归
+- 独立测试或专项验证资产的编写与定向运行
 - `prepublish:check`、`starter:ci-gate` 相关问题
 - 页面注册遗漏、token/icon 产物缺失、模板契约漂移
+
+没有独立测试或专项验证资产时，`miniapp-dev` 执行受影响的 `typecheck`、构建或 gate，任务计划不生成 miniapp/test。
 
 默认不由本 agent 承担的场景：
 - 大规模业务页面实现
@@ -70,13 +72,9 @@ cd miniapp && npm run prepublish:check
 cd miniapp && npm run starter:ci-gate -- --target taro-react-taroify-tailwind
 ```
 
-### t-task 规划约束
+### 任务规划约束
 
-- 涉及测试、验证资产或专项 gate 变更时，先规划 authoring item。
-- 同一小程序验证闭环下强相关的测试资产、配置和专项 gate 调整应优先合并为一个 authoring item；只有验证范围、文件责任或失败归因明显不同才拆开。
-- 集中定向执行 item 汇总本轮相关 authoring item。
-- 集中定向执行 item 在 manifest 中排在全部相关 authoring item 之后，优先选择受影响范围的 `typecheck`、`build:weapp`、`build:h5` 或专项 gate。
-- 执行范围从覆盖来源推导；全部构建/gate 仅用于定向范围不可靠或门禁要求。
+测试编写与执行的合并条件、集中 runner、Expected Test Manifest 和失败恢复统一按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Test Execution Consolidation；小范围同角色闭环默认合并。验证范围来自本次资产与风险，不默认全量。运行后按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 保存可供 accept 核查的证据。
 
 ## 编写约束
 

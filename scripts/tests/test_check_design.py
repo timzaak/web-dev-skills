@@ -88,6 +88,29 @@ FRONTEND = """
 
 
 class DesignValidationTests(unittest.TestCase):
+    def test_flutter_design_uses_compact_template_headings(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            main = self.make_design(root)
+            write(main, main_doc().replace("frontend", "flutter"))
+            flutter = main.with_suffix("") / "flutter.md"
+            write(flutter, '''
+## 4. 用户体验流
+### 6.1 API 依赖（只引用契约源）
+| Operation ID | 方法 | 路径 |
+|---|---|---|
+| createExport | POST | /api/exports |
+## 10. 详细设计（Flutter 最小实现映射）
+## 12. 文件影响范围（Flutter 文件）
+| 文件 | 操作 | 说明 |
+|---|---|---|
+| web/new.ts | CREATE | test fixture path |
+''')
+            self.assertEqual(checker.validate(main, root), [])
+            old = flutter.read_text(encoding="utf-8").replace("## 10. 详细设计", "## 12. 详细设计").replace("## 12. 文件影响范围", "## 14. 文件影响范围")
+            write(flutter, old)
+            self.assertEqual(checker.validate(main, root), [])
+
     def test_extension_design_is_validated_and_fingerprinted(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
@@ -186,6 +209,17 @@ class DesignValidationTests(unittest.TestCase):
                 "DESIGN_GENERATION_INCOMPLETE",
                 {item.code for item in checker.validate(main, root, require_complete=True)},
             )
+
+    def test_downstream_requires_complete_design_state(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            main = self.make_design(root)
+            self.assertIn(
+                "DESIGN_GENERATION_INCOMPLETE",
+                {item.code for item in checker.validate(main, root, require_complete=True)},
+            )
+            write(root / ".ai/design/sample/.state.json", '{"status":"complete"}')
+            self.assertEqual(checker.validate(main, root, require_complete=True), [])
 
     def test_fingerprint_covers_applicable_design_documents(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

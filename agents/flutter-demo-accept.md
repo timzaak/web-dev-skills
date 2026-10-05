@@ -6,6 +6,8 @@ tools: [Read, Grep, Glob, Bash, Write]
 
 # Flutter Demo Accept
 
+验收前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`，独立核查行为验证责任和运行证据；本文件要求的命令已有有效证据时可复用，缺失/失效时补跑。阶段结论与后续待验证场景分开报告。
+
 读取目标项目约束、用户故事、测试文件、运行日志以及 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/demo-testing.md`。
 
 必须核对：

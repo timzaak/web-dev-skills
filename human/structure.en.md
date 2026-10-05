@@ -34,8 +34,7 @@ t-decision
 ├─ product boundaries determine technical choices -> t-prd -> [t-tech-research -> t-prd update] -> [t-prd-check] -> t-design
 └─ purely technical, no business-logic change -> t-tech-research -> t-design
 
-t-design -> [t-design-check] -> t-task -> [t-task-check]
--> t-run
+t-design -> [t-design-check] -> t-super-run
 -> t-web-demo-run / t-flutter-demo-run -> matching demo accept
 -> t-prd-publish -> t-push -> t-release
 ```
@@ -130,7 +129,9 @@ It verifies deliverable demonstrability and user story closure, not only whether
 
 ## Execution Model
 
-`t-task` decomposes design into a standard task directory:
+`t-super-run` is the default execution model. The main session creates an outcome-level phase plan without manifests or items; dev/test read the current task's agent specification and related guides, then directly implement, test, and repair the work. When tests reveal a production defect, the main session switches to the dev specification for repair and then re-tests; accept dispatches the matching read-only subagent for independent acceptance and a report. The default order is `dev -> accept`; non-Demo phases add test when separate test assets are needed. `.ai/super-run/[feature]/` stores phase plans, state, and evidence references. `--phase` is required; the main session continuously advances that phase and stops when it completes. Repeat the same command after interruption to check evidence and recover; no additional continuous-run command is required. See the [super-run state contract](/protocols/super-run-state-contract.md). To run all remaining phases unattended, `t-super-run-all` chains `t-review --fix -> t-simplify -> t-push` after each phase's loop before moving on; see the [super-run-all pipeline contract](/protocols/super-run-all-pipeline.md).
+
+Use the standard `t-task` / `t-run` chain when plans need separate review, fine-grained items, or dev/test subagent ownership. Its state remains independent of super-run. `t-task` decomposes design into a standard task directory:
 
 ```text
 .ai/task/[feature]/
@@ -140,15 +141,13 @@ It verifies deliverable demonstrability and user story closure, not only whether
 └── demo/
 ```
 
-The model is `phase -> slot -> item`:
+The standard chain's model is `phase -> slot -> item`:
 
 - `phase`: usually `backend -> frontend -> demo`.
 - `slot`: for example, `dev -> test -> accept`.
 - `item`: the smallest executable task file.
 
 `t-run` executes only items. It does not directly execute manifests such as `index.md`, `dev.md`, `test.md`, or `accept.md`. At most one item may be `running` at a time. This trades some concurrency for smaller context, clearer failure localization, and recoverable state.
-
-`t-super-run` provides a single-main-session execution model. It generates no items. For dev and test, the main session reads the current task's agent specification and related guides and executes the work directly; accept dispatches the matching read-only accept subagent and maps its verdict back into the state. Status and evidence are checkpointed under `.ai/super-run/[feature]/` between roles. Non-demo phases (backend/frontend/extension/miniapp/flutter) use `dev -> test -> accept`; demo uses `dev -> accept`. `--phase` is required; Goal mode keeps only the requested phase moving and stops when it completes, while the state file supports recovery across context compaction. Keep the standard path when explicit subagent ownership or fine-grained handoffs are required.
 
 A fixing agent must return `tests_to_run`, explaining which backend, frontend, or Demo commands should be rerun after the fix. This keeps the risk of "Demo passes but lower-level regression fails" visible.
 

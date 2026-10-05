@@ -2,43 +2,44 @@
 
 ## Phases
 
-`supported_phases` 固定为 `backend`, `frontend`, `extension`, `miniapp`, `flutter`, `web-demo`, `flutter-demo`。
+`supported_phases` 固定为 `backend`, `frontend`, `extension`, `miniapp`, `flutter`, `web-demo`, `extension-demo`, `flutter-demo`。
 
-`active_phases` 只包含当前 feature 需要生成和执行的阶段。`extension` 仅在当前设计明确包含 Chrome 扩展交付或变更影响实际扩展工程时启用；目录存在本身不启用无关 feature 的扩展阶段。`miniapp` 仅在项目根目录存在 `miniapp/`，或设计文档明确包含小程序交付时启用。`flutter` 仅在目标项目/子目录的 `pubspec.yaml` 声明 Flutter SDK，或设计文档明确包含 Flutter 交付时启用。`web-demo` 仅在设计要求 Web 用户故事演示且项目存在 Web 或 Chrome 扩展交付端时启用；`flutter-demo` 仅在设计要求 Flutter 用户故事演示且项目声明 Flutter SDK 时启用。普通 integration test 或 Patrol 技术门禁本身不自动启用 `flutter-demo`。
+`active_phases` 只包含当前 feature 需要生成和执行的阶段。`extension` 仅在当前设计明确包含 Chrome 扩展交付或变更影响实际扩展工程时启用；目录存在本身不启用无关 feature 的扩展阶段。`miniapp` 仅在项目根目录存在 `miniapp/`，或设计文档明确包含小程序交付时启用。`flutter` 仅在目标项目/子目录的 `pubspec.yaml` 声明 Flutter SDK，或设计文档明确包含 Flutter 交付时启用。`web-demo` 仅在设计要求 Web 用户故事演示且项目存在 Web 交付端时启用；`extension-demo` 仅在设计要求 Chrome 扩展用户故事演示且项目存在扩展交付端时启用；`flutter-demo` 仅在设计要求 Flutter 用户故事演示且项目声明 Flutter SDK 时启用。普通 integration test、扩展 Vitest 或 Patrol 技术门禁本身不自动启用 Demo phase。演示同时覆盖 Web 页面和扩展时，按用户故事及测试资产归属分别启用两个 phase。
 
 默认顺序：
 
 - Web 项目：`backend -> frontend -> web-demo`
-- 扩展项目：`extension -> web-demo`，仅在需要后端改动时前置 backend，仅在设计要求演示时启用 web-demo
+- 扩展项目：`extension -> extension-demo`，仅在需要后端改动时前置 backend，仅在设计要求演示时启用 extension-demo
 - Flutter 项目：`backend -> flutter -> flutter-demo`
-- 多端项目：`backend -> frontend/extension/miniapp/flutter -> web-demo/flutter-demo`，只包含实际交付端，固定排序为 `frontend -> extension -> miniapp -> flutter -> web-demo -> flutter-demo`
+- 多端项目：`backend -> frontend/extension/miniapp/flutter -> web-demo/extension-demo/flutter-demo`，只包含实际交付端，固定排序为 `frontend -> extension -> miniapp -> flutter -> web-demo -> extension-demo -> flutter-demo`
+
+`t-super-run-all` 连跑全部 phase 时的 pipeline 投影顺序与每阶段质量链见 `${CLAUDE_PLUGIN_ROOT}/protocols/super-run-all-pipeline.md`。
+
+业务行为的验证责任、后续阶段承接和最终交付门禁按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 执行；未启用 Demo 时也必须为受影响行为安排适用的运行验证。
 
 ## Slot Order
 
-- backend: `dev -> test -> accept`
-- frontend: `dev -> test -> accept`
-- extension: `dev -> test -> accept`
-- miniapp: `dev -> test -> accept`
-- flutter: `dev -> test -> accept`
-- web-demo: `dev -> accept`
-- flutter-demo: `dev -> accept`
+backend、frontend、extension、miniapp、flutter 默认执行 `dev -> accept`。本次任务需要由测试角色新增或修改测试用例、测试 fixture/helper，或专项验证脚本时，执行 `dev -> test -> accept`。web-demo、extension-demo、flutter-demo 执行 `dev -> accept`，Demo 用例及其辅助代码由该阶段的 dev slot 负责。
+
+仅运行现有测试、编译、类型检查或构建时，不生成 `test` slot、`test.md` 或 test item；这些命令写入 `dev` item 的 Validation，至少执行一项。backend-dev 在实现文件内编写必要的高价值单元测试，也归 dev，不单独生成 test slot。阶段 index 说明测试选择和适用的后续 Demo 计划；`accept` 核查实际执行证据。若 dev 发现需要测试角色新增或修改上述用例或脚本，先更新任务计划和状态，插入 `test` slot，再进入 accept。
 
 ## Execution Unit
 
 `/t-run` 只执行以下 item 文件：
 
 - `{backend,frontend,extension,miniapp,flutter}/{dev,test,accept}/*.md`
-- `{web-demo,flutter-demo}/{dev,accept}/*.md`
+- `{web-demo,extension-demo,flutter-demo}/{dev,accept}/*.md`
 
 不直接执行 `index.md`, `dev.md`, `test.md`, `accept.md`。
 
 ## Item Selection
 
+- 选择 item 前核对本次范围内已有完成证据；相关输入已变或证据失效时，先按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 的 Evidence Invalidation 重新打开受影响 item 及验收，再扫描顺序。
 - 首次选择 item 前，按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 的 Execution Entry Transition 将目标 phase 的 `generated` item 归一化为 `pending` 并持久化；归一化失败时不得启动 agent。
 - 按 [Slot Order](#slot-order) 扫描目标 phase；同一 slot 内严格按 slot manifest 的 item 表格从上到下执行。
 - manifest 必须覆盖 `.state.json` 中当前 slot 的全部 item，且每个 item 只能出现一次；顺序缺失或不一致时终止执行。
 - 选择顺序中的第一个 `pending` 或 `failed` item；后续 item 不得越过它提前执行。
-- `completed` 或 `skipped` item 直接越过，不重复执行。
+- `completed` 或 `skipped` item 直接越过，不重复执行；不存在的可选 test slot 不参与扫描。
 - 除上述一次性启动归一化外，`/t-run` 在调度单个 item 前不更新状态；中断恢复时重新选择顺序中的第一个 `pending` 或 `failed` item。
 
 ## Agent Context
@@ -48,7 +49,7 @@
 - agent 规范文件（调用规则见 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md`）
 - `feature`, `phase`, `slot`, `item_id`
 - 当前 item 文件全文
-- 当前阶段 `index.md`
+- 当前阶段 `index.md`（含验证责任表及相关上游待验证场景；验证记录遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`）
 - 当前 item 之前已完成 item 的状态、文件路径与必要 `Handoff` 片段
 
 可选提供当前 slot manifest、阶段设计摘要、最小状态切片、completion criteria / validation。
@@ -59,7 +60,7 @@
 
 每个 item 必须能让 `/t-run` 单独恢复执行，并包含：
 
-- `id`: 稳定 ID，例如 `BE-D01`, `FE-T02`, `EX-D01`, `MA-A01`, `FL-T01`, `WD-D01`, `FD-A01`
+- `id`: 稳定 ID，例如 `BE-D01`, `FE-T02`, `EX-D01`, `MA-A01`, `FL-T01`, `WD-D01`, `ED-D01`, `FD-A01`
 - `title`
 - `agent`
 
@@ -79,7 +80,8 @@ backend/test item 还必须符合 [Backend Test Item Types](#backend-test-item-t
 - item 默认承载一个可独立交付的责任闭环；同一业务能力、接口能力、页面主流程、组件族或测试资产闭环内的强耦合改动应优先合并。
 - 技术层、文件类型或实现步骤只能作为辅助线索；拆分必须让每个 item 都能独立验证，并降低失败归因成本。
 - 不合并弱相关、验证命令不同或失败归因会互相污染的主交付物。
-- 测试代码编写与测试运行/修复闭环必须拆开。
+- 测试编写与运行按下方 Test Execution Consolidation 选择合并或集中执行；不为一次小范围验证强制增加 item。
+- 选择测试时先写出要防止的可观察回归及现有场景测试/Demo 的覆盖缺口。业务流程、跨模块/API/数据库交互优先由场景测试覆盖；完整用户故事和真实客户端链路由 Demo 覆盖。只有场景测试/Demo 难以稳定覆盖的重要业务规则、权限、状态转换或异常边界，才新增局部单元/widget/组件测试。禁止为覆盖率数字、技术分层、简单转发或已有路径重复生成用例。没有增量测试价值时不生成 test slot。
 - 不把大范围跨模块重构、多个页面域或多个完整用户故事塞进同一 item。
 - validation 必须来自目标项目实际脚本、package 名或配置。涉及 Maven module 时，item 中任何带 `--module <name>` 的命令的 `<name>` 必须是 `backend/` 下实际存在的 Maven reactor module（见父 `pom.xml` 的 `<modules>` 段或对应子目录的 `pom.xml`）；不得假设 module 名等于目录名。生成 item 前先 `Read` 对应 `pom.xml` 核对，再写入 validation 或 steps。
 
@@ -116,7 +118,7 @@ backend/test item 还必须符合 [Backend Test Item Types](#backend-test-item-t
 | test | 2 |
 | accept | 2 |
 
-web-demo / flutter-demo 阶段的 `accept` slot 同样适用 `accept` 上限。
+web-demo / extension-demo / flutter-demo 阶段的 `accept` slot 同样适用 `accept` 上限。
 
 超过上限时的处理规则：
 
@@ -141,7 +143,7 @@ web-demo / flutter-demo 阶段的 `accept` slot 同样适用 `accept` 上限。
 - 单个 item 文件预计超过 30KB，且不是验收清单。
 - `Goal` 或 `Work` 包含两个弱相关、可独立交付、独立验证的主交付物。
 - 单个 HTTP/API item 覆盖超过 10 个 endpoint，或混合不同资源域、读写操作、状态操作、配置类接口，导致验证命令、失败归因或 review 边界不清。
-- 单个 web-demo / flutter-demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流，导致失败时无法区分测试基础设施问题和故事流程问题。
+- 单个 web-demo / extension-demo / flutter-demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流，导致失败时无法区分测试基础设施问题和故事流程问题。
 
 推荐拆分维度：
 
@@ -152,31 +154,39 @@ web-demo / flutter-demo 阶段的 `accept` slot 同样适用 `accept` 上限。
 - miniapp dev：按页面域、平台能力或模板/主题闭环拆分；页面注册、组件主流程、主题接线、token/icon 集成在同一闭环内可合并。
 - flutter dev：按 feature、用户流程、平台能力或数据闭环拆分；同一 feature 内的 View、Notifier、Repository 适配与关键状态可合并。
 - web-demo dev：按用户故事、业务状态流或 Playwright 测试基础设施闭环拆分。
+- extension-demo dev：按扩展用户故事、跨上下文交互或 Playwright fixture 闭环拆分。
 - flutter-demo dev：按用户故事、业务状态流或 Patrol 测试基础设施闭环拆分；一个文件默认只承载一个用户故事或强耦合状态流。
 - accept：design consistency、public API contract、business rules、permission/security、test evidence、demo readiness；纯技术方案聚焦技术目标、兼容性、公共契约、迁移/配置影响、测试证据和回归风险。
 
-backend/test、frontend/test、extension/test、miniapp/test、flutter/test、web-demo/dev、flutter-demo/dev 的测试拆分与执行见 [Test Execution Consolidation](#test-execution-consolidation) 与 [Backend Test Item Types](#backend-test-item-types)。
+backend/test、frontend/test、extension/test、miniapp/test、flutter/test、web-demo/dev、extension-demo/dev、flutter-demo/dev 的测试拆分与执行见 [Test Execution Consolidation](#test-execution-consolidation) 与 [Backend Test Item Types](#backend-test-item-types)。
 
 ## Test Execution Consolidation
 
-测试规划遵循集中执行：
+测试资产按责任和执行范围规划（包括 Demo/dev）：
+
+- 同一角色负责、同一场景、验证命令可收敛的小闭环，默认在一个 item 内完成编写与定向执行；不增加独立 runner item，也不增加新的 slot 或状态类型。集中 runner 的定向范围与全量升级限制同样适用于合并 item。
+- 多个 authoring item 共用环境/验证范围，或编写与失败修复涉及不同角色时，使用集中 runner；不要让各 authoring item 先重复执行同一套测试。backend/test 保留下方 Backend Test Item Types 的 authoring/runner 分工。
+- 合并 item 的 Validation 使用 `### Expected Test Manifest` 列明测试文件、用例标题、来源 item（自身）及真实命令；运行失败时该 item 为 failed，恢复时先核对已有资产和证据，再完成未通过的验证，不重新生成全部测试。生产缺陷交回编排层分派 dev，测试角色不接管生产修复。
+
+集中 runner 规则：
 
 - authoring item 负责写测试资产；runner item 汇总本轮相关 authoring 产物并执行。
 - runner 必须排在其覆盖的全部相关 authoring item 之后，并记录覆盖来源。
-- runner 必须包含 `Expected Test Manifest`：测试文件、测试函数/用例标题、来源 authoring item、预期 runner 命令。
+- runner 的 Validation 必须包含 `### Expected Test Manifest`：测试文件、测试函数/用例标题、来源 authoring item、预期 runner 命令。
 - runner 只运行覆盖来源所需的最小可靠定向测试、类型检查或构建命令；全量测试只在定向范围无法覆盖风险，或发布/验收门禁要求时使用，并说明原因。
 - 编译、预构建、项目启动等等待成本允许存在，但 item 必须记录实际命令和失败/耗时证据。
-- 可用 `uv run scripts/check-test-runner-coverage.py <feature> --layer <backend|frontend|extension|miniapp|flutter|web-demo|flutter-demo>` 校验 runner 覆盖关系。
+- 可用 `uv run scripts/check-test-runner-coverage.py <feature> --layer <backend|frontend|extension|miniapp|flutter|web-demo|extension-demo|flutter-demo>` 校验集中 runner 或合并 item 的覆盖关系；发现器不支持项目命令时传 `--runner-file <item>`，脚本无法解析的命令仍需按真实入口人工核查，不把未解析当通过。
 
 适用阶段：
 
 - backend/test：集中 runner 执行定向后端测试。
 - frontend/test：全部 Vitest/MSW authoring 后执行定向 `npm run test:run -- [pattern]`，按需加 `type-check`。
-- extension/test：沿用测试 authoring 后集中定向执行的规则，由 extension-test 执行项目实际 Vitest 命令；浏览器用例归 web-demo/dev。runner 验证范围从相关 authoring item 推导，不默认全量。
+- extension/test：测试 authoring 后由 extension-test 集中执行项目实际 Vitest 定向命令；浏览器用户故事用例归 extension-demo/dev。runner 验证范围从相关 authoring item 推导，不默认全量。
 - miniapp/test：测试或验证资产完成后执行相关 `typecheck`、构建或专项 gate。
 - flutter/test：单元/widget 测试资产完成后执行相关定向 `flutter test`；按改动范围执行 integration_test、Patrol、analyze 或构建门禁。
 - web-demo/dev：Playwright Demo、fixture、Page Object 完成后执行相关 `web-demo-test-runner.py [test-file] --grep [pattern]` 或少量相关文件。
-- flutter-demo/dev：Patrol 测试、screen/helper 完成后执行相关 `flutter-demo-test-runner.py [test-file] --device [android-id]`；首版 runner 按文件执行，不规划不存在的标题 grep。
+- extension-demo/dev：扩展 Playwright Demo、fixture、helper 完成后执行相关 `web-demo-test-runner.py demo/e2e/extension/[test-file] [--no-auto-env] --grep [pattern]`；环境参数按 `${CLAUDE_PLUGIN_ROOT}/guides/extension/demo-testing.md` 选择。
+- flutter-demo/dev：Patrol 测试、screen/helper 完成后按文件执行相关 `flutter-demo-test-runner.py [test-file] --device [android-id]`；不规划不存在的标题 grep。
 
 ## Backend Test Item Types
 
@@ -185,7 +195,7 @@ backend/test item 必须声明 `test_item_type`：
 - `authoring`：由 `backend-test` 编写或维护场景测试、helper、模块注册，只做编译验证。
 - `runner`：由 `general-purpose` 按 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md` 汇总 authoring item 后执行定向测试、失败分类、生产代码修复委派和重测。
 
-backend/test slot 必须显式规划测试执行闭环：
+backend/test 有测试资产 authoring item 时必须显式规划测试执行闭环：
 
 - 每个新增或修改场景测试的 `authoring` item 必须被 runner 覆盖。
 - runner 按验证范围拆分；同一业务场景或 package/module 优先合并。
@@ -195,7 +205,7 @@ backend/test slot 必须显式规划测试执行闭环：
 - runner 中每条后端测试命令都必须以 `uv run scripts/backend-test.py --` 开头；没有 filter 时也保留结尾 `--`。
 - runner 默认必须带 filter 或 `-E` 表达式来收敛到 Expected Test Manifest 覆盖范围；只有定向范围无法可靠覆盖风险或存在明确门禁要求时，才允许规划全量 `uv run scripts/backend-test.py --`，并必须写明升级原因。
 - 不得写 `${CLAUDE_PLUGIN_ROOT}/scripts/backend-test.py`，不得省略 `--`，目标项目本地脚本失败时不得改用插件脚本绕过。
-- backend/accept 由固定 slot 顺序保证在 backend/test 之后执行；backend/test 必须至少包含一个 runner，且 runner 位于相关 authoring item 之后。
+- backend/test 必须至少包含一个 runner，且 runner 位于相关 authoring item 之后；backend/accept 在已规划的测试执行闭环完成后执行。没有 backend/test 时按 [Slot Order](#slot-order) 核查 dev 验证证据。
 
 缺少 `test_item_type`、类型非法、runner 未引用后端测试执行协议、或 runner agent 不是 `general-purpose` 时，执行应终止并提示重新运行 `/t-task-check` 或重建任务。
 

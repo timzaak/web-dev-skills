@@ -34,8 +34,7 @@ t-decision
 ├─ 产品边界决定技术选择 -> t-prd -> [t-tech-research -> t-prd（更新）] -> [t-prd-check] -> t-design
 └─ 纯技术且不改变业务逻辑 -> t-tech-research -> t-design
 
-t-design -> [t-design-check] -> t-task -> [t-task-check]
--> t-run
+t-design -> [t-design-check] -> t-super-run
 -> t-web-demo-run / t-flutter-demo-run -> 对应 demo accept
 -> t-prd-publish -> t-push -> t-release
 ```
@@ -130,7 +129,9 @@ Demo 阶段不是后端或前端测试的重复。它用 Playwright E2E 按用�
 
 ## 执行模型
 
-`t-task` 会把设计拆成标准任务目录：
+`t-super-run` 是默认执行模型。主会话生成目标级阶段计划，不生成 manifest 或 item；dev/test 按当前 task 读取对应 agent 规范和关联 guide，直接完成实现、测试与修复。测试发现生产缺陷时，主会话切换 dev 规范修复后再复测；accept 派发对应只读 subagent 独立验收并写报告。默认顺序为 `dev -> accept`，非 Demo 阶段需要独立测试资产时插入 test。阶段计划、状态和证据入口保存在 `.ai/super-run/[feature]/`；`--phase` 必填，主会话在该 phase 内持续推进，完成后停止，中断后用同一命令核查证据并恢复，不依赖额外的持续运行命令。具体契约见 [super-run 状态协议](/protocols/super-run-state-contract.md)。需要无人值守连跑剩余全部 phase 时，`t-super-run-all` 在每个 phase 的闭环之后追加 `t-review --fix -> t-simplify -> t-push` 质量链再进入下一 phase，契约见 [super-run-all pipeline 协议](/protocols/super-run-all-pipeline.md)。
+
+需要单独审阅计划、细粒度 item 或 dev/test 子 agent 分工时，使用 `t-task` / `t-run` 标准链路；其状态与 super-run 独立。`t-task` 会把设计拆成标准任务目录：
 
 ```text
 .ai/task/[feature]/
@@ -140,15 +141,13 @@ Demo 阶段不是后端或前端测试的重复。它用 Playwright E2E 按用�
 └── demo/
 ```
 
-执行模型是 `phase -> slot -> item`：
+标准链路的执行模型是 `phase -> slot -> item`：
 
 - `phase`：通常是 `backend -> frontend -> demo`。
 - `slot`：例如 `dev -> test -> accept`。
 - `item`：真正可执行的最小任务文件。
 
 `t-run` 只执行 item，不直接执行 `index.md`、`dev.md`、`test.md`、`accept.md` 这类 manifest。任意时刻最多一个 item 处于 `running`，这样牺牲一些并发速度，换来更小上下文、更清楚的失败定位和可恢复状态。
-
-`t-super-run` 提供单主会话执行模型。它不生成 item；dev/test 在主会话中按当前 task 读取对应 agent 规范和关联 guide 直接执行，accept 派发对应只读 accept subagent 并把报告结论映射回状态，执行后把状态与证据写入 `.ai/super-run/[feature]/`，再切换下一个角色。非 demo 端（backend/frontend/extension/miniapp/flutter）固定为 `dev -> test -> accept`，demo 为 `dev -> accept`；`--phase` 必填，Goal 只在请求的 phase 内持续推进，该 phase 完成后停止，状态文件负责跨上下文恢复。需要 dev/test 层面的显式 subagent 分工或细粒度 handoff 时继续使用标准链路。
 
 修复 agent 必须返回 `tests_to_run`，说明修复后应该补跑哪些后端、前端或 Demo 命令，避免“Demo 通过但底层回归失败”的风险被藏起来。
 

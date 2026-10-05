@@ -25,6 +25,7 @@
 - Query 可用于 popup/options/side panel 或 content script 的 React UI；background 不复用 UI Query 缓存。Zustand 不复制 Query 中的服务端对象。
 - 简单 popup/options 默认无需路由；多页导航确有需要时按设计采用。
 - WXT content/background 入口的运行时副作用放在 main 中，避免构建期模块求值访问 DOM 或 browser API；HTML 页面的脚本沿用其运行时入口。共享模块不得通过副作用导入其他入口。
+- 使用有版本门槛的 Chrome API 或 worker 生命周期能力时，核对项目最低 Chrome 版本，明确兼容处理或 `minimum_chrome_version`；不能用开发机版本代替目标支持范围。
 - `.output/`、`.wxt/` 是派生物，修正源码或配置后重新生成。
 
 ## 消息与请求
@@ -49,8 +50,15 @@
 - permissions、host_permissions、匹配范围和 CSP 的增量必须有设计/已确认变更依据；按使用场景考虑 activeTab 或可选权限，覆盖拒绝、撤销后的反馈。
 - 可执行逻辑随扩展打包；不引入远程代码加载或 eval 方案。生产构建的 manifest 是核对权限、入口及 CSP 的最终证据。
 - 注入 React UI 默认使用 WXT shadow-root UI，样式和 portal container 指向 shadow root 内容器。卸载时清理 React root、事件、watch 和 observer，避免重复注入；确需 iframe 或宿主内联布局时由设计说明取舍。
+- 宿主为 SPA 时，区分首次注入匹配范围和页面内导航后的功能启用条件；按需用 `wxt:locationchange` 重判并挂载/卸载，不能假设路径变化会重新注入 content script。
+- 扩展更新、禁用或卸载后，既有页面中的 content script 可能失去扩展上下文。用 WXT `ContentScriptContext` 管理监听/定时器，额外资源通过 `ctx.onInvalidated` 清理；明确未完成操作如何取消及用户如何恢复，不循环重试已失效的扩展 API。
 - 通用 Query/Zod/Tailwind 模式仅在采用相应库时读 [frontend patterns](${CLAUDE_PLUGIN_ROOT}/guides/frontend/patterns.md)；交互 UI 的选择器读 [testid 规范](${CLAUDE_PLUGIN_ROOT}/guides/frontend/testid-standards.md)。
 
 修改代码时遵循 [注释契约](${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md)；完成前按 [validation.md](${CLAUDE_PLUGIN_ROOT}/guides/extension/validation.md) 验证。
 
-库级事实变更时核对 [WXT Storage](https://wxt.dev/storage.html)、[Content Scripts](https://wxt.dev/guide/essentials/content-scripts.html)、[Chrome Storage](https://developer.chrome.com/docs/extensions/reference/api/storage) 和 [跨域请求](https://developer.chrome.com/docs/extensions/develop/concepts/network-requests)。
+库级事实变更时按受影响边界核对官方依据（2026-09-25 核对设计相关原则；具体 API 以项目锁定版本为准）：
+
+- worker 恢复与版本边界：[Chrome 生命周期](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)。
+- 权限范围与消息信任边界：[权限声明](https://developer.chrome.com/docs/extensions/develop/concepts/declare-permissions)、[消息通信](https://developer.chrome.com/docs/extensions/develop/concepts/messaging) 和 [跨域请求](https://developer.chrome.com/docs/extensions/develop/concepts/network-requests)。
+- 注入、SPA 导航和上下文失效：[WXT Content Scripts](https://wxt.dev/guide/essentials/content-scripts.html)。
+- 存储与迁移：[WXT Storage](https://wxt.dev/storage.html) 和 [Chrome Storage](https://developer.chrome.com/docs/extensions/reference/api/storage)。

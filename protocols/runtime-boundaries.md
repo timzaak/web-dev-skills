@@ -43,4 +43,6 @@ Figma 调试中尚未验证的规则候选写入 `.ai/figma/<session>/rule-candi
 
 ## Subagent Runtime
 
+`t-super-run` 的目标级阶段计划、状态与证据入口位于目标项目 `.ai/super-run/<feature>/`，布局及主会话执行边界见 `${CLAUDE_PLUGIN_ROOT}/protocols/super-run-state-contract.md`。由该入口按需创建，不由 `t-init` 预生成，也不复用 `.ai/task/` 状态。
+
 `${CLAUDE_PLUGIN_ROOT}/agents/*.md` 在非 Claude 运行时不保证自动加载。skill 调用子 agent 前，必须按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 显式注入角色规范。

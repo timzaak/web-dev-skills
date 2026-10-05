@@ -1,7 +1,7 @@
 ---
 name: t-run
-description: Execute phased task plans for backend, frontend, Chrome extensions, miniapp, Flutter, Web Demo, or Flutter Demo.
-argument-hint: "[任务名称] [--phase <backend|frontend|extension|miniapp|flutter|web-demo|flutter-demo>]"
+description: Execute phased task plans for backend, frontend, Chrome extensions, miniapp, Flutter, Web Demo, Extension Demo, or Flutter Demo.
+argument-hint: "[任务名称] [--phase <backend|frontend|extension|miniapp|flutter|web-demo|extension-demo|flutter-demo>]"
 allowed-tools:
   - AskUserQuestion
   - Read
@@ -26,7 +26,7 @@ allowed-tools:
 ## 前置条件
 
 - `.ai/task/[feature]/.state.json` 必须存在且可解析；目标阶段必须是 supported phase 且存在于当前任务 active phases（未启用 extension/miniapp/Flutter 的项目不得执行对应 phase），并已规划（`phases[phase]`、`tasks[phase]` 和对应阶段目录存在）。
-- 当前阶段目录必须包含：`index.md`、对应 slot manifest（backend/frontend/extension/miniapp/flutter 为 `dev.md`, `test.md`, `accept.md`；web-demo/flutter-demo 为 `dev.md`, `accept.md`）、对应 item 目录和 item 文件。
+- 当前阶段目录必须包含：`index.md`、状态文件中已规划 slot 的 manifest 和 item 文件。backend/frontend/extension/miniapp/flutter 必含 dev、accept；有独立测试资产时另含 test。web-demo/extension-demo/flutter-demo 只含 dev、accept。
 
 ## 共享契约
 
@@ -41,7 +41,7 @@ allowed-tools:
 | 参数 | 说明 |
 |---|---|
 | `[feature]` | 功能名 |
-| `--phase <backend\|frontend\|extension\|miniapp\|flutter\|web-demo\|flutter-demo>` | 仅执行指定阶段；未指定时执行 `.state.json` 的当前阶段 |
+| `--phase <backend\|frontend\|extension\|miniapp\|flutter\|web-demo\|extension-demo\|flutter-demo>` | 仅执行指定阶段；未指定时执行 `.state.json` 的当前阶段 |
 
 ## Input Contract
 
@@ -56,7 +56,7 @@ allowed-tools:
 
 ## 执行循环
 
-1. 读取状态并确定执行范围，按共享契约校验状态与执行顺序。
+1. 读取状态并确定执行范围，按共享契约校验状态与执行顺序；已有完成项先按 Evidence Invalidation 核对证据并重新打开失效项。
 2. 完成校验后、启动任何 agent 前，将目标 phase 中全部 `generated` item 归一化为 `pending`，重新聚合对应 slot/phase 并一次性写回 `.state.json`（保留其他状态不变）；归一化写回失败时按状态写入失败处理，不得启动 agent。
 3. 按共享契约选择第一个 `pending` 或 `failed` item，通过 `Agent` tool 启动 `subagent_type` 为 item `agent` 字段值的 sub agent（调度规则见 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md`，最小上下文按 task-phase-execution 的 Agent Context）。
 
@@ -80,6 +80,8 @@ allowed-tools:
 4. item 成功后写入 `tasks[phase][slot].items[item_id].status = completed`；失败后写入 `status = failed`、`last_error = <summary>`，并把 `tasks[phase][slot].status` 与 `phases[phase].status` 聚合为 `failed`，停止当前 phase 的后续执行。
 5. 每个 item 完成或失败后重新聚合 slot 和 phase 状态；item 成功且仍有可执行 item 时回到步骤 3 继续串行执行。backend 阶段在 `accept` slot 全部 completed 后聚合为 completed。
 
+执行验证和阶段收尾时读取 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`：accept 独立复核证据；报告当前 phase 结果及后续待验证场景。最后承接阶段不得遗漏上游交接的业务验证。
+
 ## backend/test 特例
 
 - item 缺少 `test_item_type` 或类型非法时拒绝执行，提示先运行 `/t-task-check` 或重建/修正 item。
@@ -102,4 +104,4 @@ allowed-tools:
 - 阶段未启用：提示当前项目未启用该阶段，并展示 `.state.json.phases` 中的 active phases。
 - 阶段未生成：提示先运行 `/t-task [feature] --phase [phase]`。
 - item 文件缺失或 manifest 顺序非法：提示重建该阶段任务目录。
-- item 缺少五章节：提示重新运行 `/t-task-check`；若确认为旧格式任务，重新运行 `/t-task [feature] --phase [phase]` 生成。
+- item 缺少五章节：提示重新运行 `/t-task-check` 或 `/t-task [feature] --phase [phase]` 修正任务。

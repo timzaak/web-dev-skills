@@ -34,6 +34,19 @@ def payload(*, status: str = "running", entries: list[dict[str, object]] | None 
 
 
 class ResumeStateTests(unittest.TestCase):
+    def test_web_discovery_excludes_extension_demo(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            e2e = Path(temp_dir) / "demo" / "e2e"
+            (e2e / "extension").mkdir(parents=True)
+            (e2e / "web.e2e.ts").write_text("", encoding="utf-8")
+            (e2e / "extension" / "settings.e2e.ts").write_text("", encoding="utf-8")
+            with patch.object(demo_run_all, "E2E_DIR", e2e):
+                self.assertEqual(demo_run_all.discover_test_files(), [e2e / "web.e2e.ts"])
+                self.assertEqual(
+                    demo_run_all.discover_test_files(scope="extension"),
+                    [e2e / "extension" / "settings.e2e.ts"],
+                )
+
     def test_completed_batch_cannot_continue(self) -> None:
         state = payload(status="completed", entries=[{"test_file": "demo/e2e/a.e2e.ts", "status": "failed"}])
         with self.assertRaisesRegex(ValueError, "not running"):

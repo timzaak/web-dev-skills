@@ -3,7 +3,7 @@
 > **Vitest + @testing-library/react + MSW**
 > **运行模式**: JSDOM
 > **无需后端环境**: 是
-> **测试策略**: Demo 承担完整故事与页面主链路，Vitest 只覆盖高价值逻辑和 Demo 难稳定覆盖的边界
+> **测试策略**: Demo 承担完整故事与页面主链路；仅当 Demo 难稳定覆盖重要逻辑或边界时新增 Vitest，并说明可观察回归与覆盖缺口。受影响的现有测试仍定向运行。
 
 ## 测试环境配置
 
@@ -36,7 +36,7 @@ npm run test:ui
 
 ### 何时编写 Vitest
 
-仅在以下场景编写 Vitest：
+以下是通过测试价值门槛后的候选场景，不能仅因代码属于这些类型就补测：
 - Hook、纯函数、数据转换、schema、权限判断、缓存 key 等纯逻辑
 - 组件内部状态机、派生状态、条件分支
 - Demo 难以稳定覆盖的异常边界和特殊错误场景
@@ -47,7 +47,7 @@ npm run test:ui
 
 ### 不应规划为 Vitest 的场景
 
-以下场景默认交给 Demo 或其他专项工具，不应在 `/t-task` 中规划为前端 Vitest：
+以下场景默认交给 Demo 或其他专项工具，不应在任务规划中作为前端 Vitest：
 - 页面级 happy-path
 - 完整用户故事或跨组件业务流程
 - 常规表单提交流程与正常交互链路
@@ -233,8 +233,8 @@ expect(screen.findByTestId('loading')).toBeDefined()
 
 ## 规划约束
 
-- `frontend/test.md` 默认只列高价值逻辑型 Vitest 任务
-- 若需求已由 Demo 覆盖，应优先记录“不新增 Vitest，由 Demo 覆盖”
+- 只有存在高价值、独立的 Vitest 测试资产时才规划 `frontend/test.md`
+- 若需求已由 Demo 覆盖，在阶段 index 中记录“不新增 Vitest，由 Demo 覆盖”，dev 执行受影响的现有测试或类型检查
 - 不要为了“补测试”而增加页面级、性能、可访问性或视觉回归 Vitest
 
 ## 参考

@@ -4,7 +4,7 @@ Backend 主规范。它定义插件级稳定约束；目标项目的真实架构
 
 ## 1. 文档定位
 
-本页保留：
+本页定义：
 - backend 模块、包边界与依赖方向的确认方法
 - 日常编码必须遵守的稳定工程约束
 - Controller、错误处理、响应契约和 OpenAPI 的默认写法
@@ -81,7 +81,7 @@ Backend 主规范。它定义插件级稳定约束；目标项目的真实架构
 
 ### 3.5 新代码默认写法
 
-- 新增功能时，先复用当前模块已有风格；如果该模块风格明显分裂，优先采用本规范中较新的收敛方向，而不是复制更旧的写法。
+- 新增功能时，优先复用当前模块与本规范一致的写法；模块内部约定冲突时，以当前设计文档和本规范确定实现。
 - 新增普通 REST Controller 时，优先选择明确的返回 DTO 或 `ResponseEntity<T>`，不要用 `Object` 隐藏契约。
 - 新增 DTO 时，请求和响应对象优先与领域对象/Entity 分离，避免 API 契约被内部模型绑死。
 - 新增共享 Web 基础设施时，优先放在项目已有共享落点，不新建第二套重复抽象。
@@ -89,7 +89,7 @@ Backend 主规范。它定义插件级稳定约束；目标项目的真实架构
 
 ## 4. 当前实现边界
 
-以下内容不再视为 backend 主规范的默认事实或默认要求：
+本规范不要求：
 
 - 六边形架构的教学式模板代码
 - 所有业务都必须按 Repository + Service + Policy 样板实现
@@ -110,7 +110,7 @@ mvn test
 说明：
 - 上述顺序用于 backend 代码质量收口；优先使用目标项目已有 wrapper。
 - 若项目在 `pom.xml` 中定义了格式化或静态检查插件，按 `${CLAUDE_PLUGIN_ROOT}/guides/backend/validation.md` 升级执行；本插件不要求新增这些依赖。
-- 后端测试执行与补测证据属于 backend/test、backend-accept 或显式测试命令。
+- 新增场景测试资产及集中执行属于 backend/test；其他相关验证由 backend-dev 定向执行，backend-accept 核查证据。
 - OpenAPI 导出与前端 API 生成验收属于 backend-accept。
 
 如需更完整门禁、环境启动和 OpenAPI 一致性检查，按 `${CLAUDE_PLUGIN_ROOT}/guides/backend/validation.md` 与 `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md` 执行。

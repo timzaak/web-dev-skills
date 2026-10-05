@@ -1,6 +1,6 @@
 ---
 name: t-how
-description: Interactive guide that teaches how to use the t-tools plugin. Explains the Decision -> PRD/Tech Research -> Design -> Task -> Run -> Demo -> Release workflow, maps the user's goal or question to the right /t-tools:t-* entry command, and shows preconditions and next steps. Use when the user types "/t-tools:t-how" or asks how this plugin works, which command fits a goal, or how stages connect. Teaching only; never executes stages or writes target-project files.
+description: Interactive guide that teaches how to use the t-tools plugin. Explains the Decision -> PRD/Tech Research -> Design -> Super Run -> Demo -> Release workflow, maps the user's goal or question to the right /t-tools:t-* entry command, and shows preconditions and next steps. Use when the user types "/t-tools:t-how" or asks how this plugin works, which command fits a goal, or how stages connect. Teaching only; never executes stages or writes target-project files.
 argument-hint: "[主题或问题]"
 allowed-tools:
   - AskUserQuestion
@@ -26,11 +26,11 @@ allowed-tools:
 
 ```text
 t-decision -> t-prd / t-tech-research（无固定顺序，进设计前收敛）
--> t-design -> t-task -> t-run / t-super-run
--> t-web-demo-* / t-flutter-demo-* -> t-prd-publish -> t-push -> t-release
+-> t-design -> t-super-run
+-> t-web-demo-* / t-extension-demo-* / t-flutter-demo-* -> t-prd-publish -> t-push -> t-release
 ```
 
-`t-prd-check`、`t-design-check`、`t-task-check` 是可选质量检查。phase 顺序：Web 为 `backend -> frontend -> web-demo`，扩展项目为 `extension -> web-demo`（需要后端改动时前置 backend），Flutter 为 `backend -> flutter -> flutter-demo`。
+`t-prd-check`、`t-design-check`、`t-task-check` 是可选质量检查。phase 顺序：Web 为 `backend -> frontend -> web-demo`，扩展项目为 `extension -> extension-demo`（需要后端改动时前置 backend），Flutter 为 `backend -> flutter -> flutter-demo`。
 
 ## 场景路由
 
@@ -43,11 +43,12 @@ t-decision -> t-prd / t-tech-research（无固定顺序，进设计前收敛）
 | 写 / 更新 PRD 草稿 | `/t-tools:t-prd <feature>` | 只写 `.ai/prd` 候选草稿 |
 | 把已验收需求转正 | `/t-tools:t-prd-publish <feature>` | 长期事实合并回 `docs/` |
 | 技术设计 | `/t-tools:t-design <feature>` | 主文档 + 分端设计，后端契约先行 |
-| 任务拆解 | `/t-tools:t-task <feature> --phase <phase>` | 生成 item 级任务 |
-| 实现 + 测试 | `/t-tools:t-run <feature> --phase <phase>` | 串行执行 item |
-| Chrome 扩展开发 | `/t-tools:t-design <feature>`，再 `t-task` / `t-run --phase extension` | 先按 [extension 初始化指南](${CLAUDE_PLUGIN_ROOT}/guides/extension/initialization.md) 建 WXT 工程；t-init 尚无扩展模板；浏览器演示用 web-demo |
-| 强模型单会话实现 | `/t-tools:t-super-run <feature> --phase <phase>` | 合并规划与执行；`--phase` 必填 |
+| 实现 + 测试 | `/t-tools:t-super-run <feature> --phase <phase>` | 合并任务规划与执行；`--phase` 必填，每次只执行一个 phase |
+| 无人值守连跑全部剩余 phase | `/t-tools:t-super-run-all <feature>` | 设计 complete 后一次跑完剩余 phase；每 phase 完成后自动接续 `t-review --fix -> t-simplify -> t-push` 再进入下一 phase |
+| Chrome 扩展开发 | `/t-tools:t-design <feature>`，再 `t-super-run --phase extension` | 先按 [extension 初始化指南](${CLAUDE_PLUGIN_ROOT}/guides/extension/initialization.md) 建 WXT 工程；用户故事演示用 extension-demo |
+| 扩展 Demo 基础设施初始化 | `/t-tools:t-init --extension-demo [--extension-dir <path>]` | 为已有 WXT 工程增量生成 Playwright fixture、真实加载 smoke 与运行说明；不代替故事验收 |
 | Web Demo / E2E | `/t-tools:t-web-demo-run <file>` 或 `/t-tools:t-web-demo-run-all` | 之后 `/t-tools:t-web-demo-accept <role>` |
+| Extension Demo / E2E | `/t-tools:t-extension-demo-run <file>` 或 `/t-tools:t-extension-demo-run-all` | 之后 `/t-tools:t-extension-demo-accept <file\|all>` |
 | Flutter Demo | `/t-tools:t-flutter-demo-run <file> --device <id>` 或 `/t-tools:t-flutter-demo-run-all` | 之后 `/t-tools:t-flutter-demo-accept <domain\|all>` |
 | 提交推送 | `/t-tools:t-review`、`/t-tools:t-simplify`，再 `/t-tools:t-push` | review 只报告，发现缺陷先修复；push 会清理注释并跑受影响 CI |
 | 发版 | `/t-tools:t-release [版本号]` | semver 不带 `v`，git tag 带 `v` |

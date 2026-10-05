@@ -1,6 +1,6 @@
-# Miniapp 编译验证步骤
+# Miniapp 完成前验证
 
-在标记 miniapp 任务为完成前，必须执行以下验证。
+在标记 miniapp 任务为完成前，取得以下适用验证的证据；accept 的证据复用按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`。
 
 ## 验证清单
 
@@ -58,11 +58,16 @@ cd miniapp && npm run prepublish:check
 cd miniapp && npm run starter:ci-gate -- --target taro-react-taroify-tailwind
 ```
 
+### 5. 业务行为验证（行为变更时必须）
+
+按 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/testing.md` 的业务行为验证执行受影响场景；开发者工具、真机或人工结果缺失时报告未验证及恢复步骤。构建成功不代替业务结果。
+
 ## 任务完成定义
 
 只有在以下条件满足时，才能标记 miniapp 任务为完成：
 - `npm run typecheck` 通过
 - `npm run build:weapp` 通过
+- 本阶段负责的业务行为验证已取得有效证据；仅不适用项可以写依据，环境不可用不属于不适用
 - 改动涉及的按需验证已执行或明确说明为什么跳过
 
 如果任何强制验证失败：

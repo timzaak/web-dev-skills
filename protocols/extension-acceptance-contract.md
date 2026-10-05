@@ -9,6 +9,8 @@
 
 结构化返回遵循 [agent output](${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md)，补充 `acceptance_result` 和 `report_path`。`change_scope` 表示实际改动，不能把只读检查对象当作改动。
 
+验收前按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 核查业务验证责任与证据复用；每次独立输出本轮验收结论，必要现场证据仍须符合本协议。
+
 ## 判定
 
 ### 用户浏览器现场证据

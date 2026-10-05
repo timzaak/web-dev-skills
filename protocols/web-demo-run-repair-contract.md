@@ -1,6 +1,6 @@
 # Demo Run Repair Contract
 
-本协议是 `t-web-demo-run` 与 `t-web-demo-run-all` 共享的单文件 Demo E2E 运行、诊断、修复和回归契约。批次发现、断点和汇总由 `t-web-demo-run-all` 自行编排。
+本协议是 `t-web-demo-run`、`t-web-demo-run-all`、`t-extension-demo-run` 与 `t-extension-demo-run-all` 共享的单文件 Playwright Demo E2E 运行、诊断、修复和回归契约。批次发现、断点和汇总由批次 skill 自行编排。
 
 共享结果字段以 `${CLAUDE_PLUGIN_ROOT}/protocols/demo-result-contract.md` 为准；本协议只补充 Playwright runner 的映射和修复行为。
 
@@ -34,11 +34,11 @@ Result: {"success":"true|false","fixed":"false","logs":"...","exitCode":0,"testF
 
 ## 诊断、修复与补测
 
-- 诊断使用 `web-demo-diagnose`，输入 `testFile`、实际失败的 `runId` 和 `testCaseTitle`。
-- 按诊断的 `recommended_agent` 选择 `web-demo-dev | frontend-dev | extension-dev | backend-dev | miniapp-dev | flutter-dev`。
+- Web 诊断使用 `web-demo-diagnose`；`demo/e2e/extension/` 的扩展演示使用 `extension-demo-diagnose`。输入均为 `testFile`、实际失败的 `runId` 和 `testCaseTitle`。
+- 按诊断的 `recommended_agent` 选择 `web-demo-dev | extension-demo-dev | frontend-dev | extension-dev | backend-dev | miniapp-dev | flutter-dev`。
 - 所有 Agent 调用必须先按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 注入角色规范。
 - 修复返回必须按 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md` 解析 `task_completion.change_scope` 和 `tests_to_run`。
-- 补测命令必须符合 `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`，并按 `backend -> frontend -> extension -> miniapp -> flutter -> demo` 串行。与当前定向 Demo 验证完全相同的 `demo` 命令去重，不重复执行。
+- 补测命令必须符合 `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`，并按 `backend -> frontend -> extension -> miniapp -> flutter -> web-demo -> extension-demo` 串行。与当前定向 Demo 验证完全相同的命令去重，不重复执行。
 - 缺少 `tests_to_run` 时记录 P1 契约缺失，并按实际 `change_scope` 执行至少一条最小补测。补测失败记录风险，但继续 Demo 验证和后续尝试。
 - extension/miniapp/Flutter 补测只在目标项目实际启用对应交付端，或诊断明确归因到该交付端时执行。
 

@@ -13,8 +13,10 @@
 | 子 agent 调用前的角色规范注入 | [subagent-dispatch.md](${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md) |
 | 修复后补测集合的字段与允许命令 | [tests-to-run-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md) |
 | `.ai/task/.../.state.json` 的唯一结构真相 | [task-state-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md) |
+| 行为验证责任、跨阶段交接、完成门禁和运行证据复用 | [verification-evidence-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md) |
 | phase/slot/item 的执行顺序与前置规则 | [task-phase-execution.md](${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md) |
-| `.ai/super-run/...` 的目标级计划、状态、主会话执行、accept 派发与 Goal 闭环 | [super-run-state-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/super-run-state-contract.md) |
+| `.ai/super-run/...` 的目标级计划、状态、主会话持续执行、恢复与独立 accept 收口 | [super-run-state-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/super-run-state-contract.md) |
+| t-super-run-all 的跨 phase 接力、质量链（review --fix → simplify → push）与 pipeline 游标 | [super-run-all-pipeline.md](${CLAUDE_PLUGIN_ROOT}/protocols/super-run-all-pipeline.md) |
 | backend-test 的默认收敛与升级策略 | [backend-test-execution.md](${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md) |
 | 设计检查评分标准 | [design-check-rubric.md](${CLAUDE_PLUGIN_ROOT}/protocols/design-check-rubric.md) |
 | PRD / user story 检查评分标准 | [prd-check-rubric.md](${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md) |
@@ -24,11 +26,12 @@
 | 任务检查评分与阻塞规则 | [task-check-rubric.md](${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md) |
 | Demo 共享 Result 输出结构 | [demo-result-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/demo-result-contract.md) |
 | Demo 诊断报告结构与分类映射 | [diagnostic-report-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-contract.md) |
-| Web Demo 单文件运行、修复、补测与环境刷新 | [web-demo-run-repair-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md) |
+| Web / Extension Playwright Demo 单文件运行、修复、补测与环境刷新 | [web-demo-run-repair-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md) |
+| Chrome 扩展 Demo 验收 | [extension-demo-acceptance-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/extension-demo-acceptance-contract.md) |
 | Flutter Patrol Demo 单文件与批量修复 | [flutter-demo-run-repair-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/flutter-demo-run-repair-contract.md) |
 | Figma session、素材、整页实现、规则记忆与验收 | [figma-workflow-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md) |
 | t-simplify 四角度清理审查、finding 结构与修复边界 | [simplify-cleanup-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/simplify-cleanup-contract.md) |
-| t-review 正确性审查角度、候选结构、三态验证与报告 | [review-correctness-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/review-correctness-contract.md) |
+| t-review 正确性审查角度、候选结构、三态验证、报告与 `--fix` 修复边界 | [review-correctness-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/review-correctness-contract.md) |
 
 ## 使用规则
 

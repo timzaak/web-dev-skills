@@ -59,7 +59,7 @@ The `description` is the trigger condition — keep the `/t-tool` literal in it.
 
 ### 3. Configure Context7 MCP
 
-See [Install Context7](#install-context7) below. Context7 is a `requiredMcpServers` entry; without it, stages like `t-design` and `t-run` will fail.
+See [Install Context7](#install-context7) below. Context7 is a `requiredMcpServers` entry; without it, stages like `t-design` and `t-super-run` will fail.
 
 ## Invocation
 
@@ -69,7 +69,6 @@ See [Install Context7](#install-context7) below. Context7 is a `requiredMcpServe
 | --- | --- |
 | `/t-tools:t-prd user-management` | `/t-tool t-prd user-management` |
 | `/t-tools:t-prd-check user-management` | `/t-tool t-prd-check user-management` |
-| `/t-tools:t-run user-management --phase backend` | `/t-tool t-run user-management --phase backend` |
 | `/t-tools:t-super-run user-management --phase backend` | `/t-tool t-super-run user-management --phase backend` |
 
 Running `/t-tool` with no argument lists every sub-skill under the repo's `skills/`.
@@ -91,7 +90,7 @@ As long as the dispatcher-injected `${CLAUDE_PLUGIN_ROOT}` points at this repo c
 
 ## Install Context7
 
-Context7 serves up-to-date, version-specific documentation for third-party libraries; it is queried during stages like `t-design` and `t-run`. It is a Streamable-HTTP MCP server. The universal configuration elements are:
+Context7 serves up-to-date, version-specific documentation for third-party libraries; it is queried during stages like `t-design` and `t-super-run`. It is a Streamable-HTTP MCP server. The universal configuration elements are:
 
 - Server URL: `https://mcp.context7.com/mcp`
 - Authentication: pass the API key you obtain at [context7.com](https://context7.com) via the HTTP header `CONTEXT7_API_KEY`

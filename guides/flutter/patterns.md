@@ -22,23 +22,16 @@ return users.when(
 );
 ```
 
-可修改异步状态用 `AsyncNotifier`；只读异步读取用 `FutureProvider`。重试保留原始参数：
+Provider 选型按 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/constitution.md`；以下是项目已采用代码生成时的声明式搜索示例，重试保留原始参数：
 
 ```dart
 @riverpod
-class UserSearch extends _$UserSearch {
-  @override
-  Future<List<User>> build(String keyword) =>
-      ref.read(userRepositoryProvider).search(keyword);
-
-  Future<void> refresh() async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(
-      () => ref.read(userRepositoryProvider).search(keyword),
-    );
-  }
+Future<List<User>> userSearch(Ref ref, String keyword) {
+  return ref.watch(userRepositoryProvider).search(keyword);
 }
 ```
+
+重试按钮的事件回调使用 `ref.invalidate(userSearchProvider(keyword))`；需要等待刷新完成的交互使用 `ref.refresh(userSearchProvider(keyword).future)`。没有代码生成的项目沿用手写 provider，不为套用示例引入生成器。
 
 ## 表单
 

@@ -15,6 +15,8 @@ tools:
 
 # Frontend Accept（流程入口）
 
+验收前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`，独立核查行为验证责任和运行证据；本文件要求的命令已有有效证据时可复用，缺失/失效时补跑。阶段结论与后续待验证场景分开报告。
+
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
 ## 输入契约
@@ -38,7 +40,7 @@ tools:
 - 根据豁免前缀判断是否可跳过
 
 ### 步骤 1：基础质量命令
-- 运行 `type-check`、`test`、`lint`
+- 核查 `type-check`、受影响测试、`lint` 的有效证据，按验证证据协议补跑缺失或失效项
 - 执行重复代码扫描并保留报告证据
 - 收集类型与测试失败证据
 
@@ -47,7 +49,7 @@ tools:
 - 检查路径、参数、响应与认证一致性
 
 ### 步骤 3：测试策略校验
-- 校验 Demo-first 策略是否满足
+- 校验 Demo-first 策略、当前行为验证证据和后续承接；具体门禁按验证证据协议，不把计划中的 Demo 计为通过
 
 ### 步骤 4：输出报告
 - 输出到 `.ai/quality/frontend-accept-[feature]-[YYYYMMDD-HHMMSS].md`

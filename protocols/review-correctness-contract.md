@@ -2,7 +2,7 @@
 
 t-review 的审查角度、候选结构、Pass-Through、去重/三态验证和报告结构的单一事实源。
 
-本契约只找正确性缺陷，不做代码质量清理；清理属于 `t-simplify`（角度定义见 `${CLAUDE_PLUGIN_ROOT}/protocols/simplify-cleanup-contract.md`）。本契约只输出可复核的报告，不修复缺陷。
+本契约只找正确性缺陷，不做代码质量清理；清理属于 `t-simplify`（角度定义见 `${CLAUDE_PLUGIN_ROOT}/protocols/simplify-cleanup-contract.md`）。本契约默认只输出可复核的报告，不修复缺陷；`--fix` 模式在报告写入后按 Fix Mode 一节处置发现。
 
 ## Review Angles
 
@@ -63,6 +63,17 @@ finder 不得自行过滤“半信半疑”的候选：凡 `failure_scenario` �
 
 保留 CONFIRMED 与 PLAUSIBLE，丢弃 REFUTED。证据不足时判 PLAUSIBLE 并说明确认途径，不得为保守而 REFUTED。
 
+## Fix Mode (`--fix`)
+
+`--fix` 只改变报告之后的处置，不改变审查、验证与报告本身：
+
+- 修复只发生在报告写入之后；finder/verifier 阶段与报告内容保持只读。
+- CONFIRMED 发现由主会话切换到受影响端的 dev 角色边界修复：从 `${CLAUDE_PLUGIN_ROOT}/agents/` 读取对应的 dev agent 规范（`backend-dev.md`、`frontend-dev.md`、`extension-dev.md`、`miniapp-dev.md`、`flutter-dev.md`、`web-demo-dev.md`、`extension-demo-dev.md`、`flutter-demo-dev.md`）作为当前角色边界（与 `t-super-run` 的主会话角色切换一致），不为此新派 subagent。
+- PLAUSIBLE 发现先按其 `failure_scenario` 复现或确认；能确认的视同 CONFIRMED 修复，无法确认的保留为 pending 并写明确认途径。
+- 会改变预期行为的修法跳过并标记 pending；不得用弱化断言、放宽校验、改需求含义或改写 verifier 结论的方式消除发现。
+- 每条修复后运行覆盖所改文件的最小定向验证；结果以 `## Fixes` 小节追加进同一报告。
+- 同一发现连续三次修复失败且无新证据时标记 blocked 并停止，保留失败证据。
+
 ## Report
 
 写入 `.ai/quality/review-[YYYYMMDD-HHMMSS].md`：
@@ -84,7 +95,11 @@ finder 不得自行过滤“半信半疑”的候选：凡 `failure_scenario` �
 
 ## 结论
 - N 项 CONFIRMED / M 项 PLAUSIBLE；或未发现正确性缺陷
-- 下一步: 修复入口（t-run / 主会话确认后修复），或确认可进入 t-simplify / t-push
+- 下一步: 修复入口（t-super-run / 主会话确认后修复），或确认可进入 t-simplify / t-push
+
+## Fixes（仅 --fix）
+- file:line | fixed | 修复说明 | 验证命令
+- file:line | pending | 原因或确认途径
 ```
 
 超出上限时按严重度截断；无存留发现时“发现”节为空并如实写入结论。

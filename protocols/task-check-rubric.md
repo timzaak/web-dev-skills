@@ -42,12 +42,12 @@
 `.state.json` 必须满足：
 
 - `feature` 存在
-- `phase` 为 supported phases：`backend|frontend|extension|miniapp|flutter|web-demo|flutter-demo`
+- `phase` 为 supported phases：`backend|frontend|extension|miniapp|flutter|web-demo|extension-demo|flutter-demo`
 - `phases` 包含当前任务的 active phases；未启用 extension/miniapp/Flutter 的项目不要求包含对应 phase
 - `phases[*].status` 存在
 - `tasks[phase]` 存在
-- backend/frontend/extension/miniapp/flutter 含 `dev/test/accept`
-- web-demo / flutter-demo 含 `dev/accept`
+- backend/frontend/extension/miniapp/flutter 含 `dev/accept`；需要测试角色编写测试用例、fixture/helper 或专项验证脚本时含 `test`
+- web-demo / extension-demo / flutter-demo 含 `dev/accept`
 - 每个 slot 含 `status/manifest/items`
 - 每个 item 含 `status/file/agent`
 
@@ -69,10 +69,13 @@
    - manifest 按表格从上到下覆盖全部 items，且无重复 item
 - item 文件包含必填字段
 - item 文件包含 `id/title/agent` 和 `Goal/Work/Files/Validation/Handoff` 五个章节
-- 若当前阶段为 backend，backend/test slot 符合 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 authoring/集中 runner 覆盖与 runner agent/协议引用要求
+- 若当前阶段包含 backend/test，该 slot 符合 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 authoring/集中 runner 覆盖与 runner agent/协议引用要求
 - 若当前阶段为 backend，backend/test runner 默认使用定向命令；全量 `uv run scripts/backend-test.py --` 只有在写明无法可靠定向或门禁要求时才允许
-- 若当前阶段为 backend，backend/test 至少包含一个 runner，且 runner 在 manifest 中排在其覆盖的 authoring item 之后
-- 若当前阶段为 frontend/extension/miniapp/flutter/web-demo/flutter-demo，涉及测试代码 authoring 时必须有排在相关 authoring item 之后的集中定向执行 item，且不得默认规划全量测试
+- 若当前阶段包含 backend/test，该 slot 至少包含一个 runner，且 runner 在 manifest 中排在其覆盖的 authoring item 之后；没有 test slot 时，阶段 index 说明原因，dev Validation 至少包含一项可执行验证
+- 仅运行现有测试、编译、类型检查或构建时，验证归 dev，不据此要求 test slot
+- 按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 核对受影响业务场景的验证入口、关键断言及承接位置；静态检查不能代替业务运行验证。
+- 所有阶段检查新增测试的可观察回归、场景测试/Demo 覆盖缺口；仅为覆盖率、技术分层或重复已有路径规划的测试记为过度拆分
+- frontend/extension/miniapp/flutter/web-demo/extension-demo/flutter-demo 的测试资产必须由合并 item 或排在其后的集中 runner 完成定向执行；按 task-phase-execution 选择，检查 Expected Test Manifest，不得默认规划全量测试
 - slot item 数量符合 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的上限，或具有用户授权证据
 - 大范围重构、旧架构替换或旧模块迁移任务包含旧代码清理清单，并按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 先删除旧实现再改写新结构
 - 检查是否存在过度拆分：同一责任闭环被拆成多个无法独立验收的 item，或多个 item 只是在技术层之间传递 handoff
@@ -148,7 +151,8 @@ agent 评审边界：
 - backend/test 缺少 runner item、runner agent 不是 `general-purpose`、runner 未引用 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md`，或存在 authoring item 未被集中 runner 覆盖
 - backend/test runner 把全量 `uv run scripts/backend-test.py --` 当默认 validation，且未说明定向范围不足或门禁要求
 - backend/test runner 排在其覆盖的 authoring item 之前，或 backend/test 缺少 runner 导致 accept 前没有测试执行闭环
-- frontend/extension/miniapp/flutter/web-demo/flutter-demo 涉及测试代码 authoring，却缺少排在相关 authoring item 之后的集中定向执行 item
+- frontend/extension/miniapp/flutter/web-demo/extension-demo/flutter-demo 的测试资产既未在合并 item 内安排执行，也未被后续集中 runner 覆盖
+- 业务行为变更只有静态验证且无适用的运行验证/后续承接，或待验证场景被计为交付完成
 - 命令、路径、阶段链路经仓库和规范双重验证后确认会直接导致 `/t-run` 无法执行
 
 出现 `confirmed P0` 时，必须拒绝进入 `/t-run`。
@@ -156,6 +160,7 @@ agent 评审边界：
 ### P1
 
 - slot 状态与 item 聚合状态不匹配
+- 没有 test slot，且阶段 index 缺少原因或 dev Validation 没有可执行验证，导致 accept 无法核查测试风险
 - item 缺少关键章节
 - slot item 数量超过 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的上限且无用户授权证据，或 item 职责、验证、恢复边界可疑且无合理说明
 - item 职责混杂，单次 agent 调用高概率无法完成
@@ -163,7 +168,7 @@ agent 评审边界：
 - item 过度拆分：同一责任闭环被拆成多个无法独立验收的 item，多个 item 修改同一小文件集并重复相同验证命令，或执行序列只是在 DTO/domain/repository/service/route、API/store/page/error/permission 等技术层之间传递 handoff
 - HTTP/API item 覆盖超过 10 个 endpoint，或混合不同资源域、读写操作、状态操作、配置类接口，导致单次执行或验证闭环不可恢复
 - item 略大但责任闭环单一、验证定向、失败可定位、顺序清晰、handoff 可恢复时不应仅因规模、步骤数或文件数记 P1
-- web-demo / flutter-demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流
+- web-demo / extension-demo / flutter-demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流
 - 大范围重构缺少旧代码清理清单，清单没有说明删除边界与残留搜索方式，或未按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的“先删除旧实现再改写新结构”顺序组织
 - 没有真实兼容约束（按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的兼容性来源判定：PRD、设计文档、外部 API 契约、数据保留、跨版本部署或用户显式要求均不成立）时，任务计划仍以兼容层、adapter、bridge、fallback、双路径分支或“以后再删”作为主路径
 - 后续 item 缺少 `Handoff` 追溯

@@ -1,6 +1,6 @@
 # Chrome 扩展测试指南
 
-Vitest 覆盖业务分支与契约；Playwright 覆盖真实扩展加载、跨上下文通信和用户路径。先确认项目现有 scripts、fixtures 与依赖版本，再选择受影响范围。
+真实浏览器/场景验证优先覆盖扩展加载、跨上下文通信和用户路径；仅在这些路径难稳定覆盖重要业务规则或异常边界时新增 Vitest，并说明可观察回归及覆盖缺口。允许不新增局部测试，受影响的现有测试仍需定向验证。先确认项目现有 scripts、fixtures 与依赖版本，再选择受影响范围。
 
 需要用户当前标签页、登录态或已安装扩展的现场验证时，先读 [用户 Chrome 调试](${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md)，采用 Chrome DevTools MCP；本页的临时 profile 负责独立回归，两种证据不得互相冒充。extension-test 仍负责 Vitest，现场采集由开发角色或主会话完成。
 
@@ -17,7 +17,7 @@ Vitest 覆盖业务分支与契约；Playwright 覆盖真实扩展加载、跨�
 
 ## Playwright 扩展 fixture
 
-由 web-demo-dev 维护 `demo/e2e/` 中的扩展专用 fixture 和用例；必须先读本节，再复用 [Web Demo 规范](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/index.md) 的日志、选择器与报告约定。
+由 extension-demo-dev 维护 `demo/e2e/extension/` 中的扩展专用 fixture 和用例；先读 [扩展演示指南](${CLAUDE_PLUGIN_ROOT}/guides/extension/demo-testing.md)，再复用 [Web Demo 规范](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/index.md) 的日志、选择器与报告约定。
 
 - 用 Playwright 自带 Chromium：`chromium.launchPersistentContext('', { channel: 'chromium', args: [...] })`，args 包含 `--disable-extensions-except=<构建绝对路径>`、`--load-extension=<同一路径>`。支持 headless；不要换成品牌 Chrome/Edge 后假设侧载参数仍可用。
 - 测试前 build；fixture 确认 manifest 存在，每个测试使用独立临时 profile，结束时关闭 context。宿主页面从项目 fixture 启动的本地站点或明确测试站点加载，不依赖个人浏览器配置。
@@ -39,4 +39,4 @@ uv run scripts/web-demo-test-runner.py demo/e2e/extension/settings.e2e.ts --no-a
 
 混合项目依赖真实 Web 后端时按设计保留默认环境管理；不要仅因有扩展目录就跳过环境。是否使用 `--no-auto-env` 写入任务 Validation，定向、整文件终验和批次恢复均保留该选择。
 
-修复闭环与隔离按 [Demo repair contract](${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md)；测试编写/定向执行拆分由 [task phase contract](${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md) 决定。
+修复闭环与隔离按 [Demo repair contract](${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md)；extension-demo 的测试编写/定向执行合并或拆分由 [task phase contract](${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md) 决定。

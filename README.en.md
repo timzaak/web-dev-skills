@@ -10,6 +10,10 @@ Decision -> PRD / Tech Research (choose by the main unknown; iterate if needed) 
 
 T-Tools is designed for projects that already have a delivery chain across product documents, design, task breakdown, development, testing, and demos. Its focus is not freeform model execution. It uses skills to orchestrate stages, subagents to split work, protocols to keep shared contracts stable, and check / accept stages to close quality when needed.
 
+Test plans default to backend scenarios and user story demos. Add focused tests only when those paths cannot reliably cover an important rule or edge case. Plan a test slot when the test role must write test cases or a dedicated validation script. Running existing tests, type checks, and builds belongs to development; acceptance reviews the evidence.
+
+Behavior changes require runtime verification or an explicit handoff to a later phase, reported as pending business acceptance; compilation cannot prove business outcomes. Miniapps reuse existing automation or developer tool/device verification. Extensions add Vitest only for meaningful coverage gaps, without a mandatory smoke unit test. Small test scopes owned by one role may combine authoring and execution; backend/test retains separate authoring and runner items. Acceptance independently reviews the work and may reuse valid execution evidence, rerunning when relevant inputs change or evidence is insufficient. See the [verification evidence contract](protocols/verification-evidence-contract.md).
+
 Recommended first reading: [human/structure.en.md](human/structure.en.md) to understand how skills, subagents, and protocols work together. Before shaping a requirement, use [human/speech-template.en.md](human/speech-template.en.md) to speak through the real intent first.
 
 The development log of this project's iterations is kept on [linux.do](https://linux.do/t/topic/1988118/4) (in Chinese).
@@ -20,11 +24,7 @@ The development log of this project's iterations is kept on [linux.do](https://l
 
 Not sure which command to start with? Run `t-how` — it explains the workflow for your goal and recommends the entry command.
 
-Prerequisites:
-
-- The plugin has been loaded by following [Installation](#installation)
-- The target project has runtime directories: `docs/` and `.ai/`
-- [`context7`](https://github.com/upstash/context7) is configured
+Follow [Installation](#installation) and meet its prerequisites first.
 
 Minimal end-to-end loop:
 
@@ -36,22 +36,27 @@ t-decision user-management
 # no fixed order with PRD — converge before design
 t-tech-research user-management
 
+# Read the feature's Decision Brief and tech research first; review existing related PRDs
 # Generate .ai/prd and .ai/user-stories drafts
 t-prd user-management
 
+# Run t-prd-check by risk, or proceed directly to design
 # Generate technical design (master + per-stack)
 t-design user-management
 
-# Generate tasks and implement per phase; repeat the loop for other phases
-t-task user-management --phase backend
-t-run user-management --phase backend
-
-# Single-main-session path for GPT-5.6 Sol-class models, merging planning and execution
+# Merge task planning, implementation, and testing per phase; repeat the loop for other phases
 t-super-run user-management --phase backend
 
-# Web Demo/E2E and final acceptance (Flutter: t-flutter-demo-run / t-flutter-demo-accept)
+# Or run all remaining phases unattended: each phase chains t-review --fix -> t-simplify -> t-push before the next
+t-super-run-all user-management
+
+# Web Demo/E2E and final acceptance (extensions and Flutter have separate commands)
 t-web-demo-run demo/e2e/<role>/<scenario>.e2e.ts
 t-web-demo-accept <role>
+# Chrome extension loaded-browser demo and acceptance
+t-extension-demo-run demo/e2e/extension/<scenario>.e2e.ts
+t-extension-demo-run-all
+t-extension-demo-accept all
 
 # Publish formal PRD / user stories after implementation and acceptance
 t-prd-publish user-management
@@ -61,19 +66,20 @@ t-prd-publish user-management
 
 ## Phase Split
 
-A typical web order is `backend -> frontend -> web-demo`; a typical Flutter order is `backend -> flutter -> flutter-demo`.
+A typical web order is `backend -> frontend -> web-demo`; a typical extension order is `extension -> extension-demo` (with backend first when changed); a typical Flutter order is `backend -> flutter -> flutter-demo`.
 
 - `backend`: backend APIs, data models, permissions, business logic, backend tests, and read-only acceptance.
 - `frontend`: React pages, components, state, frontend tests, and read-only acceptance.
-- `extension`: WXT / Chrome MV3 entrypoints, messaging, storage, permissions, Vitest tests, and read-only acceptance; browser demos use `web-demo`.
+- `extension`: WXT / Chrome MV3 entrypoints, messaging, storage, permissions, Vitest tests, and read-only acceptance.
 - `miniapp`: miniapp pages, platform capabilities, build verification, and read-only acceptance.
 - `flutter`: Flutter views, Riverpod state, data layers, unit/widget/integration tests, and read-only acceptance.
 - `web-demo`: Playwright Demo/E2E based on user stories and browser user paths.
+- `extension-demo`: Playwright integration demos with a loaded extension, covering user paths across contexts, permissions, and lifecycle behavior.
 - `flutter-demo`: Android Patrol demos based on user stories, including real App actions and native system UI.
 
-Each phase runs the loop `t-task -> [t-task-check] (optional, by risk) -> t-run`; the quick start shows backend as the example and other phases repeat it. `t-super-run` is the single-main-session path for GPT-5.6 Sol-class models: it merges planning and execution, requires `--phase`, executes exactly one phase per call, then stops. Every supported phase, including extension and miniapp, can use this path.
+Each phase uses `t-super-run` by default: the main session creates an outcome-level phase plan and continuously implements, tests, and repairs the work under the current role specification; accept dispatches the matching read-only subagent for independent acceptance. It generates no fine-grained items and requires no additional continuous-run command. `--phase` is required; each call executes one phase and stops. Repeat the same command to recover after an interruption. `.ai/super-run/` stores phase plans, execution state, and evidence references. The quick start uses backend as an example; every supported phase, including extension and miniapp, can use this path. To run all remaining phases unattended, use `t-super-run-all <feature>`: it executes the same per-phase loop in canonical order and chains `t-review --fix -> t-simplify -> t-push` after each phase before moving on (`t-prd-publish` and `t-release` stay manual); see the [super-run-all pipeline contract](protocols/super-run-all-pipeline.md). Use `t-task -> [t-task-check] (optional, by risk) -> t-run` when plans need separate review, fine-grained items, or dev/test subagent ownership. The two workflows keep independent state.
 
-Prepare a WXT project using the [extension initialization guide](guides/extension/initialization.md) (skip for existing projects; `t-init` has no extension template yet). Once requirement sources are ready, run `t-design <feature>`, `t-task <feature> --phase extension`, and `t-run <feature> --phase extension`. Design produces a separate `extension.md`. See the [extension testing guide](guides/extension/testing.md) for standalone fixtures and `--no-auto-env`.
+Prepare a WXT project using the [extension initialization guide](guides/extension/initialization.md) (skip for existing projects; `t-init` does not generate the WXT production project). To add integration-test infrastructure, run `t-init --extension-demo` from the target project root; select among multiple extension directories with `--extension-dir <path>`, or use `.` for a standalone project. This mode incrementally adds Playwright configuration, extension fixtures, a real-loading smoke test, and local execution instructions while preserving existing Web demos. Initialization success does not constitute user story acceptance. Once requirement sources are ready, run `t-design <feature>` and `t-super-run <feature> --phase extension`. When design requires a user story demo, also run `t-super-run <feature> --phase extension-demo`. In `t-design`, the dedicated [extension-design](agents/extension-design.md) role produces `extension.md`, covering entrypoints, permissions, messaging/storage, lifecycle, and browser verification; Web and extension deliverables receive separate designs when both apply. See the [extension demo guide](guides/extension/demo-testing.md) for fixtures, environment selection, and acceptance.
 
 ## Usage Rules
 
@@ -100,7 +106,11 @@ Prerequisites:
 - MCP Server [`context7`](https://github.com/upstash/context7) is configured
 - The official [Figma MCP Server](https://developers.figma.com/docs/figma-mcp-server/) and Chrome DevTools MCP are configured when using the Figma workflow (the latter is used for visual acceptance comparison)
 - `ffmpeg` and `ffprobe` are installed and available on PATH when converting Figma media assets; SVG optimization additionally requires `svgo` (`npm install -g svgo`)
-- `t-figma-impl` / `t-figma-ux` require a user-provided accessible preview URL; the dev server is the user's responsibility to start
+- PNG-to-WebP conversion in `t-figma-assets` depends on the [kyz](https://github.com/timzaak/kyz) credential proxy: run `kyz daemon start` with the tinify rule configured (store the tinify credential in the vault as described in `docs/proxy.md` of the kyz repository); the TinyPNG API key never lands in this repository
+
+`t-figma-assets` processes assets from node metadata and converter results without reviewing each image visually; page-level visual comparison happens during implementation and acceptance.
+
+The runtime directories `.ai/` and `docs/` are created automatically during execution — no need to create them up front. `docs/` may already be used for your own purposes: t-tools only writes to its own fixed document paths (`docs/prd/`, `docs/user-stories/`, `docs/design/`, etc.) and leaves unrelated content untouched.
 
 For tools that do not support `claude --plugin-dir` (Codex, ZCode, etc.), see [Using t-tools in Other AI Coding Tools](human/use-in-other-agents.en.md): place a dispatcher skill under `~/.agents/skills/` that routes `/t-tool <skill>` to the cloned repository directory.
 

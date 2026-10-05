@@ -1,13 +1,13 @@
 # Flutter 验收规范
 
-Flutter accept 默认只读，按目标项目 lock、设计和实际代码输出证据。跨领域门禁见 `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md`。
+Flutter accept 默认只读，按目标项目 lock、设计和实际代码输出证据。跨领域门禁见 `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md`。行为验证责任、阶段承接和证据复用按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`。
 
 ## 门禁
 
 ### P0
 
 - 适用的格式、生成、`flutter analyze`、单元/widget 测试通过。
-- 重要用户用例有对应 integration 回归证据。
+- 本阶段负责的重要用户用例有场景/integration/Demo 或适用设备验证证据；后续 Demo 承接按验证证据协议，不重复要求多层覆盖。
 - Riverpod 技术线一致，无平行状态系统。
 - View/data 职责、依赖方向和生成物符合项目事实。
 

@@ -1,6 +1,6 @@
 # Flutter 用户故事演示（Patrol）
 
-Flutter Demo 是安装到 Android 设备上的用户故事验收层，覆盖真实 App 操作和权限、通知、WebView 等系统 UI；不替代单元、Widget 或普通 integration test。首次接入先看 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/patrol-initialization.md`。
+Flutter Demo 是安装到 Android 设备上的用户故事验收层，覆盖真实 App 操作和权限、通知、WebView 等系统 UI；局部测试仅补 Demo/集成验证难稳定覆盖的重要缺口，不要求逐层重复覆盖。首次接入先看 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/patrol-initialization.md`。
 
 ## Structure
 
@@ -16,7 +16,7 @@ patrol_test/
 
 ## 编写准则
 
-- 只把重要 happy path 和必须经过原生 UI 的路径放进 Flutter Demo；输入校验、边界组合和纯 Flutter 行为下沉到更快的测试层。
+- 优先用 Flutter Demo 覆盖重要用户路径和必须经过原生 UI 的行为；输入校验、边界组合或纯 Flutter 行为仅在存在重要覆盖缺口时，按 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/testing.md` 选择少量局部测试。
 - 从生产 composition root 启动，测试显式 pump App。Demo 配置可通过专用 entrypoint 或 `--dart-define` 切换，但不得用 fake 代替真实流程。
 - Finder 优先稳定 `ValueKey`，其次 Semantics 和稳定文案；禁止依赖 Widget 位置。断言持久业务结果，不把短暂提示作为唯一结果。
 - Flutter 控件使用 Patrol finder；跨平台原生动作优先 `$.platform.mobile`，平台专属行为才使用 Android/iOS API。
@@ -30,7 +30,7 @@ Patrol 的主要成本是原生构建、安装和设备启动：
 - 编写单文件时使用 `patrol develop --target <file> --device <id>`，首次构建后用 Hot Restart 迭代。注意它不会清除权限、SharedPreferences、文件或原生状态。
 - 多文件快速回归使用 `${CLAUDE_PLUGIN_ROOT}/scripts/patrol-test-runner.py`，默认一次构建运行全部选中文件。`--isolate-files` 只用于逐文件诊断。
 - 用 Patrol tags 做语义子集回归：在 `patrolTest('...', tags: ['smoke'], ...)` 打标，再经 runner 透传原生过滤参数（用 `--` 分隔，避免与 runner 自身参数歧义）：`uv run ${CLAUDE_PLUGIN_ROOT}/scripts/patrol-test-runner.py -d <id> -- --tags smoke` 或 `-- --exclude-tags='slow'`，支持 `||`、`&&`、`!` 布尔表达式。tags 只用于快速回归，不改变 `t-flutter-demo-run-all` 的全量验收门禁。
-- 文件稳定后使用 `/t-tools:t-flutter-demo-run` 产出单故事证据；最终验收才执行 `/t-tools:t-flutter-demo-run-all` 和 `/t-tools:t-flutter-demo-accept`。
+- 文件稳定后使用 `/t-tools:t-flutter-demo-run` 产出单故事证据；验收选择受影响范围的 `/t-tools:t-flutter-demo-accept`。仅发布门禁、无法可靠收敛影响范围或用户要求时执行 `/t-tools:t-flutter-demo-run-all`；显式 run-all 的全量门禁保持不变。
 
 ## Run
 

@@ -35,9 +35,11 @@ allowed-tools:
 
 不要因为用户只是问"怎么实现""大概怎么做"就自动触发本 skill。
 
+规划测试与验收时读取 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`，将受影响行为的验证入口、关键断言和承接位置写入现有设计测试章节/阶段计划；交付收尾按同一协议核对证据和待验证项。
+
 ## 目标
 
-基于用户故事、PRD 草稿、已发布 PRD 基线、技术预研、用户已准备的仓库内资料和现有代码，生成可实施、可追踪、可用于 `/t-task` 的技术设计。`/t-prd-check` 是推荐的可选上游检查；未运行时，本 skill 必须自行完成关键需求来源混合验证。
+基于用户故事、PRD 草稿、已发布 PRD 基线、技术预研、用户已准备的仓库内资料和现有代码，生成可实施、可追踪、可直接进入 `/t-super-run` 的技术设计。`/t-prd-check` 是推荐的可选上游检查；未运行时，本 skill 必须自行完成关键需求来源混合验证。
 
 设计拆分为一份主文档加按端拆分的分端设计文档；每个适用端由对应设计 subagent 生成，主会话负责编排、跨端裁决和汇总。不适用端不创建分端文档，只在主文档 §4.2 标记"不适用"及原因。
 
@@ -50,7 +52,7 @@ allowed-tools:
 - 业务功能设计：
   - `.ai/decision/<feature>.md` — 产品立项决策简报（如存在，作为 PRD 之前的方向约束）
   - `.ai/decision-log/<feature>.md` — 跨阶段决策账本（存在时必须读取）
-  - `.ai/prd/<domain>/<feature>.md` — PRD 草稿（如存在，作为当前候选需求）
+  - `.ai/prd/<domain>/<feature>.md` — `/t-prd` 产出的 PRD 草稿；按 feature 在 `.ai/prd/` 下查找，存在时必须读取，作为当前候选需求（也兼容 `.ai/prd/<feature>.md`）
   - `docs/prd/<domain>/<feature>.md` — 已发布 PRD 基线（如存在，作为正式需求基线）
   - `.ai/user-stories/**/*.md` — draft 用户故事（如存在，作为当前候选需求）
   - `docs/user-stories/**/*.md` — 已发布相关用户故事
@@ -63,8 +65,9 @@ allowed-tools:
 - `${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md` — 环境与测试指南
 - `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md` — 后端开发规范
 - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md` — 前端开发规范
-- `${CLAUDE_PLUGIN_ROOT}/guides/frontend/ui-decisions.md` — 前端 UI 组件选型、交互状态与无障碍底线（frontend/extension 设计时）
+- `${CLAUDE_PLUGIN_ROOT}/guides/frontend/ui-decisions.md` — 前端 UI 组件选型、交互状态与无障碍底线（frontend/extension 涉及用户可见 UI 时）
 - `${CLAUDE_PLUGIN_ROOT}/guides/extension/development.md` — Chrome 扩展设计时读取
+- `${CLAUDE_PLUGIN_ROOT}/guides/extension/demo-testing.md` — 设计包含 Chrome 扩展用户故事演示时读取
 - `${CLAUDE_PLUGIN_ROOT}/guides/flutter/development.md` — Flutter 开发规范（目标项目启用 Flutter 时）
 - `${CLAUDE_PLUGIN_ROOT}/guides/flutter/demo-testing.md` — Android Patrol 用户故事演示规范（设计要求 Flutter Demo 时）
 - `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md` — 质量规范
@@ -81,7 +84,7 @@ allowed-tools:
   - 分端设计摘要
   - 测试与验收策略（跨端汇总）
   - 风险与验证动作（汇总）
-  - 文件影响范围（全量汇总，`/t-task` 的唯一拆分依据）
+  - 文件影响范围（全量汇总，`/t-super-run` 的唯一拆分依据）
 - `.ai/design/$ARGUMENTS/backend.md` — 后端分端设计（适用时），包含 API 契约（唯一设计源）、数据库设计、领域逻辑、权限安全、详细设计、后端测试策略
 - `.ai/design/$ARGUMENTS/frontend.md` — 前端分端设计（适用时），包含页面/组件/线框、状态与数据流、交互与关键状态、性能、测试与 Demo 策略
 - `.ai/design/$ARGUMENTS/extension.md` — 扩展分端设计（适用时），包含入口、消息/存储、权限、生命周期与浏览器验证策略
@@ -133,6 +136,8 @@ D2 工程取舍由设计阶段明确选择并写入 Design；符合 Decision Con
 
 优先做法：先从索引定位候选文档，再对候选文档做 `Grep`，最后 `Read` 真正相关的少量文件。
 
+无论索引是否收录草稿，都要按 `$ARGUMENTS` 在 `.ai/prd/` 下查找同名 PRD（包括 `<domain>/$ARGUMENTS.md` 和 `$ARGUMENTS.md`）；找到后必须读取，并与相关 `docs/prd/` 已发布基线核对。若找到多个同名草稿且无法确定对应领域，先按决策纪律确认，不得自行选取其中一份。
+
 业务功能设计至少提取：用户故事 ID/标题/优先级/来源文件、场景概述或验收目标摘要、PRD 草稿中的当前候选业务边界/规则/非功能要求、已发布 PRD 基线及草稿相对基线的差异、draft 用户故事相对已发布故事的新增或变更场景、Decision Log 中影响设计的 Active Decisions / 已解决问题 / 本阶段到期的 Deferred Questions。草稿与正式来源的并存裁决按需求来源边界协议执行；冲突无法确认覆盖关系时停止并提示修正草稿，必要时运行 `/t-prd-check [feature]`。
 
 如果没有找到足够的用户故事或 PRD：
@@ -142,7 +147,7 @@ D2 工程取舍由设计阶段明确选择并写入 Design；符合 Decision Con
 
 ### 4. 分析现有实现
 
-分析真实代码结构，不要假设，输出：现有实现入口（后端、前端、Flutter 各自的现状）、可复用模块、需要修改的边界、与当前架构或约束冲突的点。代码分析复杂时用 `Task` 启动 Explore agent，要求返回现有实现位置、可复用点、受影响模块和具体文件路径。
+分析真实代码结构，不要假设，输出：现有实现入口（后端、前端、扩展、Flutter 各自适用部分的现状）、可复用模块、需要修改的边界、与当前架构或约束冲突的点。代码分析复杂时用 `Task` 启动 Explore agent，要求返回现有实现位置、可复用点、受影响模块和具体文件路径。
 
 ### 5. 确定交付端范围与契约归属
 
@@ -158,12 +163,12 @@ D2 工程取舍由设计阶段明确选择并写入 Design；符合 Decision Con
 |---|---|---|---|
 | backend | backend-design | [template-backend.md](${CLAUDE_PLUGIN_ROOT}/skills/t-design/template-backend.md) | `.ai/design/$ARGUMENTS/backend.md` |
 | frontend | frontend-design | [template-frontend.md](${CLAUDE_PLUGIN_ROOT}/skills/t-design/template-frontend.md) | `.ai/design/$ARGUMENTS/frontend.md` |
-| extension | frontend-design | [template-extension.md](${CLAUDE_PLUGIN_ROOT}/skills/t-design/template-extension.md) | `.ai/design/$ARGUMENTS/extension.md` |
+| extension | extension-design | [template-extension.md](${CLAUDE_PLUGIN_ROOT}/skills/t-design/template-extension.md) | `.ai/design/$ARGUMENTS/extension.md` |
 | flutter | flutter-design | [template-flutter.md](${CLAUDE_PLUGIN_ROOT}/skills/t-design/template-flutter.md) | `.ai/design/$ARGUMENTS/flutter.md` |
 
-调度顺序：backend 适用 → 先调度 backend-design，成功后再调度 frontend-design / flutter-design；backend 不适用 → 可并行调度。同批次同角色复用按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 执行。
+调度顺序：backend 适用 → 先调度 backend-design，成功后再调度 frontend-design / extension-design / flutter-design；backend 不适用 → 可并行调度。同批次同角色复用按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 执行。
 
-extension 调用 frontend-design 时必须传 `design_stack: extension` 及扩展 guide/模板路径；Web 前端传 `design_stack: frontend`。同一任务两端均适用时分别处理，不因角色相同省略任一端。
+`design_stack` 与映射表中的端一致，传入对应 guide/模板路径；extension 使用 `${CLAUDE_PLUGIN_ROOT}/agents/extension-design.md`。同一任务 Web 与扩展两端均适用时分别调度和输出，不合并分端设计。
 
 每次调度前必须：
 - 按 subagent-dispatch 协议 Read 对应 `agents/<role>.md` 全文并注入为子 agent prompt 的角色指令段
@@ -171,7 +176,7 @@ extension 调用 frontend-design 时必须传 `design_stack: extension` 及扩�
 - 不复制 guide、protocol 或 agent 文档中的长篇规则
 
 处理子 agent 返回：
-- 只读取 `task_completion.status` 和 `design_result`，拒绝旧的顶层 `status/doc_path/contract_summary` 返回结构
+- 只读取 `task_completion.status` 和 `design_result`；其他顶层返回结构不符合输出契约
 - `needs_user_answer` 非空 → 按决策纪律处理，然后重新调度该端
 - `task_completion.status=partial` 或 `design_result.self_check` 未通过 → 不进入合并；修复输入后重新调度，无法恢复时把生成状态写为 `failed`
 - `task_completion.status=failed` → 终止该端并把生成状态写为 `failed`；不得写入该端成功状态
@@ -188,7 +193,7 @@ extension 调用 frontend-design 时必须传 `design_stack: extension` 及扩�
 - 分端设计摘要（来自各端 `task_completion.summary`，每端 3-5 行）
 - 测试与验收策略跨端汇总（来自各分端文档测试章节）
 - 风险与验证动作汇总
-- §8 文件影响范围：逐行合并各分端文档的文件影响表，标注来源分端（取值 backend/frontend/extension/flutter/web-demo/flutter-demo/跨端；设计要求用户故事演示时，Playwright `demo/e2e/` 资产标 `web-demo`、Patrol 资产标 `flutter-demo`，供 `/t-task` 与 `/t-super-run` 识别 demo 交付端）；此表是 `/t-task` 的唯一拆分依据，必须覆盖全部适用端
+- §8 文件影响范围：逐行合并各分端文档的文件影响表，标注来源分端（取值 backend/frontend/extension/flutter/web-demo/extension-demo/flutter-demo/跨端；设计要求用户故事演示时，Web Playwright 资产标 `web-demo`、扩展 Playwright 资产标 `extension-demo`、Patrol 资产标 `flutter-demo`，供 `/t-super-run` 识别 demo 交付端）；此表是 `/t-super-run` 的唯一拆分依据，必须覆盖全部适用端
 
 不适用章节保留并标记"不适用"及原因。写入后对所有实际生成的文档运行：
 
@@ -215,7 +220,7 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py ".ai/design/$ARGU
 - 关键风险和验证动作
 - 无上下文读者测试：`passed` 或 `skipped` 及原因
 - 延期问题：明确说明"无"，或列出已告知用户、写入 Decision Log 且尚未到最迟解决阶段的 Q ID
-- 下一步命令：高风险或复杂设计建议运行 `/t-design-check $ARGUMENTS`；简单设计可直接进入 `/t-task $ARGUMENTS`
+- 下一步命令：高风险或复杂设计建议运行 `/t-design-check $ARGUMENTS`；简单设计可直接进入 `/t-super-run $ARGUMENTS --phase <phase>`
 - 如文档内容较多或结构复杂，可使用 `/t-html-show .ai/design/$ARGUMENTS.md` 生成 HTML 可视化预览
 
 ## 质量检查清单

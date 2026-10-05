@@ -14,6 +14,7 @@
     "miniapp": {"status": "pending"},
     "flutter": {"status": "pending"},
     "web-demo": {"status": "pending"},
+    "extension-demo": {"status": "pending"},
     "flutter-demo": {"status": "pending"}
   },
   "tasks": {
@@ -21,17 +22,16 @@
       "dev": {
         "status": "pending",
         "manifest": ".ai/task/sample-feature/backend/dev.md",
-        "items": {}
-      },
-      "test": {
-        "status": "pending",
-        "manifest": ".ai/task/sample-feature/backend/test.md",
-        "items": {}
+        "items": {
+          "BE-D01": {"status": "pending", "file": ".ai/task/sample-feature/backend/dev/BE-D01-implement.md", "agent": "backend-dev"}
+        }
       },
       "accept": {
         "status": "pending",
         "manifest": ".ai/task/sample-feature/backend/accept.md",
-        "items": {}
+        "items": {
+          "BE-A01": {"status": "pending", "file": ".ai/task/sample-feature/backend/accept/BE-A01-review.md", "agent": "backend-accept"}
+        }
       }
     }
   },
@@ -57,12 +57,14 @@
 
 ## State Rules
 
-- `phase` 只允许 supported phases：`backend | frontend | extension | miniapp | flutter | web-demo | flutter-demo`。
+- `phase` 只允许 supported phases：`backend | frontend | extension | miniapp | flutter | web-demo | extension-demo | flutter-demo`。
 - `phases` / `tasks` 只要求包含当前任务的 `active_phases`；未启用 extension/miniapp/Flutter 的项目不得强制要求对应 phase。
 - `extension` / `miniapp` / `flutter` 启用规则统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`。
 - `status` 只允许 `pending | failed | completed | skipped | generated`。
-  - `skipped`：阶段不适用于当前任务（如 backend 已实现，无需变更）
+  - `skipped`：阶段或已规划的 item 不适用于当前任务
   - `generated`：任务规划已生成，尚未开始执行
+
+backend/frontend/extension/miniapp/flutter 的 `tasks[phase]` 必含 `dev` 与 `accept`；只有需要测试角色新增或修改测试用例、fixture/helper 或专项验证脚本时才包含 `test`。每个已规划 slot 都必须有 manifest 和至少一个 item；仅运行现有测试或编译、类型检查、构建时，`tasks[phase]` 和阶段目录都不包含 test slot。web-demo/extension-demo/flutter-demo 只含 `dev` 与 `accept`。
 
 ## Execution Entry Transition
 
@@ -75,6 +77,17 @@
 - 该迁移只表示任务进入执行队列，不表示 item 已开始执行，也不引入 `running` 状态。
 
 `/t-task-check` 只校验状态，不执行该迁移。`/t-task` 新生成且尚未进入执行队列的 item 保持 `generated`。
+
+阶段 `completed` 与业务交付的区别按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`；后续行为验证记录在现有 index/Handoff，不增加状态枚举。
+
+## Evidence Invalidation
+
+重新进入已执行阶段或交付收尾时，按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 核对相关证据：
+
+- 证据仍有效时保留 completed，不重复运行；skipped 只复核不适用依据，不要求不存在的执行日志。
+- 证据缺失或相关输入变化时，将持有失效验证的已完成 item、依赖其结果的已完成下游 item 及对应 accept item 置为 pending，并重新聚合 slot/phase；不重置无关 item 或尚未执行的 generated item。
+- 验证由后续 Demo 承接时，同时标记验证表对应行为为未执行并重新打开已完成的承接验收；记录失效原因和恢复入口，不自动执行其他 phase。
+- 若需要生产修复，由编排层重新打开对应 dev item；先持久化状态与 Handoff 再启动 agent。状态写入失败时停止，不以旧 completed 返回成功。
 
 ## Aggregation Rules
 

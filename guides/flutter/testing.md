@@ -1,13 +1,13 @@
 # Flutter 单元与 Widget 测试
 
-保持大量快速的单元/widget 测试，用足够的 integration test 覆盖重要用例；demo-first 不替代快速测试。
+用户故事主链路优先由 Flutter Demo 或集成测试覆盖。仅当这些测试难以稳定覆盖重要业务规则、状态转换或异常边界时，才补少量定向单元/widget 测试；不按数量或目录结构补测试。受影响的现有测试仍需定向运行。
 
 ## 选择测试层
 
 | 类型 | 适用范围 | 默认命令 |
 | --- | --- | --- |
-| 单元测试 | service、repository、纯函数、Notifier/ViewModel | `flutter test test/<path>` |
-| Widget 测试 | View、路由、依赖注入、表单和局部交互 | `flutter test test/<path>` |
+| 单元测试（按需） | Demo/集成测试难稳定覆盖的 service、repository、纯函数、Notifier/ViewModel 关键规则 | `flutter test test/<path>` |
+| Widget 测试（按需） | Demo/集成测试难稳定覆盖的 View、路由、依赖注入、表单关键状态 | `flutter test test/<path>` |
 | Integration | 重要用户用例、跨组件协同 | 见 `integration-testing.md` |
 | Patrol/等价工具 | 权限、通知、WebView 等原生 UI | 见 `integration-testing.md` |
 
@@ -52,6 +52,6 @@ test('search returns users', () async {
 });
 ```
 
-测试目录镜像 `lib/`，公共 fake/helper 分别放项目既有的 `test/fakes/`、`test/helpers/`。不要因已有 E2E 删除能快速定位失败或覆盖边界的测试。
+确需新增局部测试时沿用项目既有目录；公共 fake/helper 放项目既有的 `test/fakes/`、`test/helpers/`。不要仅因已有 Demo 删除能快速定位失败或覆盖关键边界的测试。
 
 普通集成测试见 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/integration-testing.md`；用户故事演示见 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/demo-testing.md`；验证命令见 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/validation.md`。

@@ -15,6 +15,8 @@
 - 读取 `.ai/design/[任务名].md`
 - 豁免前缀：`bugfix-`、`refactor-`、`doc-`、`test-`、`style-`
 
+验收执行命令前按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 检查证据能否复用；独立验收结论、行为验证责任和缺失证据的阻断规则均遵循该协议。
+
 ## 3. 验收门禁
 
 ### P0（必须通过）
@@ -22,6 +24,7 @@
 - 单元/集成测试通过（如有）
 - Lint 无阻塞错误
 - API 一致性无阻塞偏差（路径、方法、关键参数、关键响应）
+- 本阶段负责的必要行为验证通过；后续 Demo 承接和最终交付按验证证据协议，未验证项不得计为通过
 
 ### P1（应通过）
 - 重复代码可控（建议 < 5%，检查结果必须写入 accept 报告）
@@ -36,7 +39,7 @@
 ```bash
 cd frontend
 npm run type-check
-npm run test:run
+npm run test:run -- [受影响测试路径或 pattern]
 npm run lint
 npx jscpd src/
 ```
@@ -44,7 +47,7 @@ npx jscpd src/
 Demo 验证（仓库根目录）：
 
 ```bash
-uv run scripts/web-demo-test-runner.py demo/e2e/ --mode fast
+uv run scripts/web-demo-test-runner.py demo/e2e/[受影响用例].e2e.ts
 ```
 
 ## 5. API 一致性检查

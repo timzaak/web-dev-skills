@@ -25,10 +25,11 @@
 
 这些文件表达当前工作流中的候选需求、决策和技术事实。它们可供设计、任务、实现、测试和 Demo 阶段追溯，但不是长期权威源。
 
-`.ai/decision-log/**/*.md` 是当前 feature 跨阶段决策连续性的结构化来源。其记录规则、稳定 ID 和用户决策暴露门禁统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`。
+`.ai/decision-log/**/*.md` 是当前 feature 跨阶段决策连续性的结构化来源。其记录规则、稳定 ID 和用户决策暴露门禁统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`。已发布 feature 的账本随 `/t-prd-publish` 内化进正式 PRD 后移除；后续轮次从已发布产物重建，不得因账本缺失停止。
 
 ## Read Rules
 
+- `/t-prd` 先按 feature 查找并读取 `.ai/decision/<feature>.md`、`.ai/decision-log/<feature>.md` 和 `.ai/tech-research/<feature>.md`（存在时）；随后检查 `docs/prd/` 和 `.ai/prd/`，必须读取同名 PRD 及与当前 feature 的领域、流程或业务规则相关的已有 PRD，即使没有独立的“需求文档”或 user story。已有 PRD 用于确定已发布基线、现有能力边界和候选变更关系；缺少 PRD 或 user story 时不得因此要求用户提供文档或停止。
 - Pre-publish 阶段必须同时读取相关 published sources 和 draft sources。
 - Pre-publish 阶段在提问或作出新决策前必须读取相关 `.ai/decision-log/<feature>.md`；已解决问题不得重复询问。
 - 同一 feature 存在 `.ai/prd` 或 `.ai/user-stories` 时，它们表达本轮候选变更意图；`docs/prd` 和 `docs/user-stories` 表达已发布基线。
@@ -40,7 +41,7 @@
 
 ### 同一 feature 草稿与正式来源并存的裁决
 
-消费需求来源的阶段（`/t-design`、`/t-task`、检查类 skill）按以下规则处理：
+消费需求来源的阶段（`/t-design`、`/t-super-run`、检查类 skill）按以下规则处理：
 
 - 草稿与正式来源一致，或草稿明确声明为增量/替换 → 继续工作，在产物中同时引用两者并给出差异摘要。
 - 在核心业务边界、角色、权限、业务状态或验收目标上冲突且无法确认覆盖关系 → 停止，提示先修正草稿；必要时运行 `/t-prd-check [feature]` 定位冲突。
@@ -51,7 +52,7 @@
 
 - `/t-prd` 只写 `.ai/prd/**/*.md` 和 `.ai/user-stories/**/*.md`。
 - `/t-prd-check` 只写质量报告，不写 `docs/prd` 或 `docs/user-stories`。
-- `/t-design`、`/t-task`、`/t-run`、`/t-super-run` 和 Demo 阶段可以读取 draft sources，不得把 draft user story 发布到 `docs/user-stories`。
+- `/t-design`、`/t-super-run` 和 Demo 阶段可以读取 draft sources，不得把 draft user story 发布到 `docs/user-stories`。
 - `/t-prd-publish` 是把仍然成立的 PRD 草稿和 draft user stories 合并进 `docs/` 的标准入口。
 - `t-dream --govern-prd` 可以治理已发布 PRD 和用户故事，但必须先区分 draft sources 与 published sources，并说明写入范围。
 
