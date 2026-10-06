@@ -22,7 +22,6 @@ super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相
 - `.state.json` 是 super-run 状态的唯一事实源。
 - `<phase>.md` 是当前 phase 的目标级计划，不生成 slot manifest、item 目录或 item 文件。
 - 只创建本次显式请求且适用的 phase 对应的计划文件。
-- `.pipeline.json`（如存在）属于 `t-super-run-all` 的质量链游标，契约见 `${CLAUDE_PLUGIN_ROOT}/protocols/super-run-all-pipeline.md`；`t-super-run` 不读取、不校验、不修改该文件，其存在与否不影响状态结构判定。
 
 ## Supported Phases And Tasks
 
@@ -144,7 +143,7 @@ python "${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py" ".ai/design/<feature>.md"
 
 按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 发现完成证据失效时，将受影响的 completed task 及对应 accept 置为 pending，失效的已完成下游验证同步重新打开，记录原因并重新聚合 phase；无关 task 保持原状态。仅更新恢复入口，不执行未请求的 phase。缺失证据同样需要补验；skipped 复核不适用依据。
 
-每个 phase 的 `validation_revision` 初始缺省为 0，必须为非负整数。因输入变化、缺失/失效证据或验收拒绝而重新打开已完成/跳过的 task 时，在同一次状态写入中将对应 phase 的 revision 加一；同一轮失效一次即可，不在例行重试、in_progress 恢复或状态聚合时递增。修复并重新验收后保留新 revision，不归零；即使计划和报告路径复用也能区分不同验收轮次。`t-super-run` 只更新自己的 phase 记录，不操作 pipeline 游标。
+每个 phase 的 `validation_revision` 初始缺省为 0，必须为非负整数。因输入变化、缺失/失效证据或验收拒绝而重新打开已完成/跳过的 task 时，在同一次状态写入中将对应 phase 的 revision 加一；同一轮失效一次即可，不在例行重试、in_progress 恢复或状态聚合时递增。修复并重新验收后保留新 revision，不归零；即使计划和报告路径复用也能区分不同验收轮次。
 
 恢复 `in_progress` task 时，先检查工作区、已有交付物和验证证据，再从未满足的完成条件继续；不得把中断状态直接视为成功，也不得无条件重复可能产生副作用的动作。
 

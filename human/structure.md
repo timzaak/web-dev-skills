@@ -127,7 +127,7 @@ Demo 阶段不是后端或前端测试的重复。它用 Playwright E2E 按用�
 
 ## 执行模型
 
-`t-super-run` 是默认执行模型。主会话生成目标级阶段计划，不生成 manifest 或 item；dev/test 按当前 task 读取对应 agent 规范和关联 guide，直接完成实现、测试与修复。测试发现生产缺陷时，主会话切换 dev 规范修复后再复测；accept 派发对应只读 subagent 独立验收并写报告。默认顺序为 `dev -> accept`，非 Demo 阶段需要独立测试资产时插入 test。阶段计划、状态和证据入口保存在 `.ai/super-run/[feature]/`；`--phase` 必填，主会话在该 phase 内持续推进，完成后停止，中断后用同一命令核查证据并恢复，不依赖额外的持续运行命令。具体契约见 [super-run 状态协议](/protocols/super-run-state-contract.md)。需要无人值守连跑剩余全部 phase 时，`t-super-run-all` 在每个 phase 的闭环之后追加 `t-review --fix -> t-simplify -> t-push` 质量链再进入下一 phase，契约见 [super-run-all pipeline 协议](/protocols/super-run-all-pipeline.md)。质量链绑定已验收输入；修复使证据失效时先回归并重新 accept，push 通过工作区指纹门禁并确认远端后才完成。阻塞恢复先核对解除条件，push 恢复复用原 session 补推已有 commit。
+`t-super-run` 是默认执行模型。主会话生成目标级阶段计划，不生成 manifest 或 item；dev/test 按当前 task 读取对应 agent 规范和关联 guide，直接完成实现、测试与修复。测试发现生产缺陷时，主会话切换 dev 规范修复后再复测；accept 派发对应只读 subagent 独立验收并写报告。默认顺序为 `dev -> accept`，非 Demo 阶段需要独立测试资产时插入 test。阶段计划、状态和证据入口保存在 `.ai/super-run/[feature]/`；`--phase` 必填，主会话在该 phase 内持续推进，完成后停止，中断后用同一命令核查证据并恢复，不依赖额外的持续运行命令。具体契约见 [super-run 状态协议](/protocols/super-run-state-contract.md)。review、simplify 及 CI 修复使证据失效时先回归并重新 accept，push 通过工作区指纹门禁并确认远端后才完成。阻塞恢复先核对解除条件，push 恢复复用原 session 补推已有 commit。
 
 需要单独审阅计划、细粒度 item 或 dev/test 子 agent 分工时，使用 `t-task` / `t-run` 标准链路；其状态与 super-run 独立。`t-task` 会把设计拆成标准任务目录：
 

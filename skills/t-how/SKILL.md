@@ -44,7 +44,6 @@ t-decision -> t-prd / t-tech-research（无固定顺序，进设计前收敛）
 | 把已验收需求转正 | `/t-tools:t-prd-publish <feature>` | 长期事实合并回 `docs/` |
 | 技术设计 | `/t-tools:t-design <feature>` | 主文档 + 分端设计，后端契约先行 |
 | 实现 + 测试 | `/t-tools:t-super-run <feature> --phase <phase>` | 合并任务规划与执行；`--phase` 必填，每次只执行一个 phase |
-| 无人值守连跑全部剩余 phase | `/t-tools:t-super-run-all <feature>` | 设计 complete 后一次跑完剩余 phase；每 phase 完成后自动接续 `t-review --fix -> t-simplify -> t-push` 再进入下一 phase |
 | Chrome 扩展开发 | `/t-tools:t-design <feature>`，再 `t-super-run --phase extension` | 先按 [extension 初始化指南](${CLAUDE_PLUGIN_ROOT}/guides/extension/initialization.md) 建 WXT 工程；用户故事演示用 extension-demo |
 | 扩展 Demo 基础设施初始化 | `/t-tools:t-init --extension-demo [--extension-dir <path>]` | 为已有 WXT 工程增量生成 Playwright fixture、真实加载 smoke 与运行说明；不代替故事验收 |
 | Web Demo / E2E | `/t-tools:t-web-demo-run <file>` 或 `/t-tools:t-web-demo-run-all` | 之后 `/t-tools:t-web-demo-accept <role>` |

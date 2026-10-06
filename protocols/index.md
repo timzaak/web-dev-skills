@@ -16,8 +16,7 @@
 | 行为验证责任、跨阶段交接、完成门禁和运行证据复用 | [verification-evidence-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md) |
 | phase/slot/item 的执行顺序与前置规则 | [task-phase-execution.md](${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md) |
 | `.ai/super-run/...` 的目标级计划、状态、主会话持续执行、恢复与独立 accept 收口 | [super-run-state-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/super-run-state-contract.md) |
-| t-super-run-all 的跨 phase 接力、质量链（review --fix → simplify → push）与 pipeline 游标 | [super-run-all-pipeline.md](${CLAUDE_PLUGIN_ROOT}/protocols/super-run-all-pipeline.md) |
-| t-push 与 pipeline 的 CI 预检查、提交输入门禁、远端确认及推送恢复 | [push-execution-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/push-execution-contract.md) |
+| t-push 的 CI 预检查、提交输入门禁、远端确认及推送恢复 | [push-execution-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/push-execution-contract.md) |
 | backend-test 的默认收敛与升级策略 | [backend-test-execution.md](${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md) |
 | 设计检查评分标准 | [design-check-rubric.md](${CLAUDE_PLUGIN_ROOT}/protocols/design-check-rubric.md) |
 | PRD / user story 检查评分标准 | [prd-check-rubric.md](${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md) |

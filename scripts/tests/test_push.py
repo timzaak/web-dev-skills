@@ -127,7 +127,7 @@ class PushRecoveryTests(unittest.TestCase):
 
     def test_runtime_cursor_write_does_not_invalidate_accepted_code(self) -> None:
         accepted = push.worktree_fingerprint()
-        runtime = self.root / ".ai" / "super-run" / "demo" / ".pipeline.json"
+        runtime = self.root / ".ai" / "super-run" / "demo" / ".state.json"
         runtime.parent.mkdir(parents=True)
         runtime.write_text('{"status":"in_progress"}\n', encoding="utf-8")
         self.assertEqual(push.worktree_fingerprint(), accepted)

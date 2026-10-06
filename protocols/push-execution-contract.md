@@ -1,13 +1,13 @@
 # Push Execution Contract
 
-供 `t-push` 和 `t-super-run-all` 消费的本地 CI、提交前输入门禁及推送恢复契约；CI 区域与工程命令由 `${CLAUDE_PLUGIN_ROOT}/skills/t-push/SKILL.md` 路由，确定性操作由 `${CLAUDE_PLUGIN_ROOT}/scripts/push.py` 执行。
+供 `t-push` 消费的本地 CI、提交前输入门禁及推送恢复契约；CI 区域与工程命令由 `${CLAUDE_PLUGIN_ROOT}/skills/t-push/SKILL.md` 路由，确定性操作由 `${CLAUDE_PLUGIN_ROOT}/scripts/push.py` 执行。
 
 ## 调用模式
 
 - 默认模式：`--ci-session <id> --message <text>`，对当前 diff 运行 CI，成功后提交并推送。message 由主会话依据最终 diff 生成。
 - 预检查模式：`--ci-session <id> --check-only`，运行相同 CI（可能自动修复），输出 `Validated worktree fingerprint: sha256:<digest>`；不 commit、不 push，不要求 message。
 - 已验收提交：默认模式增加 `--expected-fingerprint <digest>`。脚本在 CI 前、CI 后和 commit 前核对同一指纹；不匹配则失败，不提交推送。commit hook 改变代码时保留本地 commit 及恢复记录，停止 push，交回验证闭环。
-- `--force-checks` 忽略当前 session 的 CI 缓存。新执行用新 session，重试和中断恢复复用同一 session；pipeline 将其持久化在 push step。
+- `--force-checks` 忽略当前 session 的 CI 缓存。新执行用新 session，重试和中断恢复复用同一 session。
 
 ## 工作区指纹
 

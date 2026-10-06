@@ -35,7 +35,7 @@ allowed-tools:
 | `[<target>]` | 可选审查目标（PR 号 / 分支名 / 文件路径）；传入时直接替换默认审查范围，提示词以 `Review target: \`<target>\`` 前缀注入 |
 | `--fix` | 修复模式：报告写入后修复 CONFIRMED 发现并处置 PLAUSIBLE 发现，修复结果追加进同一报告；不改变审查与验证流程本身 |
 
-推荐位置：`/t-super-run` 完成实现与测试后、`/t-tools:t-simplify` 之前；`/t-tools:t-push` 提交前是最后窗口。`t-super-run-all` 的质量链在 simplify 之前以 `--fix` 模式执行本命令。
+推荐位置：`/t-super-run` 完成实现与测试后、`/t-tools:t-simplify` 之前；`/t-tools:t-push` 提交前是最后窗口。
 
 ## 共享契约
 
