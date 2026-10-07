@@ -19,7 +19,7 @@
 
 主 Agent 从 `${CLAUDE_PLUGIN_ROOT}/scripts/` 复制缺失的 `web-demo-test-runner.py`、`web-demo-run-all.py`、`web-demo-failure-summary.py`、`lib/*.py` 到目标项目。已存在脚本先检查 CLI/结果兼容性，不直接覆盖；独立模式不复制或启动默认 Web 环境。需要真实后端时复用并核实项目现有环境脚本，缺失配置先补齐或报告阻塞，不能套用默认 Docker 容器。
 
-按 [scripts 模板](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/scripts-template.md) 仅生成或更新 extension-demo 相关说明。记录扩展目录、构建命令和产物、环境模式、依赖安装、定向 runner 命令、日志位置与失败恢复。根目录 AGENTS.md 缺失时按 [AGENTS 模板](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/agents-template.md) 创建，已存在时仅补充 `scripts/index.md` 读取入口；README 只链接该索引，避免重复维护命令。
+按 [scripts 模板](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/scripts-template.md) 仅生成或更新 extension-demo 相关说明。记录扩展目录、构建命令和产物、环境模式、依赖安装、定向 runner 命令、日志位置与失败恢复。根目录 AGENTS.md 缺失时按 [AGENTS 模板](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/agents-template.md) 创建，已存在时仅补充 `scripts/index.md` 读取入口；README 只链接该索引，避免重复维护命令。复制 runner 后向根目录 `.gitignore` 增补缺失的 `log/` 忽略（本地脚本日志目录），保留其余内容不改写。
 
 ## 3. 验证与交接
 

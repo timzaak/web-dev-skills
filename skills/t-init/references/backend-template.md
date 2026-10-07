@@ -789,6 +789,17 @@ url = "redis://127.0.0.1:6379"
 
 ---
 
+## 19. backend/.gitignore
+
+```gitignore
+/target
+/config.toml
+```
+
+`config.toml` 从 `config.example.toml` 复制而来，含真实数据库口令，不提交；`config.example.toml` 正常提交。
+
+---
+
 ## 生成时的注意事项
 
 - 所有 `{{PROJECT_NAME}}` 替换为实际项目名（kebab-case，如 `my-project`）

@@ -39,6 +39,7 @@
 - 生成构建和测试配置文件：
    a. backend/.cargo/config.toml（sccache 加速 + dev/release/test profile 优化）
    b. backend/.config/nextest.toml（nextest 测试运行器配置）
+   c. backend/.gitignore（忽略 target/ 和本地 config.toml）
 
 关键约束：
 - sqlx::postgres::PgPoolOptions 没有 connect_timeout 方法，用 acquire_timeout 替代
@@ -75,6 +76,7 @@
 - src/routes/index.tsx（首页）
 - src/lib/api-client.ts（Axios 实例）
 - src/routeTree.d.ts（类型声明占位）
+- .gitignore（忽略 node_modules/、dist/、src/routeTree.gen.ts）
 
 替换占位符：
 - {{PROJECT_NAME}} → <实际项目名>

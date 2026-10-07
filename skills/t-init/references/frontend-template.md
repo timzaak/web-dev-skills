@@ -696,6 +696,18 @@ declare module './routeTree.gen' {
 
 ---
 
+## 13. frontend/.gitignore
+
+```gitignore
+node_modules/
+dist/
+src/routeTree.gen.ts
+```
+
+`routeTree.gen.ts` 由 TanStack Router 插件在 `npm run dev` 时自动生成，不提交；`routeTree.d.ts` 占位声明正常提交。
+
+---
+
 ## 生成时的注意事项
 
 - 所有 `{{PROJECT_NAME}}` 替换为实际项目名（kebab-case）

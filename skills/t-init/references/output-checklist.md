@@ -10,6 +10,7 @@
 - [ ] `backend/api/Cargo.toml` + `src/lib.rs` + `src/config.rs` + `src/application/http/*.rs`
 - [ ] `backend/app/Cargo.toml` + `src/main.rs`
 - [ ] `backend/config.example.toml`
+- [ ] `backend/.gitignore`（忽略 `target/` 和本地 `config.toml`）
 - [ ] `backend/migrations/00001_init.sql`
 
 **前端（必须）：**
@@ -24,6 +25,7 @@
 - [ ] `frontend/src/routes/index.tsx`
 - [ ] `frontend/src/components/ui/sonner.tsx`（由 shadcn CLI 生成）
 - [ ] `frontend/src/lib/api-client.ts`
+- [ ] `frontend/.gitignore`（忽略 `node_modules/`、`dist/`、`src/routeTree.gen.ts`）
 
 **脚本和文档：**
 - [ ] `scripts/index.md`（测试运行说明，由根目录 AGENTS.md 指向）
@@ -40,6 +42,7 @@
 - [ ] `scripts/web-demo-failure-summary.py`
 - [ ] `scripts/lib/*.py`
 - [ ] `README.md`
+- [ ] `.gitignore`（忽略根目录 `log/`）
 
 **AI 辅助配置（必须）：**
 - [ ] `AGENTS.md`

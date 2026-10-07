@@ -118,13 +118,14 @@ allowed-tools:
 
 脚本适配完成后，读取 [references/scripts-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/scripts-template.md)，根据实际脚本和各端测试配置生成目标项目 `scripts/index.md`，作为测试运行说明的唯一维护位置。
 
-### Step 7: 生成 AGENTS.md 和 README.md（主 Agent）
+### Step 7: 生成 AGENTS.md、README.md 和 .gitignore（主 Agent）
 
 读取 [references/agents-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/agents-template.md) 获取模板内容。
 
-生成两个根目录文件：
+生成三个根目录文件：
 - `AGENTS.md` — 项目描述占位符 + 项目行为准则 + `scripts/index.md` 读取入口；不重复测试命令，也不为此生成分端 AGENTS.md
 - `README.md` — 快速启动指南；测试运行说明统一维护在 `scripts/index.md`
+- `.gitignore` — 只覆盖跨端运行时产物：`log/`（项目本地脚本写入的日志与运行时文件）；`backend/`、`frontend/`、`demo/` 的构建产物由各 subagent 按模板内的分端 `.gitignore` 处理，不在此重复。已存在 `.gitignore` 时只增补缺失条目，不重写已有内容
 
 生成后提示用户填写 `AGENTS.md` 顶部的项目描述占位符。
 
