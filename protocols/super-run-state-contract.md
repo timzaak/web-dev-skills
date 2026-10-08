@@ -84,8 +84,7 @@ super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相
         ".ai/design/sample-feature.md",
         ".ai/design/sample-feature/backend.md",
         ".ai/design/sample-feature/frontend.md"
-      ],
-      "fingerprint": "sha256:..."
+      ]
     },
     "requirements": [],
     "decisions": [],
@@ -105,7 +104,7 @@ Task 必填字段：
 
 只接受上述 `phase -> tasks` 结构。发现版本化 item/slots 状态或损坏 JSON 时停止并保留原目录，不自动转换或按旧 dev/test 完成状态推定目标已完成；恢复方案需先由用户确认。
 
-校验时 `feature` 必须与请求目录一致；`active_phases` 是非空、无重复的 supported phase 字符串列表，`phases` 只包含其已规划成员。每个已规划 phase 必须有非空 `plan`、合法 `status` 和包含 dev/accept（非 Demo 可额外含 test）的 `tasks`；task 的 agent_spec 为非空字符串，references/evidence 为字符串列表，计数为非负整数且不接受布尔值。`sources.design` 必须包含 main、非空 documents 列表和 fingerprint，requirements/decisions/research 为列表。phase 状态必须与 task 聚合一致，accept 不可单独 skipped。非法字段必须返回具体错误，不把结构非法视为新 phase 或已完成。
+校验时 `feature` 必须与请求目录一致；`active_phases` 是非空、无重复的 supported phase 字符串列表，`phases` 只包含其已规划成员。每个已规划 phase 必须有非空 `plan`、合法 `status` 和包含 dev/accept（非 Demo 可额外含 test）的 `tasks`；task 的 agent_spec 为非空字符串，references/evidence 为字符串列表，计数为非负整数且不接受布尔值。`sources.design` 必须包含 main 和非空 documents 列表，requirements/decisions/research 为列表。phase 状态必须与 task 聚合一致，accept 不可单独 skipped。非法字段必须返回具体错误，不把结构非法视为新 phase 或已完成。
 
 completed/skipped task 的 evidence 不可为空，分别指向完成或不适用依据；字段非空不代表证据有效，执行时仍按 verification-evidence-contract 复核。
 
@@ -118,13 +117,9 @@ python "${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py" ".ai/design/<feature>.md"
 ```
 
 - 校验失败：停止，不执行 task。
-- 首次规划：把 `design_documents` 和 `design_fingerprint` 写入 `sources.design`。
-- 指纹相同：继续恢复。
-- 指纹变化：重读设计覆盖矩阵、Operation ID、文件影响和 Decision Trace；更新 phase 计划，重新打开受影响的已规划 task，再写入新指纹。无法确定影响范围时停止并请求用户裁决。
+- 首次规划：把 `design_documents` 写入 `sources.design`。
 
-恢复及每个 task 开始前，检查设计生成状态仍为 `complete`、适用的设计文档存在，并复用 `${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py` 的 `design_documents` / `design_fingerprint` 计算当前来源。指纹未变时不重复运行文件操作前置校验；本轮已合法删除的 DELETE 目标不能因此阻塞恢复。来源变化时重新检查设计契约及受影响路径，已执行的操作按工作区和有效证据核对，不能把历史操作一律当作尚未执行。PRD、Decision、测试、配置或环境变化另按 verification-evidence-contract 判断证据失效。
-
-不得仅因文件路径相同而跳过指纹比较。
+恢复及每个 task 开始前，重新运行同一命令，检查设计生成状态仍为 `complete`、适用的设计文档存在，并核对 `design_documents` 与 `sources.design.documents` 一致。文档集合变化时重读设计覆盖矩阵、Operation ID、文件影响和 Decision Trace；更新 phase 计划，重新打开受影响的已规划 task，再写入新列表。无法确定影响范围时停止并请求用户裁决。用户说明设计文档被修改，或阶段计划与当前设计内容明显不一致时，按同一来源变化流程处理。本轮已合法删除的 DELETE 目标不能因此阻塞恢复；已执行的操作按工作区和有效证据核对，不能把历史操作一律当作尚未执行。PRD、Decision、测试、配置或环境变化另按 verification-evidence-contract 判断证据失效。
 
 ## Status Rules
 
@@ -152,7 +147,7 @@ python "${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py" ".ai/design/<feature>.md"
 `<phase>.md` 只包含：
 
 - phase 目标、范围和完成条件，以及恢复所需的状态、证据与进度记录。
-- Source Trace：本轮实际读取的设计文件与指纹、PRD、用户故事、Decision Brief、Decision Log、技术预研和项目事实。
+- Source Trace：本轮实际读取的设计文件、PRD、用户故事、Decision Brief、Decision Log、技术预研和项目事实。
 - Decision Trace：影响当前 phase 的 Active Decision 及应用位置。
 - task 表：`task | goal | agent spec | related documents | deliverable | validation`。
 - 验证责任表及上游待验证场景（字段和交接规则按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`）；无行为验证时记录适用性依据。

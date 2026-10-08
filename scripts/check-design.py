@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import re
 import sys
@@ -106,20 +105,6 @@ def design_documents(main_path: Path) -> list[Path]:
         if stack in applicable_stacks(main_text) and path.is_file():
             paths.append(path)
     return paths
-
-
-def design_fingerprint(main_path: Path) -> str | None:
-    paths = design_documents(main_path)
-    if not paths:
-        return None
-    digest = hashlib.sha256()
-    for path in paths:
-        role = "main" if path == main_path else path.stem
-        digest.update(role.encode("utf-8"))
-        digest.update(b"\0")
-        digest.update(path.read_bytes())
-        digest.update(b"\0")
-    return f"sha256:{digest.hexdigest()}"
 
 
 def operation_map(text: str, heading: str) -> dict[str, tuple[str, str]]:
@@ -267,7 +252,6 @@ def main(argv: list[str] | None = None) -> int:
             documents.append(str(path.resolve()))
     result = {
         "status": "failed" if findings else "passed",
-        "design_fingerprint": design_fingerprint(main_document),
         "design_documents": documents,
         "finding_count": len(findings),
         "findings": [asdict(item) for item in findings],

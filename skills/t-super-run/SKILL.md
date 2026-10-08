@@ -54,7 +54,7 @@ allowed-tools:
 - `--phase` 缺失或不在支持列表内时终止，提示 `--phase <backend|frontend|extension|miniapp|web-demo|extension-demo|flutter|flutter-demo>` 用法。
 - feature 必须是单个目录名，拒绝路径分隔符、`.` 和 `..`。
 - `.ai/design/[feature].md` 必须存在。
-- 按状态协议的 Design Source Gate 校验来源；首次规划运行 `python "${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py" ".ai/design/[feature].md" --require-complete --json`，恢复时核对生成状态、设计文档与指纹。失败时停止，不进入执行；`t-prd-check`、`t-design-check` 和 `t-task-check` 均不是强制前置。
+- 按状态协议的 Design Source Gate 校验来源；首次规划运行 `python "${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py" ".ai/design/[feature].md" --require-complete --json`，恢复时核对生成状态与设计文档集合。失败时停止，不进入执行；`t-prd-check`、`t-design-check` 和 `t-task-check` 均不是强制前置。
 - 只支持 `backend | frontend | extension | miniapp | web-demo | extension-demo | flutter | flutter-demo`；请求的 phase 不在设计与需求来源识别出的真实交付端内时终止，不得为满足命令而编造交付范围。
 - 不读取或修改 `.ai/task/[feature]/` 作为 super-run 状态。
 - 已有状态且请求的 phase 为 `completed | skipped` 时，按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 核对证据适用性；仍有效则报告阶段结果和待验证项，相关输入变化时按状态协议只重新打开受影响 task 及验收，不选择其他 phase。
@@ -63,7 +63,7 @@ allowed-tools:
 
 在规划或恢复前：
 
-1. 读取来源门禁取得的全部 `design_documents`、`design_fingerprint` 和现有 `.ai/super-run/[feature]/`。
+1. 读取来源门禁取得的全部 `design_documents` 和现有 `.ai/super-run/[feature]/`。
 2. 按 phase 确认设计输入：backend 读 `backend.md`；frontend/web-demo 读 `frontend.md`；extension/extension-demo 读 `extension.md`；flutter/flutter-demo 读 `flutter.md`；miniapp 读主文档小程序相关部分（当前无 miniapp 分端设计文档）；客户端依赖后端契约时同时读 `backend.md`。
 3. 读取相关 `.ai/prd/**/*.md`、`docs/prd/**/*.md`、`.ai/user-stories/**/*.md` 与 `docs/user-stories/**/*.md`，保留 draft/published 来源边界。
 4. 在任何提问前读取 `.ai/decision-log/[feature].md`；存在时按需读取 `.ai/decision/[feature].md` 与 `.ai/tech-research/[feature].md`。
@@ -79,7 +79,7 @@ allowed-tools:
   - `.ai/super-run/[feature]/[phase].md`
 - backend/frontend/extension/miniapp/flutter 默认规划 `dev -> accept`；需要测试角色编写测试用例、fixture/helper 或专项验证脚本时规划 `dev -> test -> accept`。web-demo/extension-demo/flutter-demo 规划 `dev -> accept`。仅运行现有测试或编译、类型检查、构建时，验证归 dev；accept 核查实际执行证据。
 - 每个 task 只规划一个责任闭环，不生成 item。
-- 把校验结果的 `design_documents` 和 `design_fingerprint` 写入 super-run state；恢复规则见共享协议。
+- 把校验结果的 `design_documents` 写入 super-run state；恢复规则见共享协议。
 - 计划必须写明每个 task 要读取的 agent 规范及其关联文档的具体路径。
 - 每个 task 的关联文档必须包含设计主文档和当前 phase 分端设计；消费后端契约时同时包含 `backend.md`。
 - web-demo/dev 的关联文档必须包含 `${CLAUDE_PLUGIN_ROOT}/agents/web-demo-diagnose.md`，用于把 Playwright 失败归因到测试资产、frontend 或 backend 后再切换对应规范修复。
@@ -93,7 +93,7 @@ allowed-tools:
 
 循环执行直到 phase 完成或进入真正阻塞：
 
-1. 按 Design Source Gate 核对设计生成状态、文档与指纹；变化时先按共享协议重规划。
+1. 按 Design Source Gate 核对设计生成状态与文档集合；变化时先按共享协议重规划。
 2. 按状态协议选择首个未完成 task；`blocked` 先核对解除条件，未解除则停止，不能跳到后续 task。
 3. dev/test task：读取该 task 的 agent 规范全文及计划列出的关联文档，把它们作为主会话当前角色边界。accept task：按共享协议派发对应只读 accept subagent，并把报告结论映射回状态。
 4. 写入 `in_progress`，执行交付、最小可靠验证和必要修复。
@@ -119,7 +119,7 @@ allowed-tools:
 只有同时满足以下条件才报告当前 phase 完成：
 
 - 当前 phase 的全部 task 为 `completed | skipped`。
-- 当前设计来源门禁通过且指纹与 `sources.design.fingerprint` 一致。
+- 当前设计来源门禁通过且 `sources.design.documents` 与实际设计文档集合一致。
 - 计划中的验证已经执行并有证据。
 - accept task 给出允许进入下游的结论；整个 phase 为 `skipped` 时必须有明确不适用证据。
 - `.state.json` 已按最终结果聚合。

@@ -111,7 +111,7 @@ class DesignValidationTests(unittest.TestCase):
             write(flutter, old)
             self.assertEqual(checker.validate(main, root), [])
 
-    def test_extension_design_is_validated_and_fingerprinted(self) -> None:
+    def test_extension_design_is_validated(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             main = self.make_design(root)
@@ -134,10 +134,7 @@ class DesignValidationTests(unittest.TestCase):
             write(extension, content)
             self.assertEqual(checker.validate(main, root), [])
             self.assertIn(extension, checker.design_documents(main))
-            before = checker.design_fingerprint(main)
-            self.assertEqual(before, checker.design_fingerprint(main))
             write(extension, content.replace("/api/exports", "/api/wrong"))
-            self.assertNotEqual(before, checker.design_fingerprint(main))
             self.assertIn("CONTRACT_SIGNATURE_MISMATCH", {f.code for f in checker.validate(main, root)})
             write(extension, content.replace("web/new.ts", "web/other.ts"))
             self.assertIn("IMPACT_NOT_AGGREGATED", {f.code for f in checker.validate(main, root)})
@@ -221,16 +218,7 @@ class DesignValidationTests(unittest.TestCase):
             write(root / ".ai/design/sample/.state.json", '{"status":"complete"}')
             self.assertEqual(checker.validate(main, root, require_complete=True), [])
 
-    def test_fingerprint_covers_applicable_design_documents(self) -> None:
-        with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp)
-            main = self.make_design(root)
-            before = checker.design_fingerprint(main)
-            frontend = root / ".ai/design/sample/frontend.md"
-            frontend.write_text(frontend.read_text(encoding="utf-8") + "\nchanged\n", encoding="utf-8")
-            self.assertNotEqual(before, checker.design_fingerprint(main))
-
-    def test_json_output_exposes_fingerprint_and_documents(self) -> None:
+    def test_json_output_exposes_documents(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             main = self.make_design(root)
@@ -239,7 +227,6 @@ class DesignValidationTests(unittest.TestCase):
                 code = checker.main([str(main), "--repo-root", str(root), "--json"])
             result = json.loads(output.getvalue())
             self.assertEqual(code, 0)
-            self.assertTrue(result["design_fingerprint"].startswith("sha256:"))
             self.assertEqual(
                 result["design_documents"],
                 [
