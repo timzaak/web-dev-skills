@@ -14,9 +14,10 @@
 - [ ] `backend/migrations/00001_init.sql`
 
 **前端（必须）：**
-- [ ] `frontend/package.json`
+- [ ] `frontend/package.json`（含 `lint` 脚本与 `@shadcn/lint` devDependency）
 - [ ] `frontend/tsconfig.json`
 - [ ] `frontend/vite.config.ts`
+- [ ] `frontend/eslint.config.js`（ESLint + `@shadcn/lint`；`src/components/ui/**` 块级 ignores 豁免）
 - [ ] `frontend/openapi-ts.config.ts`
 - [ ] `frontend/index.html`
 - [ ] `frontend/src/main.tsx`

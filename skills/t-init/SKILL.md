@@ -77,6 +77,7 @@ allowed-tools:
 - **utoipa** — OpenApi derive、Swagger UI、Axum 集成
 - **TanStack Router** — 文件路由、Vite 插件、createRouter
 - **TanStack Query** — QueryClient、useQuery、Provider
+- **@shadcn/lint** — ESLint 集成方式、规则集（no-raw-colors / no-arbitrary-values / no-inline-styles / no-restyle 等）、`settings.shadcn` 与 contracts 配置
 
 如果某个 Context7 查询失败，降级到 `WebSearch` 搜索官方文档。如果都无法获取，基于已有知识生成但标注可能需要调整版本。将查询结果中的版本号和 API 用法保存，传递给后续 subagent。
 
@@ -87,7 +88,7 @@ allowed-tools:
 | Step | subagent | 模板 | 输出目录 | 完成验证 |
 |---|---|---|---|---|
 | 3 | `t-tools:backend-dev` | backend-dev 模板 | `<project-name>/backend/` | `cargo check` |
-| 4 | `t-tools:frontend-dev` | frontend-dev 模板 | `<project-name>/frontend/` | `npm install` + `type-check`（routeTree.gen.ts 错误除外） |
+| 4 | `t-tools:frontend-dev` | frontend-dev 模板 | `<project-name>/frontend/` | `npm install` + `type-check`（routeTree.gen.ts 错误除外）+ `lint`（@shadcn/lint 0 error） |
 | 5 | `t-tools:web-demo-dev` | web-demo-dev 模板 | `<project-name>/demo/` | `npm install` + smoke test 全部通过 |
 
 ### Step 6: 生成项目本地 scripts（主 Agent）
@@ -143,7 +144,7 @@ allowed-tools:
 
 完成后在响应中明确说明：
 - 项目路径、已生成的文件数量
-- 各 subagent 验证结果（cargo check / npm install / smoke test）
+- 各 subagent 验证结果（cargo check / npm install + type-check + lint / smoke test）
 - OpenAPI 开关位置（`config.toml` → `server.enable_openapi`）
 - 项目本地脚本已生成到 `scripts/`，后续优先执行 `uv run scripts/<name>.py`；UnifiedLogger 通过 `npm install playwright-unified-logger` 安装
 - Demo smoke test 运行命令（`cd demo && npx playwright test e2e/smoke.e2e.ts`）与日志环境变量说明（`UNIFIED_LOG_LEVEL` 等）
@@ -155,7 +156,8 @@ allowed-tools:
 
 生成前逐项自检：
 - 已查询 Context7 确认依赖版本，并把版本信息传递给了 subagent
-- 后端 `cargo check`、前端 install + type-check、Demo smoke test 通过，或明确记录跳过原因
+- 后端 `cargo check`、前端 install + type-check + lint、Demo smoke test 通过，或明确记录跳过原因
+- `@shadcn/lint` 生效且 0 error：`src/components/ui/**` 已豁免（块级 ignores，不用 files 负向模式）；有意的样式例外写入 contracts 而非关闭规则
 - sonner 等 UI 组件通过 CLI 命令生成（不是 AI 手写）；关键文件含中文注释，配置字段有完整说明
 - demo smoke test 不依赖后端且能独立运行通过；demo 中 import 路径正确指向 `playwright-unified-logger`（npm 包）
 - 所有占位符已替换为实际项目名称

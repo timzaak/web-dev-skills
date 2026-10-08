@@ -68,6 +68,7 @@
 - package.json（含所有依赖）
 - tsconfig.json
 - vite.config.ts（Tailwind + TanStack Router + React 插件）
+- eslint.config.js（ESLint + @shadcn/lint 设计系统守卫；ui/ 目录须用块级 ignores 豁免）
 - openapi-ts.config.ts
 - index.html
 - src/main.tsx（React Query + TanStack Router 初始化）
@@ -90,9 +91,11 @@
 - npx shadcn@latest init -d --defaults
    - 自动生成 components.json、button.tsx、utils.ts，更新 styles.css
    - 自动安装额外依赖（@base-ui/react、next-themes 等）
+   - components.json 生成后，@shadcn/lint 即可自动发现组件
 - npx shadcn@latest add sonner --overwrite（生成 sonner.tsx）
    - 生成的 sonner.tsx 使用 next-themes，main.tsx 已包含 ThemeProvider
 - npm run type-check 验证
+- npm run lint 验证（@shadcn/lint 应 0 error；warning 需处理或在 eslint.config.js 契约中注明设计依据）
 
 注意：routeTree.gen.ts 在首次 npm run dev 时才会生成，type-check 可能因此报错，这是正常的。
 
