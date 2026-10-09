@@ -53,8 +53,9 @@ t-decision -> t-prd / t-tech-research（无固定顺序，进设计前收敛）
 | 发版 | `/t-tools:t-release [版本号]` | semver 不带 `v`，git tag 带 `v` |
 | 给插件新增或修改 skill | `/t-tools:t-skill [名称或能力描述]` | 只操作插件仓库自身，不用于目标项目业务开发 |
 | 写项目教程 / 文档 | `/t-tools:t-doc [名称]` | 不用于 PRD 和技术设计 |
-| 审计上下文 / 结构漂移 | `/t-tools:t-dream [feature]` | 默认只读；PRD 治理加 `--govern-prd` |
-| Figma 还原 | `/t-tools:t-figma-assets`，再 `/t-tools:t-figma-impl` | 动效 `t-figma-ux` |
+| 审计上下文 / 结构漂移 | `/t-tools:t-dream [feature]` | 只读；报告可含 PRD 治理建议，不执行写入 |
+| 阶段收口一致性 | `/t-tools:t-dream [feature] --phase <phase>` | 检查该交付阶段实现或 Demo 与 PRD / 用户故事的一致性；阶段取值同 `t-super-run --phase` |
+| Figma 还原 | `/t-tools:t-figma-assets` → `/t-tools:t-figma-impl` | 素材未就绪可先 impl，验收前补 assets 并绑定；动效 `t-figma-ux` |
 | 新项目脚手架 | `/t-tools:t-init <project-name>` | Rust + React 全栈骨架 |
 
 表外还有 `t-html-show` 等辅助命令：用 Glob 列出 `${CLAUDE_PLUGIN_ROOT}/skills/`，读对应 `SKILL.md` 开头确认职责后再讲解。

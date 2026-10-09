@@ -28,7 +28,7 @@ allowed-tools:
 3. 含文字的图片根据节点层级导出包含文字的最小共同父节点，manifest 标 `flattened: true`；文字疑似交互、动态或本地化语义时询问。
 4. 按 assets.md 导出素材并立即下载到 session `raw/`，不得直接写入正式代码；预期透明的组合节点按 assets.md 同时准备 alpha mask。视频按 `--video-source` 提供 URL 或项目内文件，缺失则停止。
 5. 逐个调用 `${CLAUDE_PLUGIN_ROOT}/scripts/figma-assets.py image|video|svg` 转换并落位，导出倍率和 mask/反烘焙参数按 assets.md 选择；PNG 压缩经 kyz daemon 的 TinyPNG 代理，预检与失败处理按 assets.md；SVG 必须走 `svg` 子命令优化，已有 WebP/GIF 直接复制。正式路径已存在时停止，除非开发者明确要求替换。
-6. 汇总脚本 JSON 输出写 `assets-manifest.json`（字段按契约；无素材也写 `[]`），删除 `raw/`，session stage 设为 `assets`。
+6. 汇总脚本 JSON 输出写 `assets-manifest.json`（字段按契约；无素材也写 `[]`），删除 `raw/`；session 由 assets 创建时 stage 设为 `assets`，附着既有 session 时不改 stage（manifest 存在即 assets 完成信号）。
 
 ## 门禁
 

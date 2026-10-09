@@ -1,6 +1,6 @@
 ---
 name: t-dream
-description: Organize and realign PRDs, user stories, design/task docs, implementation facts, and project structure so the target project keeps a clean current context instead of accumulating stale or misleading information. Use when asked to audit documentation drift, structure drift, traceability gaps, whether PRD/code/test/demo directory organization and module boundaries are reasonable, or to merge/prune/rewrite PRDs into concise current authority sources.
+description: Organize and realign PRDs, user stories, design/task docs, implementation facts, and project structure so the target project keeps a clean current context instead of accumulating stale or misleading information. Use when asked to audit documentation drift, structure drift, traceability gaps, whether PRD/code/test/demo directory organization and module boundaries are reasonable, or to get PRD governance recommendations (merge/archive/rewrite/reference fixes) as read-only report output. Use --phase <backend|frontend|extension|miniapp|web-demo|extension-demo|flutter|flutter-demo> to check PRD/story versus implementation-or-demo consistency for one delivery phase at phase wrap-up.
 allowed-tools:
   - Read
   - Glob
@@ -18,7 +18,7 @@ allowed-tools:
 候选问题结构、评分权重、报告结构和模式写入边界：`${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md`（构造 subagent 输出、计算评分或写报告前读）
 
 ## 目标
-- 把 PRD、用户故事、设计、任务、Demo 注释、实现事实和项目结构重新收敛成当前可信上下文。
+- 识别 PRD、用户故事、设计、任务、Demo 注释、实现事实和项目结构中偏离当前可信上下文的问题，并给出收敛建议。
 - 识别并减少错误信息累积：重复 PRD、历史过程文档、过期术语、失效设计、冲突业务规则、错误能力承诺和误导性实现说明。
 - 评估 PRD 目录、代码目录、模块边界、测试布局、Demo 布局、`.ai/` 运行时产物组织是否合理，是否支持后续 AI agent 快速定位、窄范围修改和可靠验证。
 - 建立 PRD -> 用户故事 -> 设计/任务 -> 代码 -> 测试/Demo 的 traceability 视图，指出断链、错链、重复链和缺失证据。
@@ -34,12 +34,9 @@ allowed-tools:
 | `[feature]` | 可选。聚焦指定功能、模块或领域关键词 |
 | `--all` | 检查全部可识别 PRD / 模块 |
 | `--deep` | 启用后端模块级深度一致性检查 |
-| `--backend-only` | 只执行 PRD 与后端实现一致性检查（隐含 `--deep`） |
-| `--govern-prd` | 显式进入 PRD 治理写入模式 |
+| `--phase <backend\|frontend\|extension\|miniapp\|web-demo\|extension-demo\|flutter\|flutter-demo>` | 只执行该阶段的一致性检查；取值与 `t-super-run --phase` 一致，backend 隐含深度检查 |
 
-默认模式是只读 audit，不修改目标项目文档或代码。未传入 `[feature]` 或 `--all` 时，先提示可用模块来源是 `docs/prd/**/*.md`，再建议用户指定范围。
-
-用户只要求"检查/评估/排查准确性"时，保持只读 audit 模式；删除是高风险操作，见"PRD 治理模式"。
+`t-dream` 所有模式都只读，不修改目标项目文档或代码；PRD 治理内容（合并、归档、重写、改引用）只作为报告建议输出，见"PRD 治理建议"。未传入 `[feature]` 或 `--all` 时，先提示可用模块来源是 `docs/prd/**/*.md`，再建议用户指定范围。
 
 ## 输入范围
 - PRD：`docs/prd/**/*.md`（排除模板、索引和说明文件）
@@ -47,35 +44,34 @@ allowed-tools:
 - PRD 草稿：`.ai/prd/**/*.md`
 - 设计与任务：`.ai/design/**/*.md`、`.ai/task/**`
 - Demo 测试：Web 为 `demo/e2e/**/*.e2e.ts`，Flutter 为 `patrol_test/**/*_test.dart`
-- 实现代码：按目标项目真实结构定位 backend、frontend、demo 相关实现
-- 项目结构：`docs/`、`.ai/`、backend/frontend/demo/test 目录、README、AGENTS/CLAUDE 类上下文入口、ADR 或架构说明（如存在）
+- 实现代码：按目标项目真实结构定位 backend、frontend、extension、miniapp、flutter、demo 相关实现
+- 项目结构：`docs/`、`.ai/`、各交付端与 test 目录、README、AGENTS/CLAUDE 类上下文入口、ADR 或架构说明（如存在）
 
 ## 执行模型
 
-`t-dream` 是主控编排 skill，不应由主线程独自完成所有检查。主线程负责确定范围、构造共享上下文、并行启动 subagent、验证候选问题、合并结果、写入最终报告，并在 PRD 治理模式下执行经过验证的文档改动。
+`t-dream` 是主控编排 skill，不应由主线程独自完成所有检查。主线程负责确定范围、构造共享上下文、并行启动 subagent、验证候选问题、合并结果、写入最终报告。
 
 整体采用类似 code review 的两阶段机制：
 - 并行发现：专用 subagent 与多个 `general_agent` 从不同维度独立发现候选问题。
 - 统一验证：主线程或专门的验证 subagent 根据真实文件证据过滤误报、去重、定级和评分。
 
-模式语义（`audit` / `govern-prd` / `backend-only` / `deep` 的写入边界和覆盖范围）以 `${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md` 的模式表为准。补充约定：
+模式语义（`audit` / `phase` / `deep` 的写入边界和覆盖范围）以 `${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md` 的模式表为准。补充约定：
 - 默认聚焦 context health：当前上下文是否准确、收敛、可导航、可追踪、结构上可持续。措辞、格式、风格偏好仅在导致业务含义失真、查找成本显著增加或后续 agent 容易误用时进入问题清单。
-- `govern-prd` 先完成 audit 和治理计划，再按计划改写 PRD、索引和引用。
-- `backend-only` 适合实现阶段收口，不输出上下文治理或结构组织结论。
+- PRD 治理建议只写入报告，不在本 skill 内执行任何治理写入。
+- `--phase`（阶段一致性模式）适合对应交付阶段收口，只输出该阶段一致性结论，不输出上下文治理或结构组织结论；阶段必须是目标项目真实存在的交付端，不得为满足命令而编造检查范围。
 
 `--all` 预算策略：
 - 默认先做索引级健康扫描：PRD 文件、标题、索引引用、用户故事引用、draft story 引用、设计/任务入口、明显重复/过期关键词和结构入口。
 - 只对高风险模块深挖。高风险信号包括：索引缺失、同名/近义 PRD 重复、用户故事或 Demo 指向旧 PRD、PRD 声明和代码关键词明显错位、权限/租户/状态规则冲突信号。
 - 若用户要求全量深挖，必须显式使用 `--all --deep`。
 
-## PRD 治理模式
+## PRD 治理建议
 
-当用户请求整理、合并、精简、删除过期过程文档或更新 PRD 结构，或显式传入 `--govern-prd` 时，进入 PRD 治理模式（写入模式，可修改 `docs/prd/**`、相关索引和必要引用，但不得修改实现代码）。
+用户请求整理、合并、精简 PRD 或清理过期过程文档时，仍在只读 audit 内完成：`context-curator` 识别重复、过期、冲突内容并输出整理计划，主线程验证后把 PRD 治理建议（合并、归档、重写、改引用计划）写入报告对应章节。
 
-- 治理原则、流程（盘点 → 设计合并目标 → 编写新权威 PRD → 归档/删除旧 PRD → 更新引用 → 验证）和合并判定读取 `${CLAUDE_PLUGIN_ROOT}/guides/product/prd-governance.md`。
-- 删除是高风险操作：除非用户明确说"删除旧 PRD / 删除过期文档"，否则默认归档到 `docs/prd/archive/...` 或生成合并计划，不直接删除文件。
-- 治理输出结构遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md` 的 PRD Governance Output。
-- 主线程必须对治理改动二次验证后才执行写入。
+- 治理判定原则、合并判定和计划要素读取 `${CLAUDE_PLUGIN_ROOT}/guides/product/prd-governance.md`。
+- 建议结构遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md` 的 PRD Governance Recommendations。
+- 本 skill 不执行任何治理写入；归档、删除、合并、改引用由用户确认后另行执行。
 
 ## 并行 subagent 维度
 
@@ -87,13 +83,16 @@ allowed-tools:
 | 结构组织评估 | 使用 `structure-review` 评估 PRD、代码、测试、Demo、`.ai/` 目录和模块边界是否合理 |
 | PRD 描述准确性 | 使用 `general_agent` 提取关键 PRD 声明，并核对是否被实现事实支撑；默认 audit 只做高风险声明抽样 |
 | 用户故事与验收描述 | 核对用户故事、GWT、验收标准是否与 PRD 和实现一致 |
-| Demo 描述与覆盖事实 | 核对 Demo 测试注释、故事映射、断言和实际覆盖是否准确 |
+| Demo 描述与覆盖事实 | 核对 Demo 测试注释、故事映射、断言和实际覆盖是否准确（web-demo / extension-demo / flutter-demo 阶段的一致性维度） |
 | 后端实现一致性 | 检查 API 能力边界、模型、校验、权限、业务逻辑 |
 | 前端实现一致性 | 核对页面、组件、交互、权限可见性与 PRD/故事描述是否一致 |
+| 扩展实现一致性 | 核对入口、消息、存储、权限与 PRD/故事描述是否一致 |
+| 小程序实现一致性 | 核对页面、平台能力与 PRD/故事描述是否一致 |
+| Flutter 实现一致性 | 核对 View、状态、数据层与 PRD/故事描述是否一致 |
 | Traceability | 核对 PRD -> 用户故事 -> 设计/任务 -> 代码 -> 测试/Demo 链路是否存在断链、错链或重复链 |
 | 候选问题验证 | 复核各维度候选问题是否有文件定位、真实证据、合理分级和修复方向 |
 
-`--backend-only` 只启动"后端实现一致性""后端深度一致性"和"候选问题验证"。`--deep` 在"后端实现一致性"之外，额外按模块调用 `backend-consistency` 做专项深度检查。`backend-consistency` 在 `t-dream` 调用下必须只返回结构化结果，不自行写入独立一致性报告。
+`--phase` 只启动该阶段对应的一致性维度和"候选问题验证"，阶段与维度的映射、一致性对象和证据定位以 `${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md` 的 Phase Consistency 为准。`--phase backend` 按模块调用 `backend-consistency` 做专项深度检查；`--deep` 在非 phase 模式下于"后端实现一致性"之外，额外按模块调用 `backend-consistency`。`backend-consistency` 在 `t-dream` 调用下必须只返回结构化结果，不自行写入独立一致性报告。
 
 ### subagent 调用要求
 - 使用 `Task` 或 `Agent` 启动 `subagent_type="context-curator"`、`subagent_type="structure-review"`、`subagent_type="general_agent"`；调用按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 执行，`general_agent` 为内置 agent，按协议跳过注入。
@@ -102,7 +101,7 @@ allowed-tools:
 - 候选问题字段、置信度阈值和"专项 agent 可增加的字段"以 `${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md` 为准；最终 P0/P1 必须经过验证且置信度不低于 80。
 
 共享上下文包必须包含：
-- 检查范围：`[feature]` / `--all` / `--backend-only` / `--deep` / `--govern-prd`。
+- 检查范围：`[feature]` / `--all` / `--phase` / `--deep`。
 - PRD 文件列表和目标模块列表。
 - 相关用户故事、Demo 测试和实现检索路径。
 - 设计、任务、README、AGENTS/CLAUDE、ADR 或架构说明路径（如存在）。
@@ -112,7 +111,8 @@ allowed-tools:
 ## 执行流程
 
 ### 1. 确定检查范围
-- 解析 `[feature]`、`--all`、`--deep`、`--backend-only`、`--govern-prd`。
+- 解析 `[feature]`、`--all`、`--deep`、`--phase`。
+- `--phase` 值不在支持列表或目标项目不存在该交付端时终止，并列出可识别交付端。
 - 创建 `.ai/quality/`（如不存在）。
 - `--all`：扫描 `docs/prd/**/*.md` 自动提取模块名；默认先做索引级健康扫描，只对高风险模块继续深挖。
 - `[feature]`：优先匹配 PRD 文件名；若不存在精确文件，按标题、路径、模块名、用户故事引用和测试注释进行模糊定位。
@@ -134,7 +134,7 @@ allowed-tools:
 - `context-curator`：判断 PRD、用户故事、设计、任务、Demo 注释中哪些是当前权威事实，哪些是历史过程、重复描述、冲突规则、过期术语或容易误导 agent 的上下文。
 - `structure-review`：判断文档目录、代码目录、模块边界、测试布局、Demo 布局和运行时产物是否支持快速定位、窄范围修改和可靠验证。
 
-专项 agent 只输出候选问题和整理建议，不直接修改文件。PRD 治理模式下，主线程必须二次验证后再执行写入。
+专项 agent 只输出候选问题和整理建议，不直接修改文件；主线程验证后只写入报告。
 
 ### 4. 并行提取"描述声明"与"实现事实"
 从 PRD、用户故事和 Demo 测试中提取可核验声明，并按目标项目真实结构定位实现。提取类别（能力边界、数据与状态、验证规则、权限与租户边界、业务流程、验收描述）、实现事实定位指引和后端模块检查的输入规则统一按 `${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md` 的"提取类别与差异分级"执行。
@@ -152,7 +152,7 @@ allowed-tools:
 - 重点检查产品能力、模块边界、验收路径和关键业务规则的追踪关系。
 
 ### 7. 后端深度一致性
-默认后端维度由 `general_agent` 完成证据提取和对比；在 `--deep` 或 `--backend-only` 时，对每个后端模块额外调用 `backend-consistency`。
+默认后端维度由 `general_agent` 完成证据提取和对比；在 `--deep` 或 `--phase backend` 时，对每个后端模块额外调用 `backend-consistency`。其他阶段没有专项深度 agent，由该阶段一致性维度直接做全量核对。
 
 按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 通过 `Agent(subagent_type="backend-consistency")` 启动，prompt 必须包含：
 - 模块名。
@@ -185,12 +185,13 @@ agent 失败时记录失败模块为 P1，并继续其他模块（`--all` 模式
 - 检查是否存在 subagent 漏跑、范围不一致或输出结构不合格；存在时记录为 P1。
 
 ### 10. 评分计算与写入报告
-评分权重（默认 audit / deep / backend-only）与报告结构以 `${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md` 为准，不得在此另立第二套权重。
+评分权重（默认 audit / deep / phase 模式）与报告结构以 `${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md` 为准，不得在此另立第二套权重。
 
 写入 `.ai/quality/dream-check-[YYYYMMDD-HHMMSS].md`。默认 audit 的实现一致性分只对已抽样核验的关键声明负责；报告中必须列出抽样范围和未覆盖范围，不得暗示已完成全量实现审计。
 
 ## 失败处理
-- 参数为空且无法确定范围：提示使用 `/t-dream [feature]` 或 `/t-dream --all`。
+- 参数为空且无法确定范围：提示使用 `/t-dream [feature]`、`/t-dream [feature] --phase <phase>` 或 `/t-dream --all`。
+- `--phase` 交付端在目标项目不可识别：终止并列出可识别交付端，不编造检查范围。
 - 找不到 PRD：标记 P1，并列出检索路径。
 - 找不到相关用户故事或 Demo 测试：标记 P1，但继续检查 PRD 与实现。
 - 找不到实现证据：标记 P1 或 P2，并说明检索路径和关键词。

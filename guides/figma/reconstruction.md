@@ -12,11 +12,11 @@ Figma 返回的 metadata/design context 是画布操作的结果：深层嵌套�
 1. 先看截图划分主区域，再对照 metadata 绝对坐标确认重叠、裁切与浮层。
 2. 图片填充与文字的共同父级 → 合成导出素材；排除交互或动态文字。
 3. 从目标文件及邻近模块提取已有组件、token、布局容器、断点和动效模式；视觉块映射到已有组件，Figma group 与代码组件不必一一对应。
-4. 在 MCP 窗口内为每个块调用 `get_screenshot` 保存 `source/baseline-<block>.png`，作为逐块实现的视觉基准。
-5. 视觉块划分、组件映射与主稿 viewport 写入 `context.md`（每块：名称、baseline、使用资产、组件映射），不复述节点树。不确定的结构写入候选或询问，不伪装成确定事实。
+4. 在 MCP 窗口内为主节点和每个视觉块调用 `get_screenshot` 保存 `source/baseline[-<block>].png`，作为逐块实现和整页验收的视觉基准；metadata、design context 和 variables 不落盘。
+5. 视觉块划分、组件映射与主稿 viewport 写入 `context.md`（每块：名称、baseline、使用资产、组件映射、节点树提取的精确数值），不复述节点树。不确定的结构写入候选或询问，不伪装成确定事实。
 
 ## 响应式
 
 存在多套 Figma frame 时按明确 viewport 分别记录各稿基准。只有单一平面稿时，使用目标项目现有断点和布局模式适配；不得从一个桌面坐标系凭空推导新的产品行为。
 
-实现回环中发现结构错误时更新 `context.md` 对应块定义；`source/` 原始快照保持不变，便于复盘 MCP 输入与人工重建之间的差异。
+实现回环中发现结构错误时更新 `context.md` 对应块定义；`source/` 快照（baseline、motion-context）一次写入后保持不变，MCP 原始响应不落盘，复盘以 `context.md` 与快照对照为准。

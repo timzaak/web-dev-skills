@@ -10,7 +10,7 @@
 
 ## 工作模式
 
-从零还原的标准顺序是 `t-figma-assets -> t-figma-impl`。`t-figma-ux` 是独立的动效精修入口，不要求 assets/impl 先行。各命令职责不互相吞并：assets 不改 UI，impl 负责整页，ux 只精修动效交互。
+从零还原通常先 `t-figma-assets` 再 `t-figma-impl`；素材未就绪时 impl 可先行（资产延后模式），进入验收前补跑 assets 并完成绑定。`t-figma-ux` 是独立的动效精修入口，不要求 assets/impl 先行。各命令职责不互相吞并：assets 不改 UI，impl 负责整页，ux 只精修动效交互。
 
 Figma MCP 的 metadata、design context 和截图都是证据，不是生产 DOM。设计师按 Photoshop 式平面排版时，必须先按视觉边界、现有代码和项目规则做二次重建，再进入实现。
 

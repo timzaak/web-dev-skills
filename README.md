@@ -94,7 +94,7 @@ claude --plugin-dir /path/to/skills
 
 - MCP Server [`context7`](https://github.com/upstash/context7) 已配置
 - 扩展开发涉及用户当前 Chrome 现场（标签页、登录态、已安装扩展）时，Chrome DevTools MCP（`--autoConnect`）已按 [用户 Chrome 调试指南](guides/extension/live-browser.md) 配置
-- 使用 Figma 工作流时，官方 [Figma MCP Server](https://developers.figma.com/docs/figma-mcp-server/) 与 Chrome DevTools MCP 已配置；素材转换依赖 `ffmpeg`/`ffprobe`、`svgo` 和 [kyz](https://github.com/timzaak/kyz) 凭据代理
+- 使用 Figma 工作流时，官方 [Figma MCP Server](https://developers.figma.com/docs/figma-mcp-server/) 与 Chrome DevTools MCP 已配置；素材转换依赖 `ffmpeg`/`ffprobe`、`svgo` 和 [kyz](https://github.com/byteowlz/kyz) 凭据代理
 
 `.ai/` 与 `docs/` 运行时目录无需预先创建，工作流执行过程中会自行创建。
 

@@ -4,12 +4,34 @@
 
 | 模式 | 写入边界 | 覆盖范围 |
 | --- | --- | --- |
-| `audit` | 只写 `.ai/quality/dream-check-[YYYYMMDD-HHMMSS].md` | 上下文治理、结构组织、traceability、关键描述/实现一致性抽样 |
-| `govern-prd` | 可改 `docs/prd/**`、PRD 索引和必要引用；不得改实现代码 | audit + PRD 合并、归档、重写和引用修正 |
+| `audit` | 只写 `.ai/quality/dream-check-[YYYYMMDD-HHMMSS].md` | 上下文治理、结构组织、traceability、关键描述/实现一致性抽样、PRD 治理建议 |
 | `deep` | 只写 dream 报告 | audit + 后端模块级深度一致性 |
-| `backend-only` | 只写 dream 报告 | PRD 与后端实现一致性；不覆盖上下文治理、结构组织、前端、Demo |
+| `phase` | 只写 dream 报告 | 指定阶段的 PRD / 用户故事与该阶段实现或 Demo 的一致性；不覆盖上下文治理、结构组织、其他阶段 |
+
+所有模式均只读；`t-dream` 不修改目标项目文档或代码，PRD 治理内容只作为报告建议输出。
 
 `--all` 默认先做索引级健康扫描；只有 `--all --deep` 或高风险模块才进入深挖。
+
+## Phase Consistency
+
+`--phase <backend|frontend|extension|miniapp|web-demo|extension-demo|flutter|flutter-demo>` 进入阶段一致性模式；阶段取值与 `t-super-run --phase` 一致，且必须是目标项目真实存在的交付端，否则终止并列出可识别交付端。
+
+阶段一致性模式只启动该阶段对应的一致性维度和"候选问题验证"：
+
+| 阶段 | 一致性对象 | 证据定位 |
+| --- | --- | --- |
+| `backend` | PRD 能力边界、数据模型、验证规则、权限、业务逻辑 | 后端领域 / HTTP / 基础设施目录；按模块调用 `backend-consistency` 深度检查 |
+| `frontend` | 页面、组件、交互、权限可见性与 PRD / 用户故事 | frontend 页面、组件、路由、查询/变更 |
+| `extension` | 入口、消息、存储、权限与 PRD / 用户故事 | WXT / Chrome MV3 入口、消息、存储和 manifest 权限 |
+| `miniapp` | 页面、平台能力与 PRD / 用户故事 | 小程序页面和平台能力调用 |
+| `flutter` | View、状态、数据层与 PRD / 用户故事 | Flutter View、Riverpod 状态、数据层 |
+| `web-demo` / `extension-demo` / `flutter-demo` | 用户故事、场景映射、断言与实际覆盖事实 | 对应 Demo 测试目录 |
+
+补充规则：
+
+- 阶段一致性模式对该阶段做全量核对，不采用 audit 的抽样策略。
+- backend 之外的阶段没有专项深度 agent；`--deep` 不扩大其范围。
+- 阶段范围仍由 `[feature]` 或 `--all` 确定，与阶段参数正交。
 
 ## Candidate Issue
 
@@ -52,7 +74,10 @@
 - HTTP/API：路由注册、handler、DTO、validator、OpenAPI 注解。
 - Infrastructure：repository、外部集成、持久化约束和事务边界。
 - Frontend：页面、组件、路由、查询/变更、权限可见性。
-- Demo：`demo/e2e/**/*.e2e.ts` 或 `patrol_test/**/*_test.dart` 中的场景、注释、断言和日志。
+- Extension：WXT / Chrome MV3 入口、消息、存储和 manifest 权限。
+- Miniapp：小程序页面和平台能力调用。
+- Flutter：View、Riverpod 状态、数据层。
+- Demo：`demo/e2e/**/*.e2e.ts`、`demo/e2e/extension/**/*.e2e.ts` 或 `patrol_test/**/*_test.dart` 中的场景、注释、断言和日志。
 
 后端模块检查的输入规则：
 
@@ -103,7 +128,7 @@
 - 权限一致性：15%
 - 业务逻辑一致性：10%
 
-`backend-only` 只计算 PRD 与后端实现一致性，并在报告中标注未覆盖范围。
+`phase` 模式总分 100，只计算指定阶段的一致性，并在报告中标注未覆盖阶段。backend 阶段的模块评分按"后端深度一致性"内部权重合并；其余阶段由该阶段维度验证后的问题分级推导，公式必须可复算并写入报告。
 
 默认 audit 的实现一致性分只对已抽样核验的关键声明负责；报告必须列出抽样范围和未覆盖范围。
 
@@ -112,9 +137,10 @@
 `.ai/quality/dream-check-[YYYYMMDD-HHMMSS].md` 必须包含：
 
 - 执行摘要、范围、模式和总分。
-- 审计模式说明：`audit` / `govern-prd` / `backend-only` / `deep`，以及 `--all` 是否只做索引级扫描。
+- 审计模式说明：`audit` / `phase`（含阶段名）/ `deep`，以及 `--all` 是否只做索引级扫描。
 - 当前权威上下文地图。
 - 上下文治理问题。
+- PRD 治理建议（如存在）：结构遵循 PRD Governance Recommendations。
 - 结构组织问题。
 - Traceability 断链、错链、重复链和缺失证据。
 - 被核验的描述声明清单。
@@ -127,13 +153,14 @@
 - subagent 执行矩阵：维度、状态、范围、问题数量、是否参与总分。
 - 下一步修复建议。
 
-## PRD Governance Output
+## PRD Governance Recommendations
 
-`govern-prd` 最终答复必须包含：
+audit 报告中的 PRD 治理建议（如存在）必须包含：
 
-- 新权威 PRD 列表。
-- 归档或删除的旧 PRD 列表。
-- 合并 / 归档 / 删除映射表。
-- 主要规则收敛点。
-- 验证命令和结果。
-- 未处理风险或需要产品确认的问题。
+- 目标权威 PRD 列表，按稳定能力命名。
+- 建议合并、归档、重写或修正引用的旧 PRD 清单和映射表。
+- 主要规则收敛点和冲突裁决依据。
+- 需要产品确认的问题。
+- 建议执行后应运行的验证清单（链接检查、索引覆盖、旧路径残留 grep）。
+
+建议只是报告内容；`t-dream` 不执行任何 PRD 写入，归档、删除、合并、改引用由用户确认后另行执行。

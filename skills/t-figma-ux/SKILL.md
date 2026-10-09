@@ -27,7 +27,7 @@ allowed-tools:
 
 校验 URL（整页或待精修节点）、target-file 和 `<preview-url>`（缺失时 `AskUserQuestion` 补齐一次，仍无则停止）；URL 范围内没有已实现代码时停止。`figma-session.py resolve` 的附着（同 fileKey，nodeId 可不同）、独立 `create --stage motion`、不一致与 ambiguous 询问等决策按共享契约的 Session Resolve 表执行。
 
-读取项目动效模式、长期规则和 URL 范围内代码；原型证据按契约取自既有快照或新存 `source/motion-context.md`。范围内无原型数据且无交互语义时停止，请开发者明确动效范围。
+读取项目动效模式、长期规则和 URL 范围内代码；需要原型证据时在 MCP 窗口提取范围内节点的 `source/motion-context.md`，一次写入，不覆盖既有快照。范围内无原型数据且无交互语义时停止，请开发者明确动效范围。
 
 ## 工作流
 

@@ -151,7 +151,7 @@ A fixing agent must return `tests_to_run`, explaining which backend, frontend, o
 
 ## Supporting Governance
 
-`t-dream` is a cross-stage context cleanup and structure drift audit tool. By default it is read-only: it checks PRDs, user stories, designs, tasks, code, tests, and demos for stale content, duplication, conflicts, broken traceability, or implementation mismatch. Use `--govern-prd` only when PRD governance should write changes.
+`t-dream` is a cross-stage context cleanup and structure drift audit tool. It is read-only: it checks PRDs, user stories, designs, tasks, code, tests, and demos for stale content, duplication, conflicts, broken traceability, or implementation mismatch. PRD governance recommendations (merge, archive, rewrite, reference fixes) are report output only and are never executed by the tool. For delivery phase wrap-up, `t-dream [feature] --phase <phase>` checks a single phase's implementation or demo consistency with PRDs and user stories.
 
 `t-push` is the local CI closure before commit. It detects backend / frontend / demo impact from the diff, runs the matching checks, then commits and pushes only after they pass. Formal version publishing remains governed by `t-release`; version files use semver without `v`, while git tags use the `v` prefix.
 

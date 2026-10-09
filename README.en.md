@@ -97,7 +97,7 @@ Prerequisites:
 
 - MCP Server [`context7`](https://github.com/upstash/context7) is configured
 - Chrome DevTools MCP (with `--autoConnect`) is configured per the [live Chrome debugging guide](guides/extension/live-browser.md) when extension work touches the user's live Chrome (tabs, login state, installed extensions)
-- The official [Figma MCP Server](https://developers.figma.com/docs/figma-mcp-server/) and Chrome DevTools MCP are configured when using the Figma workflow; asset conversion depends on `ffmpeg`/`ffprobe`, `svgo`, and the [kyz](https://github.com/timzaak/kyz) credential proxy
+- The official [Figma MCP Server](https://developers.figma.com/docs/figma-mcp-server/) and Chrome DevTools MCP are configured when using the Figma workflow; asset conversion depends on `ffmpeg`/`ffprobe`, `svgo`, and the [kyz](https://github.com/byteowlz/kyz) credential proxy
 
 The runtime directories `.ai/` and `docs/` are created automatically during execution — no need to create them up front.
 

@@ -15,7 +15,7 @@
 - `figma-url` 必须能解析 `fileKey` 与 `nodeId`。assets/impl 的 URL 指向整页或主 frame。
 - 三个命令以规范化后的项目相对 `target-file` 关联工作区。一个目标文件同时命中多个活动工作区时必须请开发者选择，不得按时间或目录顺序猜测。
 - assets/impl 命中 session 后必须校验 URL 的 `fileKey + mainNodeId` 一致；不一致时请开发者选择归档旧 session 或回到原主稿，不得复用旧 session 产物。ux 附着时允许 nodeId 不同，但 fileKey 必须与 session 一致。
-- `t-figma-impl` 要求 assets 阶段已经完成；无素材页面也必须存在空的 `assets-manifest.json`。
+- `t-figma-impl` 可先于 assets 启动：manifest 缺失时进入资产延后模式（见 Manifest 一节）；进入整页验收前 `assets-manifest.json` 必须存在，空数组表示无素材页面。
 - `t-figma-ux` 是独立的动效精修入口，不要求 assets/impl 先行：URL 可指向整页或待精修节点，只精修该范围内的动效交互，不修复静态视觉偏差（impl 职责），不下载素材。目标文件必须已有对应实现（无论来自 impl 还是手写）。
 
 ## Workspace and Identity
@@ -28,10 +28,7 @@
 └── <session-id>/
     ├── session.json
     ├── source/
-    │   ├── metadata.xml
-    │   ├── design-context.md
     │   ├── motion-context.md
-    │   ├── variables.json
     │   └── baseline[-<node-name>].png
     ├── raw/
     ├── motion.json
@@ -56,8 +53,8 @@
 
 - target key 使用相对项目根、`/` 分隔、消除 `.` 后的路径；Windows 上匹配时不区分大小写，落盘保持真实大小写。
 - session 脚本仅发现旧 `memo/figma/` 时，将其整体迁移到 `.ai/figma/` 后继续；新旧目录同时存在时必须停止并要求开发者显式合并，不得静默覆盖。
-- `status` 只允许 `active|archived`。一个 target 只有一个 active session 时按各入口复用条件处理；零个时 assets/ux 可创建，impl 因缺少已完成的 assets session 必须停止；多个时必须询问。
-- `session.json` 保存主 URL、fileKey、mainNodeId、targetFile 和当前 stage（`assets|implemented|motion|accepted`）。状态文件不写时间元数据。
+- `status` 只允许 `active|archived`。一个 target 只有一个 active session 时按各入口复用条件处理；零个时 assets/impl/ux 都可创建；多个时必须询问。
+- `session.json` 保存主 URL、fileKey、mainNodeId、targetFile 和当前 stage。初值 `impl|assets|motion` 由创建入口决定，之后推进为 `implemented|accepted`。状态文件不写时间元数据。
 
 ### Session Resolve
 
@@ -65,10 +62,10 @@
 
 | resolve 结果 | assets | impl | ux |
 |---|---|---|---|
-| 唯一 active 且满足入口复用/附着条件 | fileKey/mainNodeId 一致时复用 | fileKey/mainNodeId 一致时复用，并校验 `assets-manifest.json` | fileKey 一致时附着；nodeId 可不同 |
-| 唯一 active 但不满足入口复用/附着条件 | fileKey/mainNodeId 不一致时询问；确认后 `archive` 旧 session 再 `create` | fileKey/mainNodeId 不一致时停止；提示回到匹配主稿，或先对新主稿运行 assets；不得由 impl 归档或创建 session | fileKey 不一致时询问 |
-| 无 active session | 以主 URL `create` | 停止并提示先运行 assets | `create --stage motion` |
-| 多个 active（ambiguous） | `AskUserQuestion` 选择 | `AskUserQuestion` 选择；所选 session 仍须通过 fileKey/mainNodeId 与 manifest 门禁 | 询问选择 |
+| 唯一 active 且满足入口复用/附着条件 | fileKey/mainNodeId 一致时复用 | fileKey/mainNodeId 一致时复用；manifest 缺失进入资产延后模式 | fileKey 一致时附着；nodeId 可不同 |
+| 唯一 active 但不满足入口复用/附着条件 | fileKey/mainNodeId 不一致时询问；确认后 `archive` 旧 session 再 `create` | fileKey/mainNodeId 不一致时询问；确认后 `archive` 旧 session 再 `create`，或回到匹配主稿 | fileKey 不一致时询问 |
+| 无 active session | 以主 URL `create` | 以主 URL `create --stage impl` | `create --stage motion` |
+| 多个 active（ambiguous） | `AskUserQuestion` 选择 | `AskUserQuestion` 选择；所选 session 仍须通过 fileKey/mainNodeId 校验 | 询问选择 |
 
 ## Source of Truth and Reconstruction
 
@@ -81,12 +78,13 @@
 
 - 截图定结构：以视觉边界和 stacking 识别实际 block，不机械照搬 frame/group 层次；
 - 节点树补数值：尺寸、颜色、变量、文本等精确事实取自 MCP，不用截图目测代替；
-- 主稿证据（metadata、design context、variables、baseline）在 impl 的 MCP 窗口保存到 `source/`，一次写入后不得覆盖；ux 只追加各自节点证据，不覆盖既有快照；
+- baseline 截图与 `motion-context.md` 是仅有的 `source/` 落盘项，一次写入后不得覆盖；
+- metadata、design context 和 variables 只在编排 MCP 窗口内消费，块清单、精确数值和 token/组件映射等结论写入 `context.md`，不整页落盘；
 - 记录绝对定位、裁切、重叠、背景和最小视觉组合；
 - 优先映射项目已有组件、token、动效和响应式模式；
 - 只有视觉证据或现有代码支持时才修正 MCP 数值，不得凭空创造隐藏状态。
 
-视觉块划分、组件映射与主稿 viewport 写入 `context.md`，不生成独立规格文件；资产引用以 manifest 为准。发现分块或数值理解有误时，直接更新 `context.md` 对应记录再修实现。
+`context.md` 只保存 dispatch 需要且其他文件没有的内容：块清单（每块：名称、baseline、使用资产、组件映射、从节点树提取的精确数值）、主稿 viewport、目标栈与验证命令、资产引用方式；`assets-manifest.json`、`docs/figma-rules.md` 和 session 候选用路径引用，不复述内容，也不生成独立规格文件。发现分块或数值理解有误时，直接更新 `context.md` 对应记录再修实现。
 
 整页实现按视觉块推进：先分块并为每块保存 baseline 截图，再按文档顺序逐块实现（单次 dispatch 只承担一个块或少量相邻小块），全部块完成后做整页验收。
 
@@ -108,7 +106,7 @@
 - 临时 URL 立即下载到 session `raw/`，不得写入正式代码；manifest 条目 `source` 记录为 `download-assets`。
 - 预期透明的组合节点必须用 `get_screenshot(contentsOnly: true)` 的隔离 PNG 提供 alpha mask，并保留 `download_assets` 的高分辨率 RGB。转换后验证 alpha 通道包含透明像素；仅有 alpha 像素格式但 alpha 全为 255 视为失败。半透明像素的 RGB 会被画布色 `#1e1e1e` 烘焙，mask 合并后必须用 `--unbake-color 1e1e1e` 反解原色，否则浅色渐变在浅色页面上显灰。
 - 使用 ffprobe 提取最终宽高，以最大公约数记录 `aspectRatio`。
-- assets 阶段不编辑 UI 源码；impl 根据 manifest 引用资产并写入真实 aspect-ratio。
+- assets 阶段不编辑 UI 源码；impl 根据 manifest 引用资产并写入真实 aspect-ratio，延后模式下先用语义引用占位、绑定时替换。
 
 ### Video
 
@@ -144,6 +142,7 @@
 - 正式路径已存在时停止，请开发者改名或明确允许替换；manifest 不记录内容哈希。
 - 全部条目成功后原子性写入，失败不写半成功条目；脚本 `image|video|svg` 的 JSON 输出即条目数据来源。
 - `raw/` 只是转换前的中转缓存：manifest 写入成功后即删除整个 session `raw/`；需要重新导出时重新调用 `download_assets` 下载，不依赖 raw 的持久性。
+- 资产延后：impl 可在 manifest 写入前先行实现。此时块清单与 dispatch 只给资产语义引用（节点、名称、预期类型），实现使用声明过的临时引用占位，不下载、不伪造正式资产；进入整页验收前 assets 必须完成，impl 做一次绑定——把语义引用替换为真实 `outputPath`/`publicUrl`/`aspectRatio` 并重跑栈验证。
 
 ## Motion and Interaction
 
@@ -173,7 +172,7 @@
 
 - `trigger` 允许 `hover|focus|press|click|enter|exit|scroll|state`；`kind` 允许 `transition|animation|spring`。
 - 附着与独立两种模式：命中同 fileKey 的 active session 时附着，复用其 context/candidates 与规则记忆；无 active session 时以 `create --stage motion` 独立创建，session 只承载动效产物。ambiguous 时必须询问，不得按顺序猜测。
-- 原型证据：附着模式优先从既有 `source/design-context.md` 读取；独立模式或既有快照无原型信息时，在 MCP 窗口提取并保存为 `source/motion-context.md`，不覆盖既有快照。
+- 原型证据：统一在 MCP 窗口对待精修节点提取，保存为节点范围的 `source/motion-context.md`，一次写入后不覆盖既有快照；附着与独立模式同规。
 - `easing` 统一记录 CSS computed 形式，Figma 名称映射见 `${CLAUDE_PLUGIN_ROOT}/guides/figma/motion.md`。spring 无 CSS 等价，`easing` 记录 `{stiffness, damping, mass}` 参数对象，验收靠实现声明与人工复核。
 - `origin` 允许 `prototype|project-pattern|principle-default|user-decision`。`prototype` 和 `project-pattern` 必须附 evidence；`principle-default` 仅限不影响用户流程感知的微反馈；首屏转场、跨页转场、破坏性操作反馈等缺口必须取得开发者裁决后标 `user-decision`。
 - 动效验收以触发观察为主：accept 按 `motion.json` 触发交互，确认前后状态变化与 `prefers-reduced-motion` 替代；时长/缓动手感无法目视判定的列入人工复核。同一元素存在多个不同 duration/easing 的过渡时，实现必须收敛为单一动效声明。独立模式写空 `assets-manifest.json` 保持 accept 前置一致。
