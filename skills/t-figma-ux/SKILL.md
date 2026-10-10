@@ -25,13 +25,12 @@ allowed-tools:
 
 ## 前置
 
-校验 URL（整页或待精修节点）、target-file 和 `<preview-url>`（缺失时 `AskUserQuestion` 补齐一次，仍无则停止）；URL 范围内没有已实现代码时停止。`figma-session.py resolve` 的附着（同 fileKey，nodeId 可不同）、独立 `create --stage motion`、不一致与 ambiguous 询问等决策按共享契约的 Session Resolve 表执行。
+校验 URL（整页或待精修节点）、target-file 和 `<preview-url>`（缺失时 `AskUserQuestion` 补齐一次，仍无则停止）；URL 范围内没有已实现代码时停止。`figma-session.py resolve` 的附着（同 fileKey，nodeId 可不同）、独立 `create`、不一致与 ambiguous 询问等决策按共享契约的 Session Resolve 表执行。
 
-读取项目动效模式、长期规则和 URL 范围内代码；需要原型证据时在 MCP 窗口提取范围内节点的 `source/motion-context.md`，一次写入，不覆盖既有快照。范围内无原型数据且无交互语义时停止，请开发者明确动效范围。
+读取项目动效模式和 URL 范围内代码；需要原型证据时在 MCP 窗口内提取范围内节点的原型数据并在窗口内消费，结论记入 `motion.json` 的 `evidence` 字段，不落盘。范围内无原型数据且无交互语义时停止，请开发者明确动效范围。
 
 ## 工作流
 
 1. 按 motion 指南的证据优先级生成 `motion.json`；影响用户流程感知的缺口先 AskUserQuestion 裁决，不得静默套用原则默认。
 2. 按 subagent dispatch 契约注入并委派 `figma-ux`，只实现 `motion.json` 声明的动效并提供 reduced-motion 替代。
-3. 委派只读 `figma-accept` 触发交互做目视验收；reduced-motion 替代缺失同样阻塞收敛。阻塞问题未到 5 轮交回 ux，原型证据与实现分歧时先修订 `motion.json` 再修实现。
-4. 收敛后 stage 设为 `accepted` 并按 rules.md 晋升动效规则候选；达 5 轮报告 `EXHAUSTED`。
+3. 委派只读 `figma-accept` 做单轮动效审计：按 `motion.json` 触发交互，确认前后状态变化与 `prefers-reduced-motion` 替代，替代缺失即阻塞。审计返回 ISSUES 时转述给开发者做人工校准，不自动回环；原型证据与实现分歧时先修订 `motion.json` 再修实现。审计通过报告 `PASS`。

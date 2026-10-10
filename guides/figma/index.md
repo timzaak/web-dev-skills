@@ -2,11 +2,10 @@
 
 | 问题 | 规范 |
 | --- | --- |
-| 三个命令的产物、关联、manifest、动效规格、规则记忆和验收门禁 | [Figma 工作流契约](${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md) |
+| 三个命令的产物、关联、manifest、动效规格和验收审计 | [Figma 工作流契约](${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md) |
 | 图片、合成素材、视频下载和转换 | [assets.md](${CLAUDE_PLUGIN_ROOT}/guides/figma/assets.md) |
 | 平面化 Figma 的结构二次重建 | [reconstruction.md](${CLAUDE_PLUGIN_ROOT}/guides/figma/reconstruction.md) |
 | 动效交互的原则基准、时长缓动和缺口裁决 | [motion.md](${CLAUDE_PLUGIN_ROOT}/guides/figma/motion.md) |
-| 调试经验的候选、凝练和长期记忆 | [rules.md](${CLAUDE_PLUGIN_ROOT}/guides/figma/rules.md) |
 
 ## 工作模式
 

@@ -17,7 +17,7 @@ tools:
 
 ## 输入
 
-必须读取 `motion.json`、`context.md`、长期规则和目标代码。`motion.json` 是当前动效基准；不得重调 MCP 或修改 source/motion。
+必须读取 `motion.json`、`context.md` 和目标代码。`motion.json` 是当前动效基准；不得重调 MCP 或修改 source 快照。
 
 ## 边界
 
@@ -30,4 +30,4 @@ prompt 必须给出目标代码范围、motion.json 路径和阻塞问题清单�
 3. 每个 interaction 按 `reducedMotion` 声明实现 `prefers-reduced-motion: reduce` 替代，并在栈验证中确认替代生效。
 4. 按 context 的目标栈执行类型检查、测试或构建；失败如实返回，不进入 accept。
 
-输出遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`，额外包含 `motion_items_implemented`、`reduced_motion_coverage` 和 `rule_candidates`。
+输出遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`，额外包含 `motion_items_implemented` 和 `reduced_motion_coverage`。

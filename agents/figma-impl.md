@@ -17,7 +17,7 @@ tools:
 
 ## 输入
 
-必须读取 `context.md`、长期规则和目标文件；`assets-manifest.json` 存在时必须读取。prompt 给出本次负责的块范围；该块的 `source/baseline-<block>.png` 是视觉基准，结构以 context 的视觉块划分为准，截图读不出的精确数值以 context 块清单为来源，不得目测编造。不得重调 MCP 或改 source 快照。
+必须读取 `context.md` 和目标文件；`assets-manifest.json` 存在时必须读取。prompt 给出本次负责的块范围；该块的 `source/baseline-<block>.png` 是视觉基准，结构以 context 的视觉块划分为准，截图读不出的精确数值以 context 块清单为来源，不得目测编造。不得重调 MCP 或改 source 快照。
 
 ## 执行
 

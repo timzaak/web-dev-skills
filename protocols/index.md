@@ -29,7 +29,7 @@
 | Web / Extension Playwright Demo 单文件运行、修复、补测与环境刷新 | [web-demo-run-repair-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md) |
 | Chrome 扩展 Demo 验收 | [extension-demo-acceptance-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/extension-demo-acceptance-contract.md) |
 | Flutter Patrol Demo 单文件与批量修复 | [flutter-demo-run-repair-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/flutter-demo-run-repair-contract.md) |
-| Figma session、素材、整页实现、规则记忆与验收 | [figma-workflow-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md) |
+| Figma session、素材、整页实现与验收审计 | [figma-workflow-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md) |
 | t-simplify 四角度清理审查、finding 结构与修复边界 | [simplify-cleanup-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/simplify-cleanup-contract.md) |
 | t-review 正确性审查角度、候选结构、三态验证、报告与 `--fix` 修复边界 | [review-correctness-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/review-correctness-contract.md) |
 

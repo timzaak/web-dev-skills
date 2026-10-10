@@ -14,7 +14,6 @@ from typing import Any
 
 RUNTIME_DIR = Path(".ai") / "figma"
 LEGACY_RUNTIME_DIR = Path("memo") / "figma"
-SESSION_STAGES = ("assets", "impl", "motion")
 
 
 def runtime_dir(project: Path) -> Path:
@@ -93,10 +92,7 @@ def create_session(
     file_key: str,
     node_id: str,
     url: str,
-    stage: str = "assets",
 ) -> dict[str, Any]:
-    if stage not in SESSION_STAGES:
-        raise ValueError(f"invalid initial Figma session stage: {stage}")
     runtime = runtime_dir(project)
     index_path = runtime / "index.json"
     index = load_index(index_path)
@@ -116,7 +112,6 @@ def create_session(
         "mainNodeId": node_id,
         "url": url,
         "targetFile": target,
-        "stage": stage,
     }
     (session_dir / "session.json").write_text(
         json.dumps(session, indent=2, ensure_ascii=False) + "\n", encoding="utf-8",
@@ -154,13 +149,6 @@ def build_parser() -> argparse.ArgumentParser:
     create_parser.add_argument("--file-key", required=True)
     create_parser.add_argument("--node-id", required=True)
     create_parser.add_argument("--url", required=True)
-    create_parser.add_argument(
-        "--stage", choices=SESSION_STAGES, default="assets",
-        help=(
-            "initial session stage; assets for restore chain, impl when "
-            "implementation starts before assets are ready, motion for standalone t-figma-ux"
-        ),
-    )
     archive_parser = sub.add_parser("archive")
     archive_parser.add_argument("--target", required=True)
     archive_parser.add_argument("--session-id", required=True)
@@ -177,8 +165,7 @@ def main(argv: list[str] | None = None) -> int:
             result = resolve(load_index(index_path), target)
         elif args.command == "create":
             result = create_session(
-                project, target, file_key=args.file_key, node_id=args.node_id,
-                url=args.url, stage=args.stage,
+                project, target, file_key=args.file_key, node_id=args.node_id, url=args.url,
             )
         else:
             result = archive_session(project, target, args.session_id)

@@ -26,9 +26,9 @@ allowed-tools:
 
 ## 前置和上下文
 
-校验 URL 与 target-file，通过 `${CLAUDE_PLUGIN_ROOT}/scripts/figma-session.py resolve` 找 active session，并按共享契约的 Session Resolve 表执行。impl 复用 fileKey/mainNodeId 与主稿 URL 一致的 session；无 active 时以 `create --stage impl` 创建，mismatch 时询问归档旧 session 或回到原主稿。`assets-manifest.json` 缺失时进入资产延后模式：块清单与 dispatch 改用资产语义引用（节点、名称、预期类型），实现用声明过的临时引用占位，不下载、不伪造正式资产；空数组 manifest 表示页面无素材。
+校验 URL 与 target-file，通过 `${CLAUDE_PLUGIN_ROOT}/scripts/figma-session.py resolve` 找 active session，并按共享契约的 Session Resolve 表执行。impl 复用 fileKey/mainNodeId 与主稿 URL 一致的 session；无 active 时以主 URL `create` 创建，mismatch 时询问归档旧 session 或回到原主稿。`assets-manifest.json` 缺失时进入资产延后模式：块清单与 dispatch 改用资产语义引用（节点、名称、预期类型），实现用声明过的临时引用占位，不下载、不伪造正式资产；空数组 manifest 表示页面无素材。
 
-读取项目约束、目标文件及邻近模块、现有 token/组件/动效/响应式模式、`docs/figma-rules.md`、session candidates 和已有 assets manifest（延后模式下跳过），生成 `context.md`：只写块清单、主稿 viewport、目标栈与验证命令、资产引用方式和 token/组件映射结论；manifest、长期规则和候选用路径引用，不复述内容。栈或资产引用方式无法确定时停止询问。`<preview-url>` 缺失时 `AskUserQuestion` 补齐一次，仍无则停止。
+读取项目约束、目标文件及邻近模块、现有 token/组件/动效/响应式模式和已有 assets manifest（延后模式下跳过），生成 `context.md`：只写块清单、主稿 viewport、目标栈与验证命令、资产引用方式和 token/组件映射结论；manifest 用路径引用，不复述内容。栈或资产引用方式无法确定时停止询问。`<preview-url>` 缺失时 `AskUserQuestion` 补齐一次，仍无则停止。
 
 ## 二次重建与分块
 
@@ -39,12 +39,11 @@ allowed-tools:
 ## 逐块实现与整页验收
 
 4. 按块清单顺序逐块委派 `figma-impl`：每次 dispatch 只承担一个块或少量相邻小块，给出该块的 baseline、资产和组件映射；agent 完成该块并执行目标栈验证。块失败先重试该块，不带病推进；中断后从 `context.md` 块清单的未完成块恢复。
-5. 全部块完成后先过素材门禁：manifest 缺失时停止并提示运行 `t-figma-assets`，其完成后做一次绑定（语义引用替换为真实 `outputPath`/`publicUrl`/`aspectRatio`）并重跑栈验证。随后注入并委派只读 `figma-accept` 做整页目视比对。有阻塞问题且未到 5 轮时，把问题按所在块归组交回 impl；若视觉证据证明分块理解错误，先更新 `context.md` 再修实现。
-6. 收敛后晋升符合契约的规则候选，合并改写 `docs/figma-rules.md`，最多 10 条；否则候选留在 session。
+5. 全部块完成后先过素材门禁：manifest 缺失时停止并提示运行 `t-figma-assets`，其完成后做一次绑定（语义引用替换为真实 `outputPath`/`publicUrl`/`aspectRatio`）并重跑栈验证。随后注入并委派只读 `figma-accept` 做单轮整页审计。审计返回 ISSUES 时把问题按所在块归组转述给开发者做人工校准，不自动回环；开发者明确要求继续修复时再派发 impl，若视觉证据证明分块理解错误，先更新 `context.md` 再修实现。
 
 ## 结束状态
 
-- 验收通过：stage=`accepted`，报告 `PASS`。
-- 达 5 轮：stage 保持 `implemented`，报告 `EXHAUSTED`。
+- 审计通过：报告 `PASS`。
+- 审计返回 ISSUES：按块归组转述问题清单，由开发者裁决后续，不宣称完成。
 - 素材未就位：块完成但 manifest 缺失时不进入 accept，提示先运行 `t-figma-assets`，不宣称完成。
 - 栈验证失败：不进入 accept，不宣称完成。
