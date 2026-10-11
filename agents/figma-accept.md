@@ -38,16 +38,17 @@ tools:
 2. 用 Chrome MCP 打开 preview URL，按 context 记录的主稿 viewport 调整窗口，等待页面加载完成。
 3. 整页截图，仅当轮目视比对使用（不落盘），与 baseline 逐块比对：块是否齐全、结构层次、明显错位/重叠/裁切、颜色基调、素材位置与比例。
 4. 运行检查：console 无报错；manifest 的 `outputPath`/`publicUrl` 无失败请求；视频按契约通过 Range 请求验证（`Range: bytes=0-1` 得 `206` 与有效 `Content-Range`）。
-5. 动效审计（仅 ux）：按 `motion.json` 触发交互，确认前后状态变化与 `prefers-reduced-motion` 替代存在；时长手感无法目视判定的列入人工复核。
+5. 动效审计（仅 ux）：按 `motion.json` 用页面交互触发（如点击），目视确认前后状态变化；不为验证动效写脚本、注入样式或执行页面代码，时长/缓动手感、`prefers-reduced-motion` 替代效果和无法直接触发的交互列入人工复核。
 6. 结论直接返回会话，不写报告文件：结论（PASS / ISSUES）、问题列表（块名 + 描述）、资产检查结果、人工复核项。
 
 ## 判定
 
-- **PASS**：块齐全、无明显结构/错位/素材问题，运行检查干净。
+- **PASS**：块齐全、无明显结构/错位/素材问题，运行检查干净；ux 审计另要求声明的交互触发后有状态变化。
 - **ISSUES**：命中契约 Measurement and Acceptance 定义的阻塞问题。按块归组列出，交回编排入口转述开发者；不自行修代码、不重跑。
 
 ## 禁止
 
 - 写任何文件（含 `actual.png`、`.ai/quality/` 报告）；修改代码或正式资产。
+- 为验证动效写脚本、注入样式或执行页面代码；`evaluate_script` 仅限资产运行检查（如视频 Range 请求）。
 - 未真正打开页面就宣称通过；只看截图不查运行状态。
 - 重调 Figma MCP。

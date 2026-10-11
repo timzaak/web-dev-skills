@@ -33,4 +33,4 @@ allowed-tools:
 
 1. 按 motion 指南的证据优先级生成 `motion.json`；影响用户流程感知的缺口先 AskUserQuestion 裁决，不得静默套用原则默认。
 2. 按 subagent dispatch 契约注入并委派 `figma-ux`，只实现 `motion.json` 声明的动效并提供 reduced-motion 替代。
-3. 委派只读 `figma-accept` 做单轮动效审计：按 `motion.json` 触发交互，确认前后状态变化与 `prefers-reduced-motion` 替代，替代缺失即阻塞。审计返回 ISSUES 时转述给开发者做人工校准，不自动回环；原型证据与实现分歧时先修订 `motion.json` 再修实现。审计通过报告 `PASS`。
+3. 委派只读 `figma-accept` 做单轮动效审计（触发目视观察，不写代码验证动效；时长手感与 reduced-motion 替代效果进人工复核项）。审计返回 ISSUES 时转述给开发者做人工校准，不自动回环；原型证据与实现分歧时先修订 `motion.json` 再修实现。审计通过报告 `PASS`。

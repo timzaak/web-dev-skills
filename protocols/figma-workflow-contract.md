@@ -170,15 +170,15 @@
 - 原型证据：统一在 MCP 窗口对待精修节点提取并在窗口内消费，结论记入对应 interaction 的 `evidence` 字段，不落盘；附着与独立模式同规。
 - `easing` 统一记录 CSS computed 形式，Figma 名称映射见 `${CLAUDE_PLUGIN_ROOT}/guides/figma/motion.md`。spring 无 CSS 等价，`easing` 记录 `{stiffness, damping, mass}` 参数对象，审计靠实现声明与人工复核。
 - `origin` 允许 `prototype|project-pattern|principle-default|user-decision`。`prototype` 和 `project-pattern` 必须附 evidence；`principle-default` 仅限不影响用户流程感知的微反馈；首屏转场、跨页转场、破坏性操作反馈等缺口必须取得开发者裁决后标 `user-decision`。
-- 动效审计以触发观察为主：accept 按 `motion.json` 触发交互，确认前后状态变化与 `prefers-reduced-motion` 替代；时长/缓动手感无法目视判定的列入人工复核。同一元素存在多个不同 duration/easing 的过渡时，实现必须收敛为单一动效声明。
-- 每个含位移或持续循环的 interaction 必须声明 `reducedMotion` 替代方式；替代是否生效由 ux agent 在栈验证中检查并在审计结论中列出证据。
+- 动效审计只做触发观察：accept 按 `motion.json` 用页面交互触发，目视确认前后状态变化；不为验证动效写脚本、注入样式或执行页面代码。时长/缓动手感、`prefers-reduced-motion` 替代效果和无法直接触发的交互列入人工复核。同一元素存在多个不同 duration/easing 的过渡时，实现必须收敛为单一动效声明。
+- 每个含位移或持续循环的 interaction 必须声明 `reducedMotion` 替代方式并由实现提供；替代的实际运行效果不由自动审计验证，列入人工复核。
 
 ## Measurement and Acceptance
 
 验收是单轮只读审计：目视比对 + 基本运行检查，不做数值测量，也不自动回环。`figma-accept` 用 Chrome MCP 打开 preview URL 截图，截图仅在当轮比对中使用、不落盘；与 session 的 baseline 截图逐块比对，检查运行状态，结构化结论直接返回编排入口。审计返回 ISSUES 时由开发者裁决后续——人工校准或要求再派发修复；编排入口不自动回环。
 
 - 按 `context.md` 记录的主稿 viewport 呈现。
-- 阻塞问题：块缺失、结构错乱、明显错位或重叠、素材损坏或加载失败、视频无法播放、reduced-motion 替代缺失。
+- 阻塞问题：块缺失、结构错乱、明显错位或重叠、素材损坏或加载失败、视频无法播放、`motion.json` 声明的交互触发后无状态变化。
 - 像素级细微差异（几 px 间距、抗锯齿、字重微差）不阻塞，进结论的人工复核项；不得只凭模糊印象改任意数值。
 - accept 完全只读：不修改代码、正式资产或任何 `.ai/` 文件。
 

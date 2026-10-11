@@ -48,4 +48,4 @@ Figma easing 名称到 CSS 记录形式（`motion.json` 统一使用右列）：
 ## 可访问性
 
 - 每个含位移的动效必须有 `prefers-reduced-motion: reduce` 下的替代（降级为 opacity 或瞬时切换），持续循环必须暂停。
-- 视差与大 canvas 动画在 reduced 下直接关闭；替代方式记录在 `motion.json` 的 `reducedMotion` 字段，验收时对照复核。
+- 视差与大 canvas 动画在 reduced 下直接关闭；替代方式记录在 `motion.json` 的 `reducedMotion` 字段，交由人工复核对照。
