@@ -96,45 +96,14 @@ class PushRecoveryTests(unittest.TestCase):
         self.assertEqual(push.load_push_record("recovery")["status"], "pending")
         self.assertEqual(self.remote_head(), self.base_head)
 
-    def test_check_only_runs_ci_without_commit_or_push(self) -> None:
-        self.source.write_text("implementation\n", encoding="utf-8")
-        with patch.object(push, "run_ci") as ci:
-            code, output = self.run_script("--check-only")
-        self.assertEqual(code, 0, output)
-        ci.assert_called_once()
-        self.assertIn("Validated worktree fingerprint: sha256:", output)
-        self.assertEqual(push.current_head(), self.base_head)
-        self.assertEqual(self.remote_head(), self.base_head)
-        self.assertIsNone(push.load_push_record("recovery"))
-
-    def test_modified_accepted_input_stops_before_commit(self) -> None:
-        accepted = push.worktree_fingerprint()
-        self.source.write_text("unaccepted\n", encoding="utf-8")
-        code, _ = self.run_script("--expected-fingerprint", accepted)
-        self.assertEqual(code, 1)
-        self.assertEqual(push.current_head(), self.base_head)
-        self.assertEqual(self.remote_head(), self.base_head)
-
-    def test_ci_modification_requires_new_acceptance(self) -> None:
-        self.source.write_text("implementation\n", encoding="utf-8")
-        accepted = push.worktree_fingerprint()
-        with patch.object(push, "run_ci", side_effect=lambda *args, **kwargs: self.source.write_text("ci fix\n", encoding="utf-8")):
-            code, output = self.run_script("--expected-fingerprint", accepted)
-        self.assertEqual(code, 1)
-        self.assertIn("Local CI modified", output)
-        self.assertEqual(push.current_head(), self.base_head)
-        self.assertEqual(self.remote_head(), self.base_head)
-
-    def test_runtime_cursor_write_does_not_invalidate_accepted_code(self) -> None:
-        accepted = push.worktree_fingerprint()
+    def test_runtime_cursor_write_does_not_block_pending_recovery(self) -> None:
+        self.create_failed_push()
         runtime = self.root / ".ai" / "super-run" / "demo" / ".state.json"
         runtime.parent.mkdir(parents=True)
         runtime.write_text('{"status":"in_progress"}\n', encoding="utf-8")
-        self.assertEqual(push.worktree_fingerprint(), accepted)
-        code, output = self.run_script("--expected-fingerprint", accepted)
+        code, output = self.run_script()
         self.assertEqual(code, 0, output)
         self.assertEqual(self.remote_head(), push.current_head())
-        self.assertEqual(push.worktree_fingerprint(), accepted)
 
     def test_interruption_after_commit_recovers_from_committing_record(self) -> None:
         self.source.write_text("implementation\n", encoding="utf-8")
@@ -160,13 +129,6 @@ class PushRecoveryTests(unittest.TestCase):
         code, output = self.run_script()
         self.assertEqual(code, 1)
         self.assertIn("Code changed", output)
-        self.assertEqual(self.remote_head(), self.base_head)
-
-    def test_retry_enforces_callers_expected_fingerprint(self) -> None:
-        self.create_failed_push()
-        code, output = self.run_script("--expected-fingerprint", "sha256:" + "0" * 64)
-        self.assertEqual(code, 1)
-        self.assertIn("accepted fingerprint", output)
         self.assertEqual(self.remote_head(), self.base_head)
 
     def test_changed_push_target_preserves_pending_commit(self) -> None:
@@ -222,7 +184,7 @@ class PushRecoveryTests(unittest.TestCase):
                 original_git("add", "sample.txt")
             return original_git(*args, capture=capture)
         with patch.object(push, "git", side_effect=hook):
-            code, output = self.run_script("--expected-fingerprint", push.worktree_fingerprint())
+            code, output = self.run_script()
         self.assertEqual(code, 1)
         self.assertIn("Commit hooks changed", output)
         self.assertEqual(self.remote_head(), self.base_head)

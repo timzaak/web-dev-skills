@@ -460,7 +460,7 @@ def resume_push(session: str, record: dict) -> str | None:
     return finish_push(session, record)
 
 
-def stage_commit_push(message: str, *, ci_session: str, expected_fingerprint: str | None = None) -> str:
+def stage_commit_push(message: str, *, ci_session: str) -> str:
     branch, remote, ref = push_target()
     add = git("add", "-A")
     ensure_success(add, "Unable to stage changes.")
@@ -476,8 +476,6 @@ def stage_commit_push(message: str, *, ci_session: str, expected_fingerprint: st
     print(f"Commit message: {message}", flush=True)
 
     fingerprint = worktree_fingerprint()
-    if expected_fingerprint is not None and fingerprint != expected_fingerprint:
-        raise RuntimeError("Working tree changed after acceptance; revalidate before committing.")
     record = {
         "status": "committing", "branch": branch, "remote": remote, "ref": ref,
         "base_head": current_head(), "message": message, "fingerprint": fingerprint,
@@ -499,26 +497,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("-m", "--message", help="Commit message summarized by the AI from the actual git changes.")
     parser.add_argument("--ci-session", required=True, help="Fresh id for this t-push execution; reuse only for its retries.")
     parser.add_argument("--force-checks", action="store_true", help="Ignore cached successful area checks and rerun selected local CI.")
-    parser.add_argument("--check-only", action="store_true", help="Run local CI and print a worktree fingerprint without committing or pushing.")
-    parser.add_argument("--expected-fingerprint", help="Require the accepted worktree fingerprint before and after CI, and before commit.")
     args = parser.parse_args(argv)
 
     try:
         ci_session = normalize_ci_session(args.ci_session)
-        if args.expected_fingerprint is not None and worktree_fingerprint() != args.expected_fingerprint:
-            raise RuntimeError("Working tree differs from the accepted fingerprint; revalidate before pushing.")
-        if not args.check_only:
-            record = load_push_record(ci_session)
-            if record is not None:
-                commit_hash = resume_push(ci_session, record)
-                if commit_hash is not None:
-                    print(f"Changes committed and pushed: {commit_hash}")
-                    return 0
+        record = load_push_record(ci_session)
+        if record is not None:
+            commit_hash = resume_push(ci_session, record)
+            if commit_hash is not None:
+                print(f"Changes committed and pushed: {commit_hash}")
+                return 0
         status = git_status_short()
         if not status:
-            if args.check_only:
-                print(f"Validated worktree fingerprint: {worktree_fingerprint()}")
-                return 0
             branch, remote, ref = push_target()
             record = {"status": "pending", "branch": branch, "remote": remote, "ref": ref,
                       "base_head": current_head(), "commit": current_head(),
@@ -537,7 +527,7 @@ def main(argv: list[str] | None = None) -> int:
 
         areas = detect_areas(files)
         message = normalize_commit_message(args.message)
-        if message is None and not args.check_only:
+        if message is None:
             raise RuntimeError("Commit message is required.")
         checks = ", ".join(sorted(areas)) if areas else "none"
         print(f"Changed files: {len(files)}")
@@ -546,13 +536,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Commit message: {message}")
 
         run_ci(areas, ci_session=ci_session, force_checks=args.force_checks)
-        fingerprint = worktree_fingerprint()
-        if args.expected_fingerprint is not None and fingerprint != args.expected_fingerprint:
-            raise RuntimeError("Local CI modified the accepted code; revalidate before committing or pushing.")
-        if args.check_only:
-            print(f"Validated worktree fingerprint: {fingerprint}")
-            return 0
-        commit_hash = stage_commit_push(message, ci_session=ci_session, expected_fingerprint=args.expected_fingerprint)
+        commit_hash = stage_commit_push(message, ci_session=ci_session)
         print(f"Changes committed and pushed: {commit_hash}")
         return 0
     except Exception as exc:

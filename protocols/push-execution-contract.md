@@ -4,16 +4,14 @@
 
 ## 调用模式
 
-- 默认模式：`--ci-session <id> --message <text>`，对当前 diff 运行 CI，成功后提交并推送。message 由主会话依据最终 diff 生成。
-- 预检查模式：`--ci-session <id> --check-only`，运行相同 CI（可能自动修复），输出 `Validated worktree fingerprint: sha256:<digest>`；不 commit、不 push，不要求 message。
-- 已验收提交：默认模式增加 `--expected-fingerprint <digest>`。脚本在 CI 前、CI 后和 commit 前核对同一指纹；不匹配则失败，不提交推送。commit hook 改变代码时保留本地 commit 及恢复记录，停止 push，交回验证闭环。
+- 默认模式：`--ci-session <id> --message <text>`，对当前 diff 运行 CI，成功后提交并推送。message 由主会话依据最终 diff 生成。commit hook 改变代码时保留本地 commit 及恢复记录，停止 push，交回验证闭环。
 - `--force-checks` 忽略当前 session 的 CI 缓存。新执行用新 session，重试和中断恢复复用同一 session。
 
 ## 工作区指纹
 
-SHA-256 覆盖 Git 管理及未忽略的未跟踪文件的路径、文件内容、符号链接目标和可执行位；删除文件不计入当前快照。摘要不含 HEAD，因此提交前后相同代码的指纹一致。`.ai/` 是工作流状态和证据产物，排除在代码指纹外，避免游标写回使已验收代码失效；其中来源、证据及环境仍由 verification-evidence-contract 单独核对。无法读取或确定文件类型时失败，不跳过未知输入。
+SHA-256 覆盖 Git 管理及未忽略的未跟踪文件的路径、文件内容、符号链接目标和可执行位；删除文件不计入当前快照。摘要不含 HEAD，因此提交前后相同代码的指纹一致。`.ai/` 是工作流状态和证据产物，排除在代码指纹外，使恢复核对不被游标写回阻断；其中来源、证据及环境仍由 verification-evidence-contract 单独核对。无法读取或确定文件类型时失败，不跳过未知输入。
 
-该指纹证明提交代码与主会话绑定的快照一致，不证明业务正确。调用方必须先取得适用的运行证据和独立验收，再把预检查输出认定为已验收指纹。
+指纹由脚本在 commit 前写入恢复记录，并在 commit hook 之后与恢复补推时核对，用于发现 commit hook 或中断期间的工作区代码变化；不证明业务正确。
 
 ## 提交及恢复
 

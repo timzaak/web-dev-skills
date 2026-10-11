@@ -9,7 +9,7 @@ allowed-tools:
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
-提交前输入门禁、调用模式和中断恢复统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/push-execution-contract.md`；执行脚本前读取。提交已验收的实现时，先预检查、核对必要验证及独立 accept，再带已验收指纹提交。
+提交前输入门禁、调用模式和中断恢复统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/push-execution-contract.md`；执行脚本前读取。
 
 ## Fixed Flow
 
@@ -27,7 +27,7 @@ uv run ${CLAUDE_PLUGIN_ROOT}/scripts/push.py --ci-session "<本次 t-push sessio
 
 session 规则只说一次：同一次 `/t-push` 执行内（含 CI 失败后 AI 修复重跑）复用同一 session id；新的 `/t-push` 执行必须生成新 session id，避免复用上一次的区域通过缓存。
 
-脚本负责：检测 backend/frontend/demo 变更范围并为受影响区域并发运行本地 CI（区域 CI 内容见下节）；按 session 记录每个区域通过 CI 时的 diff 指纹，重跑时已通过且 diff 未变的区域直接跳过；CI 全部通过后执行 `git add -A`、`git commit` 和推送目标分支。无 diff 时仍核对并补推现有 commit；预检查和提交前指纹参数见共享契约。未提交变更需要 `--message`。
+脚本负责：检测 backend/frontend/demo 变更范围并为受影响区域并发运行本地 CI（区域 CI 内容见下节）；按 session 记录每个区域通过 CI 时的 diff 指纹，重跑时已通过且 diff 未变的区域直接跳过；CI 全部通过后执行 `git add -A`、`git commit` 和推送目标分支。无 diff 时仍核对并补推现有 commit。未提交变更需要 `--message`。
 
 ## CI Rules
 
