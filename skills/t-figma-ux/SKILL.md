@@ -18,19 +18,11 @@ allowed-tools:
 
 # Figma 动效精修
 
-共享契约：`${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md`（写 motion.json、区分附着/独立模式或晋升长期规则前读）
-原则基准：`${CLAUDE_PLUGIN_ROOT}/guides/figma/motion.md`（生成动效候选、取时长档位或做 Figma→CSS easing 映射前读）
-
-独立动效精修入口：对目标文件中已有实现（impl 产出或手写）提取原型证据、生成动效基准并实现验收。不修复静态视觉偏差，不做结构实现，不下载素材。
-
-## 前置
-
-校验 URL（整页或待精修节点）、target-file 和 `<preview-url>`（缺失时 `AskUserQuestion` 补齐一次，仍无则停止）；URL 范围内没有已实现代码时停止。`figma-session.py resolve` 的附着（同 fileKey，nodeId 可不同）、独立 `create`、不一致与 ambiguous 询问等决策按共享契约的 Session Resolve 表执行。
-
-读取项目动效模式和 URL 范围内代码；需要原型证据时在 MCP 窗口内提取范围内节点的原型数据并在窗口内消费，结论记入 `motion.json` 的 `evidence` 字段，不落盘。范围内无原型数据且无交互语义时停止，请开发者明确动效范围。
+对目标文件中已有实现（impl 产出或手写）精修动效交互；不修静态视觉偏差、不做结构实现、不下载素材。原则基准与 easing 映射见 `${CLAUDE_PLUGIN_ROOT}/guides/figma/motion.md`（生成动效候选前读），`motion.json` 结构见 `${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md`，agent 派发遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md`。
 
 ## 工作流
 
-1. 按 motion 指南的证据优先级生成 `motion.json`；影响用户流程感知的缺口先 AskUserQuestion 裁决，不得静默套用原则默认。
-2. 按 subagent dispatch 契约注入并委派 `figma-ux`，只实现 `motion.json` 声明的动效并提供 reduced-motion 替代。
-3. 委派只读 `figma-accept` 做单轮动效审计（触发目视观察，不写代码验证动效；时长手感与 reduced-motion 替代效果进人工复核项）。审计返回 ISSUES 时转述给开发者做人工校准，不自动回环；原型证据与实现分歧时先修订 `motion.json` 再修实现。审计通过报告 `PASS`。
+1. 校验 URL（整页或待精修节点）和 target-file；`<preview-url>` 可选，仅用于交付报告回显。URL 范围内没有已实现代码时停止。
+2. 读取项目动效模式与范围内代码；需要原型证据时在 MCP 窗口内提取并在窗口内消费，结论记入 `motion.json` 的 `evidence` 字段。范围内无原型数据且无交互语义时停止，请开发者明确动效范围。
+3. 按 motion 指南生成 `.ai/figma/<fileKey>-<nodeId>/motion.json`；影响用户流程感知的动效缺口先询问裁决，不得静默套用原则默认。
+4. 委派 `figma-ux` agent 只实现 `motion.json` 声明的动效并提供 reduced-motion 替代；完成后报告 `motion.json` 路径与 preview URL（如有），动效触发、时长手感和 reduced-motion 效果由开发者打开页面人工验收。

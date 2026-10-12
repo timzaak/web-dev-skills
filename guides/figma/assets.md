@@ -17,7 +17,7 @@
 - `defaultScale` 默认使用 `3`；banner、hero 和主要内容图均保持 3 倍导出。
 - 只有明确属于小型、非关键的图标或装饰素材时，才将 `defaultScale` 降为 `2`。
 - 按目标素材类型设置导出格式：需要位图处理的素材导出 PNG/JPEG，矢量素材导出 SVG。
-- `download_assets` 返回的临时 URL 必须立即下载到 `.ai/figma/<session>/raw/`，不得直接写入正式代码。
+- `download_assets` 返回的临时 URL 必须立即下载到 `.ai/figma/<fileKey>-<nodeId>/raw/`，不得直接写入正式代码。
 - 这类图片条目在 manifest 中的 `source` 记录为 `download-assets`。
 - 视觉上应透明的组合节点不能只相信 `pix_fmt`：Figma 可能返回带 alpha 容器但 alpha 全为 255，并把画布色 `#1e1e1e` 烘焙进 RGB。对此节点同时调用 `get_screenshot(contentsOnly: true)`，下载隔离 PNG 作为 alpha mask；保留 `download_assets` 的 3 倍 RGB，通过脚本缩放并合并隔离截图的 alpha。
 - alpha mask 合并只恢复透明度：半透明像素的 RGB 仍是与画布色 `#1e1e1e` 复合后的值。转换时追加 `image --unbake-color 1e1e1e`（与 `--alpha-mask` 连用或对已带正确 alpha 的烘焙图单独使用），脚本按 `真实RGB=(烘焙RGB-(1-a)*背景)/a` 反解；画布色非默认时以实际颜色为准。

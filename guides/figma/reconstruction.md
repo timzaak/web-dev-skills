@@ -12,7 +12,7 @@ Figma 返回的 metadata/design context 是画布操作的结果：深层嵌套�
 1. 先看截图划分主区域，再对照 metadata 绝对坐标确认重叠、裁切与浮层。
 2. 图片填充与文字的共同父级 → 合成导出素材；排除交互或动态文字。
 3. 从目标文件及邻近模块提取已有组件、token、布局容器、断点和动效模式；视觉块映射到已有组件，Figma group 与代码组件不必一一对应。
-4. 在 MCP 窗口内为主节点和每个视觉块调用 `get_screenshot` 保存 `source/baseline[-<block>].png`，作为逐块实现和整页审计的视觉基准；metadata、design context 和 variables 不落盘。
+4. 在 MCP 窗口内为主节点和每个视觉块调用 `get_screenshot` 保存 `source/baseline[-<block>].png`，作为逐块实现和人工验收比对的视觉基准；metadata、design context 和 variables 不落盘。
 5. 视觉块划分、组件映射与主稿 viewport 写入 `context.md`（每块：名称、baseline、使用资产、组件映射、节点树提取的精确数值），不复述节点树。不确定的结构写入候选或询问，不伪装成确定事实。
 
 ## 响应式
