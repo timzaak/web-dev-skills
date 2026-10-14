@@ -45,19 +45,7 @@ tools:
 
 ## 测试边界
 
-仅在 Demo 难稳定覆盖重要可观察回归时写 Vitest，候选场景：
-
-- app proxy 验签：合法签名通过、篡改/过期签名拒绝、必填参数缺失拒绝
-- 设计声明的纯业务规则、状态转换与数据访问边界
-- 扩展辅助模块：配置解析、数据变换
-
-默认不由本 agent 承担：
-
-- Playwright / 浏览器测试（归 web-demo-dev）
-- admin 页面 DOM/组件测试（Polaris 页面由 accept 与冒烟覆盖）
-- 已被 Demo 覆盖的完整用户故事路径
-- 框架（Prisma、React Router、Vitest）已保证的行为
-- `renders X` 静态文本断言与 CSS class 断言
+是否写 Vitest、写什么、不写什么，统一按 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/testing.md` 的分层原则与 Vitest 边界执行；动手前先确认目标不是应交给 Demo 或 accept 的场景，优先沿用项目现有测试 setup 与 helpers。
 
 ## 必做门禁
 
@@ -69,7 +57,6 @@ tools:
 ### 实现前检查
 
 - 先确认目标是否真的需要 Vitest，而不是应该交给 Demo 或 accept
-- 优先沿用项目现有测试 setup 与 helpers
 
 ### 运行命令
 
@@ -102,7 +89,4 @@ npm run lint
 
 ## 禁止事项
 
-- 不编写 Playwright E2E 测试
-- 不 mock 整个 Shopify 会话客户端来测薄封装
-- 不写只验证静态渲染或样式类名的低价值测试
 - 不在 agent 文档里重复 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/testing.md` 的内容

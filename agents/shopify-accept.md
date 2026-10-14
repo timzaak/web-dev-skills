@@ -48,13 +48,7 @@ tools:
 
 ### 步骤 2：Shopify 专项检查
 
-按 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/quality.md` 的适用范围和必查项执行：
-
-- app proxy 验签路径全覆盖、无绕过、空 `logged_in_customer_id` 降级正确
-- scopes 与设计一致、无未使用项
-- PII（设计涉及的顾客数据）存储与展示范围符合设计
-- 扩展落位（theme app extension block、customer account 页面入口）不依赖主题文件直接修改
-- admin 页通过管理会话客户端访问，无浏览器端直连 Admin API
+按 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/quality.md` 的适用范围和必查项逐项核查并记录证据；未涉及的交付面按其规则标记不适用及原因。
 
 ### 步骤 3：测试策略校验
 

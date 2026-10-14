@@ -124,6 +124,5 @@ shopify-dev 的推荐扩展字段：
 
 - 不在浏览器端直连 Admin API 或硬编码店铺域名
 - 不跳过或弱化 proxy 验签
-- 不为 App Store 上架流程预留代码路径（custom distribution 项目）
 - 不引用不存在的文档段落或伪造行号
 - 不在完成报告中忽略失败的类型检查、构建或必要测试

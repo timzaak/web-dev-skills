@@ -2,7 +2,7 @@
 
 Shopify App 开发规范入口，按"先定位问题，再读对应页面"使用。适用于基于 Shopify 官方 React Router 模板的 Shopify App 项目（`shopify-app` 与 `shopify-extension` 两个 phase）。
 
-技术基线：Shopify 官方 React Router 模板（React Router 7 framework mode，单工程承载服务端路由与 admin 嵌入页）/ Polaris / App Bridge / Prisma / theme app extension / customer account UI extension。不引入 TanStack Router/Query/Zustand 栈；店面 UI 是扩展内独立打包的前端资产，不是 React Router 页面。
+技术基线：Shopify 官方 React Router 模板（React Router 7 framework mode，单工程承载服务端路由与 admin 嵌入页）/ Polaris / App Bridge / Prisma / theme app extension / customer account UI extension。没有独立 frontend 端，不适用 frontend 默认栈；店面 UI 是扩展交付的资产，不是应用路由页面。
 
 | 你要确认的问题 | 对应规范 |
 | --- | --- |

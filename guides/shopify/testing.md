@@ -1,6 +1,6 @@
 # Shopify 测试指南
 
-测试分层原则：可独立运行的纯逻辑进 Vitest；真实用户路径（店面、顾客账户页、admin 操作流）进 web-demo 的 Playwright；accept 只读复核证据。不为覆盖率数字生成用例。
+测试分层原则：真实用户路径（店面、顾客账户页、admin 操作流）进 web-demo 的 Playwright，accept 只读复核证据；仅当 Demo 难以稳定覆盖某条重要可观察回归时，才为可独立运行的纯逻辑写 Vitest。不为覆盖率数字生成用例。
 
 ## Vitest 边界（shopify-app / shopify-extension 的 test slot）
 
@@ -15,6 +15,7 @@
 - admin 页面的 DOM/组件测试——Polaris 页面由 accept 与冒烟验证覆盖。
 - Playwright 用例——店面与 admin 用户故事归 web-demo/dev，本阶段不碰浏览器测试。
 - 对 Shopify API 客户端的 mock 全家桶——loader 中薄封装不测，测其调用的纯逻辑。
+- 框架（Prisma、React Router、Vitest）已保证的行为，`renders X` 静态文本断言与 CSS class 断言。
 
 ## 执行
 

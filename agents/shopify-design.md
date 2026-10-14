@@ -25,7 +25,7 @@ examples:
 
 不负责：
 
-- 设计独立 backend（Rust）、frontend（TanStack 栈）或 Chrome 扩展实现；交回主会话由对应角色承接。
+- 设计独立 backend（Rust）、frontend 端或 Chrome 扩展实现；交回主会话由对应角色承接。
 - 直接向用户提问。需要用户裁决的设计缺口以 `needs_user_answer` 返回主会话。
 - 修改 `.ai/decision-log/`；决策账本由主会话维护。
 
