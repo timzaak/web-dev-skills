@@ -1,7 +1,7 @@
 ---
 name: t-task-check
 description: Validate task plan executability and consistency with a 100-point score and P0/P1/P2 fix list.
-argument-hint: "[任务名称] [--phase <backend|frontend|extension|miniapp|flutter|web-demo|extension-demo|flutter-demo|shopify-app|shopify-extension>]"
+argument-hint: "[任务名称] [--phase <phase>]"
 allowed-tools:
   - AskUserQuestion
   - Read
@@ -25,7 +25,7 @@ allowed-tools:
 ## 使用方式
 
 ```bash
-/t-task-check [feature] [--phase <backend|frontend|extension|miniapp|flutter|web-demo|extension-demo|flutter-demo|shopify-app|shopify-extension>]
+/t-task-check [feature] [--phase <phase>]
 ```
 
 | 参数 | 说明 |
@@ -39,7 +39,7 @@ allowed-tools:
 - 决策账本：`.ai/decision-log/[feature].md`（存在时必须读取）
 - 需求来源：`.ai/user-stories/**/*.md`、`docs/user-stories/**/*.md`、`.ai/prd/**/*.md`、`docs/prd/**/*.md`、`.ai/tech-research/**/*.md`（按设计文档引用读取）
 - 状态文件：`.ai/task/[feature]/.state.json`
-- 阶段目录：`.ai/task/[feature]/[phase]/` 下的 `index.md`、已规划 slot 的 manifest 和 item 文件；backend/frontend/extension/miniapp/flutter 的 test slot 按需存在
+- 阶段目录：`.ai/task/[feature]/[phase]/` 下的 `index.md`、已规划 slot 的 manifest 和 item 文件；slot 按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Slot Order 校验
 
 ## Schema 校验
 
@@ -47,7 +47,7 @@ allowed-tools:
 
 ## 执行流程
 
-1. 校验设计文档存在；读取 `.state.json` 并验证 schema。若指定 `--phase`，仅检查该阶段（必须存在于 active phases）；否则检查当前阶段。
+1. 校验设计文档存在；读取 task-phase-execution 的 Phases 和 `.state.json`，验证 schema、阶段支持值与适用性。若指定 `--phase`，仅检查该阶段（必须存在于 active phases）；否则检查当前阶段。
 2. 读取阶段目录下的 `index.md`、slot manifest，并按 rubric 的 Context Budget Rules 建立轻量 item 表（先状态/索引/manifest 和关键字段抽取，仅在有疑点或需补证时读 item 全文，大型 phase 先用 `Grep` 定位）。
 3. 对当前 phase 全部 Markdown 运行 `python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py <all-phase-markdown-paths>`，并核对 `index.md` 的 Decision Trace 覆盖相关 Active Decision。
 4. 按 rubric 的 Execution Checks 和 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 校验 item 结构、拆分阈值、Slot Item Count Limits、测试集中执行与 backend/test 闭环。补充严重度规则：
@@ -70,7 +70,7 @@ allowed-tools:
 | `STATE_FILE_MISSING` | 任务目录或 `.state.json` 缺失 | 状态文件不存在 | 运行 `/t-task [feature] --phase backend` 重建 |
 | `STATE_JSON_INVALID` | `.state.json` 格式错误 | 状态文件解析失败 | 修复 JSON 后重试；或重建任务目录 |
 | `TASK_SCHEMA_INVALID` | 缺少 `phase/phases/tasks/status/manifest/items` 字段 | 任务状态结构不完整 | 运行 `/t-task [feature] --phase [phase]` 重建 |
-| `PHASE_INVALID` | `--phase` 不是 supported phase | 非法阶段 | 使用合法参数后重试 |
+| `PHASE_INVALID` | `--phase` 不是 supported phase | 非法阶段 | 按 task-phase-execution 的 Phases 提示可选阶段后重试 |
 | `PHASE_NOT_ACTIVE` | `--phase` 不在当前任务 active phases 中 | 当前项目未启用该阶段 | 使用 `.state.json.phases` 中存在的阶段，或重新运行 `/t-task` 生成该阶段 |
 | `PHASE_DIR_MISSING` | 阶段目录不存在 | 找不到阶段目录 | 运行 `/t-task [feature] --phase [phase]` 生成 |
 | `ITEM_SEQUENCE_INVALID` | manifest 未覆盖全部 item、包含重复 item，或 item 表格无法确定从上到下的执行顺序 | 子任务执行顺序非法 | 修复或重新生成该阶段 |

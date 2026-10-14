@@ -1,6 +1,6 @@
 ---
 name: t-dream
-description: Organize and realign PRDs, user stories, design/task docs, implementation facts, and project structure so the target project keeps a clean current context instead of accumulating stale or misleading information. Use when asked to audit documentation drift, structure drift, traceability gaps, whether PRD/code/test/demo directory organization and module boundaries are reasonable, or to get PRD governance recommendations (merge/archive/rewrite/reference fixes) as read-only report output. Use --phase <backend|frontend|extension|miniapp|web-demo|extension-demo|flutter|flutter-demo> to check PRD/story versus implementation-or-demo consistency for one delivery phase at phase wrap-up.
+description: Organize and realign PRDs, user stories, design/task docs, implementation facts, and project structure so the target project keeps a clean current context instead of accumulating stale or misleading information. Use when asked to audit documentation drift, structure drift, traceability gaps, whether PRD/code/test/demo directory organization and module boundaries are reasonable, or to get PRD governance recommendations (merge/archive/rewrite/reference fixes) as read-only report output. Use --phase <phase> to check PRD/story versus implementation-or-demo consistency for one delivery phase at phase wrap-up.
 allowed-tools:
   - Read
   - Glob
@@ -34,7 +34,7 @@ allowed-tools:
 | `[feature]` | 可选。聚焦指定功能、模块或领域关键词 |
 | `--all` | 检查全部可识别 PRD / 模块 |
 | `--deep` | 启用后端模块级深度一致性检查 |
-| `--phase <backend\|frontend\|extension\|miniapp\|web-demo\|extension-demo\|flutter\|flutter-demo\|shopify-app\|shopify-extension>` | 只执行该阶段的一致性检查；取值与 `t-super-run --phase` 一致，backend 隐含深度检查 |
+| `--phase <phase>` | 只执行该交付阶段的一致性检查；backend 隐含深度检查 |
 
 `t-dream` 所有模式都只读，不修改目标项目文档或代码；PRD 治理内容（合并、归档、重写、改引用）只作为报告建议输出，见"PRD 治理建议"。未传入 `[feature]` 或 `--all` 时，先提示可用模块来源是 `docs/prd/**/*.md`，再建议用户指定范围。
 
@@ -112,7 +112,7 @@ allowed-tools:
 
 ### 1. 确定检查范围
 - 解析 `[feature]`、`--all`、`--deep`、`--phase`。
-- `--phase` 值不在支持列表或目标项目不存在该交付端时终止，并列出可识别交付端。
+- 传入 `--phase` 时读取 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Phases 校验支持值，并确认目标项目存在该交付端；非法或不适用时停止，按该协议提示支持值与可识别交付端。
 - 创建 `.ai/quality/`（如不存在）。
 - `--all`：扫描 `docs/prd/**/*.md` 自动提取模块名；默认先做索引级健康扫描，只对高风险模块继续深挖。
 - `[feature]`：优先匹配 PRD 文件名；若不存在精确文件，按标题、路径、模块名、用户故事引用和测试注释进行模糊定位。

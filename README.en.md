@@ -74,6 +74,8 @@ A typical web order is `backend -> frontend -> web-demo`; a typical extension or
 
 Each phase uses `t-super-run` by default: the main session implements, tests, and repairs the work under the current role specification, while accept dispatches a read-only subagent for independent acceptance. `--phase` is required; each call executes one phase and stops, and repeating the same command recovers after an interruption. Use `t-task -> t-run` when plans need separate review or fine-grained item ownership; the two workflows keep independent state.
 
+The general syntax is `t-super-run <feature> --phase <phase>`. Phase names and activation rules are defined in the [phase execution contract](protocols/task-phase-execution.md#phases), rather than repeated in each skill's parameter descriptions. Adding a phase requires updating the shared definitions, design inputs, and role mapping, along with the corresponding execution capabilities.
+
 When review fixes, cleanup, or CI repairs invalidate evidence, required regressions and independent acceptance run before committing; see the [push execution contract](protocols/push-execution-contract.md) for push gates and interrupted-push recovery.
 
 Prepare a WXT project using the [extension initialization guide](guides/extension/initialization.md); run `t-init --extension-demo` in the target project to add real-extension integration-demo infrastructure. See the [extension demo guide](guides/extension/demo-testing.md) for fixtures, environment selection, and acceptance.

@@ -2,9 +2,15 @@
 
 ## Phases
 
-`supported_phases` 固定为 `backend`, `frontend`, `extension`, `miniapp`, `flutter`, `shopify-app`, `shopify-extension`, `web-demo`, `extension-demo`, `flutter-demo`。
+本节是交付阶段名称与启用规则的唯一清单来源。解析 `--phase <phase>`、校验状态或生成阶段计划前读取；各入口不另行枚举支持值。
+
+`supported_phases` 为 `backend`, `frontend`, `extension`, `miniapp`, `flutter`, `shopify-app`, `shopify-extension`, `web-demo`, `extension-demo`, `flutter-demo`。其中 Demo 阶段为 `web-demo`, `extension-demo`, `flutter-demo`，其余为实现阶段。
+
+显式参数不在 `supported_phases` 中时停止，提示 `--phase <phase>` 并从本节读取支持值；已识别当前适用阶段时同时列出。支持但不适用的阶段同样停止，并列出当前适用阶段，不编造交付范围。参数是否必填、省略时选择哪个阶段由各入口定义。
 
 `active_phases` 只包含当前 feature 需要生成和执行的阶段。`extension` 仅在当前设计明确包含 Chrome 扩展交付或变更影响实际扩展工程时启用；目录存在本身不启用无关 feature 的扩展阶段。`miniapp` 仅在项目根目录存在 `miniapp/`，或设计文档明确包含小程序交付时启用。`flutter` 仅在目标项目/子目录的 `pubspec.yaml` 声明 Flutter SDK，或设计文档明确包含 Flutter 交付时启用。`shopify-app` 仅在项目根目录存在 `shopify.app.toml` 且设计涉及 Shopify App 本体交付（数据模型、admin 嵌入页、app proxy 或 internal API 路由）时启用。`shopify-extension` 仅在设计明确包含 `extensions/` 交付（theme app extension 或 customer account UI extension）时启用；`extensions/` 目录存在本身不启用该阶段。`web-demo` 仅在设计要求 Web 用户故事演示且项目存在 Web 交付端时启用；`extension-demo` 仅在设计要求 Chrome 扩展用户故事演示且项目存在扩展交付端时启用；`flutter-demo` 仅在设计要求 Flutter 用户故事演示且项目声明 Flutter SDK 时启用。普通 integration test、扩展 Vitest 或 Patrol 技术门禁本身不自动启用 Demo phase。演示同时覆盖 Web 页面和扩展时，按用户故事及测试资产归属分别启用两个 phase。
+
+设计主文档声明 Demo 主路径，或文件影响表包含对应 Demo 阶段的资产行，均视为设计要求该类演示；仍须满足上述真实交付端条件。Demo 资产由对应 Demo 阶段交付，不并入实现阶段。
 
 默认顺序：
 
@@ -18,16 +24,45 @@
 
 ## Slot Order
 
-backend、frontend、extension、miniapp、flutter、shopify-app、shopify-extension 默认执行 `dev -> accept`。本次任务需要由测试角色新增或修改测试用例、测试 fixture/helper，或专项验证脚本时，执行 `dev -> test -> accept`。web-demo、extension-demo、flutter-demo 执行 `dev -> accept`，Demo 用例及其辅助代码由该阶段的 dev slot 负责。
+实现阶段默认执行 `dev -> accept`。本次任务需要由测试角色新增或修改测试用例、测试 fixture/helper，或专项验证脚本时，执行 `dev -> test -> accept`。Demo 阶段执行 `dev -> accept`，Demo 用例及其辅助代码由该阶段的 dev slot 负责。阶段分类见 Phases；本顺序同时适用于 super-run 的 task 和标准链路的 slot。
 
-仅运行现有测试、编译、类型检查或构建时，不生成 `test` slot、`test.md` 或 test item；这些命令写入 `dev` item 的 Validation，至少执行一项。backend-dev 在实现文件内编写必要的高价值单元测试，也归 dev，不单独生成 test slot。阶段 index 说明测试选择和适用的后续 Demo 计划；`accept` 核查实际执行证据。若 dev 发现需要测试角色新增或修改上述用例或脚本，先更新任务计划和状态，插入 `test` slot，再进入 accept。
+仅运行现有测试、编译、类型检查或构建时，验证归 dev，至少执行一项，不生成独立 test。backend-dev 在实现文件内编写必要的高价值单元测试，也归 dev。标准链路把命令写入 `dev` item 的 Validation，在阶段 index 说明测试选择和适用的后续 Demo 计划，不生成 `test` slot、`test.md` 或 test item；super-run 将这些内容写入 phase 计划，不生成 item。`accept` 核查实际执行证据。若 dev 发现需要测试角色新增或修改上述用例或脚本，先更新任务计划和状态，插入 `test`，再进入 accept。
+
+## Design Inputs
+
+规划或恢复当前 phase 前，读取设计主文档 `.ai/design/<feature>.md`，并按下表加载 `.ai/design/<feature>/` 下适用的分端设计；消费后端契约时同时读取 `backend.md`。不得根据 phase 名称猜测设计文件名。
+
+| phase | 分端设计输入 |
+| --- | --- |
+| backend | `backend.md` |
+| frontend | `frontend.md` |
+| extension / extension-demo | `extension.md` |
+| miniapp | 主文档小程序相关部分，当前无独立分端设计 |
+| flutter / flutter-demo | `flutter.md` |
+| shopify-app / shopify-extension | `shopify.md` |
+| web-demo | 按实际页面交付端读取 `frontend.md` 或 `shopify.md`，跨两端时都读 |
+
+## Role Mapping
+
+规划当前阶段的 task 或 slot 时按下表选择角色，角色规范路径为 `${CLAUDE_PLUGIN_ROOT}/agents/` 下对应名称的 `.md` 文件；不得从 phase 名称推导角色。是否启用 test 按 Slot Order；主会话角色加载与 subagent 调度方式由对应执行协议规定。
+
+| phase | dev | test（按需） | accept |
+| --- | --- | --- | --- |
+| backend | backend-dev | backend-test | backend-accept |
+| frontend | frontend-dev | frontend-test | frontend-accept |
+| extension | extension-dev | extension-test | extension-accept |
+| miniapp | miniapp-dev | miniapp-test | miniapp-accept |
+| flutter | flutter-dev | flutter-test | flutter-accept |
+| shopify-app / shopify-extension | shopify-dev | shopify-test | shopify-accept |
+| web-demo | web-demo-dev | 不适用 | web-demo-accept |
+| extension-demo | extension-demo-dev | 不适用 | extension-demo-accept |
+| flutter-demo | flutter-demo-dev | 不适用 | flutter-demo-accept |
 
 ## Execution Unit
 
 `/t-run` 只执行以下 item 文件：
 
-- `{backend,frontend,extension,miniapp,flutter,shopify-app,shopify-extension}/{dev,test,accept}/*.md`
-- `{web-demo,extension-demo,flutter-demo}/{dev,accept}/*.md`
+- `<phase>/<slot>/*.md`，phase 按 Phases 校验，slot 按 Slot Order 确定且必须已规划。
 
 不直接执行 `index.md`, `dev.md`, `test.md`, `accept.md`。
 

@@ -9,16 +9,7 @@ super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相
 ```text
 .ai/super-run/<feature>/
 ├── .state.json
-├── backend.md
-├── frontend.md
-├── extension.md
-├── miniapp.md
-├── web-demo.md
-├── extension-demo.md
-├── flutter.md
-├── flutter-demo.md
-├── shopify-app.md
-└── shopify-extension.md
+└── <phase>.md
 ```
 
 - `.state.json` 是 super-run 状态的唯一事实源。
@@ -27,20 +18,7 @@ super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相
 
 ## Supported Phases And Tasks
 
-`supported_phases` 固定为 `backend | frontend | extension | miniapp | web-demo | extension-demo | flutter | flutter-demo | shopify-app | shopify-extension`。一个 feature 通常只命中单一端栈，`active_phases` 的启用判定统一按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Phases 规则执行：设计主文档声明 Demo 主路径或文件影响表出现 `web-demo`/`extension-demo`/`flutter-demo` 行时，对应 demo phase 纳入 `active_phases`，demo 演示资产不得并入 frontend/extension/flutter phase 交付。`shopify-app` 与 `shopify-extension` 共用 `.ai/design/<feature>/shopify.md` 分端设计，phase 计划文件仍各自独立。
-
-| phase | task 顺序 | agent 规范 |
-| --- | --- | --- |
-| backend | `dev -> accept`；需测试角色编写场景测试时插入 `test` | `backend-dev -> backend-test（按需）-> backend-accept` |
-| frontend | `dev -> accept`；需测试角色编写 Vitest 测试时插入 `test` | `frontend-dev -> frontend-test（按需）-> frontend-accept` |
-| extension | `dev -> accept`；需测试角色编写 Vitest 测试时插入 `test` | `extension-dev -> extension-test（按需）-> extension-accept` |
-| miniapp | `dev -> accept`；需测试角色编写测试或专项 gate 时插入 `test` | `miniapp-dev -> miniapp-test（按需）-> miniapp-accept` |
-| flutter | `dev -> accept`；需测试角色编写单元/widget/integration 测试时插入 `test` | `flutter-dev -> flutter-test（按需）-> flutter-accept` |
-| shopify-app | `dev -> accept`；需测试角色编写 Vitest 测试（loader/action 纯逻辑、验签函数）时插入 `test` | `shopify-dev -> shopify-test（按需）-> shopify-accept` |
-| shopify-extension | `dev -> accept`；需测试角色编写扩展辅助模块 Vitest 测试时插入 `test` | `shopify-dev -> shopify-test（按需）-> shopify-accept` |
-| web-demo | `dev -> accept` | `web-demo-dev -> web-demo-accept` |
-| extension-demo | `dev -> accept` | `extension-demo-dev -> extension-demo-accept` |
-| flutter-demo | `dev -> accept` | `flutter-demo-dev -> flutter-demo-accept` |
+解析或校验 phase 时读取 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Phases，取得 `supported_phases`、阶段分类和 `active_phases` 启用规则；规划 task 时读取该协议的 Slot Order、Design Inputs 和 Role Mapping。共用设计或角色的 phase 仍各自维护独立计划与状态。
 
 按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 判断是否需要测试角色编写测试用例、fixture/helper 或专项验证脚本。仅运行现有测试、编译、类型检查或构建时，phase 计划和 state 都不包含 test task；phase 计划记录原因、dev 中至少一项可执行验证及后续 Demo 计划（适用时）。accept 按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 独立复核有效执行证据和行为验证承接；阶段结束报告尚未完成的业务验收，最终承接阶段核对全部必要场景。dev 发现需要上述测试编写工作时，在 accept 前更新计划和 state，插入 test task。
 
@@ -157,11 +135,24 @@ python "${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py" ".ai/design/<feature>.md"
 - 验证责任表及上游待验证场景（字段和交接规则按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`）；无行为验证时记录适用性依据。
 - 必要的恢复说明和上游 handoff。
 
-每个 task 固定为一个目标级责任闭环，不继续拆 item。`related documents` 必须包含设计主文档、适用的当前 phase 分端设计（miniapp 使用主文档相关章节）、消费后端契约时的 `backend.md`，以及 agent Read Order 中实际需要的文件；不得只写“按需阅读相关指南”。
+每个 task 固定为一个目标级责任闭环，不继续拆 item。`related documents` 必须包含 task-phase-execution 的 Design Inputs 指定的设计输入、下方 Phase Resources 命中的资源，以及 agent Read Order 中实际需要的文件；必须写出具体路径，不得只写“按需阅读相关指南”。
 
 计划采用 outcome-first 结构：明确当前层级、完成条件、约束、工具/证据入口和停止规则，不预先规定可从仓库事实判断的逐步操作。阶段切换时记录简短 handoff；例行工具调用不写成长篇过程日志。
 
 已有计划恢复执行时重新读取上游来源。若来源变化影响未执行 task，更新计划与状态；若变化使已完成工作失效，重新打开受影响 task 及其已规划的下游 task，并在计划中记录原因。
+
+## Phase Resources
+
+规划当前 task 时按下表将命中的专项资源写入 `related documents`；执行该 task 前读取，不加载其他阶段的资源。诊断规范用于将失败归因到测试资产或生产端，再由主会话切换对应 dev 规范修复，具体执行边界见 Test And Acceptance Loop。
+
+| 条件 | 必需资源 |
+| --- | --- |
+| web-demo/dev | `${CLAUDE_PLUGIN_ROOT}/agents/web-demo-diagnose.md` |
+| extension-demo/dev | `${CLAUDE_PLUGIN_ROOT}/agents/extension-demo-diagnose.md`、`${CLAUDE_PLUGIN_ROOT}/guides/extension/demo-testing.md` |
+| flutter-demo/dev | `${CLAUDE_PLUGIN_ROOT}/agents/flutter-demo-diagnose.md` |
+| extension/dev 或 extension/test 涉及用户当前浏览器现场 | `${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md`；现场证据与工具边界按 `${CLAUDE_PLUGIN_ROOT}/protocols/extension-acceptance-contract.md` 执行 |
+
+用户当前浏览器现场的浏览器工具仅用于观察，重载扩展、刷新宿主页面等动作由主会话在任务授权范围内完成。
 
 ## Role Loading And Accept Dispatch
 
@@ -200,7 +191,7 @@ accept task 到达执行位时，主会话按 `subagent-dispatch.md` 派发 `age
 
 ## Failure Rules
 
-- `--phase` 缺失或不合法：终止并提示 `--phase <backend|frontend|extension|miniapp|web-demo|extension-demo|flutter|flutter-demo|shopify-app|shopify-extension>` 用法。
+- `--phase` 缺失：终止并提示 `--phase <phase>` 用法；非法或不适用时按 task-phase-execution 的 Phases 规则提示可选阶段。
 - 设计文档缺失：终止并提示先运行 `/t-design <feature>`。
 - 设计状态未完成或 `check-design.py` 失败：终止并提示恢复 `/t-design <feature>`。
 - 状态 JSON 损坏或结构非法：停止并报告具体字段，不覆盖原文件。

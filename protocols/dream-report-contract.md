@@ -14,7 +14,7 @@
 
 ## Phase Consistency
 
-`--phase <backend|frontend|extension|miniapp|web-demo|extension-demo|flutter|flutter-demo>` 进入阶段一致性模式；阶段取值与 `t-super-run --phase` 一致，且必须是目标项目真实存在的交付端，否则终止并列出可识别交付端。
+`--phase <phase>` 进入阶段一致性模式；解析时读取 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Phases 获取支持值，且阶段必须是目标项目真实存在的交付端，否则停止并按该节提示可选阶段。
 
 阶段一致性模式只启动该阶段对应的一致性维度和"候选问题验证"：
 

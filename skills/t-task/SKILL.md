@@ -1,7 +1,7 @@
 ---
 name: t-task
 description: Convert technical design documents into executable phased task plans with ordered work breakdown.
-argument-hint: "[任务名称] [--phase <backend|frontend|extension|miniapp|flutter|web-demo|extension-demo|flutter-demo|shopify-app|shopify-extension>]"
+argument-hint: "[任务名称] [--phase <phase>]"
 allowed-tools:
   - AskUserQuestion
   - Read
@@ -36,7 +36,7 @@ allowed-tools:
 | 参数 | 说明 |
 |---|---|
 | `[feature]` | 功能名（必填） |
-| `--phase <backend\|frontend\|extension\|miniapp\|flutter\|web-demo\|extension-demo\|flutter-demo\|shopify-app\|shopify-extension>` | 指定阶段生成；未指定时默认选择第一个 active phase |
+| `--phase <phase>` | 指定阶段生成；未指定时默认选择第一个 active phase |
 
 ## Input Contract
 
@@ -54,7 +54,7 @@ allowed-tools:
 - `docs/prd/**/*.md`、`.ai/user-stories/**/*.md`、`docs/user-stories/**/*.md`、`.ai/tech-research/**/*.md` — 需求来源
 - `${CLAUDE_PLUGIN_ROOT}/guides/` — 开发规范
 
-前置条件：active phases、extension/miniapp/flutter 启用规则和 slot 顺序统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`；未启用的 phase 不参与生成。
+解析参数和规划阶段前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Phases 与 Slot Order，校验支持值、active phases 和 slot 顺序；非法或不适用时按协议提示可选阶段，未启用的 phase 不参与生成。
 
 ## Output Contract
 
@@ -73,7 +73,7 @@ allowed-tools:
 
 - 校验 `.ai/design/[feature].md` 存在。读取 Decision Log，核对设计的 Decision Trace，并把 `Must Resolve Before=t-task` 的 Deferred Question 升级为 `needs_user_answer`。
 - 解析 `[feature]` 和 `--phase`；按 task-phase-execution 检测 active phases，未传 `--phase` 时选择第一个 active phase。
-- 按当前 phase 提取设计文档最小相关上下文：主文档（目标范围、交付端范围、跨端契约、测试汇总、文件影响范围）加当前 phase 对应的分端设计文档（backend phase 读 `backend.md`，frontend 读 `frontend.md`；web-demo 按实际页面交付端读 `frontend.md` 或 `shopify.md`（跨两端时都读），extension/extension-demo 读 `extension.md`，flutter/flutter-demo 读 `flutter.md`，shopify-app/shopify-extension 读 `shopify.md`，miniapp phase 读主文档小程序相关部分，缺失时读主文档可用部分）；未命中相关章节时记录警告，但不得编造设计事实。
+- 按 task-phase-execution 的 Design Inputs 提取当前 phase 的设计文档最小相关上下文：主文档包含目标范围、交付端范围、跨端契约、测试汇总和文件影响范围；miniapp 缺少相关部分时读取主文档可用部分。未命中相关章节时记录警告，不得编造设计事实。
 - extension-demo 读取 `extension.md` 的浏览器策略及 `${CLAUDE_PLUGIN_ROOT}/guides/extension/demo-testing.md`；extension 适用却缺少分端设计时停止，不套用 Web UI 方案。
 - 按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 判断是否规划 test slot。仅运行现有测试或编译、类型检查、构建时，阶段计划只生成 dev 与 accept；index 说明测试选择和适用的后续 Demo 计划，dev item 的 Validation 至少包含一项可执行验证。需要测试角色编写测试用例、fixture/helper 或专项验证脚本时才规划 test slot。
 - 调度 slot agent 前，先要求其识别当前 slot 的责任闭环（业务能力、接口能力、页面主流程、组件族、测试资产闭环或验收闭环）；技术层、文件类型和实现步骤只作为拆分的辅助线索。
@@ -87,35 +87,7 @@ allowed-tools:
 
 ## Agent 调度映射
 
-| phase | slot | subagent_type |
-|-------|------|---------------|
-| backend | dev | backend-dev |
-| backend | test | backend-test |
-| backend | accept | backend-accept |
-| frontend | dev | frontend-dev |
-| frontend | test | frontend-test |
-| frontend | accept | frontend-accept |
-| extension | dev | extension-dev |
-| extension | test | extension-test |
-| extension | accept | extension-accept |
-| miniapp | dev | miniapp-dev |
-| miniapp | test | miniapp-test |
-| miniapp | accept | miniapp-accept |
-| flutter | dev | flutter-dev |
-| flutter | test | flutter-test |
-| flutter | accept | flutter-accept |
-| shopify-app | dev | shopify-dev |
-| shopify-app | test | shopify-test |
-| shopify-app | accept | shopify-accept |
-| shopify-extension | dev | shopify-dev |
-| shopify-extension | test | shopify-test |
-| shopify-extension | accept | shopify-accept |
-| web-demo | dev | web-demo-dev |
-| web-demo | accept | web-demo-accept |
-| extension-demo | dev | extension-demo-dev |
-| extension-demo | accept | extension-demo-accept |
-| flutter-demo | dev | flutter-demo-dev |
-| flutter-demo | accept | flutter-demo-accept |
+规划 slot 时读取 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Role Mapping，按当前 phase 与 slot 选择 `subagent_type`；不得按名称猜测角色。
 
 ## Slot Manifest 契约
 

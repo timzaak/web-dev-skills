@@ -42,12 +42,11 @@
 `.state.json` 必须满足：
 
 - `feature` 存在
-- `phase` 为 supported phases：`backend|frontend|extension|miniapp|flutter|shopify-app|shopify-extension|web-demo|extension-demo|flutter-demo`
-- `phases` 包含当前任务的 active phases；未启用 extension/miniapp/Flutter/Shopify 的项目不要求包含对应 phase
+- `phase` 属于 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Phases 定义的 `supported_phases`（校验前读取）
+- `phases` 包含当前任务的 active phases；不要求包含未启用阶段
 - `phases[*].status` 存在
 - `tasks[phase]` 存在
-- backend/frontend/extension/miniapp/flutter/shopify-app/shopify-extension 含 `dev/accept`；需要测试角色编写测试用例、fixture/helper 或专项验证脚本时含 `test`
-- web-demo / extension-demo / flutter-demo 含 `dev/accept`
+- `tasks[phase]` 的 slot 满足 task-phase-execution 的 Slot Order
 - 每个 slot 含 `status/manifest/items`
 - 每个 item 含 `status/file/agent`
 

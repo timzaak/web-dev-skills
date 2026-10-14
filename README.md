@@ -71,6 +71,8 @@ t-prd-publish user-management
 
 每个 phase 的默认闭环是 `t-super-run`：主会话按当前角色规范持续完成实现、测试和修复，accept 派发对应只读 subagent 独立验收。`--phase` 必填，每次只执行一个 phase，完成后停止，中断后用同一命令恢复。需要单独审阅任务计划或细粒度 item 分工时，改用 `t-task -> t-run` 标准链路，两套状态互相独立。
 
+通用写法是 `t-super-run <feature> --phase <phase>`。阶段名称与启用条件统一查阅 [阶段执行协议](protocols/task-phase-execution.md#phases)，各 skill 的参数说明不重复枚举；新增阶段时在共享协议中补齐定义、设计输入和角色映射，并完善对应执行能力。
+
 review、simplify 或 CI 修复使证据失效时，先补跑必要回归和独立验收再提交；push 门禁与中断恢复见 [push 执行协议](protocols/push-execution-contract.md)。
 
 扩展项目按 [扩展初始化指南](guides/extension/initialization.md) 准备 WXT 工程；需要真实加载扩展的集成演示基础设施时，在目标项目运行 `t-init --extension-demo`。演示 fixture、环境与验收见 [扩展演示指南](guides/extension/demo-testing.md)。

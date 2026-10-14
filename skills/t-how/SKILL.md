@@ -36,6 +36,8 @@ t-decision -> t-prd / t-tech-research（无固定顺序，进设计前收敛）
 
 按用户目标匹配下表，讲解时给出命令、关键前置条件和下一步。匹配多个场景时全部列出，让用户确认顺序。
 
+讲解 `--phase <phase>` 可选值或启用条件时，读取 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Phases；只展示与用户场景相关的阶段，参数说明不展开完整枚举。
+
 | 用户目标 | 入口命令 | 说明 / 下一步 |
 |---|---|---|
 | 从零做一个新功能 | `/t-tools:t-decision <feature>` | 立项门禁；按主要未知项进入 PRD 或技术预研 |
@@ -57,7 +59,7 @@ t-decision -> t-prd / t-tech-research（无固定顺序，进设计前收敛）
 | 给插件新增或修改 skill | `/t-tools:t-skill [名称或能力描述]` | 只操作插件仓库自身，不用于目标项目业务开发 |
 | 写项目教程 / 文档 | `/t-tools:t-doc [名称]` | 不用于 PRD 和技术设计 |
 | 审计上下文 / 结构漂移 | `/t-tools:t-dream [feature]` | 只读；报告可含 PRD 治理建议，不执行写入 |
-| 阶段收口一致性 | `/t-tools:t-dream [feature] --phase <phase>` | 检查该交付阶段实现或 Demo 与 PRD / 用户故事的一致性；阶段取值同 `t-super-run --phase` |
+| 阶段收口一致性 | `/t-tools:t-dream [feature] --phase <phase>` | 检查该交付阶段实现或 Demo 与 PRD / 用户故事的一致性；阶段取值见共享阶段执行协议 |
 | Figma 还原 | `/t-tools:t-figma-assets` → `/t-tools:t-figma-impl` | 素材未就绪可先 impl，交付前补 assets 并绑定；动效精修用 `t-figma-ux` |
 | 为产品图标 / logo 生成提示词 | `/t-tools:t-icon-prompt [icon-name]` | 问答产出提示词卡；只出提示词不生成图片，UI 图标集请用图标库 |
 | 新项目脚手架 | `/t-tools:t-init <project-name>` | Rust + React 全栈骨架；Shopify 项目用 `/t-tools:t-init --shopify <project-name>` |
