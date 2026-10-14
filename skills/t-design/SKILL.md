@@ -70,6 +70,8 @@ allowed-tools:
 - `${CLAUDE_PLUGIN_ROOT}/guides/extension/demo-testing.md` — 设计包含 Chrome 扩展用户故事演示时读取
 - `${CLAUDE_PLUGIN_ROOT}/guides/flutter/development.md` — Flutter 开发规范（目标项目启用 Flutter 时）
 - `${CLAUDE_PLUGIN_ROOT}/guides/flutter/demo-testing.md` — Android Patrol 用户故事演示规范（设计要求 Flutter Demo 时）
+- `${CLAUDE_PLUGIN_ROOT}/guides/shopify/development.md` — Shopify App 开发规范（目标项目为 Shopify App 时）
+- `${CLAUDE_PLUGIN_ROOT}/guides/shopify/testing.md` — Shopify 测试边界（Shopify 设计涉及测试或用户故事演示时）
 - `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md` — 质量规范
 
 ## Output Contract
@@ -89,6 +91,7 @@ allowed-tools:
 - `.ai/design/$ARGUMENTS/frontend.md` — 前端分端设计（适用时），包含页面/组件/线框、状态与数据流、交互与关键状态、性能、测试与 Demo 策略
 - `.ai/design/$ARGUMENTS/extension.md` — 扩展分端设计（适用时），包含入口、消息/存储、权限、生命周期与浏览器验证策略
 - `.ai/design/$ARGUMENTS/flutter.md` — Flutter 分端设计（适用时），包含分层架构、状态管理、页面与导航、可测试性、测试与 Patrol Demo 策略
+- `.ai/design/$ARGUMENTS/shopify.md` — Shopify 分端设计（适用时），覆盖 `shopify-app` 与 `shopify-extension` 两个 phase 的交付面（应用本体、admin 嵌入页、app proxy、theme app extension、customer account UI extension）；backend 端不适用时本文档的 app proxy / internal API 契约是唯一契约源
 - `.ai/design/$ARGUMENTS/.state.json` — 设计生成状态；结构见 `${CLAUDE_PLUGIN_ROOT}/protocols/design-state-contract.md`，只有 `complete` 可被下游消费
 - `.ai/decision-log/$ARGUMENTS.md` — 复用上游决策；仅在产生用户决策、问题状态变化或重要 AI 决策时更新
 
@@ -100,7 +103,7 @@ allowed-tools:
 - 只引用用户故事，不粘贴完整故事正文或整段 Gherkin
 - 优先复用现有实现，不凭空设计新架构
 - 默认不搜索额外资料；人类在进入 `/t-design` 前应已准备好相关资料。只有在人类明确要求补充外部依据时，才可将外部资料作为附加参考
-- API 契约的单一设计源是 backend 分端文档；frontend/extension/flutter 分端文档只声明依赖的接口与字段，不得复制或另立契约；后端不适用时以现有 OpenAPI/SDK 或接口为契约源
+- API 契约的单一设计源是 backend 分端文档；frontend/extension/flutter 分端文档只声明依赖的接口与字段，不得复制或另立契约；后端不适用时以现有 OpenAPI/SDK 或接口为契约源。Shopify 项目默认不启用 backend 端：`shopify.md` 的 app proxy / internal API 接口清单承担契约源，此时不存在独立 backend 分端文档
 - 主文档不承载 API 字段表、数据库表结构和页面线框等分端细节；细节只活在对应分端文档，主文档保留摘要与链接
 - 数据库设计遵循"尽量简洁、当前必需、避免过度审计设计"
 - 现状依据及 MODIFY/DELETE 路径必须真实存在；CREATE 路径可以尚不存在，但父目录必须真实存在，并给出相邻实现或项目规范作为命名依据
@@ -151,8 +154,8 @@ D2 工程取舍由设计阶段明确选择并写入 Design；符合 Decision Con
 
 ### 5. 确定交付端范围与契约归属
 
-- 判定 backend / frontend / extension / flutter 哪些端适用：依据需求来源中的交付端描述、`${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 phase 结构、现有代码结构（如 `frontend/`、扩展 WXT 工程、Flutter 工程是否存在）和 Decision Log。判定结果影响拆分方向且无法确定时，使用 `AskUserQuestion` 确认
-- 契约归属：backend 适用时，API 契约由 backend 分端设计产出，backend 设计必须先行；backend 不适用时，契约源为现有实现分析中确认的现有接口/OpenAPI/SDK，frontend/extension/flutter 可直接并行生成
+- 判定 backend / frontend / extension / flutter / shopify 哪些端适用：依据需求来源中的交付端描述、`${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 phase 结构、现有代码结构（如 `frontend/`、扩展 WXT 工程、Flutter 工程、`shopify.app.toml` 与 `extensions/` 是否存在）和 Decision Log。判定结果影响拆分方向且无法确定时，使用 `AskUserQuestion` 确认
+- 契约归属：backend 适用时，API 契约由 backend 分端设计产出，backend 设计必须先行；backend 不适用时，契约源为现有实现分析中确认的现有接口/OpenAPI/SDK，frontend/extension/flutter 可直接并行生成；Shopify 项目（`shopify.app.toml` 存在且无独立后端工程）契约源为 shopify 分端设计，同样可与其他客户端端并行
 - 在主文档 §4.2 记录交付端范围和判定依据
 
 ### 6. 分端生成设计（subagent 编排）
@@ -165,8 +168,9 @@ D2 工程取舍由设计阶段明确选择并写入 Design；符合 Decision Con
 | frontend | frontend-design | [template-frontend.md](${CLAUDE_PLUGIN_ROOT}/skills/t-design/template-frontend.md) | `.ai/design/$ARGUMENTS/frontend.md` |
 | extension | extension-design | [template-extension.md](${CLAUDE_PLUGIN_ROOT}/skills/t-design/template-extension.md) | `.ai/design/$ARGUMENTS/extension.md` |
 | flutter | flutter-design | [template-flutter.md](${CLAUDE_PLUGIN_ROOT}/skills/t-design/template-flutter.md) | `.ai/design/$ARGUMENTS/flutter.md` |
+| shopify | shopify-design | [template-shopify.md](${CLAUDE_PLUGIN_ROOT}/skills/t-design/template-shopify.md) | `.ai/design/$ARGUMENTS/shopify.md` |
 
-调度顺序：backend 适用 → 先调度 backend-design，成功后再调度 frontend-design / extension-design / flutter-design；backend 不适用 → 可并行调度。同批次同角色复用按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 执行。
+调度顺序：backend 适用 → 先调度 backend-design，成功后再调度 frontend-design / extension-design / flutter-design；backend 不适用 → 可并行调度（shopify-design 同样作为契约源时与其他客户端端并行，主会话在合并阶段以 shopify.md 的契约清单做跨端比对）。同批次同角色复用按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 执行。
 
 `design_stack` 与映射表中的端一致，传入对应 guide/模板路径；extension 使用 `${CLAUDE_PLUGIN_ROOT}/agents/extension-design.md`。同一任务 Web 与扩展两端均适用时分别调度和输出，不合并分端设计。
 
@@ -180,7 +184,7 @@ D2 工程取舍由设计阶段明确选择并写入 Design；符合 Decision Con
 - `needs_user_answer` 非空 → 按决策纪律处理，然后重新调度该端
 - `task_completion.status=partial` 或 `design_result.self_check` 未通过 → 不进入合并；修复输入后重新调度，无法恢复时把生成状态写为 `failed`
 - `task_completion.status=failed` → 终止该端并把生成状态写为 `failed`；不得写入该端成功状态
-- frontend/extension/flutter 的 `design_result.contract_dependencies` 必须按输出协议逐项对比 backend 的 `design_result.contract_summary`；operation、method/path、字段子集或调用方冲突时重新调度客户端设计，属于产品语义冲突时使用 `AskUserQuestion` 裁决
+- frontend/extension/flutter 的 `design_result.contract_dependencies` 必须按输出协议逐项对比 backend 的 `design_result.contract_summary`；operation、method/path、字段子集或调用方冲突时重新调度客户端设计，属于产品语义冲突时使用 `AskUserQuestion` 裁决。backend 不适用而 shopify 充当契约源时，其他客户端端与 `shopify.md` 的接口清单按同一规则比对
 - 每个端成功后更新 `completed_stacks`；全部适用端 `task_completion.status=success` 后进入合并
 
 ### 7. 合并生成主文档
@@ -193,12 +197,12 @@ D2 工程取舍由设计阶段明确选择并写入 Design；符合 Decision Con
 - 分端设计摘要（来自各端 `task_completion.summary`，每端 3-5 行）
 - 测试与验收策略跨端汇总（来自各分端文档测试章节）
 - 风险与验证动作汇总
-- §8 文件影响范围：逐行合并各分端文档的文件影响表，标注来源分端（取值 backend/frontend/extension/flutter/web-demo/extension-demo/flutter-demo/跨端；设计要求用户故事演示时，Web Playwright 资产标 `web-demo`、扩展 Playwright 资产标 `extension-demo`、Patrol 资产标 `flutter-demo`，供 `/t-super-run` 识别 demo 交付端）；此表是 `/t-super-run` 的唯一拆分依据，必须覆盖全部适用端
+- §8 文件影响范围：逐行合并各分端文档的文件影响表，标注来源分端（取值 backend/frontend/extension/flutter/shopify/web-demo/extension-demo/flutter-demo/跨端；设计要求用户故事演示时，Web Playwright 资产标 `web-demo`、扩展 Playwright 资产标 `extension-demo`、Patrol 资产标 `flutter-demo`，供 `/t-super-run` 识别 demo 交付端；shopify 分端的资产按归属 phase 在说明列标注 shopify-app / shopify-extension）；此表是 `/t-super-run` 的唯一拆分依据，必须覆盖全部适用端
 
 不适用章节保留并标记"不适用"及原因。写入后对所有实际生成的文档运行：
 
 ```bash
-python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py ".ai/design/$ARGUMENTS.md" ".ai/design/$ARGUMENTS/backend.md" ".ai/design/$ARGUMENTS/frontend.md" ".ai/design/$ARGUMENTS/extension.md" ".ai/design/$ARGUMENTS/flutter.md"
+python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py ".ai/design/$ARGUMENTS.md" ".ai/design/$ARGUMENTS/backend.md" ".ai/design/$ARGUMENTS/frontend.md" ".ai/design/$ARGUMENTS/extension.md" ".ai/design/$ARGUMENTS/flutter.md" ".ai/design/$ARGUMENTS/shopify.md"
 ```
 
 命中项按 Decision Exposure Gate 分类处理；重新扫描通过前不得交付设计。随后运行 `python ${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py ".ai/design/$ARGUMENTS.md"` 做确定性结构校验（章节、模板占位符、适用端文档、契约 operation、文件影响汇总和路径操作）。两项扫描全部通过后，才把 `.state.json` 写为 `complete`。
@@ -208,8 +212,8 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py ".ai/design/$ARGU
 ### 8. 分端设计验收
 
 逐项按对应 `agents/*-design.md` 的"着重点"和质量清单验收。额外拒绝：
-- API 缺少 operation ID、字段语义或具体契约源
-- frontend/extension/flutter 复制 API 字段定义，或客户端状态方案偏离对应 guide
+- 涉及的 API 缺少 operation ID、字段语义或具体契约源；Shopify 无接口场景按设计输出协议校验不适用声明
+- frontend/extension/flutter/shopify 复制 API 字段定义，或客户端状态方案偏离对应 guide（shopify 端为 app proxy 验签与顾客识别语义偏离 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/development.md`）
 
 ### 9. 收尾输出
 

@@ -237,5 +237,142 @@ class DesignValidationTests(unittest.TestCase):
             )
 
 
+SHOPIFY_MAIN = """
+# Sample Shopify 技术设计（主文档）
+## 1. 需求概述
+## 2. 需求来源
+### 2.4 决策追踪
+### 2.5 设计覆盖矩阵
+| Requirement / Story ID | 设计落点 | 契约/组件 | 测试与验收 | 文件影响 |
+|---|---|---|---|---|
+| REQ-001 | shopify §5 | getCampaigns | npm run test | app/routes/proxy.ts |
+## 3. 现有实现分析
+## 4. 总体方案
+### 4.2 交付端范围
+| 端 | 分端设计文档 | 状态 |
+|---|---|---|
+| backend | backend.md | 不适用（无独立后端） |
+| frontend | frontend.md | 不适用 |
+| shopify | shopify.md | 适用 |
+### 4.3 跨端契约（API 契约摘要）
+| Operation ID | 方法 | 路径 | 用途 | 调用方 |
+|---|---|---|---|---|
+| getCampaigns | GET | /apps/campaign/campaigns | list | storefront |
+## 6. 测试与验收策略
+## 7. 风险与验证动作
+## 8. 文件影响范围（全量汇总）
+| 文件 | 操作 | 说明 | 来源分端 |
+|---|---|---|---|
+| app/routes/proxy.ts | CREATE | app proxy route | shopify |
+"""
+
+SHOPIFY_STACK = """
+# Shopify 分端设计
+## 1. 目标与范围
+## 2. 需求来源与决策追踪
+## 3. 现有实现分析
+## 4. 数据模型
+## 5. 契约设计（app proxy / internal API）
+| Operation ID | 方法 | 路径 | 请求字段 | 响应字段 | 错误行为 | 调用方 |
+|---|---|---|---|---|---|---|
+| getCampaigns | GET | /apps/campaign/campaigns | - | items | 401 | storefront |
+## 6. admin 嵌入页
+## 7. 扩展交付（extensions/）
+## 8. 测试与验收
+## 9. 风险与验证动作
+## 10. 文件影响范围（Shopify 文件）
+| 文件 | 操作 | 归属 phase | 说明 |
+|---|---|---|---|
+| app/routes/proxy.ts | CREATE | shopify-app | app proxy route |
+"""
+
+
+class ShopifyDesignTests(unittest.TestCase):
+    def make_shopify_design(self, root: Path, stack_content: str = SHOPIFY_STACK) -> Path:
+        (root / "app" / "routes").mkdir(parents=True, exist_ok=True)
+        main = root / ".ai/design/sample.md"
+        write(main, SHOPIFY_MAIN)
+        write(main.with_suffix("") / "shopify.md", stack_content)
+        return main
+
+    def test_shopify_only_design_passes(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            main = self.make_shopify_design(root)
+            self.assertEqual(checker.validate(main, root), [])
+            self.assertIn(
+                main.with_suffix("") / "shopify.md",
+                checker.design_documents(main),
+            )
+
+    def test_shopify_contract_mismatch_against_main_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            main = self.make_shopify_design(root, SHOPIFY_STACK.replace("/apps/campaign/campaigns", "/apps/campaign/wrong"))
+            self.assertIn("MAIN_CONTRACT_MISMATCH", {f.code for f in checker.validate(main, root)})
+
+    def test_shopify_empty_contract_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            empty = SHOPIFY_STACK.replace(
+                "| getCampaigns | GET | /apps/campaign/campaigns | - | items | 401 | storefront |\n",
+                "",
+            )
+            main = self.make_shopify_design(root, empty)
+            self.assertIn("SHOPIFY_CONTRACT_EMPTY", {f.code for f in checker.validate(main, root)})
+
+    def test_shopify_missing_heading_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            broken = SHOPIFY_STACK.replace("## 8. 测试与验收", "## 8. 测试")
+            main = self.make_shopify_design(root, broken)
+            self.assertIn("STACK_HEADING_MISSING", {f.code for f in checker.validate(main, root)})
+
+    def test_shopify_existing_contract_requires_main_summary(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            main = self.make_shopify_design(root)
+            write(main, SHOPIFY_MAIN.replace(
+                "| getCampaigns | GET | /apps/campaign/campaigns | list | storefront |\n", ""
+            ))
+            self.assertIn("MAIN_CONTRACT_MISMATCH", {f.code for f in checker.validate(main, root)})
+
+    def test_shopify_no_api_feature_requires_reason_in_both_documents(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            reason = "不适用：仅修改静态 block 展示，不新增、修改或消费接口。\n"
+            stack = SHOPIFY_STACK.replace(
+                "| getCampaigns | GET | /apps/campaign/campaigns | - | items | 401 | storefront |\n", reason
+            )
+            main_text = SHOPIFY_MAIN.replace(
+                "| getCampaigns | GET | /apps/campaign/campaigns | list | storefront |\n", reason
+            )
+            main = self.make_shopify_design(root, stack)
+            write(main, main_text)
+            write(main.with_suffix("") / ".state.json", '{"status":"complete"}')
+            for _ in range(2):
+                self.assertEqual(checker.validate(main, root, require_complete=True), [])
+            write(main, main_text.replace(reason, ""))
+            self.assertIn("MAIN_CONTRACT_EMPTY", {f.code for f in checker.validate(main, root)})
+            write(main, main_text)
+            for missing_reason in ("不适用\n", "不适用：\n- 其他说明\n"):
+                write(main.with_suffix("") / "shopify.md", stack.replace(reason, missing_reason))
+                self.assertIn("SHOPIFY_CONTRACT_EMPTY", {f.code for f in checker.validate(main, root)})
+
+    def test_shopify_contract_source_validates_client_dependencies(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            main = self.make_shopify_design(root)
+            (root / "web").mkdir()
+            write(main, SHOPIFY_MAIN.replace("| frontend | frontend.md | 不适用 |", "| frontend | frontend.md | 适用 |")
+                  + "| web/new.ts | CREATE | frontend client | frontend |\n")
+            client = FRONTEND.replace("createExport", "getCampaigns").replace("POST", "GET").replace("/api/exports", "/apps/campaign/campaigns")
+            path = main.with_suffix("") / "frontend.md"
+            write(path, client)
+            self.assertEqual(checker.validate(main, root), [])
+            write(path, client.replace("/apps/campaign/campaigns", "/wrong"))
+            self.assertIn("CONTRACT_SIGNATURE_MISMATCH", {f.code for f in checker.validate(main, root)})
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,7 +1,7 @@
 ---
 name: t-task-check
 description: Validate task plan executability and consistency with a 100-point score and P0/P1/P2 fix list.
-argument-hint: "[任务名称] [--phase <backend|frontend|extension|miniapp|flutter|web-demo|extension-demo|flutter-demo>]"
+argument-hint: "[任务名称] [--phase <backend|frontend|extension|miniapp|flutter|web-demo|extension-demo|flutter-demo|shopify-app|shopify-extension>]"
 allowed-tools:
   - AskUserQuestion
   - Read
@@ -25,7 +25,7 @@ allowed-tools:
 ## 使用方式
 
 ```bash
-/t-task-check [feature] [--phase <backend|frontend|extension|miniapp|flutter|web-demo|extension-demo|flutter-demo>]
+/t-task-check [feature] [--phase <backend|frontend|extension|miniapp|flutter|web-demo|extension-demo|flutter-demo|shopify-app|shopify-extension>]
 ```
 
 | 参数 | 说明 |

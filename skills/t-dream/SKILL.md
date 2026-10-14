@@ -34,7 +34,7 @@ allowed-tools:
 | `[feature]` | 可选。聚焦指定功能、模块或领域关键词 |
 | `--all` | 检查全部可识别 PRD / 模块 |
 | `--deep` | 启用后端模块级深度一致性检查 |
-| `--phase <backend\|frontend\|extension\|miniapp\|web-demo\|extension-demo\|flutter\|flutter-demo>` | 只执行该阶段的一致性检查；取值与 `t-super-run --phase` 一致，backend 隐含深度检查 |
+| `--phase <backend\|frontend\|extension\|miniapp\|web-demo\|extension-demo\|flutter\|flutter-demo\|shopify-app\|shopify-extension>` | 只执行该阶段的一致性检查；取值与 `t-super-run --phase` 一致，backend 隐含深度检查 |
 
 `t-dream` 所有模式都只读，不修改目标项目文档或代码；PRD 治理内容（合并、归档、重写、改引用）只作为报告建议输出，见"PRD 治理建议"。未传入 `[feature]` 或 `--all` 时，先提示可用模块来源是 `docs/prd/**/*.md`，再建议用户指定范围。
 
@@ -44,7 +44,7 @@ allowed-tools:
 - PRD 草稿：`.ai/prd/**/*.md`
 - 设计与任务：`.ai/design/**/*.md`、`.ai/task/**`
 - Demo 测试：Web 为 `demo/e2e/**/*.e2e.ts`，Flutter 为 `patrol_test/**/*_test.dart`
-- 实现代码：按目标项目真实结构定位 backend、frontend、extension、miniapp、flutter、demo 相关实现
+- 实现代码：按目标项目真实结构定位 backend、frontend、extension、miniapp、flutter、shopify（应用本体与 `extensions/`）、demo 相关实现
 - 项目结构：`docs/`、`.ai/`、各交付端与 test 目录、README、AGENTS/CLAUDE 类上下文入口、ADR 或架构说明（如存在）
 
 ## 执行模型

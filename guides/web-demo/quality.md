@@ -19,6 +19,8 @@
 
 ### 阶段 2：测试编译验证（MANDATORY）
 
+使用目标项目 Demo 的真实类型检查入口；Shopify 初始化的 Demo 为 `cd demo && npm run type-check`。下列 build 示例只在实际提供该脚本时使用。
+
 ```bash
 (cd demo && npm run build)
 ```
@@ -26,6 +28,8 @@
 标准：0 TypeScript 编译错误。
 
 ### 阶段 3：测试执行验证（MANDATORY）
+
+Shopify 项目先读取 `${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md` 的 Shopify Demo 运行模式，下列 runner 命令必须追加 `--no-auto-env` 并核查该模式的数据隔离。
 
 ```bash
 uv run scripts/web-demo-test-runner.py "${TEST_FILE}" --mode fast --log-level mini

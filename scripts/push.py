@@ -62,6 +62,7 @@ def git_private_path(path: str) -> Path:
 
 def detect_areas(files: list[str]) -> set[str]:
     areas: set[str] = set()
+    shopify_root = (REPO_ROOT / "shopify.app.toml").is_file()
     for path in files:
         if path.startswith("backend/"):
             areas.add("backend")
@@ -69,6 +70,10 @@ def detect_areas(files: list[str]) -> set[str]:
             areas.add("frontend")
         elif path.startswith("demo/"):
             areas.add("demo")
+        elif shopify_root:
+            # Shopify projects are single-root apps: everything outside the
+            # demo assets belongs to the app itself (app/, extensions/, prisma/, ...).
+            areas.add("shopify")
     return areas
 
 
@@ -103,13 +108,25 @@ def normalize_ci_session(session: str) -> str:
     return normalized
 
 
+def area_pathspecs(area: str) -> list[str]:
+    if area == "shopify":
+        return [
+            ".",
+            ":(exclude)backend/",
+            ":(exclude)frontend/",
+            ":(exclude)demo/",
+            ":(exclude).ai/",
+        ]
+    return [f"{area}/"]
+
+
 def area_fingerprint(area: str) -> str:
-    pathspec = f"{area}/"
+    pathspec = area_pathspecs(area)
     head = git("rev-parse", "HEAD", capture=True)
     ensure_success(head, "Unable to resolve HEAD.")
-    diff = git("diff", "--binary", "HEAD", "--", pathspec, capture=True)
+    diff = git("diff", "--binary", "HEAD", "--", *pathspec, capture=True)
     ensure_success(diff, f"Unable to inspect {area} diff.")
-    untracked = git("ls-files", "--others", "--exclude-standard", "-z", "--", pathspec, capture=True)
+    untracked = git("ls-files", "--others", "--exclude-standard", "-z", "--", *pathspec, capture=True)
     ensure_success(untracked, f"Unable to inspect untracked {area} files.")
 
     digest = hashlib.sha256()
@@ -273,6 +290,28 @@ def demo_steps() -> list[Step]:
     return steps
 
 
+def shopify_steps() -> list[Step]:
+    if not (REPO_ROOT / "shopify.app.toml").is_file():
+        raise RuntimeError("Shopify changes detected, but shopify.app.toml was not found at the repo root.")
+    scripts = read_package_scripts(REPO_ROOT / "package.json")
+    type_script = next((key for key in ("typecheck", "type-check") if key in scripts), None)
+    if type_script is None:
+        raise RuntimeError("Shopify CI requires a 'typecheck' or 'type-check' npm script.")
+    steps: list[Step] = []
+    for name, script, optional in (
+        ("Shopify lint", "lint", True),
+        ("Shopify type check", type_script, False),
+        ("Shopify build", "build", False),
+    ):
+        step = npm_script_step(name, REPO_ROOT, script, optional=optional)
+        if step:
+            steps.append(step)
+    if any((REPO_ROOT / "extensions").glob("**/shopify.extension.toml")):
+        cli_step = npm_script_step("Shopify extensions build", REPO_ROOT, "shopify")
+        steps.append(Step(cli_step.name, cli_step.command + ["--", "app", "build"], cli_step.cwd))
+    return steps
+
+
 def run_steps(area: str, steps: list[Step]) -> None:
     for step in steps:
         rel_cwd = step.cwd.relative_to(REPO_ROOT)
@@ -287,6 +326,7 @@ def run_ci(areas: set[str], *, ci_session: str, force_checks: bool = False) -> N
         "backend": backend_steps,
         "frontend": frontend_steps,
         "demo": demo_steps,
+        "shopify": shopify_steps,
     }
     cache = {} if force_checks else load_ci_cache(ci_session)
     selected: dict[str, list[Step]] = {}
@@ -302,7 +342,7 @@ def run_ci(areas: set[str], *, ci_session: str, force_checks: bool = False) -> N
         if areas:
             print("All selected CI areas are unchanged since their last successful run in this t-push session.", flush=True)
         else:
-            print("No backend/frontend/demo changes detected; skipping local CI.", flush=True)
+            print("No backend/frontend/demo/shopify changes detected; skipping local CI.", flush=True)
         return
 
     failures: list[str] = []

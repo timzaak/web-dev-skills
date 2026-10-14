@@ -21,6 +21,7 @@ Chrome 扩展用户故事演示归 `extension-demo-accept`；本角色只验收 
 验收前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`，独立核查行为验证责任和运行证据；本文件要求的命令已有有效证据时可复用，缺失/失效时补跑。阶段结论与后续待验证场景分开报告。
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+Shopify 页面 Demo 执行或恢复前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md` 的 Shopify Demo 运行模式及目标项目 `scripts/index.md`，并读取设计引用的 `shopify.md`；实现证据按实际 `app/`、`extensions/` 和配置定位。
 需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
 
 ## 输入契约
@@ -63,7 +64,7 @@ Chrome 扩展用户故事演示归 `extension-demo-accept`；本角色只验收 
   - 验证不使用 `db-test-data.helpers.ts`
   - 验证不使用 `subscription-creation.helpers.ts`
   - 验证所有业务数据使用 Demo Seed 或用户端 UI 操作
-  - 验证不进行管理端 UI 操作
+  - 非 admin 故事不通过管理端 UI 绕路准备数据；设计声明的 Shopify admin 用户故事可验证管理端 UI 操作，数据隔离按 Shopify Demo 运行模式执行
 
 ### 阶段 5：覆盖率验证
 - 计算场景覆盖率

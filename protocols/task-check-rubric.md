@@ -42,11 +42,11 @@
 `.state.json` 必须满足：
 
 - `feature` 存在
-- `phase` 为 supported phases：`backend|frontend|extension|miniapp|flutter|web-demo|extension-demo|flutter-demo`
-- `phases` 包含当前任务的 active phases；未启用 extension/miniapp/Flutter 的项目不要求包含对应 phase
+- `phase` 为 supported phases：`backend|frontend|extension|miniapp|flutter|shopify-app|shopify-extension|web-demo|extension-demo|flutter-demo`
+- `phases` 包含当前任务的 active phases；未启用 extension/miniapp/Flutter/Shopify 的项目不要求包含对应 phase
 - `phases[*].status` 存在
 - `tasks[phase]` 存在
-- backend/frontend/extension/miniapp/flutter 含 `dev/accept`；需要测试角色编写测试用例、fixture/helper 或专项验证脚本时含 `test`
+- backend/frontend/extension/miniapp/flutter/shopify-app/shopify-extension 含 `dev/accept`；需要测试角色编写测试用例、fixture/helper 或专项验证脚本时含 `test`
 - web-demo / extension-demo / flutter-demo 含 `dev/accept`
 - 每个 slot 含 `status/manifest/items`
 - 每个 item 含 `status/file/agent`
@@ -75,7 +75,7 @@
 - 仅运行现有测试、编译、类型检查或构建时，验证归 dev，不据此要求 test slot
 - 按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 核对受影响业务场景的验证入口、关键断言及承接位置；静态检查不能代替业务运行验证。
 - 所有阶段检查新增测试的可观察回归、场景测试/Demo 覆盖缺口；仅为覆盖率、技术分层或重复已有路径规划的测试记为过度拆分
-- frontend/extension/miniapp/flutter/web-demo/extension-demo/flutter-demo 的测试资产必须由合并 item 或排在其后的集中 runner 完成定向执行；按 task-phase-execution 选择，检查 Expected Test Manifest，不得默认规划全量测试
+- frontend/extension/miniapp/flutter/shopify-app/shopify-extension/web-demo/extension-demo/flutter-demo 的测试资产必须由合并 item 或排在其后的集中 runner 完成定向执行；按 task-phase-execution 选择，检查 Expected Test Manifest，不得默认规划全量测试
 - slot item 数量符合 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的上限，或具有用户授权证据
 - 大范围重构、旧架构替换或旧模块迁移任务包含旧代码清理清单，并按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 先删除旧实现再改写新结构
 - 检查是否存在过度拆分：同一责任闭环被拆成多个无法独立验收的 item，或多个 item 只是在技术层之间传递 handoff
@@ -151,7 +151,7 @@ agent 评审边界：
 - backend/test 缺少 runner item、runner agent 不是 `general-purpose`、runner 未引用 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md`，或存在 authoring item 未被集中 runner 覆盖
 - backend/test runner 把全量 `uv run scripts/backend-test.py --` 当默认 validation，且未说明定向范围不足或门禁要求
 - backend/test runner 排在其覆盖的 authoring item 之前，或 backend/test 缺少 runner 导致 accept 前没有测试执行闭环
-- frontend/extension/miniapp/flutter/web-demo/extension-demo/flutter-demo 的测试资产既未在合并 item 内安排执行，也未被后续集中 runner 覆盖
+- frontend/extension/miniapp/flutter/shopify-app/shopify-extension/web-demo/extension-demo/flutter-demo 的测试资产既未在合并 item 内安排执行，也未被后续集中 runner 覆盖
 - 业务行为变更只有静态验证且无适用的运行验证/后续承接，或待验证场景被计为交付完成
 - 命令、路径、阶段链路经仓库和规范双重验证后确认会直接导致 `/t-run` 无法执行
 

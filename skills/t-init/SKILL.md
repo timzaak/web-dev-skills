@@ -1,7 +1,7 @@
 ---
 name: t-init
-description: Initialize a new Rust + React full-stack project, or use --extension-demo to add Playwright integration-test infrastructure to an existing WXT extension; does not implement feature stories or perform their acceptance.
-argument-hint: "<project-name> | --extension-demo [--extension-dir <path>]"
+description: Initialize a new Rust + React full-stack project; use --extension-demo to add Playwright integration-test infrastructure to an existing WXT extension; use --shopify to create a Shopify React Router app project (or retrofit an existing one) with the same demo/scripts infrastructure. Does not implement feature stories or perform their acceptance.
+argument-hint: "<project-name> | --extension-demo [--extension-dir <path>] | --shopify <project-name>"
 allowed-tools:
   - AskUserQuestion
   - Read
@@ -17,7 +17,7 @@ allowed-tools:
 
 # 项目初始化
 
-初始化全栈项目骨架，或为已有 WXT 扩展补齐 extension-demo 基础设施。先按参数选择模式；两个模式不串行执行。
+初始化全栈项目骨架、为已有 WXT 扩展补齐 extension-demo 基础设施，或初始化 Shopify App 工程。先按参数选择模式；三个模式不串行执行。
 
 ## 模式路由
 
@@ -25,20 +25,22 @@ allowed-tools:
 | --- | --- |
 | `<project-name>` | 创建 Rust + React + Web Demo 全栈工程，执行下文流程 |
 | `--extension-demo [--extension-dir <path>]` | 在当前目标项目根目录增量初始化扩展 Demo，仅读取并执行 [extension-demo 初始化流程](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/extension-demo-init.md)，完成后返回 |
+| `--shopify <project-name>` | 创建 Shopify App 工程（Shopify 官方 React Router 模板）或为已有 Shopify 工程增量补齐 demo/scripts 设施，仅读取并执行 [Shopify 初始化流程](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/shopify-init.md)，完成后返回，不执行下文全栈生成步骤 |
 
-拒绝混用项目名和 `--extension-demo`、单独使用 `--extension-dir` 或未知参数，并给出以上用法。扩展模式不创建新的 WXT 工程、不执行下文全栈生成步骤。
+拒绝混用项目名和 `--extension-demo`、混用 `--shopify` 与 `--extension-demo`、单独使用 `--extension-dir`、`--shopify` 缺少项目名或未知参数，并给出以上用法。扩展模式不创建新的 WXT 工程、Shopify 模式不执行全栈生成步骤。
 
 ## 适用范围
 
 仅在以下场景使用：
 - 用户明确执行 `/t-init <project-name>`
 - 用户明确执行 `/t-init --extension-demo` 或要求为已有扩展搭建集成测试基础设施
+- 用户明确执行 `/t-init --shopify <project-name>` 或要求创建 / 改造 Shopify App 工程
 - 用户要求创建新项目、初始化全栈项目骨架
 - 用户提到 "搭建项目""新建项目""项目初始化"
 
 不要用于：
 - Chrome 扩展生产工程初始化：按 [extension 初始化指南](${CLAUDE_PLUGIN_ROOT}/guides/extension/initialization.md) 搭建 WXT 工程；工程就绪后可用扩展模式补齐 Demo
-- 已有项目的业务增量开发（扩展 Demo 基础设施初始化除外）
+- 已有项目的业务增量开发（扩展 Demo / Shopify 设施增量初始化除外）
 - 代码修改或重构
 - 单纯的前端或后端初始化（如果明确只做一侧，提示用户本 skill 生成完整全栈）
 
@@ -183,3 +185,4 @@ allowed-tools:
 - Unified Logger 包模板：[references/unified-logger-package-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/unified-logger-package-template.md)
 - 脚本模板：[references/scripts-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/scripts-template.md)
 - AGENTS.md 模板：[references/agents-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/agents-template.md)
+- Shopify 初始化流程：[references/shopify-init.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/shopify-init.md)

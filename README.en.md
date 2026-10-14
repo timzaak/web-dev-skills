@@ -59,14 +59,16 @@ t-prd-publish user-management
 
 ## Phase Split
 
-A typical web order is `backend -> frontend -> web-demo`; a typical extension order is `extension -> extension-demo` (with backend first when changed); a typical Flutter order is `backend -> flutter -> flutter-demo`.
+A typical web order is `backend -> frontend -> web-demo`; a typical extension order is `extension -> extension-demo` (with backend first when changed); a typical Flutter order is `backend -> flutter -> flutter-demo`; a typical Shopify order is `shopify-app -> shopify-extension -> web-demo` (web-demo only when the design requires storefront, admin, or customer account user-story demos).
 
 - `backend`: backend APIs, data models, permissions, business logic, backend tests, and read-only acceptance.
 - `frontend`: React pages, components, state, frontend tests, and read-only acceptance.
 - `extension`: WXT / Chrome MV3 entrypoints, messaging, storage, permissions, Vitest tests, and read-only acceptance.
 - `miniapp`: miniapp pages, platform capabilities, build verification, and read-only acceptance.
 - `flutter`: Flutter views, Riverpod state, data layers, unit/widget/integration tests, and read-only acceptance.
-- `web-demo`: Playwright Demo/E2E based on user stories and browser user paths.
+- `shopify-app`: Shopify app core — React Router loaders/actions, Prisma data models, admin embedded pages, app proxy HMAC-verified routes, Vitest tests, and read-only acceptance.
+- `shopify-extension`: storefront/account delivery surfaces via theme app extensions and customer account UI extensions, with read-only acceptance.
+- `web-demo`: Playwright Demo/E2E based on user stories and browser user paths (for Shopify projects: the storefront, admin, and customer account paths declared in the design).
 - `extension-demo`: Playwright integration demos with a loaded extension, covering user paths across contexts, permissions, and lifecycle behavior.
 - `flutter-demo`: Android Patrol demos based on user stories, including real App actions and native system UI.
 
@@ -75,6 +77,10 @@ Each phase uses `t-super-run` by default: the main session implements, tests, an
 When review fixes, cleanup, or CI repairs invalidate evidence, required regressions and independent acceptance run before committing; see the [push execution contract](protocols/push-execution-contract.md) for push gates and interrupted-push recovery.
 
 Prepare a WXT project using the [extension initialization guide](guides/extension/initialization.md); run `t-init --extension-demo` in the target project to add real-extension integration-demo infrastructure. See the [extension demo guide](guides/extension/demo-testing.md) for fixtures, environment selection, and acceptance.
+
+Create Shopify app projects with `t-init --shopify <project-name>` from Shopify's official React Router template (or retrofit an existing Shopify project with demo/scripts infrastructure); see the [Shopify development guide](guides/shopify/development.md). `shopify app deploy` runs explicitly by the user after `t-push` and is never triggered by a skill.
+
+Shopify initialization preserves existing configuration, scripts, and documentation; rerunning after failure fills only the remaining gaps. Single-file, batch, and resumed Demo runs all use `--no-auto-env`; the project's `scripts/index.md` declares store authentication, URLs, and test-data cleanup for real stories. The static initialization smoke needs no store. `t-push` recognizes `typecheck` / `type-check`, blocks when type-checking or app-build scripts are missing, and also builds Shopify extensions when extension configuration exists.
 
 ## Usage Rules
 

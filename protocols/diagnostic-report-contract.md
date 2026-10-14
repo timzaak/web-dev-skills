@@ -12,7 +12,7 @@
 - `runtime`: `web | extension | flutter`
 - `problem_code`: `TEST | FRONTEND | EXTENSION | FLUTTER | NATIVE | BACKEND | ENV | AUTH | DATA`
 - `severity`: `P0 | P1 | P2`
-- `recommended_agent`: `web-demo-dev | extension-demo-dev | flutter-demo-dev | frontend-dev | extension-dev | flutter-dev | backend-dev | manual`
+- `recommended_agent`: `web-demo-dev | extension-demo-dev | flutter-demo-dev | frontend-dev | extension-dev | flutter-dev | backend-dev | shopify-dev | manual`
 - `confidence`: `high | medium | low`
 
 字段含义：
@@ -132,6 +132,8 @@
 | `BACKEND` | 后端接口、查询、服务端异常 | `backend-dev` |
 | `AUTH` | 登录、鉴权、授权、权限配置问题 | `backend-dev` |
 | `ENV` | 环境启动、端口、依赖服务、基础设施问题 | `manual` |
+
+Shopify 页面 Demo 保持 `runtime=web`。当证据定位到 Shopify 应用路由、Prisma、app proxy 或 Shopify `extensions/` 业务实现时，`FRONTEND / BACKEND / AUTH` 的推荐处理方覆盖为 `shopify-dev`；Shopify 扩展不是 Chrome 扩展，不使用 `runtime=extension` 或 `extension-dev`。`TEST / DATA` 仍归 `web-demo-dev`，`ENV` 仍归 `manual`；混合项目的独立后端/前端缺陷按实际文件归属沿用表中角色，不因存在 Shopify 配置而全部改派。
 
 ## 严重级别定义
 

@@ -153,11 +153,11 @@
 
 > 汇总所有适用分端文档的文件影响范围；`/t-super-run` 直接对照本表拆分任务。
 > MODIFY/DELETE 路径必须存在。CREATE 路径允许尚不存在，但父目录必须存在，并在说明中给出相邻实现或命名规范依据。
-> 设计要求用户故事演示时，Web Playwright 资产标 `web-demo`，扩展 Playwright `demo/e2e/extension/` 资产标 `extension-demo`，Patrol 资产标 `flutter-demo`；无需演示时不出现对应值。
+> 设计要求用户故事演示时，Web Playwright 资产标 `web-demo`，扩展 Playwright `demo/e2e/extension/` 资产标 `extension-demo`，Patrol 资产标 `flutter-demo`；shopify 分端的资产在说明列标注归属 phase（shopify-app / shopify-extension）；无需演示时不出现对应值。
 
 | 文件 | 操作 | 说明 | 来源分端 |
 |---|---|---|---|
-| `[真实仓库路径]` | CREATE / MODIFY / DELETE | [变更摘要] | backend / frontend / extension / flutter / web-demo / extension-demo / flutter-demo / 跨端 |
+| `[真实仓库路径]` | CREATE / MODIFY / DELETE | [变更摘要] | backend / frontend / extension / flutter / shopify / web-demo / extension-demo / flutter-demo / 跨端 |
 
 ## 9. 外部参考
 

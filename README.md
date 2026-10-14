@@ -56,14 +56,16 @@ t-prd-publish user-management
 
 ## 阶段拆分
 
-典型 Web 顺序是 `backend -> frontend -> web-demo`；典型扩展顺序是 `extension -> extension-demo`（有后端改动时前置 backend）；典型 Flutter 顺序是 `backend -> flutter -> flutter-demo`。
+典型 Web 顺序是 `backend -> frontend -> web-demo`；典型扩展顺序是 `extension -> extension-demo`（有后端改动时前置 backend）；典型 Flutter 顺序是 `backend -> flutter -> flutter-demo`；典型 Shopify 顺序是 `shopify-app -> shopify-extension -> web-demo`（仅在设计要求店面、admin 或顾客账户用户故事演示时启用 web-demo）。
 
 - `backend`：后端接口、数据模型、权限、业务逻辑、后端测试和只读验收。
 - `frontend`：React 页面、组件、状态、前端测试和只读验收。
 - `extension`：WXT / Chrome MV3 入口、消息、存储、权限、Vitest 测试和只读验收。
 - `miniapp`：小程序页面、平台能力、构建验证和只读验收。
 - `flutter`：Flutter View、Riverpod 状态、数据层、单元/widget/integration 测试和只读验收。
-- `web-demo`：基于用户故事维护 Playwright Demo/E2E，并验收浏览器用户路径。
+- `shopify-app`：Shopify App 本体——React Router loader/action、Prisma 数据模型、admin 嵌入页、app proxy 验签路由、Vitest 测试和只读验收。
+- `shopify-extension`：theme app extension 与 customer account UI extension 的店面/账户交付面及只读验收。
+- `web-demo`：基于用户故事维护 Playwright Demo/E2E，并验收浏览器用户路径（Shopify 项目验证设计声明的店面、admin 与顾客账户用户路径）。
 - `extension-demo`：基于用户故事维护真实加载扩展的 Playwright 集成演示，验收跨上下文用户路径、权限和生命周期。
 - `flutter-demo`：基于用户故事维护 Android Patrol 演示，覆盖真实 App 操作与原生系统 UI。
 
@@ -72,6 +74,10 @@ t-prd-publish user-management
 review、simplify 或 CI 修复使证据失效时，先补跑必要回归和独立验收再提交；push 门禁与中断恢复见 [push 执行协议](protocols/push-execution-contract.md)。
 
 扩展项目按 [扩展初始化指南](guides/extension/initialization.md) 准备 WXT 工程；需要真实加载扩展的集成演示基础设施时，在目标项目运行 `t-init --extension-demo`。演示 fixture、环境与验收见 [扩展演示指南](guides/extension/demo-testing.md)。
+
+Shopify App 项目用 `t-init --shopify <project-name>` 基于 Shopify 官方 React Router 模板创建工程（或为已有 Shopify 工程增量补齐 demo/scripts 设施）；开发规范见 [Shopify 开发指南](guides/shopify/development.md)。`shopify app deploy` 部署在 `t-push` 之后由用户显式执行，不并入任何 skill。
+
+Shopify 初始化保留已有配置、脚本和文档，失败后重跑同一入口仅补齐缺口。Demo 的单文件、批量和恢复运行都使用 `--no-auto-env`，真实故事的店铺登录、URL 和测试数据清理由项目 `scripts/index.md` 声明；初始化静态 smoke 不依赖店铺。`t-push` 识别 `typecheck` / `type-check`，缺少类型检查或应用构建入口时阻断；存在扩展配置时另跑 Shopify 扩展构建。
 
 ## 使用规则
 

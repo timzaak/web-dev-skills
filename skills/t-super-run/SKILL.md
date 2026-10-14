@@ -1,7 +1,7 @@
 ---
 name: t-super-run
 description: Plan and continuously execute one explicitly requested delivery phase in the main session, with outcome-level status, role-guide switching for dev/test and repairs, persisted recovery, and independent read-only acceptance. Use after technical design to combine planning and execution; use t-task and t-run for separate plan review or item-based subagent execution.
-argument-hint: "[任务名称] --phase <backend|frontend|extension|miniapp|web-demo|extension-demo|flutter|flutter-demo>"
+argument-hint: "[任务名称] --phase <backend|frontend|extension|miniapp|web-demo|extension-demo|flutter|flutter-demo|shopify-app|shopify-extension>"
 allowed-tools:
   - Agent
   - AskUserQuestion
@@ -47,15 +47,15 @@ allowed-tools:
 | 参数 | 说明 |
 | --- | --- |
 | `[feature]` | 必填；允许中文、英文、数字、空格、下划线和连字符 |
-| `--phase <backend\|frontend\|extension\|miniapp\|web-demo\|extension-demo\|flutter\|flutter-demo>` | 必填；本次调用只执行该 phase，完成后停止 |
+| `--phase <backend\|frontend\|extension\|miniapp\|web-demo\|extension-demo\|flutter\|flutter-demo\|shopify-app\|shopify-extension>` | 必填；本次调用只执行该 phase，完成后停止 |
 
 ## 前置条件
 
-- `--phase` 缺失或不在支持列表内时终止，提示 `--phase <backend|frontend|extension|miniapp|web-demo|extension-demo|flutter|flutter-demo>` 用法。
+- `--phase` 缺失或不在支持列表内时终止，提示 `--phase <backend|frontend|extension|miniapp|web-demo|extension-demo|flutter|flutter-demo|shopify-app|shopify-extension>` 用法。
 - feature 必须是单个目录名，拒绝路径分隔符、`.` 和 `..`。
 - `.ai/design/[feature].md` 必须存在。
 - 按状态协议的 Design Source Gate 校验来源；首次规划运行 `python "${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py" ".ai/design/[feature].md" --require-complete --json`，恢复时核对生成状态与设计文档集合。失败时停止，不进入执行；`t-prd-check`、`t-design-check` 和 `t-task-check` 均不是强制前置。
-- 只支持 `backend | frontend | extension | miniapp | web-demo | extension-demo | flutter | flutter-demo`；请求的 phase 不在设计与需求来源识别出的真实交付端内时终止，不得为满足命令而编造交付范围。
+- 只支持 `backend | frontend | extension | miniapp | web-demo | extension-demo | flutter | flutter-demo | shopify-app | shopify-extension`；请求的 phase 不在设计与需求来源识别出的真实交付端内时终止，不得为满足命令而编造交付范围。
 - 不读取或修改 `.ai/task/[feature]/` 作为 super-run 状态。
 - 已有状态且请求的 phase 为 `completed | skipped` 时，按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 核对证据适用性；仍有效则报告阶段结果和待验证项，相关输入变化时按状态协议只重新打开受影响 task 及验收，不选择其他 phase。
 
@@ -64,7 +64,7 @@ allowed-tools:
 在规划或恢复前：
 
 1. 读取来源门禁取得的全部 `design_documents` 和现有 `.ai/super-run/[feature]/`。
-2. 按 phase 确认设计输入：backend 读 `backend.md`；frontend/web-demo 读 `frontend.md`；extension/extension-demo 读 `extension.md`；flutter/flutter-demo 读 `flutter.md`；miniapp 读主文档小程序相关部分（当前无 miniapp 分端设计文档）；客户端依赖后端契约时同时读 `backend.md`。
+2. 按 phase 确认设计输入：backend 读 `backend.md`；frontend 读 `frontend.md`；web-demo 按实际页面交付端读 `frontend.md` 或 `shopify.md`（跨两端时都读）；extension/extension-demo 读 `extension.md`；flutter/flutter-demo 读 `flutter.md`；shopify-app/shopify-extension 读 `shopify.md`；miniapp 读主文档小程序相关部分（当前无 miniapp 分端设计文档）；客户端依赖后端契约时同时读 `backend.md`。
 3. 读取相关 `.ai/prd/**/*.md`、`docs/prd/**/*.md`、`.ai/user-stories/**/*.md` 与 `docs/user-stories/**/*.md`，保留 draft/published 来源边界。
 4. 在任何提问前读取 `.ai/decision-log/[feature].md`；存在时按需读取 `.ai/decision/[feature].md` 与 `.ai/tech-research/[feature].md`。
 5. 按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Phases 启用规则，从设计覆盖矩阵、Operation ID、文件影响表、Decision Trace、代码和配置确定 active phases、task 闭环与真实验证入口；设计主文档声明 Demo 主路径或文件影响表含 `web-demo`/`extension-demo`/`flutter-demo` 行且项目存在对应交付端时，对应 demo phase 计入 active phases，demo 资产由该 phase 交付，不并入 frontend/extension/flutter。
@@ -77,7 +77,7 @@ allowed-tools:
 - 按 `${CLAUDE_PLUGIN_ROOT}/protocols/super-run-state-contract.md` 创建或更新：
   - `.ai/super-run/[feature]/.state.json`
   - `.ai/super-run/[feature]/[phase].md`
-- backend/frontend/extension/miniapp/flutter 默认规划 `dev -> accept`；需要测试角色编写测试用例、fixture/helper 或专项验证脚本时规划 `dev -> test -> accept`。web-demo/extension-demo/flutter-demo 规划 `dev -> accept`。仅运行现有测试或编译、类型检查、构建时，验证归 dev；accept 核查实际执行证据。
+- backend/frontend/extension/miniapp/flutter/shopify-app/shopify-extension 默认规划 `dev -> accept`；需要测试角色编写测试用例、fixture/helper 或专项验证脚本时规划 `dev -> test -> accept`。web-demo/extension-demo/flutter-demo 规划 `dev -> accept`。仅运行现有测试或编译、类型检查、构建时，验证归 dev；accept 核查实际执行证据。
 - 每个 task 只规划一个责任闭环，不生成 item。
 - 把校验结果的 `design_documents` 写入 super-run state；恢复规则见共享协议。
 - 计划必须写明每个 task 要读取的 agent 规范及其关联文档的具体路径。

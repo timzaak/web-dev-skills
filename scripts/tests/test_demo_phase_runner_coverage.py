@@ -113,5 +113,36 @@ class DemoPhaseCoverageTests(unittest.TestCase):
             self.assertTrue(coverage.check_runner(root, flutter, dynamic=False).commands)
 
 
+    def test_shopify_runner_discovery_and_full_suite_gate(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            runner = root / ".ai/task/feature/shopify-app/test/SA-T02-runner.md"
+            runner.parent.mkdir(parents=True)
+            content = (
+                "## Expected Test Manifest\n- `rejects tampered signature`\n"
+                "## Validation\nnpm run test -- src/proxy-verify.test.ts\n"
+            )
+            runner.write_text(content, encoding="utf-8")
+            self.assertEqual(coverage.find_runner_files(root, "feature", "shopify-app"), [runner])
+            self.assertEqual(coverage.find_runner_files(root, "feature", None), [runner])
+            self.assertEqual(coverage.infer_layer(runner), "shopify-app")
+            self.assertEqual(coverage.check_runner(root, runner, dynamic=False).errors, [])
+            runner.write_text(content.replace(" -- src/proxy-verify.test.ts", ""), encoding="utf-8")
+            errors = coverage.check_runner(root, runner, dynamic=False).errors
+            self.assertTrue(any("Full-suite command lacks" in error for error in errors))
+            extension_runner = root / ".ai/task/feature/shopify-extension/test/SX-T01-runner.md"
+            extension_runner.parent.mkdir(parents=True)
+            extension_runner.write_text(
+                "## Expected Test Manifest\n- `parses block settings`\n"
+                "## Validation\nnpm run test -- extensions/helpers/settings.test.ts\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(coverage.infer_layer(extension_runner), "shopify-extension")
+            self.assertEqual(
+                coverage.find_runner_files(root, "feature", "shopify-extension"),
+                [extension_runner],
+            )
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -24,6 +24,8 @@ Result: {"success":"true|false","fixed":"false","logs":"...","exitCode":0,"testF
 
 ## 单文件执行顺序
 
+首次执行以及中断恢复时，先读目标项目 `scripts/index.md`、任务 Validation 和 fixture，确认环境模式。Shopify 使用下方 Shopify Demo 运行模式；Chrome 扩展使用扩展模式；其余使用默认 Web 模式。模式、目标 URL、身份 fixture 和清理入口必须可从这些持久化输入恢复，缺失时先补齐，不能在 `continue` 或 `scan` 时默认切回全栈环境。
+
 1. 以 `fast` 模式运行整个测试文件。
 2. 整文件通过时直接返回，`fixed=false`。
 3. 失败时从该 run 的 `playwright-output.log` 提取失败用例标题；需要规范化完整标题时可执行 `--list-tests`。`--list-tests` 不得删除或覆盖失败 run 的日志。
@@ -35,12 +37,12 @@ Result: {"success":"true|false","fixed":"false","logs":"...","exitCode":0,"testF
 ## 诊断、修复与补测
 
 - Web 诊断使用 `web-demo-diagnose`；`demo/e2e/extension/` 的扩展演示使用 `extension-demo-diagnose`。输入均为 `testFile`、实际失败的 `runId` 和 `testCaseTitle`。
-- 按诊断的 `recommended_agent` 选择 `web-demo-dev | extension-demo-dev | frontend-dev | extension-dev | backend-dev | miniapp-dev | flutter-dev`。
+- 按诊断的 `recommended_agent` 选择 `web-demo-dev | extension-demo-dev | frontend-dev | extension-dev | backend-dev | miniapp-dev | flutter-dev | shopify-dev`。
 - 所有 Agent 调用必须先按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 注入角色规范。
 - 修复返回必须按 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md` 解析 `task_completion.change_scope` 和 `tests_to_run`。
-- 补测命令必须符合 `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`，并按 `backend -> frontend -> extension -> miniapp -> flutter -> web-demo -> extension-demo` 串行。与当前定向 Demo 验证完全相同的命令去重，不重复执行。
+- 补测命令必须符合 `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`，并按 `backend -> frontend -> extension -> miniapp -> flutter -> shopify -> web-demo -> extension-demo` 串行。与当前定向 Demo 验证完全相同的命令去重，不重复执行。
 - 缺少 `tests_to_run` 时记录 P1 契约缺失，并按实际 `change_scope` 执行至少一条最小补测。补测失败记录风险，但继续 Demo 验证和后续尝试。
-- extension/miniapp/Flutter 补测只在目标项目实际启用对应交付端，或诊断明确归因到该交付端时执行。
+- extension/miniapp/Flutter/Shopify 补测只在目标项目实际启用对应交付端，或诊断明确归因到该交付端时执行。
 
 ## 扩展 Demo 运行模式
 
@@ -49,7 +51,14 @@ Result: {"success":"true|false","fixed":"false","logs":"...","exitCode":0,"testF
 - extension-dev 修复实际扩展代码后，必须先重新 build，再用新 persistent context 重跑；不能加载旧产物。
 - 独立扩展模式的文件间隔离由 fixture 关闭 profile、重置 stub 数据实现，不运行默认 Web stop/start。真实后端依赖仍按下节重建，不能用独立模式绕过。
 
-## 环境和数据隔离
+## Shopify Demo 运行模式
+
+- 适用 Shopify 店面、admin 嵌入页和 customer account 页面 Demo，设计输入取 `shopify.md`；单文件、定向重测、整文件终验、批次、scan 和 continue 的所有 runner 命令均追加 `--no-auto-env`。不调用默认 Web `demo-start.py` / `demo-stop.py`，也不通过插件回退入口启动 Docker 环境。
+- 真实故事运行前，按 `scripts/index.md` 核实用户已启动的 `shopify app dev`、目标测试店铺/预览 URL 和该故事的登录 fixture；缺登录、URL 或服务时记录环境受阻，交回编排层，不拿占位 smoke 代替。初始化静态 smoke 只验证 Playwright/日志通路，可不启动 Shopify。
+- 业务数据隔离由项目 fixture/清理入口负责：为本次运行创建可追踪的独立测试数据，结束后只清理本次数据；有写操作却没有可靠的隔离/清理入口时停止。批次在文件之间核查清理成功，失败使用 `block` 保存断点；恢复时先处理上次遗留数据，再重跑未完成文件，不重建店铺或清空业务数据库。
+- 修复 Shopify 业务代码后，按实际变更补跑 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/validation.md` 的门禁，并确认 dev 进程已加载新应用/扩展；需要重启时按项目已声明的 Shopify 启动流程处理，登录受阻则保留失败证据并交回编排层。每次验证使用新的 run ID，保留历史日志。
+
+## 默认 Web 环境和数据隔离
 
 - 每次分发修复前后必须比较实际文件变化。只要当次修复实际产生后端代码变动，就必须在当前用例的 Demo 验证前执行：
 

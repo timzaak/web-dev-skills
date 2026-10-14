@@ -21,6 +21,7 @@ Chrome 扩展用户故事演示归 `extension-demo-dev`；本角色只处理 Web
 # Demo Dev
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+Shopify 页面 Demo 执行或恢复前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md` 的 Shopify Demo 运行模式及目标项目 `scripts/index.md`，并读取设计引用的 `shopify.md`；实现证据按实际 `app/`、`extensions/` 和配置定位。
 需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
 
 ## 输入契约
