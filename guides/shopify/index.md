@@ -7,6 +7,7 @@ Shopify App 开发规范入口，按"先定位问题，再读对应页面"使用
 | 你要确认的问题 | 对应规范 |
 | --- | --- |
 | 工程结构事实、admin 嵌入页、app proxy 验签、扩展交付面、CLI 工作流与部署时机 | [development.md](${CLAUDE_PLUGIN_ROOT}/guides/shopify/development.md) |
+| CLI 登录、dev server 故障、网络代理、商家会话承载（自动化 Chrome / 凭据）、店面密码 | [environment.md](${CLAUDE_PLUGIN_ROOT}/guides/shopify/environment.md) |
 | Vitest 测试边界与店面 Demo 的分工 | [testing.md](${CLAUDE_PLUGIN_ROOT}/guides/shopify/testing.md) |
 | 完成前最小验证命令与 `shopify app dev` 冒烟判定 | [validation.md](${CLAUDE_PLUGIN_ROOT}/guides/shopify/validation.md) |
 | 只读验收关注点：验签、scopes、PII、扩展落位 | [quality.md](${CLAUDE_PLUGIN_ROOT}/guides/shopify/quality.md) |

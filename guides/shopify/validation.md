@@ -17,7 +17,7 @@
 
 1. dev server 启动且输出隧道 URL，无致命报错。
 2. admin 嵌入页：在 Shopify 管理后台打开应用页面，Polaris 页面渲染、无控制台致命错误。
-3. app proxy：请求 `/apps/<子路径>/...`，合法签名返回业务响应，篡改签名返回 401。
+3. app proxy：请求 `/apps/<子路径>/...`，合法签名返回业务响应，篡改签名返回 401。dev store 默认开启店面密码保护（全部店面路径 302 → `/password`）：先用店面密码解锁（POST `/password`，密码经 `.env.demo` 的 `STOREFRONT_PASSWORD` 注入，见 [environment.md](${CLAUDE_PLUGIN_ROOT}/guides/shopify/environment.md)），再请求 proxy 路径；返回**应用侧响应**即转发到达应用（无对应路由时应用自身 404 即为转发生效）。
 4. theme app extension：主题编辑器出现 app block，拖入模板后挂载点渲染。
 5. customer account 扩展：顾客账户中心出现自定义页面入口且页面可打开。
 

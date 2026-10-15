@@ -34,7 +34,6 @@ tools:
 
 - `docs/user-stories/00-index.md`
 - `.ai/user-stories/**/*.md`（任务或设计引用 draft 用户故事时）
-- `${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/shopify/index.md`
 - 按需进入：
    - `${CLAUDE_PLUGIN_ROOT}/guides/shopify/testing.md`
@@ -61,7 +60,7 @@ tools:
 ### 运行命令
 
 ```bash
-npm run test -- [pattern]   # 项目根；脚本名以 package.json 实际为准
+npm run test -- [pattern]   # 项目根；官方模板默认不带 test 脚本，未提供时先补齐或记录受阻
 ```
 
 按需执行：

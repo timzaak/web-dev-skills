@@ -1,13 +1,13 @@
 # Shopify 初始化流程
 
-`t-init --shopify <project-name>` 的唯一执行流程。目标：Shopify 官方 React Router 模板 + t-tools 运行设施；不实现业务功能。输出通过 Step 4 后才可作为后续设计/执行的工程基础，静态 smoke 不代表用户故事验收。
+`t-init --shopify <project-name>` 的唯一执行流程。目标：Shopify 官方 React Router 模板 + t-tools 运行设施；不实现业务功能。输出通过 Step 5 后才可作为后续设计/执行的工程基础，静态 smoke 不代表用户故事验收。
 
 项目名称约束与全栈模式相同：仅英文、数字、连字符、下划线；拒绝 `..`、`/`、`\`；长度 1-50 字符。新工程目录采用 CLI 对名称规范化后的 kebab-case，执行前确定并报告实际路径，后续步骤统一使用该路径；已有工程优先匹配用户给出的原目录。
 
 ## Step 1: 目录判定
 
 - 目标目录不存在 → 执行 Step 2。
-- 已存在且含 `shopify.app.toml` 与 `package.json` → 跳过脚手架，执行 Step 3、Step 4；用户本次初始化指令已授权增量补齐，不重复确认。
+- 已存在且含 `shopify.app.toml` 与 `package.json` → 跳过脚手架，执行 Step 3、Step 4、Step 5；用户本次初始化指令已授权增量补齐，不重复确认。
 - 已存在但非完整 Shopify 工程（包括空目录、上次中断的部分产物）→ 不覆盖或删除。报告缺失文件；若能确认是上次脚手架失败，先按 Step 2 的恢复规则修复，否则由用户指定新目录或处理冲突。
 
 ## Step 2: Shopify CLI 脚手架（仅新目录）
@@ -46,7 +46,7 @@ npm create @shopify/app@latest -- --name <project-name> --template reactRouter -
 
 从 `${CLAUDE_PLUGIN_ROOT}/scripts/` 按增量规则补齐 `web-demo-test-runner.py`、`web-demo-run-all.py`、`web-demo-failure-summary.py`、`cleanup-demo.py`、`cleanup-test-logs.py` 及其 `lib/` 依赖。不新增 `backend-test.py`、`test-start.py`、`test-stop.py`、`demo-start.py`、`demo-stop.py`；已有其他交付端的脚本保留。
 
-在 `scripts/index.md` 记录 `${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md` 的 Shopify Demo 运行模式及项目实际入口：所有 runner 命令保留 `--no-auto-env`，包括批量、scan、重试和 continue。初始化 smoke 无需 Shopify dev；真实用户故事需要就绪的 `shopify app dev`、URL、身份与数据隔离。
+在 `scripts/index.md` 记录 `${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md` 的 Shopify Demo 运行模式及项目实际入口：所有 runner 命令保留 `--no-auto-env`，包括批量、scan、重试和 continue。初始化 smoke 无需 Shopify dev；真实用户故事的环境与会话承载（自动化 Chrome、`.env.demo`、清理入口骨架）由 Step 4 登记进「真实用户故事环境」章节，身份 fixture 由 web-demo 按设计提供。
 
 ### 3.3 根文件
 
@@ -55,19 +55,30 @@ npm create @shopify/app@latest -- --name <project-name> --template reactRouter -
 - `.gitignore`：只增补缺失的日志和 Demo 产物忽略项。
 - 读取 [scripts-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/scripts-template.md)，按实际脚本和共享契约生成或合并 `scripts/index.md`。
 
-## Step 4: 验证与恢复
+## Step 4: 账号登录与商家会话环境
+
+为后续 `shopify app dev` 冒烟（Step 5）与 web-demo 用户故事准备账号、会话与网络环境。行为模式与排障细节以 [guides/shopify/environment.md](${CLAUDE_PLUGIN_ROOT}/guides/shopify/environment.md) 为准；本项目实际值登记在 `scripts/index.md`，凭据只进 `.env.demo`（`.env.*` 已被忽略，不入库）。本轮无法完成的环境项记录为缺口并给出手动步骤，不阻塞 Step 5 的离线设施验证。
+
+1. **CLI 登录态与关联事实**：短超时（60–90s）探测 `npm run dev`（= `shopify app dev`）；输出 Preview URL / Dev store / Access scopes 即已登录且已关联。核查并登记 org、app 名称与 client_id、dev store 域名、admin 预览 URL 形态。未登录/未关联时给出交互登录与关联的手动步骤（终端运行需登录的 CLI 命令、在 Partner 后台确认），由用户完成后重跑本步骤；不伪造登录态或 client_id。
+2. **网络代理**（需要代理访问 Shopify 的环境）：探测本机代理端口（Clash Verge/mihomo 常见 7890；或读主浏览器 ZeroOmega 配置指向的端口），以 `curl -x` 验证出口可用；登记到 `scripts/index.md`。探测时注意监听可能是 `0.0.0.0:<port>` 而非仅 `127.0.0.1`。
+3. **商家会话承载**（推荐主浏览器附加模式）：生成专用自动化 Chrome 启动方式——独立 `--user-data-dir`（项目外目录）+ `--remote-debugging-port` + `--proxy-server=<本机代理>` + `--proxy-bypass-list="<-loopback>"`——并引导用户在该窗口**人工登录一次** admin（会话持久，后续免登录）；登录完成与否以窗口落点核验，不编造登录态。凭据回退模式（自动登录）在 `.env.demo` 留键位：`SHOPIFY_STORE_EMAIL` / `SHOPIFY_STORE_PASSWORD`（须未开 2FA，可靠性不保证）。
+4. **店面密码**：dev store 默认开启店面密码保护，会拦截 app proxy 店铺侧验证；取得店面密码写入 `.env.demo` 的 `STOREFRONT_PASSWORD`（用户提供），验证方式见 environment.md（不改动店铺设置）。
+5. **登记**：把上述事实与入口初始化进 `scripts/index.md`「真实用户故事环境」：自动化 Chrome 启动命令、admin 预览地址（BASE_URL 口径）、`CHROME_CDP_URL`、`.env.demo` 键位说明、业务数据清理入口骨架（运行时由 web-demo 按设计补齐具体命令）。身份/登录 fixture 的实现仍归 web-demo 按设计提供，初始化只落环境与会话承载。
+
+## Step 5: 验证与恢复
 
 - 检查根与 `demo/` 的依赖是否就绪；有依赖增量时在各自目录按原包管理器安装。新项目使用 npm，已有项目沿用已有锁文件。
 - 优先复用根 `typecheck`，其次 `type-check`。二者都缺失时，基于实际 React Router 配置补充 `typecheck`（通常为 `react-router typegen && tsc --noEmit`），不以裸 `tsc` 省略路由类型生成。已有等价自定义入口可通过上述稳定入口转调；不得覆盖原脚本。
 - `build` 必须存在；扩展存在时还需可调用本地 CLI 的 `shopify` 脚本（模板通常为 `shopify`）。缺失时先核实项目实际入口并补齐，不能虚构构建脚本。lint 按已有配置执行，不引入无依据的新 lint 配置。
 - 按 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/validation.md` 执行类型检查、应用构建及适用的扩展构建；执行 Demo 类型检查和初始化静态 smoke：`uv run scripts/web-demo-test-runner.py "demo/e2e/smoke.e2e.ts" --no-auto-env`（复用时使用实际 smoke 路径）。缺少 Playwright 浏览器时按项目配置安装后重试。
-- 确认 `shopify.app.toml`、`demo/`、5 个脚本及 lib/index、AGENTS/README 齐备。任何必要验证失败或缺工具均记录为未完成/未验证，保留当前产物；修复后重跑 Step 4，不以“文件存在”宣告初始化完成。
-- 真实店铺冒烟需要的首次登录与 `shopify app dev` 留作明确的后续步骤，不阻止离线设施验证完成，也不计为用户故事验收。
+- 确认 `shopify.app.toml`、`demo/`、5 个脚本及 lib/index、AGENTS/README 齐备。任何必要验证失败或缺工具均记录为未完成/未验证，保留当前产物；修复后重跑 Step 5，不以“文件存在”宣告初始化完成。
+- 需要真实店铺的运行时冒烟（`shopify app dev` 后的 admin 页面/proxy/扩展观察）依赖 Step 4 的账号与会话环境；Step 4 存在缺口时相应冒烟记录为未验证并给出恢复入口，不阻塞离线设施验证，也不计为用户故事验收。
 
 ## 收尾输出
 
 - 实际项目路径、模式（新建 / 增量 / 恢复）、新增/合并/保留文件
 - 已执行验证、失败或未验证项，以及准确恢复入口
+- Step 4 环境就绪情况：CLI 登录/关联事实、代理端口、自动化 Chrome 会话（用户是否已完成人工登录）、店面密码是否取得；未完成项给出手动步骤
 - 需要用户操作的登录、组织/店铺关联；custom distribution 的选择以用户已确认方案为准
 - Demo 模式、UnifiedLogger 安装目录、后续真实故事所缺环境
 - 初始化验证通过后建议 `/t-decision <feature>`；未通过则先恢复本流程

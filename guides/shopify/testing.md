@@ -19,5 +19,5 @@
 
 ## 执行
 
-- 定向命令以项目实际脚本为准，典型为项目根 `npm run test -- [pattern]`。
+- 定向命令以项目实际脚本为准（如项目根 `npm run test -- [pattern]`）；官方模板默认不带 test 脚本，项目未提供时先补齐入口或记录受阻，不静默跳过。
 - 测试资产编写与定向执行遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Test Execution Consolidation。
