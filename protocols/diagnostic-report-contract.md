@@ -79,6 +79,7 @@
 
 证据优先级：
 - 当前 runtime 的 `playwright-output.log` 或 `patrol-output.log`
+- 当次 run 目录中的失败截图 / trace（如存在）
 - unified logs
 - 测试代码 / 前端代码 / 后端日志
 

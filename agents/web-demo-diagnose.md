@@ -50,6 +50,7 @@ Shopify 页面 Demo 执行或恢复前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/we
 
 按以下优先级读取证据：
 - `demo/test-results/runs/${runId}/playwright-output.log`
+- `demo/test-results/runs/${runId}/` 内的失败截图与 `trace.zip`（FRONTEND 类现场证据；旧项目可能不存在）
 - `demo/test-results/unified-logs/*`
 - `log/backend-demo.log`
 - 失败测试文件与相关 page object / helper
