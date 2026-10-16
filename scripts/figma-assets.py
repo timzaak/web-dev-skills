@@ -85,11 +85,33 @@ def has_alpha(probe: dict[str, Any]) -> bool:
 def has_transparent_pixels(
     path: Path, *, ffmpeg_bin: str, runner: Runner = subprocess.run,
 ) -> bool:
-    result = run([
-        ffmpeg_bin, "-v", "info", "-i", str(path),
-        "-vf", "alphaextract,signalstats,metadata=print", "-frames:v", "1",
-        "-f", "null", "-",
-    ], runner=runner)
+    try:
+        result = run([
+            ffmpeg_bin, "-v", "info", "-i", str(path),
+            "-vf", "alphaextract,signalstats,metadata=print", "-frames:v", "1",
+            "-f", "null", "-",
+        ], runner=runner)
+    except RuntimeError:
+        if path.suffix.lower() != ".webp":
+            raise
+        # Some FFmpeg builds reject valid lossy WebP alpha streams. Inspect
+        # the actual pixels with libwebp through Pillow instead; encoding and
+        # native dimension validation still use the normal asset pipeline.
+        try:
+            from PIL import Image
+        except ImportError as exc:
+            raise RuntimeError(
+                "FFmpeg could not inspect WebP alpha; install Pillow with "
+                "`python -m pip install Pillow` and retry"
+            ) from exc
+        try:
+            with Image.open(path) as image:
+                image.load()
+                if "A" not in image.getbands():
+                    return False
+                return image.getchannel("A").getextrema()[0] < 255
+        except OSError as exc:
+            raise RuntimeError(f"cannot decode WebP for alpha inspection: {path}") from exc
     output = f"{result.stdout}\n{result.stderr}"
     marker = "lavfi.signalstats.YMIN="
     for line in output.splitlines():
@@ -412,7 +434,16 @@ def convert_image(
                 f"via kyz proxy ({TINIFY_HOST})",
                 file=sys.stderr,
             )
-            command = [ffmpeg_bin, "-y", "-i", str(tinified_png), "-c:v", "libwebp"]
+            command = [ffmpeg_bin, "-y", "-i", str(tinified_png)]
+            if alpha_mask is not None or unbake is not None:
+                # TinyPNG may quantize rare alpha values (even fully transparent
+                # corners) into nonzero opacity. Keep its compressed RGB while
+                # restoring the exact, already scaled alpha prepared above.
+                command += [
+                    "-i", str(processed_png), "-filter_complex",
+                    "[1:v]alphaextract[alpha];[0:v][alpha]alphamerge",
+                ]
+            command += ["-c:v", "libwebp"]
             if use_lossless:
                 command += ["-lossless", "1", "-compression_level", "6"]
             else:

@@ -24,7 +24,7 @@
 
 ## 图片转换
 
-1. 位图转换直接调用 `${CLAUDE_PLUGIN_ROOT}/scripts/figma-assets.py image` 并使用默认编码参数；预期透明图传入 `--alpha-mask <isolated.png> --expect-alpha`。以脚本结果和透明像素检查判断成功，不逐张目视评估压缩效果。
+1. 位图转换直接调用 `${CLAUDE_PLUGIN_ROOT}/scripts/figma-assets.py image` 并使用默认编码参数；预期透明图传入 `--alpha-mask <isolated.png> --expect-alpha`。脚本在 TinyPNG 压缩后重新合并预处理阶段的原始 alpha，避免量化把完全透明的圆角变成半透明底色。以脚本结果和透明像素检查判断成功，不逐张目视评估压缩效果。
 2. TinyPNG 压缩依赖 kyz daemon 的 tinify 代理规则：默认 `127.0.0.1:8477`（`--tinypng-proxy` 覆盖），脚本按 `Host: api.tinify.com` 转发并自动读取 daemon token。转换前确认 `kyz daemon status` 的 proxy_listen 存在；脚本报代理或上游错误（401 凭据、429 月度配额、body 超限）时停止并转述，不回退为本地有损压缩。上传超过 daemon 默认 10 MiB body 上限时先调大 `request_body_limit_bytes`。
 3. 用 ffprobe 读取最终宽高，约分成 `W/H`；不要从 CSS 或 Figma 标注猜比例。
 4. 正式路径已存在时停止，禁止静默覆盖；开发者明确要求替换时才覆盖。
