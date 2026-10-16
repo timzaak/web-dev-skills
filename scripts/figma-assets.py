@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Convert, optimize and inspect Figma assets with ffmpeg, TinyPNG and SVGO."""
+"""Convert, optimize and inspect Figma assets with ffmpeg, TinyPNG and SVGO.
+
+Single assets convert via `image|svg|video`; `batch` consumes an assets-plan.json
+whose image entries must declare `transparent`, enforces baked-canvas alpha masks
+and atomically writes the asset manifest.
+"""
 
 from __future__ import annotations
 
@@ -512,6 +517,227 @@ def convert_video(
     return common_metadata(output, final_probe)
 
 
+PLAN_KINDS = ("image", "svg", "video")
+PLAN_ENTRY_FIELDS = {"id", "name", "kind", "source", "outputPath", "publicUrl", "origin"}
+IMAGE_ONLY_FIELDS = {
+    "transparent", "alphaMask", "unbakeColor", "lossless", "quality", "maxWidth", "flattened",
+}
+
+
+def plan_entry_error(index: int, entry: dict[str, Any], message: str) -> RuntimeError:
+    identity = entry.get("id") or entry.get("name") or f"#{index}"
+    return RuntimeError(f"plan entry {identity}: {message}")
+
+
+def load_plan(path: Path) -> list[dict[str, Any]]:
+    """Parse and validate the asset plan; per-image transparency must be declared explicitly."""
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f"cannot read asset plan {path}: {exc}") from exc
+    if not isinstance(payload, dict) or not isinstance(payload.get("entries"), list):
+        raise RuntimeError("asset plan must be an object with an 'entries' array")
+    entries: list[dict[str, Any]] = []
+    seen_ids: set[str] = set()
+    seen_outputs: set[str] = set()
+    for index, raw in enumerate(payload["entries"]):
+        if not isinstance(raw, dict):
+            raise RuntimeError(f"plan entry #{index} must be an object")
+        for field in ("id", "name", "kind", "source", "outputPath"):
+            value = raw.get(field)
+            if not isinstance(value, str) or not value.strip():
+                raise plan_entry_error(index, raw, f"'{field}' must be a non-empty string")
+        identity = raw["id"]
+        if identity in seen_ids:
+            raise plan_entry_error(index, raw, f"duplicate id: {identity}")
+        seen_ids.add(identity)
+        output_key = os.path.normcase(str(Path(raw["outputPath"]).resolve()))
+        if output_key in seen_outputs:
+            raise plan_entry_error(index, raw, f"duplicate outputPath: {raw['outputPath']}")
+        seen_outputs.add(output_key)
+        kind = raw["kind"]
+        if kind not in PLAN_KINDS:
+            raise plan_entry_error(
+                index, raw, f"'kind' must be one of {', '.join(PLAN_KINDS)}; got {kind}",
+            )
+        unknown = set(raw) - PLAN_ENTRY_FIELDS - IMAGE_ONLY_FIELDS
+        if unknown:
+            raise plan_entry_error(index, raw, f"unknown field(s): {', '.join(sorted(unknown))}")
+        entry: dict[str, Any] = {
+            "id": identity,
+            "name": raw["name"],
+            "kind": kind,
+            "origin": raw.get("origin", "download-assets"),
+            "source": Path(raw["source"]),
+            "output": Path(raw["outputPath"]),
+            "publicUrl": raw.get("publicUrl"),
+            "flattened": bool(raw.get("flattened", False)),
+        }
+        if kind == "video" and not entry["publicUrl"]:
+            raise plan_entry_error(index, raw, "'publicUrl' is required for video entries")
+        if kind == "image":
+            transparent = raw.get("transparent")
+            if not isinstance(transparent, bool):
+                raise plan_entry_error(
+                    index, raw, "'transparent' must be declared as true or false for image entries",
+                )
+            quality = raw.get("quality", 80)
+            if isinstance(quality, bool) or not isinstance(quality, int) or not 1 <= quality <= 100:
+                raise plan_entry_error(index, raw, "'quality' must be an integer between 1 and 100")
+            max_width = raw.get("maxWidth", 0)
+            if isinstance(max_width, bool) or not isinstance(max_width, int) or max_width < 0:
+                raise plan_entry_error(index, raw, "'maxWidth' must be a non-negative integer")
+            alpha_mask = raw.get("alphaMask")
+            if alpha_mask is not None and not isinstance(alpha_mask, str):
+                raise plan_entry_error(index, raw, "'alphaMask' must be a path string")
+            unbake = raw.get("unbakeColor")
+            if unbake is not None:
+                if not isinstance(unbake, str):
+                    raise plan_entry_error(index, raw, "'unbakeColor' must be a hex string like 1e1e1e")
+                try:
+                    unbake = parse_hex_color(unbake)
+                except RuntimeError as exc:
+                    raise plan_entry_error(index, raw, str(exc)) from exc
+            entry.update({
+                "transparent": transparent,
+                "alpha_mask": Path(alpha_mask) if alpha_mask else None,
+                "unbake": unbake,
+                "lossless": bool(raw.get("lossless", False)),
+                "quality": quality,
+                "max_width": max_width,
+            })
+        else:
+            for field in IMAGE_ONLY_FIELDS:
+                if field in raw:
+                    raise plan_entry_error(index, raw, f"'{field}' only applies to image entries")
+        entries.append(entry)
+    return entries
+
+
+def validate_alpha_declaration(
+    entry: dict[str, Any],
+    *,
+    ffmpeg_bin: str,
+    ffprobe_bin: str,
+    runner: Runner = subprocess.run,
+) -> str | None:
+    """Enforce a transparent declaration against the source pixels.
+
+    A fully opaque source declared transparent is the baked-canvas case Figma
+    produces; it must come with an isolated-screenshot mask. Returns a warning
+    message when an opaque declaration contradicts real source transparency.
+    """
+    source: Path = entry["source"]
+    source_has_alpha = has_alpha(ffprobe(source, ffprobe_bin=ffprobe_bin, runner=runner))
+    pixel_alpha = source_has_alpha and has_transparent_pixels(
+        source, ffmpeg_bin=ffmpeg_bin, runner=runner,
+    )
+    if entry["transparent"]:
+        if not pixel_alpha and entry["alpha_mask"] is None:
+            raise RuntimeError(
+                f"plan entry {entry['id']} is declared transparent, but the source is fully "
+                "opaque: Figma baked the canvas color into the RGB channels. Call "
+                "get_screenshot(contentsOnly: true) for the node, save the isolated PNG "
+                "under raw/ and reference it via the entry's alphaMask"
+            )
+        return None
+    if pixel_alpha:
+        return (
+            f"plan entry {entry['id']} is declared opaque, but the source has transparent "
+            "pixels; declare it transparent and add an alphaMask if it should be transparent"
+        )
+    return None
+
+
+def write_manifest(manifest_path: Path, manifest_entries: list[dict[str, Any]]) -> None:
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = manifest_path.with_name(f".{manifest_path.stem}.tmp{manifest_path.suffix}")
+    temporary.write_text(
+        json.dumps(manifest_entries, ensure_ascii=False, indent=2) + "\n", encoding="utf-8",
+    )
+    os.replace(temporary, manifest_path)
+
+
+def run_batch(
+    entries: list[dict[str, Any]],
+    manifest_path: Path,
+    *,
+    tinypng_proxy: str = KYZ_PROXY_DEFAULT,
+    overwrite_existing: bool = False,
+    ffmpeg_bin: str = "",
+    ffprobe_bin: str = "",
+    svgo_bin: str | None = None,
+    runner: Runner = subprocess.run,
+) -> dict[str, Any]:
+    for entry in entries:
+        if not entry["source"].is_file():
+            raise RuntimeError(f"plan entry {entry['id']}: source not found: {entry['source']}")
+        alpha_mask = entry.get("alpha_mask")
+        if alpha_mask is not None and not alpha_mask.is_file():
+            raise RuntimeError(f"plan entry {entry['id']}: alphaMask not found: {alpha_mask}")
+        if entry["output"].exists() and not overwrite_existing:
+            raise RuntimeError(
+                f"plan entry {entry['id']}: output already exists: {entry['output']}; "
+                "use --overwrite-existing to replace outputs from an earlier batch run"
+            )
+    warnings: list[dict[str, str]] = []
+    for entry in entries:
+        if entry["kind"] != "image":
+            continue
+        warning = validate_alpha_declaration(
+            entry, ffmpeg_bin=ffmpeg_bin, ffprobe_bin=ffprobe_bin, runner=runner,
+        )
+        if warning:
+            print(f"batch warning: {warning}", file=sys.stderr)
+            warnings.append({"id": entry["id"], "message": warning})
+    manifest_entries: list[dict[str, Any]] = []
+    total = len(entries)
+    for index, entry in enumerate(entries, start=1):
+        print(
+            f"batch: [{index}/{total}] {entry['id']} ({entry['kind']}) -> {entry['output']}",
+            file=sys.stderr,
+        )
+        if entry["kind"] == "image":
+            result = convert_image(
+                entry["source"], entry["output"],
+                flattened=entry["flattened"], lossless=entry["lossless"],
+                quality=entry["quality"], max_width=entry["max_width"],
+                alpha_mask=entry["alpha_mask"], unbake=entry["unbake"],
+                expect_alpha=entry["transparent"], tinypng_proxy=tinypng_proxy,
+                ffmpeg_bin=ffmpeg_bin, ffprobe_bin=ffprobe_bin, runner=runner,
+            )
+        elif entry["kind"] == "svg":
+            if svgo_bin is None:
+                raise RuntimeError(
+                    "svgo not found; install it with `npm install -g svgo` and ensure it is on PATH"
+                )
+            result = optimize_svg(entry["source"], entry["output"], svgo_bin=svgo_bin, runner=runner)
+        else:
+            result = convert_video(
+                entry["source"], entry["output"], ffmpeg_bin=ffmpeg_bin, ffprobe_bin=ffprobe_bin,
+                runner=runner,
+            )
+        manifest_entry: dict[str, Any] = {
+            "id": entry["id"],
+            "name": entry["name"],
+            "kind": entry["kind"],
+            "source": entry["origin"],
+        }
+        if entry["flattened"]:
+            manifest_entry["flattened"] = True
+        if entry["kind"] == "image":
+            manifest_entry["transparent"] = entry["transparent"]
+        manifest_entry["outputPath"] = result["outputPath"]
+        if entry["publicUrl"]:
+            manifest_entry["publicUrl"] = entry["publicUrl"]
+        manifest_entry.update({
+            key: result[key] for key in ("width", "height", "aspectRatio")
+        })
+        manifest_entries.append(manifest_entry)
+    write_manifest(manifest_path, manifest_entries)
+    return {"manifestPath": str(manifest_path), "total": total, "warnings": warnings}
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Convert Figma image/video assets.")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -539,46 +765,81 @@ def build_parser() -> argparse.ArgumentParser:
     video = subparsers.add_parser("video", help="Convert a video to progressive MP4.")
     video.add_argument("source")
     video.add_argument("output")
+
+    batch = subparsers.add_parser(
+        "batch",
+        help="Convert every plan entry and atomically write the asset manifest; "
+        "image entries must declare transparent true/false and baked-canvas sources "
+        "must come with an alphaMask.",
+    )
+    batch.add_argument("plan", help="Path to assets-plan.json; relative paths inside resolve against the current directory.")
+    batch.add_argument(
+        "--manifest", type=Path, default=None,
+        help="Manifest output path; defaults to assets-manifest.json next to the plan.",
+    )
+    batch.add_argument("--tinypng-proxy", default=KYZ_PROXY_DEFAULT, help=f"Base URL of the kyz credential proxy used to reach TinyPNG (default: {KYZ_PROXY_DEFAULT}).")
+    batch.add_argument(
+        "--overwrite-existing", action="store_true",
+        help="Replace outputs left by an earlier batch run; never use it to bypass review.",
+    )
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    source, output = Path(args.source), Path(args.output)
-    if not source.is_file():
-        print(f"source not found: {source}", file=sys.stderr)
-        return 2
-    if source.resolve() == output.resolve():
-        print("source and output must be different files", file=sys.stderr)
-        return 2
     try:
-        if args.command == "svg":
-            svgo_bin = shutil.which("svgo")
-            if not svgo_bin:
-                raise RuntimeError(
-                    "svgo not found; install it with `npm install -g svgo` and ensure it is on PATH"
-                )
-            result = optimize_svg(source, output, svgo_bin=svgo_bin)
+        result: dict[str, Any]
+        if args.command == "batch":
+            plan_path = Path(args.plan)
+            if not plan_path.is_file():
+                print(f"plan not found: {plan_path}", file=sys.stderr)
+                return 2
+            manifest_path = args.manifest or plan_path.parent / "assets-manifest.json"
+            entries = load_plan(plan_path)
+            needs_av_tools = any(entry["kind"] in ("image", "video") for entry in entries)
+            result = run_batch(
+                entries, manifest_path,
+                tinypng_proxy=args.tinypng_proxy,
+                overwrite_existing=args.overwrite_existing,
+                ffmpeg_bin=require_tool("ffmpeg") if needs_av_tools else "",
+                ffprobe_bin=require_tool("ffprobe") if needs_av_tools else "",
+                svgo_bin=shutil.which("svgo"),
+            )
         else:
-            ffmpeg_bin = require_tool("ffmpeg")
-            ffprobe_bin = require_tool("ffprobe")
-            if args.command == "image":
-                if not 1 <= args.quality <= 100:
-                    raise RuntimeError("--quality must be between 1 and 100")
-                if args.max_width < 0:
-                    raise RuntimeError("--max-width must be a non-negative pixel width")
-                unbake = parse_hex_color(args.unbake_color) if args.unbake_color else None
-                result = convert_image(
-                    source, output, flattened=args.flattened, lossless=args.lossless,
-                    quality=args.quality, max_width=args.max_width,
-                    alpha_mask=args.alpha_mask, unbake=unbake,
-                    expect_alpha=args.expect_alpha, tinypng_proxy=args.tinypng_proxy,
-                    ffmpeg_bin=ffmpeg_bin, ffprobe_bin=ffprobe_bin,
-                )
+            source, output = Path(args.source), Path(args.output)
+            if not source.is_file():
+                print(f"source not found: {source}", file=sys.stderr)
+                return 2
+            if source.resolve() == output.resolve():
+                print("source and output must be different files", file=sys.stderr)
+                return 2
+            if args.command == "svg":
+                svgo_bin = shutil.which("svgo")
+                if not svgo_bin:
+                    raise RuntimeError(
+                        "svgo not found; install it with `npm install -g svgo` and ensure it is on PATH"
+                    )
+                result = optimize_svg(source, output, svgo_bin=svgo_bin)
             else:
-                result = convert_video(
-                    source, output, ffmpeg_bin=ffmpeg_bin, ffprobe_bin=ffprobe_bin,
-                )
+                ffmpeg_bin = require_tool("ffmpeg")
+                ffprobe_bin = require_tool("ffprobe")
+                if args.command == "image":
+                    if not 1 <= args.quality <= 100:
+                        raise RuntimeError("--quality must be between 1 and 100")
+                    if args.max_width < 0:
+                        raise RuntimeError("--max-width must be a non-negative pixel width")
+                    unbake = parse_hex_color(args.unbake_color) if args.unbake_color else None
+                    result = convert_image(
+                        source, output, flattened=args.flattened, lossless=args.lossless,
+                        quality=args.quality, max_width=args.max_width,
+                        alpha_mask=args.alpha_mask, unbake=unbake,
+                        expect_alpha=args.expect_alpha, tinypng_proxy=args.tinypng_proxy,
+                        ffmpeg_bin=ffmpeg_bin, ffprobe_bin=ffprobe_bin,
+                    )
+                else:
+                    result = convert_video(
+                        source, output, ffmpeg_bin=ffmpeg_bin, ffprobe_bin=ffprobe_bin,
+                    )
     except RuntimeError as exc:
         print(str(exc), file=sys.stderr)
         return 1

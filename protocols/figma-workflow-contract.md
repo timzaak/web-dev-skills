@@ -22,6 +22,7 @@
 .ai/figma/<fileKey>-<nodeId>/
 ├── source/baseline[-<block>].png   # 主稿与各视觉块基准截图，一次写入不覆盖
 ├── context.md                       # 块清单、主稿 viewport、目标栈验证命令、资产引用与 token/组件映射
+├── assets-plan.json                 # 转换声明（image 条目必填 transparent），batch 输入，成功后保留
 ├── assets-manifest.json             # 资产映射，无素材时为 []
 └── motion.json                      # 动效基准，仅 t-figma-ux
 ```
@@ -37,7 +38,7 @@
 
 ## 资产 manifest
 
-`assets-manifest.json` 是 impl 引用资产、accept 校验完整性的唯一映射；下载与转换的执行方法见 `${CLAUDE_PLUGIN_ROOT}/guides/figma/assets.md`。
+`assets-manifest.json` 是 impl 引用资产的唯一映射；由 `figma-assets.py batch` 依据 `assets-plan.json` 的声明校验并原子写入，执行方法见 `${CLAUDE_PLUGIN_ROOT}/guides/figma/assets.md`。
 
 ```json
 [
@@ -47,6 +48,7 @@
     "kind": "image",
     "source": "download-assets",
     "flattened": true,
+    "transparent": true,
     "outputPath": "public/assets/hero.webp",
     "publicUrl": "/assets/hero.webp",
     "width": 1920,
@@ -57,9 +59,10 @@
 ```
 
 - `kind` 为 `image|svg|gif|video`；`source` 为 `download-assets|url|local-file`；`flattened` 标记含文字合成图，impl 作为单个媒体元素引用，不再实现其内文字。
+- `transparent` 标记 image 条目的透明声明已通过脚本终检（输出有 alpha 通道且有透明像素），impl 可直接信任其 alpha。
 - `publicUrl` 是页面运行时 URL，视频必填；名称语义化并沿用项目命名风格，不用节点 id、hash 或 Figma 默认层名。
 - 视频必须有 MCP 返回的 URL 或 `--video-source` 来源；禁止用截图、GIF 或占位视频伪造。
-- 全部条目成功后原子写入（脚本 JSON 输出即条目数据），失败不写半成功 manifest；正式路径已存在时停止，请开发者改名或明确允许替换。
+- 全部条目成功后由 batch 原子写入（脚本输出即条目数据），失败不写半成功 manifest；正式路径已存在时停止，请开发者改名或明确允许替换。
 
 ## 动效规格
 
