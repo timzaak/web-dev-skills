@@ -11,6 +11,7 @@
 | 目标项目 `docs/` | 已发布的长期产品、设计和使用事实 |
 | 目标项目 `.ai/` | 当前工作流的草稿、状态、质量报告、预览产物，以及 Figma 工作目录和原始证据 |
 | 目标项目 `scripts/` | 环境、测试和 Demo 的本地执行入口 |
+| 目标项目 skill 目录（`.claude/skills/`、`.agents/skills/` 等按项目运行时） | 项目级 AI 能力资产，由 `t-skill --project` 和 skill 交付 task 写入 |
 | `${CLAUDE_PLUGIN_ROOT}/protocols/` | 跨 skill 和 agent 的共享契约 |
 | `${CLAUDE_PLUGIN_ROOT}/guides/` | 默认工程规范和领域实践 |
 | `${CLAUDE_PLUGIN_ROOT}/skills/` | 阶段入口和编排逻辑 |

@@ -1,6 +1,6 @@
 # Skill 写作准则
 
-融合 Anthropic skill-creator 与 Codex skill-creator 的写作实践。仓库硬性规则以根目录 AGENTS.md 为准；本文件只补充 AGENTS.md 之外的写作方法，冲突时以 AGENTS.md 为准。
+融合 Anthropic skill-creator 与 Codex skill-creator 的写作实践。目标仓库（t-tools 插件仓库或目标项目）的硬性规则以其 AGENTS.md 为准；本文件只补充其之外的写作方法，冲突时以该 AGENTS.md 为准。skill 根目录的解析由调用方入口（`t-skill` 的模式）决定，不在本文件重复。
 
 ## 触发：description 是第一道门
 
@@ -27,12 +27,15 @@
 ## 结构：按需最小化
 
 ```text
-skills/<name>/
+<skill 根目录>/<name>/
 |-- SKILL.md        必需：frontmatter + 正文
 `-- references/     仅当正文放不下且内容按场景分头使用
 ```
 
-需要落到仓库其他位置的，按 AGENTS.md「规则归属」路由到 `agents/`、`protocols/`、`guides/`、`scripts/`，不在 skill 目录里复制一份。
+skill 目录之外的归位按目标仓库区分：
+
+- t-tools 插件仓库：需要落到仓库其他位置的，按其 AGENTS.md「规则归属」路由到 `agents/`、`protocols/`、`guides/`、`scripts/`，不在 skill 目录里复制一份。
+- 目标项目：没有这套分层，规则默认收敛在 skill 目录内（SKILL.md + `references/` + 按需 `scripts/`）；项目 AGENTS.md 另有归位约定时从其约定。
 
 不放入 skill 目录的东西：README、安装说明、changelog、正文的速查副本、没有调用方的占位文件。判断标准是"这个文件是否直接支撑 skill 的某次执行"；答案是否定的就不建。
 
@@ -70,5 +73,5 @@ skills/<name>/
 
 - 保留原 `name` 与目录名；入口形式变化会破坏用户习惯和下游引用。
 - 动手前快照整个 skill 目录（测试对照与回滚都要用）。
-- 修改前先搜索引用它的 skill、protocol、guide、agent、README 和 t-how 路由表；删除内容前先看它的调用方和存在原因。
+- 修改前先搜索引用它的 skill、protocol、guide、agent、README 和入口路由（插件仓库为 t-how 场景路由表）；删除内容前先看它的调用方和存在原因。
 - 只改用户要求或行为验证暴露的问题，不顺手重构无关段落。

@@ -42,6 +42,14 @@
 | shopify-app / shopify-extension | `shopify.md` |
 | web-demo | 按实际页面交付端读取 `frontend.md` 或 `shopify.md`，跨两端时都读 |
 
+## Skill Deliverables
+
+设计文件影响表包含 skill 交付物（`.claude/skills/`、`.agents/skills/`、`skills/` 下的 SKILL.md 及其 references/scripts）时：
+
+- 规划规则：skill 交付 task 归属最相关的实现 phase——skill 服务或操作的交付端优先；独立于任何端时由规划阶段指定一个最相关 phase 并在计划中说明理由。不新增 phase，也不为 skill 生成 Demo 阶段。
+- agent 上下文：该 dev task 的 agent 必须注入 `${CLAUDE_PLUGIN_ROOT}/guides/core/skill-authoring.md` 与 `${CLAUDE_PLUGIN_ROOT}/guides/core/skill-testing.md`，写作与行为验证遵循两份准则；其余实现规则按所属 phase 的角色规范执行。
+- Validation：以行为测试为证据——前向用例加触发边界抽测，深度按风险裁剪；不得以编译、类型检查或 lint 门禁替代。证据记录遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`。
+
 ## Role Mapping
 
 规划当前阶段的 task 或 slot 时按下表选择角色，角色规范路径为 `${CLAUDE_PLUGIN_ROOT}/agents/` 下对应名称的 `.md` 文件；不得从 phase 名称推导角色。是否启用 test 按 Slot Order；主会话角色加载与 subagent 调度方式由对应执行协议规定。

@@ -1,6 +1,6 @@
 # Skill 测试与迭代
 
-按风险选测试深度：新建或结构性大改走完整循环；微调只做写作准则自检和链接检查。形式校验（frontmatter、命名、死链）不能证明 skill 的决策质量，行为验证才能。
+按风险选测试深度：新建或结构性大改走完整循环；微调只做写作准则自检和引用核对。形式校验（frontmatter、命名、死链）不能证明 skill 的决策质量，行为验证才能。
 
 ## 前向行为测试
 
@@ -14,7 +14,7 @@
 
 ## 触发边界测试
 
-针对 `description`（触发机制见 [skill 写作准则](${CLAUDE_PLUGIN_ROOT}/skills/t-skill/references/skill-writing-guide.md)）：
+针对 `description`（触发机制见 [skill 写作准则](${CLAUDE_PLUGIN_ROOT}/guides/core/skill-authoring.md)）：
 
 - 生成约 20 个查询并让用户过目：
   - 8-10 个 should-trigger：同一意图的不同说法（正式与口语）、用户没点名 skill 但明确需要它的场景、与相邻 skill 竞争但本 skill 应胜出的场景。

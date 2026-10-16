@@ -57,6 +57,7 @@ t-decision -> t-prd / t-tech-research（无固定顺序，进设计前收敛）
 | 提交推送 | `/t-tools:t-review`、`/t-tools:t-simplify`，再 `/t-tools:t-push` | review 只报告，发现缺陷先修复；push 会清理注释并跑受影响 CI |
 | 发版 | `/t-tools:t-release [版本号]` | semver 不带 `v`，git tag 带 `v` |
 | 给插件新增或修改 skill | `/t-tools:t-skill [名称或能力描述]` | 只操作插件仓库自身，不用于目标项目业务开发 |
+| 在目标项目内创建或更新 skill | `/t-tools:t-skill --project [名称或能力描述]` | 按项目运行时落位 `.claude/skills/` 或 `.agents/skills/`；feature 中已规划的 skill 交付物走 `t-super-run` 对应 phase |
 | 写项目教程 / 文档 | `/t-tools:t-doc [名称]` | 不用于 PRD 和技术设计 |
 | 审计上下文 / 结构漂移 | `/t-tools:t-dream [feature]` | 只读；报告可含 PRD 治理建议，不执行写入 |
 | 阶段收口一致性 | `/t-tools:t-dream [feature] --phase <phase>` | 检查该交付阶段实现或 Demo 与 PRD / 用户故事的一致性；阶段取值见共享阶段执行协议 |

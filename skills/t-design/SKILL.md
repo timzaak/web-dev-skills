@@ -106,7 +106,7 @@ allowed-tools:
 - API 契约的单一设计源是 backend 分端文档；frontend/extension/flutter 分端文档只声明依赖的接口与字段，不得复制或另立契约；后端不适用时以现有 OpenAPI/SDK 或接口为契约源。Shopify 项目默认不启用 backend 端：`shopify.md` 的 app proxy / internal API 接口清单承担契约源，此时不存在独立 backend 分端文档
 - 主文档不承载 API 字段表、数据库表结构和页面线框等分端细节；细节只活在对应分端文档，主文档保留摘要与链接
 - 数据库设计遵循"尽量简洁、当前必需、避免过度审计设计"
-- 现状依据及 MODIFY/DELETE 路径必须真实存在；CREATE 路径可以尚不存在，但父目录必须真实存在，并给出相邻实现或项目规范作为命名依据
+- 现状依据及 MODIFY/DELETE 路径必须真实存在；CREATE 路径可以尚不存在，但父目录必须真实存在，并给出相邻实现或项目规范作为命名依据；例外是 skill 根目录（`.claude/skills/`、`.agents/skills/`、`skills/`）下的 CREATE 路径，新 skill 目录允许随交付创建
 - 分端文档由对应设计 subagent 生成；主会话不得绕过 subagent 代写分端设计，除非该端不适用
 
 ## 工作流程
@@ -157,6 +157,7 @@ D2 工程取舍由设计阶段明确选择并写入 Design；符合 Decision Con
 - 判定 backend / frontend / extension / flutter / shopify 哪些端适用：依据需求来源中的交付端描述、`${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 phase 结构、现有代码结构（如 `frontend/`、扩展 WXT 工程、Flutter 工程、`shopify.app.toml` 与 `extensions/` 是否存在）和 Decision Log。判定结果影响拆分方向且无法确定时，使用 `AskUserQuestion` 确认
 - 契约归属：backend 适用时，API 契约由 backend 分端设计产出，backend 设计必须先行；backend 不适用时，契约源为现有实现分析中确认的现有接口/OpenAPI/SDK，frontend/extension/flutter 可直接并行生成；Shopify 项目（`shopify.app.toml` 存在且无独立后端工程）契约源为 shopify 分端设计，同样可与其他客户端端并行
 - 在主文档 §4.2 记录交付端范围和判定依据
+- 需求要求交付 skill 时：skill 文件路径写入主文档 §8；skill 的设计内容（触发场景、能力边界、行为验证）写入其服务或操作交付端的分端文档，独立于任何端时写入主文档。skill 交付不新增交付端、不创建独立分端文档，规划规则见 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Skill Deliverables。skill 根目录按项目既有 skill 目录；项目尚无 skill 目录时按目标运行时选择（Claude Code 为 `.claude/skills/`，open agent skills 约定为 `.agents/skills/`），无法判定时按决策纪律确认
 
 ### 6. 分端生成设计（subagent 编排）
 
@@ -197,7 +198,7 @@ D2 工程取舍由设计阶段明确选择并写入 Design；符合 Decision Con
 - 分端设计摘要（来自各端 `task_completion.summary`，每端 3-5 行）
 - 测试与验收策略跨端汇总（来自各分端文档测试章节）
 - 风险与验证动作汇总
-- §8 文件影响范围：逐行合并各分端文档的文件影响表，标注来源分端（取值 backend/frontend/extension/flutter/shopify/web-demo/extension-demo/flutter-demo/跨端；设计要求用户故事演示时，Web Playwright 资产标 `web-demo`、扩展 Playwright 资产标 `extension-demo`、Patrol 资产标 `flutter-demo`，供 `/t-super-run` 识别 demo 交付端；shopify 分端的资产按归属 phase 在说明列标注 shopify-app / shopify-extension）；此表是 `/t-super-run` 的唯一拆分依据，必须覆盖全部适用端
+- §8 文件影响范围：逐行合并各分端文档的文件影响表，标注来源分端（取值 backend/frontend/extension/flutter/shopify/web-demo/extension-demo/flutter-demo/跨端；设计要求用户故事演示时，Web Playwright 资产标 `web-demo`、扩展 Playwright 资产标 `extension-demo`、Patrol 资产标 `flutter-demo`，供 `/t-super-run` 识别 demo 交付端；shopify 分端的资产按归属 phase 在说明列标注 shopify-app / shopify-extension；skill 交付物按其服务或操作的交付端取值，独立于任何端时标 `跨端`，说明列注明 skill 根目录）；此表是 `/t-super-run` 的唯一拆分依据，必须覆盖全部适用端
 
 不适用章节保留并标记"不适用"及原因。写入后对所有实际生成的文档运行：
 

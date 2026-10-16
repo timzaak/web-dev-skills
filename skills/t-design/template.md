@@ -152,8 +152,8 @@
 ## 8. 文件影响范围（全量汇总）
 
 > 汇总所有适用分端文档的文件影响范围；`/t-super-run` 直接对照本表拆分任务。
-> MODIFY/DELETE 路径必须存在。CREATE 路径允许尚不存在，但父目录必须存在，并在说明中给出相邻实现或命名规范依据。
-> 设计要求用户故事演示时，Web Playwright 资产标 `web-demo`，扩展 Playwright `demo/e2e/extension/` 资产标 `extension-demo`，Patrol 资产标 `flutter-demo`；shopify 分端的资产在说明列标注归属 phase（shopify-app / shopify-extension）；无需演示时不出现对应值。
+> MODIFY/DELETE 路径必须存在。CREATE 路径允许尚不存在，但父目录必须存在，并在说明中给出相邻实现或命名规范依据；skill 根目录（`.claude/skills/`、`.agents/skills/`、`skills/`）下的 CREATE 路径例外，新 skill 目录随交付创建。
+> 设计要求用户故事演示时，Web Playwright 资产标 `web-demo`，扩展 Playwright `demo/e2e/extension/` 资产标 `extension-demo`，Patrol 资产标 `flutter-demo`；shopify 分端的资产在说明列标注归属 phase（shopify-app / shopify-extension）；skill 交付物标其服务或操作的交付端，独立于任何端时标 `跨端` 并在说明列注明 skill 根目录；无需演示时不出现对应值。
 
 | 文件 | 操作 | 说明 | 来源分端 |
 |---|---|---|---|

@@ -12,6 +12,7 @@ from pathlib import Path
 
 
 STACKS = ("backend", "frontend", "extension", "flutter", "shopify")
+SKILL_ROOT_PREFIXES = (".claude/skills/", ".agents/skills/", "skills/")
 MAIN_HEADINGS = (
     "## 1. 需求概述",
     "## 2. 需求来源",
@@ -141,6 +142,10 @@ def contract_not_applicable(text: str, heading: str) -> bool:
     return re.search(r"^[ \t]*不适用[：:][ \t]*\S[^\r\n]*$", section(text, heading), re.MULTILINE) is not None
 
 
+def under_skill_root(rel_path: str) -> bool:
+    return rel_path.replace("\\", "/").startswith(SKILL_ROOT_PREFIXES)
+
+
 def validate_path(repo_root: Path, source: Path, rel_path: str, operation: str) -> list[Finding]:
     findings: list[Finding] = []
     if not rel_path or rel_path.startswith("[") or "..." in rel_path:
@@ -153,7 +158,8 @@ def validate_path(repo_root: Path, source: Path, rel_path: str, operation: str) 
     if operation not in {"CREATE", "MODIFY", "DELETE"}:
         findings.append(Finding("INVALID_IMPACT_OPERATION", str(source), f"{rel_path}: {operation}"))
     elif operation == "CREATE":
-        if not candidate.parent.exists():
+        # skill 根目录子树的新 skill 目录允许随交付创建；其余 CREATE 仍要求父目录存在。
+        if not candidate.parent.exists() and not under_skill_root(rel_path):
             findings.append(Finding("CREATE_PARENT_MISSING", str(source), rel_path))
     elif not candidate.exists():
         findings.append(Finding("IMPACT_TARGET_MISSING", str(source), f"{operation}: {rel_path}"))
