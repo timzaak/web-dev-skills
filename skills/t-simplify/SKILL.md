@@ -1,7 +1,7 @@
 ---
 name: t-simplify
 description: Review the changed code for reuse, simplification, efficiency, and altitude issues with 4 parallel read-only reviewers, then apply the fixes directly. The default scope is the upstream range plus uncommitted changes; a PR / branch / file target replaces it. Quality cleanup only, not bug hunting.
-argument-hint: "[<target>（可选：PR 号 / 分支名 / 文件路径）]"
+argument-hint: "[<target>（可选：PR / 分支 / 路径 / revision range）]"
 allowed-tools:
   - Read
   - Glob
@@ -32,7 +32,7 @@ allowed-tools:
 
 | 参数 | 说明 |
 |---|---|
-| `[<target>]` | 可选审查目标（PR 号 / 分支名 / 文件路径）；传入时直接替换默认审查范围，提示词以 `Review target: \`<target>\`` 前缀注入 |
+| `[<target>]` | 可选审查目标（PR / 分支 / 路径 / Git revision range）；按共享范围契约解析并替换默认范围 |
 
 推荐位置：`/t-run`（或 `/t-super-run`）完成实现与测试后、`/t-push` 提交前。
 
@@ -42,13 +42,7 @@ allowed-tools:
 
 ## 变更收集
 
-按 Phase 0 语义收集审查范围：
-
-1. 优先 `git diff @{upstream}...HEAD`；无 upstream 时依次回退 `git diff main...HEAD`、`git diff HEAD~1`。
-2. 存在未提交变更、或区间 diff 为空时，追加 `git diff HEAD` 把工作区变更纳入范围（审查常发生在提交前）；untracked 源码文件一并纳入（插件补充）。
-3. 用户传入 `<target>`（PR 号 / 分支名 / 文件路径）时，以该目标为审查范围，替换上述默认收集。
-4. 非 git 仓库或尚无提交：取最近修改的源码文件（排除 `.ai/`、`docs/`、构建产物、依赖目录等非源码路径；插件补充）。
-5. 审查范围为空时返回 `NO_CHANGES`，不做任何修改。
+先读取 `${CLAUDE_PLUGIN_ROOT}/protocols/review-scope-contract.md`，按默认范围或显式目标收集 diff、文件版本和项目约束；范围不可确定时停止，成功解析且为空时返回 `NO_CHANGES`。
 
 ## 执行流程
 
@@ -64,7 +58,7 @@ allowed-tools:
 ### Phase 2 — 应用修复
 
 1. 等待全部 4 个 agent 完成，按契约去重：指向同一行或同一机制的发现合并。
-2. 直接修复剩余发现；每条修复前按 `${CLAUDE_PLUGIN_ROOT}/protocols/simplify-cleanup-contract.md` 的 Skip Rules 判断是否跳过。
+2. 按共享范围契约核对本地文件与受审版本，再直接修复剩余发现；每条修复前按 `${CLAUDE_PLUGIN_ROOT}/protocols/simplify-cleanup-contract.md` 的 Skip Rules 判断是否跳过。
 3. 修复后运行能覆盖所改文件的最小定向验证（编译/类型检查/相关测试）；验证失败时回退该条修复并记为跳过。
 4. 按契约把报告写入 `.ai/quality/simplify-[YYYYMMDD-HHMMSS].md`，并以简要总结收尾：修了什么、跳了什么（含原因），或确认代码已干净。
 
@@ -77,6 +71,8 @@ allowed-tools:
 | 错误码 | 触发条件 | 用户可见提示 | 恢复动作 |
 |---|---|---|---|
 | `NO_CHANGES` | 变更收集结果为空 | 没有可审查的变更 | 先实现变更后再运行 |
+| `SCOPE_UNAVAILABLE` | 目标无法解析或没有范围依据 | 无法确定审查范围（附原因） | 补齐 PR 工具/引用或明确指定目标后重跑 |
+| `AGENT_FAILED` | reviewer 失败或角度结果缺失 | 清理审查未完成，尚未应用修改 | 按契约重试失败项，不能视作无发现 |
 | `AGENT_UNAVAILABLE` | Agent tool 不可用 | 已切换为单遍 inline 审查 | 无需恢复；报告会如实声明 |
 | `DIFF_TOO_LARGE` | 变更规模超出单次可审查范围 | 变更过大，建议缩小范围 | 按文件分批运行，或先提交部分变更 |
 

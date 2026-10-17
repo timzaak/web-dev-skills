@@ -80,6 +80,10 @@ The general syntax is `t-super-run <feature> --phase <phase>`. Phase names and a
 
 When review fixes, cleanup, or CI repairs invalidate evidence, required regressions and independent acceptance run before committing; see the [push execution contract](protocols/push-execution-contract.md) for push gates and interrupted-push recovery.
 
+Before committing, manually run [`/t-tools:t-review [target] [--fix]`](skills/t-review/SKILL.md) for correctness bugs: it reports by default, verifies each candidate independently with three possible verdicts, and adds specialist angles plus one gap sweep for high-risk changes. Then use [`/t-tools:t-simplify [target]`](skills/t-simplify/SKILL.md) for four-angle cleanup with fixes applied directly. Both accept a PR, branch, path, or Git revision range, write reports to `.ai/quality/`, and do not replace accept.
+
+These entries originated from older bundled Claude Code skills and were checked against the v2.1.302 package on 2026-10-17. The core simplify workflow still matches. The current `/review` aliases `/code-review`, whose recipe varies by model and effort and may also cover cleanup and project conventions. This plugin keeps correctness review separate from cleanup and retains independent verification. It does not directly support the built-in command's effort, `--max-findings`, `--comment`, or `ultra` arguments; use the [built-in Claude Code command](https://code.claude.com/docs/en/code-review-local) for those capabilities.
+
 Prepare a WXT project using the [extension initialization guide](guides/extension/initialization.md); run `t-init --extension-demo` in the target project to add real-extension integration-demo infrastructure. See the [extension demo guide](guides/extension/demo-testing.md) for fixtures, environment selection, and acceptance.
 
 Create Shopify app projects with `t-init --shopify <project-name>` from Shopify's official React Router template (or retrofit an existing Shopify project with demo/scripts infrastructure); see the [Shopify development guide](guides/shopify/development.md). `shopify app deploy` runs explicitly by the user after `t-push` and is never triggered by a skill.

@@ -77,6 +77,10 @@ t-prd-publish user-management
 
 review、simplify 或 CI 修复使证据失效时，先补跑必要回归和独立验收再提交；push 门禁与中断恢复见 [push 执行协议](protocols/push-execution-contract.md)。
 
+提交前可手工运行 [`/t-tools:t-review [target] [--fix]`](skills/t-review/SKILL.md) 查正确性缺陷：默认只报告，每条候选独立三态验证；高风险变更增加专项角度和一次查漏。再用 [`/t-tools:t-simplify [target]`](skills/t-simplify/SKILL.md) 做四角度清理并直接应用修改。两者都支持 PR、分支、路径和 Git revision range，报告写入 `.ai/quality/`，不能替代 accept。
+
+这两个入口源于 Claude Code 旧版内置 skill，已于 2026-10-17 对照 v2.1.302 安装包复核：simplify 核心流程保持一致；新版 `/review` 是 `/code-review` 的别名，审查流程会按模型和 effort 变化，也可能覆盖清理与项目规范。本插件保留 review / simplify 的职责拆分与独立验证，不直接支持内置命令的 effort、`--max-findings`、`--comment` 或 `ultra` 参数；需要这些能力时使用 [Claude Code 内置命令](https://code.claude.com/docs/en/code-review-local)。
+
 扩展项目按 [扩展初始化指南](guides/extension/initialization.md) 准备 WXT 工程；需要真实加载扩展的集成演示基础设施时，在目标项目运行 `t-init --extension-demo`。演示 fixture、环境与验收见 [扩展演示指南](guides/extension/demo-testing.md)。
 
 Shopify App 项目用 `t-init --shopify <project-name>` 基于 Shopify 官方 React Router 模板创建工程（或为已有 Shopify 工程增量补齐 demo/scripts 设施）；开发规范见 [Shopify 开发指南](guides/shopify/development.md)。`shopify app deploy` 部署在 `t-push` 之后由用户显式执行，不并入任何 skill。

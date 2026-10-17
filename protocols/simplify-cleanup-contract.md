@@ -6,7 +6,7 @@ t-simplify 的审查角度、finding 结构、去重/跳过/修复边界和报�
 
 ## Review Angles
 
-四个角度互不重叠，每个 reviewer agent 只负责注入的一个角度。以下指引与 Claude Code 内置 `/simplify` 原文逐字对齐（对齐版本 v2.1.232，2026-09-14 复核至 v2.1.269 无变化），不得自行放宽或收窄：
+四个角度互不重叠，每个 reviewer agent 只负责注入的一个角度。以下指引按 Claude Code 内置 `/simplify` 翻译（源版本 v2.1.232，2026-10-17 核对 npm v2.1.302 安装包，四角度、并行/inline 和 Skip Rules 核心语义无变化）。报告落盘与定向验证是插件补充；范围收集前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/review-scope-contract.md`。
 
 ### Reuse（复用）
 
@@ -58,13 +58,16 @@ findings:
 
 ## Report
 
+reviewer 失败或缺少一个角度的结果时，只重试失败项；未完成前不应用部分发现、不输出“代码已干净”。仍无法完成时报告缺失角度；工具不可用时由 skill 显式执行完整 inline 审查。修复或验证使既有阶段证据失效时，交回编排层补跑必要回归与独立 accept。
+
 写入 `.ai/quality/simplify-[YYYYMMDD-HHMMSS].md`：
 
 ```text
 # Simplify 报告 [YYYYMMDD-HHMMSS]
 
 ## 审查范围
-- diff 来源: @{upstream}...HEAD（或回退基准）+ git diff HEAD | 指定 target | 最近修改文件
+- diff 来源: 默认范围 | 指定 target | 本会话已修改/用户指定文件
+- 实际基准 / HEAD / 未提交变更 / 审查模式（按共享范围契约记录）
 - 文件数 / 变更行数
 
 ## 修复的发现
