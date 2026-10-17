@@ -124,3 +124,5 @@ Figma 素材先运行 batch，由脚本检测 alpha；仅对 `ALPHA_MASK_REQUIRE
 - [OnceWise](https://github.com/timzaak/OnceWise) — 智能表单自动化助手，一键告别重复填写
 
 > Java 后端支持见 `java` 分支。
+>
+> `general` 分支是[泛化方案](human/generalization.md)的落地：移除生产技术栈预设，改用通用 project 角色适配任意技术栈，移出的领域资产转为可选导出模板。

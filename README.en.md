@@ -127,3 +127,5 @@ For tools that do not support `claude --plugin-dir` (Codex, ZCode, etc.), see [U
 - [OnceWise](https://github.com/timzaak/OnceWise) — An intelligent form-automation assistant that ends repetitive form filling
 
 > For Java backend support, see the `java` branch.
+>
+> The `general` branch implements the [generalization plan](human/generalization.en.md): production tech-stack presets are removed in favor of generic project roles that fit any stack, and the extracted domain assets live on as optional exportable templates.
