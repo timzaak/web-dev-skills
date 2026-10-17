@@ -16,7 +16,6 @@ Demo 规范入口，按“先确认测试基线，再按失败类型进入对应
 | 只读验收门禁、评分和拒绝条件 | [quality.md](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/quality.md) |
 | 前端联调调试辅助说明 | [demo-debugging.md](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/demo-debugging.md) |
 | `/t-tools:t-web-demo-run-all` 批次 token 去向诊断与改造分流 | [batch-token-profiling.md](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/batch-token-profiling.md) |
-| Shopify admin 嵌入页 Demo：iframe 定位、Polaris web components 交互、ResourcePicker | [shopify-embedded-app.md](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/shopify-embedded-app.md) |
 
 ## 使用规则
 

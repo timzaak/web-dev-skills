@@ -1,0 +1,71 @@
+# 后端测试指南
+
+适用于目标项目的 Java Spring Boot 后端测试。
+
+## 入口
+
+后端测试统一使用目标项目内脚本入口：
+
+```bash
+uv run scripts/backend-test.py -- [filter]
+```
+
+需要显式复用环境时：
+
+```bash
+uv run scripts/test-start.py
+uv run scripts/backend-test.py --
+uv run scripts/test-stop.py
+```
+
+## 项目事实确认
+
+- 后端构建真相以 `backend/pom.xml` 和 Maven wrapper 脚本为准。
+- 测试隔离以目标项目现有 test helper、fixture、profile、schema 或 database 隔离实现为准。
+- 真实数据库结构只来自目标项目迁移目录。
+- 路由断言、租户参数和鉴权前提以当前真实接口与设计文档为准。
+
+## 编写规则
+
+- 场景测试优先覆盖跨模块流程、数据库交互和 HTTP 主链路。只有场景测试难稳定覆盖且有回归风险时，单元测试才覆盖业务规则、边界条件、状态转换、权限判断、错误映射、数据规范化或核心算法；新增前说明可观察回归和覆盖缺口。
+- 不为只做字段赋值的 record/DTO/builder/getter/setter、简单枚举、常量、机械字段映射或第三方库保证行为编写单元测试。
+- 允许不新增单元测试；若改动只是 DTO、路由注册、字段透传或 OpenAPI 注解，优先用编译、定向场景测试或 OpenAPI 生成验证覆盖。
+- Controller slice 测试适合覆盖参数绑定、状态码、错误映射和认证入口；业务编排优先在 service/use case 层测试。
+- 场景测试统一优先复用测试上下文和统一测试路由入口。
+- 不在测试代码里维护第二套 DDL；需要结构变更时先改 migration。
+- 路由断言与示例应使用当前真实接口路径，不沿用历史项目中的旧路径。
+
+## 验证
+
+常用命令：
+
+```bash
+# 全量后端测试
+uv run scripts/backend-test.py --
+
+# 按测试类或 pattern 定向执行
+uv run scripts/backend-test.py -- --tests '*UserRegistration*'
+
+# 定向到单个测试方法
+uv run scripts/backend-test.py -- --tests '*UserRegistrationTest.createSuccess'
+
+# 多模块后端按模块定向执行
+uv run scripts/backend-test.py -- --module user-service --tests '*UserServiceTest'
+```
+
+`[filter]` 是传给底层测试运行器（Maven Surefire）的可选参数；没有 filter 时命令就是 `uv run scripts/backend-test.py --`。需要串行执行时，仍使用同一入口并说明串行原因（例如全局状态、端口、单例或非隔离外部资源）。
+
+格式与静态检查收口：
+
+```bash
+cd backend
+/t-tools:t-review
+mvn test
+mvn verify
+```
+
+## 参考
+
+- 环境与测试总览：[`environment-and-testing-guide.md`](${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md)
+- 后端开发规范：[`development.md`](${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md)
+- Backend 验收：[`quality.md`](${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md)

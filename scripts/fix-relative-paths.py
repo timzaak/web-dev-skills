@@ -15,9 +15,9 @@ def resolve_to_root(source_file: Path, relative_path: str) -> str:
     将相对路径转换为从项目根目录开始的路径。
 
     例如：
-    - docs/prd/billing/shopify-pay.md + ./billing.md -> /docs/prd/billing/billing.md
+    - docs/prd/billing/payment.md + ./billing.md -> /docs/prd/billing/billing.md
     - spec/00-index.md + ./core/environment-and-testing-guide.md -> /spec/core/environment-and-testing-guide.md
-    - docs/prd/billing/shopify-pay.md + ../../spec/backend/ -> /spec/backend/
+    - docs/prd/billing/payment.md + ../../spec/module/ -> /spec/module/
     - skills/t-task/README.md + ../../spec/ -> /spec/
     """
     # 如果已经是根目录路径（以 / 开头），直接返回
@@ -25,7 +25,7 @@ def resolve_to_root(source_file: Path, relative_path: str) -> str:
         return relative_path
 
     # 如果已经是根目录路径（以 docs/, spec/, skills/, agents/ 等开头），添加 / 前缀
-    root_dirs = ["docs", "spec", "skills", "agents", "protocols", "commands", ".claude", "backend", "frontend", "demo", "scripts", ".ai"]
+    root_dirs = ["docs", "spec", "skills", "agents", "protocols", "commands", ".claude", "demo", "scripts", ".ai"]
     if any(relative_path.startswith(d + "/") or relative_path == d for d in root_dirs):
         return "/" + relative_path
 

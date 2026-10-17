@@ -9,7 +9,7 @@
 ## 改动前
 
 - 确认是否已有对应 Demo 用例或 Page Object
-- 确认是否复用了 `frontend/src/components/shared/` 中的通用交互模式
+- 确认是否复用了 `项目实际共享组件目录` 中的通用交互模式
 - 标记可能受影响的 `demo/e2e/*.ts`
 
 ## 改动时

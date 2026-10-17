@@ -9,7 +9,7 @@
 ## 修复步骤
 
 - 先打开 `demo/e2e/selectors.ts` 确认共享选择器定义。
-- 再对照 `frontend/src/**` 中对应页面或组件的 `data-testid`、文本或 role。
+- 再对照 `目标项目实际页面源码` 中对应页面或组件的 `data-testid`、文本或 role。
 - 仅修改一层抽象：
    - 共享选择器失效，优先改 `selectors.ts`
    - 只有当前页面特殊，才在 Page Object 层补局部适配

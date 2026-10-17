@@ -15,7 +15,6 @@ allowed-tools:
   - Agent
 ---
 
-`demo/e2e/extension/` 下的扩展用户故事演示使用 `/t-tools:t-extension-demo-run`。
 
 
 # 单文件 Demo 测试运行与修复
@@ -31,7 +30,8 @@ allowed-tools:
 
 ## 执行流程
 
-- 首次运行或恢复前，按共享修复协议确认环境模式；Shopify 项目读取其 Shopify Demo 运行模式。
+- 首次运行及恢复前读取共享修复协议，从项目持久化说明确认 URL、身份与环境模式。
+
 - 校验参数：测试文件必须存在且扩展名为 `.e2e.ts`；单次执行只处理一个测试文件。
 - 按 `web-demo-run-repair-contract.md` 的单文件执行顺序处理整文件运行、失败用例修复、补测和整文件终验。
 - 用 Task 记录当前失败用例和尝试轮次，供中断后继续。

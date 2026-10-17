@@ -1,6 +1,6 @@
 ---
 name: t-web-demo-run-all
-description: Discover all non-live Demo E2E tests and run them one file at a time in the main session, diagnosing and fixing failures inline, restarting the environment after backend code changes and rebuilding demo data between files, until every file is resolved or exhausts its retry budget. Supports an optional scan mode that pre-runs all files without repairing, clusters failures by shared root cause, and fixes each unique cluster once before re-verifying affected files.
+description: Discover all non-live Demo E2E tests and run them one file at a time in the main session, diagnosing and fixing failures inline, refreshing the project environment when needed and isolating test data between files, until every file is resolved or exhausts its retry budget. Supports an optional scan mode that pre-runs all files without repairing, clusters failures by shared root cause, and fixes each unique cluster once before re-verifying affected files.
 argument-hint: "[continue|scan]"
 allowed-tools:
   - Read
@@ -11,7 +11,6 @@ allowed-tools:
   - Agent
 ---
 
-`demo/e2e/extension/` 下的扩展用户故事演示属于 `extension-demo` phase；批次发现时排除该目录，单文件使用 `/t-tools:t-extension-demo-run`。
 
 
 # 批量运行 Demo 测试（主会话逐文件驱动）
@@ -40,7 +39,6 @@ allowed-tools:
 
 ### A. 发现阶段（一次性，脚本辅助）
 
-首次、`continue` 及 `scan` 都先按共享修复协议读取项目 `scripts/index.md` 和 fixture，恢复环境模式、URL、身份及清理入口。下列 B2 / S2 runner 示例展示默认 Web 命令；Shopify 模式必须追加 `--no-auto-env`，其清理与修复后加载验证均按协议的 Shopify Demo 运行模式执行。
 
 ```bash
 uv run scripts/web-demo-run-all.py discover [--filter-file <path>]   # fresh
@@ -65,7 +63,6 @@ uv run scripts/web-demo-run-all.py checkpoint --json <json_report> --index <zero
 uv run scripts/web-demo-test-runner.py "<rel_path>" --run-id "<batch_run_id>-<file_key>-initial" --mode fast
 ```
 
-默认 Web 模式下 `web-demo-test-runner.py` 会自检并按需启动/恢复 demo 环境；Shopify 模式使用已就绪的外部环境。解析其**最后一行** `Result: {...}`，按 `web-demo-run-repair-contract.md` 的 Runner 输出适配映射为 snake_case 批次 entry 字段。`file_key` 必须由相对路径的稳定 slug 或短哈希生成，避免不同目录的同名文件冲突。
 
 #### B3. 整文件通过
 
@@ -78,9 +75,8 @@ uv run scripts/web-demo-test-runner.py "<rel_path>" --run-id "<batch_run_id>-<fi
 #### B5. 持久化 + 文件间数据隔离
 
 1. **保留最小结果**：只保留 `{status, exit_code, duration, run_id, logs, fixed}`；仅失败时再保留一句简短 `error`。文件名、下标、计数和总耗时由脚本推导。
-2. **数据隔离**：若还有下一个文件，无论当前文件成功或失败，均按共享修复协议选择隔离方式。Shopify 模式核查项目 fixture 已清理本次测试数据；独立扩展模式确认 fixture 已清理 profile/stub；默认 Web 模式重建 Demo 环境和数据容器。隔离失败时执行 `block` 后中止批次（该命令保留断点且不追加结果）。以下 stop/start 仅用于默认 Web 模式：
+2. **隔离文件间数据**：还有下一文件时，按共享修复契约及目标项目 fixture/清理入口隔离本次数据；外部环境不自动执行启停。清理失败时保留当前断点并停止：
    ```bash
-   uv run scripts/demo-stop.py --quiet && uv run scripts/demo-start.py
    uv run scripts/web-demo-run-all.py block --json <json_report> --error "<简短原因>"
    ```
 3. **写结果并推进断点**：数据隔离成功，或当前已是最后一个文件时，执行一条短命令。`record` 自动补齐 `test_file`，更新断点、计数和总耗时；成功结果不传 `--error`：

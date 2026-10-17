@@ -30,11 +30,10 @@ allowed-tools:
 
 ## 共享契约
 
-执行单元、slot 顺序、item 选择（含启动归一化）、agent 最小上下文、backend/test 特殊规则和失败处理统一参考：
+执行单元、slot 顺序、item 选择（含启动归一化）、agent 最小上下文和失败处理统一参考：
 
 - `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`（解析参数和校验状态前读 Phases，确定支持值与启用条件；执行前读 Slot Order 和 Item Selection）
 - `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md`
-- `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md`
 
 ## 参数
 
@@ -52,7 +51,7 @@ allowed-tools:
 - `.ai/task/[feature]/<phase>/<slot>.md` — Slot manifest（slot 内 item 执行顺序的真源）
 - `.ai/task/[feature]/<phase>/<slot>/<ITEM-ID>-*.md` — Item 文件（`Goal / Work / Files / Validation / Handoff` 五章节，即执行依据）
 
-`index.md` 和 slot manifest 不作为直接执行单元。backend 的 OpenAPI 导出与前端 API 生成验收由 `backend-accept` 负责。
+`index.md` 和 slot manifest 不作为直接执行单元。契约与生成资产按目标项目规则由 accept 核查。
 
 ## 执行循环
 
@@ -63,31 +62,24 @@ allowed-tools:
    最小上下文示例：
 
    ```text
-   # 调用 backend-dev item 时的最小上下文
+   # 调用 project-dev item 时的最小上下文
    feature: sample-feature
-   phase: backend
+   phase: implementation
    slot: dev
-   item_id: BE-D02
-   agent: backend-dev
-   agent_spec: ${CLAUDE_PLUGIN_ROOT}/agents/backend-dev.md
-   item_file: .ai/task/sample-feature/backend/dev/BE-D02-domain-models.md
-   slot_manifest: .ai/task/sample-feature/backend/dev.md
-   phase_index: .ai/task/sample-feature/backend/index.md
+   item_id: IM-D02
+   agent: project-dev
+   agent_spec: ${CLAUDE_PLUGIN_ROOT}/agents/project-dev.md
+   item_file: .ai/task/sample-feature/implementation/dev/IM-D02-domain-models.md
+   slot_manifest: .ai/task/sample-feature/implementation/dev.md
+   phase_index: .ai/task/sample-feature/implementation/index.md
    previous_items:
-     BE-D01: completed, file=.ai/task/sample-feature/backend/dev/BE-D01-domain-models.md, handoff=<必要片段>
+     IM-D01: completed, file=.ai/task/sample-feature/implementation/dev/IM-D01-domain-models.md, handoff=<必要片段>
    ```
 
 4. item 成功后写入 `tasks[phase][slot].items[item_id].status = completed`；失败后写入 `status = failed`、`last_error = <summary>`，并把 `tasks[phase][slot].status` 与 `phases[phase].status` 聚合为 `failed`，停止当前 phase 的后续执行。
-5. 每个 item 完成或失败后重新聚合 slot 和 phase 状态；item 成功且仍有可执行 item 时回到步骤 3 继续串行执行。backend 阶段在 `accept` slot 全部 completed 后聚合为 completed。
+5. 每个 item 完成或失败后重新聚合 slot 和 phase 状态；item 成功且仍有可执行 item 时回到步骤 3 继续串行执行。implementation 阶段在 `accept` slot 全部 completed 后聚合为 completed。
 
 执行验证和阶段收尾时读取 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`：accept 独立复核证据；报告当前 phase 结果及后续待验证场景。最后承接阶段不得遗漏上游交接的业务验证。
-
-## backend/test 特例
-
-- item 缺少 `test_item_type` 或类型非法时拒绝执行，提示先运行 `/t-task-check` 或重建/修正 item。
-- `authoring`：只编写或调整场景测试并做编译验证。
-- `runner`：按 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md` 执行；item 只给出全量 `uv run scripts/backend-test.py --` 且没有升级原因时拒绝执行。
-- 同一 item 同时包含"写新场景测试"和"修复生产代码直到通过"时拒绝执行。
 
 ## 禁止事项
 

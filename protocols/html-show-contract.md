@@ -33,7 +33,7 @@ HTML Preview 不再强制限定为单文件、内联 CSS/JS、无 npm/CDN/构建
 - Preview 主入口仍写入 `.ai/preview/` 下。
 - 如果使用外部资源、构建工具、npm 包、CDN 或第三方图形库，必须在 Preview 可见区域标注依赖来源、用途和打开/运行方式。
 - 如果生成辅助文件，必须写入 `.ai/preview/` 下与主 HTML 同名或同目录的资源目录，不得写入目标项目源码。
-- 不引用目标项目源码中的 React/Vue/Svelte/miniapp 组件作为 Preview 的运行依赖；目标项目已有 UI 只可作为入口或约束说明，不作为 Preview 主体复刻。
+- 不引用目标项目源码中的 应用组件作为 Preview 的运行依赖；目标项目已有 UI 只可作为入口或约束说明，不作为 Preview 主体复刻。
 - 不要求所有 Preview 都能直接双击打开；如果需要本地服务或构建步骤，必须报告可复现命令。
 
 ### Visualization Dependencies
@@ -67,14 +67,14 @@ HTML Preview 不再强制限定为单文件、内联 CSS/JS、无 npm/CDN/构建
 
 | verification | 条件 | 证据 | 允许宣称 |
 |---|---|---|---|
-| `verified-render` | 当前角色可调用 `chrome-devtools` 浏览器工具（接入见 `${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md`，建议 `--autoConnect` 连接用户日常 Chrome） | `new_page` 打开 `file://` 页成功 + 页面截图 + console 无资源加载失败 | 已打开并确认渲染 |
+| `verified-render` | 当前角色可调用 `chrome-devtools` 浏览器工具 | `new_page` 打开 `file://` 页成功 + 页面截图 + console 无资源加载失败 | 已打开并确认渲染 |
 | `verified-tab` | macOS 且无 MCP | `open-preview.py` 返回 `verification=verified-tab`（Chrome 打开、激活窗口、读回活动 tab URL 与 `file://` 一致） | 已打开且 tab 置前 |
 | `verified-command` | 其他环境兜底 | 打开命令退出码 0 | 只能说"已执行打开命令，可见性未确认" |
 
 规则：
 
 - `open_result` 结构：`{status: opened | open-command-executed | failed, verification, command, evidence}`；`status=opened` 仅当 `verification` 为 `verified-tab` 或 `verified-render`。
-- 浏览器工具可用性核对：主会话已连接 MCP 不代表 subagent 可用（同 `${CLAUDE_PLUGIN_ROOT}/protocols/extension-acceptance-contract.md` 的规则）。执行前核对当前角色实际可调用的工具；缺失时降级到脚本级别并在 `evidence` 中说明缺口，不得用 Bash 伪装浏览器验证。
+- 浏览器工具可用性核对：主会话已连接 MCP 不代表 subagent 可用。执行前核对当前角色实际可调用的工具；缺失时降级到脚本级别并在 `evidence` 中说明缺口，不得用 Bash 伪装浏览器验证。
 - `verified-render` 的 console 检查同时是最小渲染自检：发现 Mermaid/CDN 等资源加载失败时，如实报告主视觉降级为 fallback，不得宣称渲染正常。
 - `verified-render` 打开的页面留给用户查看，不得关闭页面或标签。
 - 打开失败时保留已生成的 Preview 文件，如实报告命令与错误。
@@ -205,7 +205,7 @@ HTML Preview 的主视觉必须按语义选择表达方式，不能默认堆卡�
 | PRD | 产品意图、范围、规则和验收目标是否正确 | 用户路径/业务状态 + 完整性要点（上提、禁折叠） | `Overview`、`Scope`、`Flow`、`States`、`Rules`、`Acceptance`、`Assumptions` |
 | Decision Brief | 是否值得做，边界和杀死条件是什么 | 决策地图 | `Decision`、`Confidence`、`Scope Direction`、`Kill Criteria`、`D0/D1 Decisions`、`Open Questions`、`Handoff` |
 | Tech Research | 技术路线是否可行，差距和风险在哪里 | 可行性地图 | `Feasibility`、`Gap Matrix`、`Option Comparison`、`Risks`、`Handoff` |
-| Design | 实现结构会怎么变，影响面和风险在哪里 | 结构变化地图 | `Intent`、`Traceability`、`Architecture Change`、`Interface & Data Impact`、`Frontend Impact`、`Risks`、`Test Strategy`、`File Impact`、`Handoff` |
+| Design | 实现结构会怎么变，影响面和风险在哪里 | 结构变化地图 | `Intent`、`Traceability`、`Architecture Change`、`Interface & Data Impact`、`Module Impact`、`Risks`、`Test Strategy`、`File Impact`、`Handoff` |
 | Task | 怎么执行、怎么恢复、哪些门禁会阻塞 | 执行地图（Current + Blocking + Next） | `Execution Overview`、`Phase & Slot Map`、`Item Sequence`、`Blocking Gates`、`Validation Plan`、`Resume Points`、`Handoff` |
 | Generic | 这份文档讲什么，核心答案是什么 | answer board 或文档导读 | 按 Markdown 大纲自适应 |
 

@@ -15,9 +15,7 @@ allowed-tools:
 
 先由 AI 读取 `git status --short` 和必要的 `git diff`，识别本次变更涉及的源码文件。
 
-在生成 commit message 和调用脚本前，AI 必须清理本次变更源码文件中的注释：本次 diff 新增的注释逐条对照"必须保留"类别，命中不了就删除；diff 未触及的存量注释只按禁止条款清理。判定标准以 `${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md` 为准，清理范围只限本次变更文件，不做全仓历史清理。
-
-清理后重新查看必要的 `git diff`，逐条确认剩余的 diff 新增注释都能指认所属的保留类别，再总结本次变更并生成简洁 commit message。commit message 必须来自 AI 对清理后实际变更的总结，不能由脚本根据目录名自动猜测。
+按目标项目 AGENTS.md 与已确认工程规则核对本次变更，再基于实际 diff 生成简洁 commit message；插件不规定代码注释策略。
 
 然后为本次 `/t-push` 执行生成一个新的 session id（例如 `YYYYMMDD-HHMMSS` 或短 UUID），并调用脚本：
 
@@ -27,15 +25,14 @@ uv run ${CLAUDE_PLUGIN_ROOT}/scripts/push.py --ci-session "<本次 t-push sessio
 
 session 规则只说一次：同一次 `/t-push` 执行内（含 CI 失败后 AI 修复重跑）复用同一 session id；新的 `/t-push` 执行必须生成新 session id，避免复用上一次的区域通过缓存。
 
-脚本负责：检测 backend/frontend/demo 变更范围并为受影响区域并发运行本地 CI（区域 CI 内容见下节）；按 session 记录每个区域通过 CI 时的 diff 指纹，重跑时已通过且 diff 未变的区域直接跳过；CI 全部通过后执行 `git add -A`、`git commit` 和推送目标分支。无 diff 时仍核对并补推现有 commit。未提交变更需要 `--message`。
+脚本负责：检测 项目与 Demo 变更范围并为受影响区域并发运行本地 CI（区域 CI 内容见下节）；按 session 记录每个区域通过 CI 时的 diff 指纹，重跑时已通过且 diff 未变的区域直接跳过；CI 全部通过后执行 `git add -A`、`git commit` 和推送目标分支。无 diff 时仍核对并补推现有 commit。未提交变更需要 `--message`。
 
 ## CI Rules
 
-- Backend 变更：`cargo clippy --fix --allow-dirty --allow-staged --all-targets --all-features -- -D warnings`、`cargo fmt --all`，再以不带 `--fix` 的 `cargo clippy --all-targets --all-features -- -D warnings` 终验。
-- Frontend 变更：`npm run lint`、`npm run format:check`（不存在时跳过）、`npm run type-check`。
-- Demo 变更：`npm run lint` 和 `npm run type-check`。
-- Shopify 变更（项目根存在 `shopify.app.toml` 时，除 `demo/` 外的全部变更）：按 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/validation.md` 的 push 门禁执行，类型检查兼容 `typecheck` / `type-check` 且不能缺失；存在 Shopify 扩展配置时必须覆盖扩展构建。
-- 无 backend/frontend/demo/shopify 变更时跳过本地 CI，直接进入 commit/push。
+- 项目变更（demo/、.ai/ 以外）：运行目标项目 scripts/ci.py，脚本内部调用项目真实门禁；入口缺失或失败时停止，不静默跳过。
+- demo/ 变更：在 demo/ 运行 npm run lint 与 npm run type-check；项目共享输入变化且存在 Demo 时同样重验 Demo。
+- 只有 .ai/ 工作流产物变化时可无 CI；无 diff 时仍按共享契约恢复未推送 commit。
+- 缓存指纹覆盖项目源码、配置与 CI 入口；同一 session 输入变化使缓存失效。
 
 `--force-checks` 参数可忽略 session 缓存，强制重跑本次 diff 涉及的所有区域 CI。
 

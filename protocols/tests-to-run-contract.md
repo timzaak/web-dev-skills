@@ -1,33 +1,15 @@
-# `tests_to_run` Contract
+# Tests To Run Contract
 
-## Required Fields
+修复角色返回的 `tests_to_run` 每项包含：
 
-每个 `tests_to_run` 条目必须包含：
+- `layer`: `implementation | web-demo`。
+- `command`: 目标项目真实可执行命令。
+- `reason`: 覆盖的回归风险与选取范围。
+- `required`: 布尔值。
+- `cwd`: 可选，项目内相对工作目录；省略为项目根目录。
 
-- `layer`: `backend | frontend | extension | miniapp | flutter | shopify | web-demo | extension-demo | flutter-demo`
-- `command`: 可直接执行的命令
-- `reason`: 为什么这条补测与本次修改直接相关
-- `required`: 是否必须通过；默认 `true`
+implementation 命令从目标项目脚本、配置、CI 或已确认运行说明中取得，不规定语言、包管理器或测试框架。验证入口不存在、无法运行或选中零用例时报告缺口，不编造命令、不回退到其他技术栈。
 
-## Allowed Commands
+web-demo 使用项目本地 `uv run scripts/web-demo-test-runner.py "demo/e2e/<file>.e2e.ts" --run-id <唯一ID>`；脚本缺失时按运行时边界回退插件 runner。项目或 fixture 管理环境时保留 `--no-auto-env`，重跑失败用例追加精确 `--grep`，通过后重跑整文件。
 
-- `backend`: `uv run scripts/backend-test.py -- [filter]`（无 filter 时也写为 `uv run scripts/backend-test.py --`）
-- `frontend`: `cd frontend && npm run test:run -- [pattern]`
-- `extension`: 在实际扩展目录运行项目定向测试（默认 `cd extension && npm run test:run -- [pattern]`）；类型/配置变更可给项目等价类型检查（`compile` 或 `type-check`）和 `build`，说明与变更的关系。
-- `miniapp`: `cd miniapp && npm run typecheck` 或 `cd miniapp && npm run build:weapp`
-- `flutter`: `cd <flutter-dir> && flutter test [定向路径]`，按需使用 `flutter analyze`、`flutter test integration_test/... -d <device-id>` 或 `patrol test --target ...`
-- `shopify`: 项目根运行 `npm run test -- [pattern]`（项目已配置 Vitest 时）或项目实际定向测试脚本；类型/构建命令按 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/validation.md` 选择，扩展变更必须覆盖扩展构建。shopify-app 与 shopify-extension 共用该层。
-- `web-demo`: `uv run scripts/web-demo-test-runner.py "[测试文件]" --run-id [RUN_ID] --grep "[测试标题]"`
-- `extension-demo`: `uv run scripts/web-demo-test-runner.py "demo/e2e/extension/[测试文件]" --run-id [RUN_ID] [--no-auto-env] --grep "[测试标题]"`
-- `flutter-demo`: `uv run scripts/flutter-demo-test-runner.py "[测试文件]" --run-id [RUN_ID] --device [ANDROID_DEVICE_ID]`
-
-扩展独立 Demo 使用 fixture 管理环境时，extension-demo 命令保留 `--no-auto-env`；环境选择按 `${CLAUDE_PLUGIN_ROOT}/guides/extension/demo-testing.md`。
-
-Shopify 的 web-demo 补测命令必须保留 `--no-auto-env`；环境、数据隔离及恢复按 `${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md` 的 Shopify Demo 运行模式。
-
-## Rules
-
-- 至少返回 1 条与当前修改直接相关的补测。
-- 触达多层改动时，按 `backend -> frontend -> extension -> miniapp -> flutter -> shopify -> web-demo -> extension-demo -> flutter-demo` 顺序提供建议；未启用的层跳过。
-- 不要返回全量测试，除非无法可靠收敛影响范围，并在 `reason` 中说明原因。
-- 若修复 agent 无法给出可靠补测，必须显式说明原因，而不是返回空数组。
+按 implementation -> web-demo 串行补测，去重相同命令；只覆盖实际受影响范围，全量升级须说明原因。编译、类型检查和构建属于静态证据，不能替代所需行为验证。结果记录按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`。

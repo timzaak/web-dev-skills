@@ -316,8 +316,6 @@ def kill_processes_by_path(path: Path) -> int:
 def kill_process_by_port(port: int) -> bool:
     """Kill the process occupying the specified TCP port.
 
-    Also kills the parent process on Windows to handle cargo-run spawning
-    a child binary (cargo.exe holds log file handles).
 
     Returns True if at least one process was killed, False otherwise.
     """
@@ -325,7 +323,6 @@ def kill_process_by_port(port: int) -> bool:
         pids = _get_pids_by_port_windows(port)
         killed = False
         for pid in pids:
-            ppid = _get_parent_pid_windows(pid)
             try:
                 result = subprocess.run(
                     ["taskkill", "/PID", pid, "/F", "/T"],
@@ -339,22 +336,6 @@ def kill_process_by_port(port: int) -> bool:
                 continue
             if result.returncode == 0:
                 killed = True
-            # Kill cargo.exe parent only; other parents may be terminals or shells.
-            if ppid:
-                parent_name = _get_process_name_windows(ppid)
-                if parent_name and parent_name.lower() == "cargo.exe":
-                    try:
-                        subprocess.run(
-                            ["taskkill", "/PID", ppid, "/F", "/T"],
-                            capture_output=True,
-                            text=True,
-                            encoding="utf-8",
-                            errors="replace",
-                            check=False,
-                            timeout=5,
-                        )
-                    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
-                        pass
         return killed
 
     for cmd in (["lsof", "-ti", f":{port}"], ["fuser", "-k", f"{port}/tcp"]):
@@ -391,48 +372,5 @@ def kill_process_by_port(port: int) -> bool:
             return killed
 
         return True
-
-    return False
-
-
-def is_cargo_compiling() -> bool:
-    """Return True when cargo or rustc appears to be active."""
-    if os.name == "nt":
-        command = (
-            "Get-Process cargo, rustc -ErrorAction SilentlyContinue | "
-            "Measure-Object | "
-            "Select-Object -ExpandProperty Count"
-        )
-        try:
-            result = subprocess.run(
-                ["powershell", "-NoProfile", "-Command", command],
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                check=False,
-                timeout=5,
-            )
-            if result.returncode == 0:
-                return int(result.stdout.strip() or "0") > 0
-        except (ValueError, subprocess.TimeoutExpired, OSError):
-            pass
-        return False
-
-    for cmd in (["pgrep", "-f", "cargo"], ["pgrep", "-f", "rustc"]):
-        try:
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                check=False,
-                timeout=5,
-            )
-        except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
-            continue
-        if result.returncode == 0 and result.stdout.strip():
-            return True
 
     return False

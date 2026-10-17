@@ -33,8 +33,8 @@ allowed-tools:
 |---|---|
 | `[feature]` | 可选。聚焦指定功能、模块或领域关键词 |
 | `--all` | 检查全部可识别 PRD / 模块 |
-| `--deep` | 启用后端模块级深度一致性检查 |
-| `--phase <phase>` | 只执行该交付阶段的一致性检查；backend 隐含深度检查 |
+| `--deep` | 对范围内项目模块做深度一致性检查 |
+| `--phase <phase>` | 只执行该交付阶段的一致性检查 |
 
 `t-dream` 所有模式都只读，不修改目标项目文档或代码；PRD 治理内容（合并、归档、重写、改引用）只作为报告建议输出，见"PRD 治理建议"。未传入 `[feature]` 或 `--all` 时，先提示可用模块来源是 `docs/prd/**/*.md`，再建议用户指定范围。
 
@@ -43,8 +43,8 @@ allowed-tools:
 - 用户故事：`docs/user-stories/**/*.md`、`.ai/user-stories/**/*.md`
 - PRD 草稿：`.ai/prd/**/*.md`
 - 设计与任务：`.ai/design/**/*.md`、`.ai/task/**`
-- Demo 测试：Web 为 `demo/e2e/**/*.e2e.ts`，Flutter 为 `patrol_test/**/*_test.dart`
-- 实现代码：按目标项目真实结构定位 backend、frontend、extension、miniapp、flutter、shopify（应用本体与 `extensions/`）、demo 相关实现
+- Demo 测试：`demo/e2e/**/*.e2e.ts`
+- 实现代码：按目标项目真实模块结构定位实现与测试
 - 项目结构：`docs/`、`.ai/`、各交付端与 test 目录、README、AGENTS/CLAUDE 类上下文入口、ADR 或架构说明（如存在）
 
 ## 执行模型
@@ -83,16 +83,12 @@ allowed-tools:
 | 结构组织评估 | 使用 `structure-review` 评估 PRD、代码、测试、Demo、`.ai/` 目录和模块边界是否合理 |
 | PRD 描述准确性 | 使用 `general_agent` 提取关键 PRD 声明，并核对是否被实现事实支撑；默认 audit 只做高风险声明抽样 |
 | 用户故事与验收描述 | 核对用户故事、GWT、验收标准是否与 PRD 和实现一致 |
-| Demo 描述与覆盖事实 | 核对 Demo 测试注释、故事映射、断言和实际覆盖是否准确（web-demo / extension-demo / flutter-demo 阶段的一致性维度） |
-| 后端实现一致性 | 检查 API 能力边界、模型、校验、权限、业务逻辑 |
-| 前端实现一致性 | 核对页面、组件、交互、权限可见性与 PRD/故事描述是否一致 |
-| 扩展实现一致性 | 核对入口、消息、存储、权限与 PRD/故事描述是否一致 |
-| 小程序实现一致性 | 核对页面、平台能力与 PRD/故事描述是否一致 |
-| Flutter 实现一致性 | 核对 View、状态、数据层与 PRD/故事描述是否一致 |
+| Demo 描述与覆盖事实 | 核对 Demo 测试注释、故事映射、断言和实际覆盖是否准确（web-demo 阶段的一致性维度） |
+| 项目实现一致性 | 按真实模块核对能力、约束、状态、权限与 PRD/故事描述 |
 | Traceability | 核对 PRD -> 用户故事 -> 设计/任务 -> 代码 -> 测试/Demo 链路是否存在断链、错链或重复链 |
 | 候选问题验证 | 复核各维度候选问题是否有文件定位、真实证据、合理分级和修复方向 |
 
-`--phase` 只启动该阶段对应的一致性维度和"候选问题验证"，阶段与维度的映射、一致性对象和证据定位以 `${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md` 的 Phase Consistency 为准。`--phase backend` 按模块调用 `backend-consistency` 做专项深度检查；`--deep` 在非 phase 模式下于"后端实现一致性"之外，额外按模块调用 `backend-consistency`。`backend-consistency` 在 `t-dream` 调用下必须只返回结构化结果，不自行写入独立一致性报告。
+`--phase` 的映射与范围从 dream-report-contract 的 Phase Consistency 获取；--deep 扩大到当前范围内全部项目模块，不绑定专用技术栈角色。
 
 ### subagent 调用要求
 - 使用 `Task` 或 `Agent` 启动 `subagent_type="context-curator"`、`subagent_type="structure-review"`、`subagent_type="general_agent"`；调用按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 执行，`general_agent` 为内置 agent，按协议跳过注入。
@@ -124,7 +120,7 @@ allowed-tools:
 - 收集 PRD、用户故事、Demo 测试和候选实现文件路径。
 - 收集设计、任务、README、AGENTS/CLAUDE、ADR 或架构说明路径。
 - 提取模块名、角色名、故事引用、测试引用和关键词。
-- 提取目录结构摘要：PRD 分组、backend/frontend/demo/test 主要模块、`.ai/design` 与 `.ai/task` 对应关系。
+- 提取目录结构摘要：PRD 分组、项目实现、Demo 与测试模块、`.ai/design` 与 `.ai/task` 对应关系。
 - 写明本次检查模式、排除项和无法定位的输入。
 - 将上下文包传给所有参与的 subagent。
 
@@ -137,7 +133,7 @@ allowed-tools:
 专项 agent 只输出候选问题和整理建议，不直接修改文件；主线程验证后只写入报告。
 
 ### 4. 并行提取"描述声明"与"实现事实"
-从 PRD、用户故事和 Demo 测试中提取可核验声明，并按目标项目真实结构定位实现。提取类别（能力边界、数据与状态、验证规则、权限与租户边界、业务流程、验收描述）、实现事实定位指引和后端模块检查的输入规则统一按 `${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md` 的"提取类别与差异分级"执行。
+从 PRD、用户故事和 Demo 测试中提取可核验声明，并按目标项目真实结构定位实现。提取类别（能力边界、数据与状态、验证规则、权限与租户边界、业务流程、验收描述）、实现事实定位指引和模块检查的输入规则统一按 `${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md` 的"提取类别与差异分级"执行。
 
 ### 5. 并行对比描述与事实
 逐项判断每个描述声明是否准确；差异的 P0/P1/P2 分级和"修正文档 / 修正实现 / 需确认"判定统一按 `${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md` 的"差异分级"执行。
@@ -151,18 +147,9 @@ allowed-tools:
 - 测试或 Demo 覆盖应能回连到对应用户故事或验收目标；断链时记录为 P1 或 P2。
 - 重点检查产品能力、模块边界、验收路径和关键业务规则的追踪关系。
 
-### 7. 后端深度一致性
-默认后端维度由 `general_agent` 完成证据提取和对比；在 `--deep` 或 `--phase backend` 时，对每个后端模块额外调用 `backend-consistency`。其他阶段没有专项深度 agent，由该阶段一致性维度直接做全量核对。
+### 7. 模块深度一致性
 
-按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 通过 `Agent(subagent_type="backend-consistency")` 启动，prompt 必须包含：
-- 模块名。
-- PRD 路径；路径来自 `docs/prd/**/*.md` 的实际匹配结果。
-- 当前检查范围。
-- `t-dream` 调用标记：只读返回，不写入 `.ai/quality/consistency-*` 独立报告。
-- 要求输出 API 能力边界、数据模型、验证规则、权限、业务逻辑五个维度评分。
-- 要求标明每条差异应修正文档、实现还是需要产品确认。
-
-agent 失败时记录失败模块为 P1，并继续其他模块（`--all` 模式）。
+--deep 时对当前范围的每个真实模块使用只读 general_agent，提供对应需求路径、实现入口、检查范围与共享报告契约，要求返回候选问题和模块证据，不另写独立报告。缺失输入或调用失败明确标出未覆盖范围，不把抽样结果宣称为全量通过。
 
 ### 8. 候选问题验证
 并行发现结束后，必须进行验证步骤。验证可由主线程完成，也可额外启动一个 `general_agent` 作为"候选问题验证"维度。

@@ -114,3 +114,9 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py <artifact-path>
 - 命中事实缺口 → 调查。
 - 命中外部验证 → 改写为明确验证动作。
 - 只有重新扫描通过后才可交付产物。
+
+## Agent Decision Gap
+
+角色返回的 needs_user_answer 每项统一包含 question、evidence、decision_point、blocked_action。角色只报告缺口，由 skill 查账本、按 Decision Exposure Gate 分类并提问，不自行推进状态或选择未确认的项目规则。
+
+字段位置由输出契约规定：执行结果位于 task_completion，设计结果位于 design_result；slot 规划结果使用顶层字段。非空时不能将依赖该答案的产物当作成功；无关工作可以继续收集事实。

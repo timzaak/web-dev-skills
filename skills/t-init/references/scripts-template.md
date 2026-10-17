@@ -1,40 +1,12 @@
-# Scripts 模板
+# 项目运行说明模板
 
-全栈 Step 6、extension-demo 或 Shopify 模式适配本地脚本后，按下述结构生成目标项目 `scripts/index.md`；测试说明只在该文件维护，AGENTS.md 只提供读取入口。
+接入或更新项目运行入口时读取；按真实项目填写 scripts/index.md，不保留示例命令。
 
-生成时读取 [测试命令契约](${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md) 和 [Demo 执行契约](${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md)；包含后端测试时再读 [后端执行契约](${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md)。核对项目实际脚本、package.json 和测试配置。只列已启用的测试层，用真实路径替换示例参数；未配置的测试标明缺口，不虚构命令。
+| 用途 | 命令 | cwd | 前置条件 | 结果位置 | 清理边界 |
+| --- | --- | --- | --- | --- | --- |
 
-## scripts/index.md 内容
+涵盖已存在的构建、静态检查、测试和必要环境入口；标出没有配置或尚未验证的部分。测试选取与执行记录按 `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md` 和 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`。
 
-### 如何运行
+包含 Web Demo 时，额外写明 URL、身份/数据 fixture、环境管理方式、真实启停/健康检查、日志、run ID 和整文件回归命令；从 `${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md` 读取运行契约。
 
-默认从项目根目录执行，优先运行与改动相关的最小可靠范围；仅在范围无法收敛或门禁要求时运行全量，并记录原因。
-
-| 用途 | 命令 |
-| --- | --- |
-| 后端定向测试 | `uv run scripts/backend-test.py -- <test_name>` |
-| 后端按 crate / 场景筛选 | `uv run scripts/backend-test.py -- -E 'package(<crate>) and test(<pattern>)'` |
-| 前端定向测试（已配置 test:run 时） | `cd frontend && npm run test:run -- <文件或匹配模式>` |
-| Demo 整文件测试 | `uv run scripts/web-demo-test-runner.py "demo/e2e/<file>.e2e.ts" --mode fast --run-id <唯一ID>` |
-| Demo 失败用例重测 | 上述命令追加 `--grep "<完整测试标题>"`，使用新的 run ID；通过后重跑整文件 |
-| 扩展 Demo 构建 | 项目实际构建命令与工作目录；必须先成功构建，再运行下列测试 |
-| 扩展 Demo 整文件测试 | `uv run scripts/web-demo-test-runner.py demo/e2e/extension/<file>.e2e.ts --run-id <唯一ID>`；fixture 独立管理环境时追加 `--no-auto-env` |
-
-后端执行前用 `cargo nextest list` 的对应筛选参数确认选中预期测试；漏选或零用例不算覆盖通过。`cargo check --tests`、前端 type-check / build 仅是编译或静态检查，不替代测试。
-
-### 环境与结果
-
-- 按实际入口补充必要工具、安装命令和配置：后端 uv / Rust / cargo-nextest / Docker；前端 Node / npm；Demo 另需 Playwright 浏览器。Vitest 使用 MSW 隔离 API 时无需真实后端。
-- 后端 runner 自行准备依赖，无需先执行 `test-start.py`；Demo runner 自检并按需启动环境。Shopify 的外部环境及独立扩展 fixture 使用 `--no-auto-env`，具体条件按 Demo 执行契约对应模式。
-- 按实际脚本写明日志位置和停止/清理命令及其影响范围。后端查看 runner 输出的日志路径；前端查看终端或已配置报告；Demo 查看末行 `Result`，其中 `logs` 相对 `demo/`，常见位置为 `demo/test-results/runs/<run-id>/`。
-- 失败时保留命令、失败用例和日志，修复后定向重跑；本地脚本失败不得换插件脚本绕过。未执行或受阻的测试明确记录原因。
-
-### 批量 Demo 与维护
-
-批量执行与修复使用 `/t-tools:t-web-demo-run-all`，中断后用 `/t-tools:t-web-demo-run-all continue`；`web-demo-run-all.py discover` 只发现用例，不执行测试。批次编排由 skill 负责，不在此复制调度流程。
-
-扩展目录使用 `/t-tools:t-extension-demo-run-all` 及其 `continue`，单文件用 `/t-tools:t-extension-demo-run`，故事验收用 `/t-tools:t-extension-demo-accept`。独立扩展只列扩展入口，不指向默认 Web 启停脚本。记录扩展源码/产物路径、ID 来源（需要时）、宿主/stub 与真实服务依赖，重跑沿用环境模式；初始化 smoke 通过不代表故事已验收。
-
-Shopify 项目另列实际类型检查、应用构建、扩展构建入口，以及测试店铺 URL 配置、身份 fixture、启动与清理步骤；所有 Demo 命令保留 `--no-auto-env`，批次和恢复遵循共享修复协议的 Shopify Demo 运行模式，不列默认 Web 启停脚本。
-
-新增或修改测试入口时同步更新本索引。
+测试命令只在此处维护；AGENTS.md 提供读取入口，不复制命令表。重复执行保留用户说明，仅更新受影响行。

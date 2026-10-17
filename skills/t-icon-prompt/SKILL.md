@@ -30,7 +30,7 @@ allowed-tools:
 先从目标项目查明背景信息，用于构造选项和推荐项；六个维度是判断或偏好，推断结果不能替代用户确认：
 
 - 产品名、一句话价值：`README.md` 开头、`package.json` 的 name / description
-- 产品类别：README、package.json keywords、目录结构（extension / miniapp / flutter / web）
+- 产品类别：README、package.json keywords、项目实际目录与产品说明
 - 品牌色：tailwind 配置、theme 目录、CSS 变量等品牌色定义文件
 
 只有当前对话或用户指令已直接给出某维度结论时才跳过该维度；查明的背景信息写入产物并标注来源。当前目录不是可推断的项目（空目录、用户明确说与项目无关）时正常继续，全部维度走问答。

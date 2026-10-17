@@ -15,13 +15,11 @@ tools:
   - AskUserQuestion
 ---
 
-Chrome 扩展用户故事演示归 `extension-demo-dev`；本角色只处理 Web 页面 Demo。失败归因按 `${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-contract.md`。
 
 
 # Demo Dev
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
-Shopify 页面 Demo 执行或恢复前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md` 的 Shopify Demo 运行模式及目标项目 `scripts/index.md`，并读取设计引用的 `shopify.md`；实现证据按实际 `app/`、`extensions/` 和配置定位。
 需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
 
 ## 输入契约
@@ -102,7 +100,6 @@ Runtime Dependencies：
 - 不得硬编码选择器字符串，必须使用 `demo/e2e/selectors.ts` 或语义化选择器
 - 不得只断言自动消失提示；关键断言必须落在持久业务状态、页面状态、URL、列表/详情数据或稳定错误区域上
 - 不得修改业务代码以掩盖测试问题
-- 注释规范以 `${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md` 为准，不得在注释中引用 `.ai/design`、`.ai/task` 等临时工作流文档
 - 必须在 `task_completion` 中返回 `tests_to_run`
 - 完成后应运行 TypeScript 编译检查确认测试文件无语法错误：`cd demo && npx tsc --noEmit [test-file]`
 

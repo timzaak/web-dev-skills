@@ -1,6 +1,6 @@
 # Core 规范入口
 
-core 规范入口，存放跨 backend/frontend/miniapp/demo 的总规范、测试总览与 skill 创作准则。
+core 规范入口，存放跨项目领域 的总规范、测试总览与 skill 创作准则。
 
 | 你要确认的问题 | 对应规范 |
 | --- | --- |
@@ -12,5 +12,5 @@ core 规范入口，存放跨 backend/frontend/miniapp/demo 的总规范、测�
 ## 使用规则
 
 - `quality.md` 是跨领域质量总纲，具体领域门禁继续下沉到各自目录。
-- `environment-and-testing-guide.md` 负责测试分层导航，不替代 backend/frontend/miniapp/demo 的详细测试规则。
+- `environment-and-testing-guide.md` 负责测试分层导航，不替代目标项目自己的详细测试规则。
 - `skill-authoring.md` 与 `skill-testing.md` 由 `t-skill` 的两种模式和 skill 交付 task 的 agent 上下文共用；插件仓库特有的落位、命名和路由同步规则不在本目录重复。

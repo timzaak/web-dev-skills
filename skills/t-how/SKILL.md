@@ -27,10 +27,10 @@ allowed-tools:
 ```text
 t-decision -> t-prd / t-tech-research（无固定顺序，进设计前收敛）
 -> t-design -> t-super-run
--> t-web-demo-* / t-extension-demo-* / t-flutter-demo-* -> t-prd-publish -> t-push -> t-release
+-> t-web-demo-* -> t-prd-publish -> t-push -> t-release
 ```
 
-`t-prd-check`、`t-design-check`、`t-task-check` 是可选质量检查。phase 顺序：Web 为 `backend -> frontend -> web-demo`，扩展项目为 `extension -> extension-demo`（需要后端改动时前置 backend），Flutter 为 `backend -> flutter -> flutter-demo`，Shopify 为 `shopify-app -> shopify-extension -> web-demo`（仅在设计要求店面、admin 或顾客账户用户故事演示时启用 web-demo）。
+`t-prd-check`、`t-design-check`、`t-task-check` 是可选质量检查。阶段启用与顺序从 task-phase-execution 协议读取。
 
 ## 场景路由
 
@@ -44,17 +44,10 @@ t-decision -> t-prd / t-tech-research（无固定顺序，进设计前收敛）
 | 技术可行性、依赖、成本不明 | `/t-tools:t-tech-research <feature>` | 结论改变产品语义时重跑 `t-prd` |
 | 写 / 更新 PRD 草稿 | `/t-tools:t-prd <feature>` | 只写 `.ai/prd` 候选草稿 |
 | 把已验收需求转正 | `/t-tools:t-prd-publish <feature>` | 长期事实合并回 `docs/` |
-| 技术设计 | `/t-tools:t-design <feature>` | 主文档 + 分端设计，后端契约先行 |
+| 技术设计 | `/t-tools:t-design <feature>` | 主文档 + 真实模块设计，契约来源明确 |
 | 实现 + 测试 | `/t-tools:t-super-run <feature> --phase <phase>` | 合并任务规划与执行；`--phase` 必填，每次只执行一个 phase |
-| Chrome 扩展开发 | `/t-tools:t-design <feature>`，再 `t-super-run --phase extension` | 先按 [extension 初始化指南](${CLAUDE_PLUGIN_ROOT}/guides/extension/initialization.md) 建 WXT 工程；用户故事演示用 extension-demo |
-| Shopify App 开发 | `/t-tools:t-design <feature>`，再 `t-super-run --phase shopify-app` / `--phase shopify-extension` | 先 `/t-tools:t-init --shopify <project>` 建工程；规范见 [Shopify 开发指南](${CLAUDE_PLUGIN_ROOT}/guides/shopify/index.md)；店面、admin 或顾客账户用户故事演示用 web-demo |
-| Shopify 项目脚手架 | `/t-tools:t-init --shopify <project-name>` | Shopify 官方 React Router 模板 + demo/scripts 设施；已有 Shopify 工程可增量补齐 |
-| 部署 Shopify 应用 | push 之后手动执行 `shopify app deploy` | 部署不并入 `t-push`；时机与迁移注意事项见 [Shopify 开发指南](${CLAUDE_PLUGIN_ROOT}/guides/shopify/development.md) |
-| 扩展 Demo 基础设施初始化 | `/t-tools:t-init --extension-demo [--extension-dir <path>]` | 为已有 WXT 工程增量生成 Playwright fixture、真实加载 smoke 与运行说明；不代替故事验收 |
 | Web Demo / E2E | `/t-tools:t-web-demo-run <file>` 或 `/t-tools:t-web-demo-run-all` | 之后 `/t-tools:t-web-demo-accept <role>` |
-| Extension Demo / E2E | `/t-tools:t-extension-demo-run <file>` 或 `/t-tools:t-extension-demo-run-all` | 之后 `/t-tools:t-extension-demo-accept <file\|all>` |
-| Flutter Demo | `/t-tools:t-flutter-demo-run <file> --device <id>` 或 `/t-tools:t-flutter-demo-run-all` | 之后 `/t-tools:t-flutter-demo-accept <domain\|all>` |
-| 提交推送 | `/t-tools:t-review`、`/t-tools:t-simplify`，再 `/t-tools:t-push` | review 只报告，发现缺陷先修复；push 会清理注释并跑受影响 CI |
+| 提交推送 | `/t-tools:t-review`、`/t-tools:t-simplify`，再 `/t-tools:t-push` | review 只报告，发现缺陷先修复；push 运行项目实际 CI |
 | 发版 | `/t-tools:t-release [版本号]` | semver 不带 `v`，git tag 带 `v` |
 | 给插件新增或修改 skill | `/t-tools:t-skill [名称或能力描述]` | 只操作插件仓库自身，不用于目标项目业务开发 |
 | 在目标项目内创建或更新 skill | `/t-tools:t-skill --project [名称或能力描述]` | 按项目运行时落位 `.claude/skills/` 或 `.agents/skills/`；feature 中已规划的 skill 交付物走 `t-super-run` 对应 phase |
@@ -63,7 +56,8 @@ t-decision -> t-prd / t-tech-research（无固定顺序，进设计前收敛）
 | 阶段收口一致性 | `/t-tools:t-dream [feature] --phase <phase>` | 检查该交付阶段实现或 Demo 与 PRD / 用户故事的一致性；阶段取值见共享阶段执行协议 |
 | Figma 还原 | `/t-tools:t-figma-assets` → `/t-tools:t-figma-impl` | 素材未就绪可先 impl，交付前补 assets 并绑定；动效精修用 `t-figma-ux` |
 | 为产品图标 / logo 生成提示词 | `/t-tools:t-icon-prompt [icon-name]` | 问答产出提示词卡；只出提示词不生成图片，UI 图标集请用图标库 |
-| 新项目脚手架 | `/t-tools:t-init <project-name>` | Rust + React 全栈骨架；Shopify 项目用 `/t-tools:t-init --shopify <project-name>` |
+| 已有项目工作流接入 | `/t-tools:t-init [--web-demo]` | 记录真实运行入口，可选建立 Web Demo，不选择应用技术栈 |
+| 拉取现成领域角色、实践或工程模板 | `python scripts/export-template.py list`，再显式 export | 读取 `${CLAUDE_PLUGIN_ROOT}/templates/index.md`，区分通用插件与固定版本的独立领域模板；本向导只讲解 |
 
 表外还有 `t-html-show` 等辅助命令：用 Glob 列出 `${CLAUDE_PLUGIN_ROOT}/skills/`，读对应 `SKILL.md` 开头确认职责后再讲解。
 
@@ -72,6 +66,7 @@ t-decision -> t-prd / t-tech-research（无固定顺序，进设计前收敛）
 - 先给最短可用路径（1-3 条命令），再按需展开阶段细节；不要一次性铺开全部工作流。
 - 涉及前置条件时（`docs/`、`.ai/` 目录，context7 MCP，Figma MCP，`--device` 等），随命令一起说明，但不要代替用户检查或创建。
 - 用户想理解整体设计思路（skill、subagent、protocol 如何协同）时，读取 `${CLAUDE_PLUGIN_ROOT}/human/structure.md` 再讲解。
+- 用户需要原生产领域或 Java 后端模板时读取 `${CLAUDE_PLUGIN_ROOT}/templates/index.md`；维护 general 与 main 的同步时读取 `${CLAUDE_PLUGIN_ROOT}/human/merge-main.md`。不把模板中旧命令或 phase 当作当前通用插件已注册能力。
 - 用户要完整命令示例时，指向仓库 README 的“快速上手”章节。
 - 用户在 Codex / ZCode 等不支持 `claude --plugin-dir` 的工具里时，说明命令形式对应 `/t-tool <skill-name>`，见 `${CLAUDE_PLUGIN_ROOT}/human/use-in-other-agents.md`。
 

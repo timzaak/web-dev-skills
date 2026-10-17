@@ -65,7 +65,7 @@ allowed-tools:
 - 如果存在 `.ai/decision/<file-name>.md`，必须承接其中 Verdict、Scope Direction、D0/D1 决策和 Handoff，不得用技术预研改写产品立项结论；Verdict 为 `Needs Clarification`、`Park` 或 `Reject` 时，除非用户明确要求技术探索，否则停止并提示先回到 `/t-decision`
 - 如果存在 `.ai/decision-log/<file-name>.md`，必须承接相关 Active Decision，不得重复询问 Resolved Question 或采用 Superseded Decision
 - 如果已存在相关 `.ai/prd`、`.ai/user-stories` 或 published baseline，必须读取并把它们作为候选产品边界与已发布基线；不得用技术结论静默改写产品语义，需要改变时明确交回 `/t-prd` 更新
-- 依赖评估必须基于真实 `Cargo.toml`、`package.json` 和 lock 文件（如存在）
+- 依赖评估必须基于真实 项目依赖清单与锁文件（如存在）
 - 外部搜索只用于库级事实、最佳实践和兼容性信息，不能替代本地代码分析；Context7 优先，WebSearch 只作补充
 - 影响分析中的文件路径必须使用仓库真实路径，但只到文件或模块粒度
 - 不产出 API 接口设计、数据库设计或任务拆解；报告聚焦于"能否做""需要什么""影响什么"；技术路线只描述方向、集成方式与依赖选择，不给出具体 schema、接口字段、路由路径、代码结构或配置项命名
@@ -118,7 +118,7 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py .ai/tech-research
 
 ## 质量门禁
 
-- 基于真实依赖文件（`Cargo.toml`、`package.json`、lock 文件）做盘点，并优先从现有依赖和代码中寻找方案
+- 基于真实依赖文件（项目依赖清单与锁文件）做盘点，并优先从现有依赖和代码中寻找方案
 - 已收敛为单一明确技术路线，无候选对比、开放式描述和未决项；阻塞性未确认信息已按决策纪律解决，非阻塞缺口已转为显式假设
 - `needs_user_answer=0`、决策闭合扫描通过，并对相关 Active Decision 提供 Decision Trace
 - 影响分析中的路径真实存在；可行性判定明确；风险区分 P0/P1/P2

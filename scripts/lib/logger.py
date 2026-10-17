@@ -173,7 +173,7 @@ class Logger:
         """Context manager for a logical step in the startup process.
 
         Usage:
-            with logger.step(1, 5, "Starting PostgreSQL"):
+            with logger.step(1, 5, "Starting project service"):
                 start_postgresql()
 
         Args:

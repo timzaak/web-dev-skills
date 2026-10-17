@@ -35,24 +35,24 @@ super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相
 ```json
 {
   "feature": "sample-feature",
-  "current_phase": "backend",
-  "active_phases": ["backend", "frontend", "web-demo"],
+  "current_phase": "implementation",
+  "active_phases": ["implementation", "web-demo"],
   "phases": {
-    "backend": {
+    "implementation": {
       "status": "pending",
-      "plan": ".ai/super-run/sample-feature/backend.md",
+      "plan": ".ai/super-run/sample-feature/implementation.md",
       "tasks": {
         "dev": {
           "status": "completed",
-          "agent_spec": "${CLAUDE_PLUGIN_ROOT}/agents/backend-dev.md",
+          "agent_spec": "${CLAUDE_PLUGIN_ROOT}/agents/project-dev.md",
           "references": [
-            "${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md"
+            "${CLAUDE_PLUGIN_ROOT}/guides/core/index.md"
           ],
-          "evidence": ["backend/src/..."]
+          "evidence": ["src/..."]
         },
         "accept": {
           "status": "pending",
-          "agent_spec": "${CLAUDE_PLUGIN_ROOT}/agents/backend-accept.md",
+          "agent_spec": "${CLAUDE_PLUGIN_ROOT}/agents/project-accept.md",
           "references": [],
           "evidence": []
         }
@@ -64,8 +64,8 @@ super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相
       "main": ".ai/design/sample-feature.md",
       "documents": [
         ".ai/design/sample-feature.md",
-        ".ai/design/sample-feature/backend.md",
-        ".ai/design/sample-feature/frontend.md"
+        ".ai/design/sample-feature/processor.md",
+        ".ai/design/sample-feature/adapter.md"
       ]
     },
     "requirements": [],
@@ -148,11 +148,8 @@ python "${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py" ".ai/design/<feature>.md"
 | 条件 | 必需资源 |
 | --- | --- |
 | web-demo/dev | `${CLAUDE_PLUGIN_ROOT}/agents/web-demo-diagnose.md` |
-| extension-demo/dev | `${CLAUDE_PLUGIN_ROOT}/agents/extension-demo-diagnose.md`、`${CLAUDE_PLUGIN_ROOT}/guides/extension/demo-testing.md` |
-| flutter-demo/dev | `${CLAUDE_PLUGIN_ROOT}/agents/flutter-demo-diagnose.md` |
-| extension/dev 或 extension/test 涉及用户当前浏览器现场 | `${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md`；现场证据与工具边界按 `${CLAUDE_PLUGIN_ROOT}/protocols/extension-acceptance-contract.md` 执行 |
 
-用户当前浏览器现场的浏览器工具仅用于观察，重载扩展、刷新宿主页面等动作由主会话在任务授权范围内完成。
+浏览器现场工具仅用于观察；需要刷新项目环境时由主会话在任务授权范围内按项目入口完成。
 
 ## Role Loading And Accept Dispatch
 
@@ -167,7 +164,7 @@ python "${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py" ".ai/design/<feature>.md"
 
 accept task 到达执行位时，主会话按 `subagent-dispatch.md` 派发 `agent_spec` 对应的只读 accept agent：
 
-1. 读取 accept agent 规范全文并按该协议注入为 `# Agent Role:`，追加最小上下文：设计主文档与当前 phase 分端设计、消费后端契约时的 `backend.md`、改动范围与上游 handoff、dev/test 的证据入口、当前验证责任表及上游待验证场景，并提供 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`。
+1. 读取 accept agent 规范全文并按该协议注入为 `# Agent Role:`，追加最小上下文：设计主文档与当前 phase 分端设计、相关模块的唯一契约源、改动范围与上游 handoff、dev/test 的证据入口、当前验证责任表及上游待验证场景，并提供 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`。
 2. 写入 `in_progress` 后串行派发，一次只派发一个 accept subagent。
 3. subagent 只产出验收报告与结论，不读写 `.state.json`，不修改生产代码或测试。主会话把结论映射为状态，不得代出、改写或降级 subagent 结论：
    - `ACCEPTED`，或没有 P0/P1 的 `ACCEPTED_WITH_IMPROVEMENTS`：写 `completed`，把报告路径追加进 `evidence`。
@@ -177,15 +174,10 @@ accept task 到达执行位时，主会话按 `subagent-dispatch.md` 派发 `age
 
 ## Test And Acceptance Loop
 
-- backend/test 先按 `backend-test` 规范编写或维护场景测试并做编译验证，再由主会话按 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md` 执行定向测试与失败分类。
-- frontend/test 按 `frontend-test` 规范完成测试资产和定向执行。
-- extension/test 按 `extension-test` 规范完成 Vitest 测试资产和定向执行；浏览器用户故事用例归 extension-demo/dev。dev/test 涉及用户当前浏览器现场时，按 `${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md` 接入并按 `${CLAUDE_PLUGIN_ROOT}/protocols/extension-acceptance-contract.md` 采集现场证据，浏览器工具仅用于观察。
-- miniapp/test 按 `miniapp-test` 规范完成独立测试或专项 gate 资产及其验证；没有 test task 时，typecheck 和构建回归归 dev task。
-- shopify-app/test 与 shopify-extension/test 按 `shopify-test` 规范完成 Vitest 测试资产和定向执行；店面与 admin 用户故事用例归 web-demo/dev，不在本阶段编写 Playwright。
+- implementation/test 按 project-test 规范完成测试资产与定向执行，命令来自目标项目真实入口。
+
 - 测试发现生产代码缺陷时，在同一个 test task 中记录失败证据，主会话切换到对应 dev agent 规范修复，再切回测试执行边界重新执行受影响测试；测试角色本身不接管生产修复，不得弱化断言、权限预期或业务规则。修复影响已完成的验证或其他 phase 时，按证据失效规则重开并报告恢复入口，不自动执行其他 phase。
 - web-demo/dev 同时承担 Playwright 资产维护和定向执行，不新增独立 test task。失败时读取 `web-demo-diagnose` 规范分类，再切换对应 dev 规范修复并补跑底层定向测试。
-- extension-demo/dev 同时承担扩展 Playwright 资产维护和定向执行，不新增独立 test task。失败时读取 `extension-demo-diagnose` 分类，再切换对应 dev 规范修复、重建加载产物并补跑定向测试。
-- flutter-demo/dev 同时承担 Patrol 资产维护和定向执行，不新增独立 test task。失败时读取 `flutter-demo-diagnose` 规范分类，再切换 `flutter-demo-dev`、`flutter-dev` 或 `backend-dev` 规范修复并补跑整文件测试；Android device 选定值写入 `flutter-demo.md` plan，运行时缺失则询问用户。
 - accept 由只读 accept subagent 执行（见 Role Loading And Accept Dispatch），必须保持该 agent 规范的只读验收边界；允许写验收报告，不得直接修改生产代码或测试来制造通过结果。
 - accept 拒绝时由主会话按证据重新打开 dev 或已规划的 test，并把 accept 重置为 `pending`。修复、重测后重新派发验收，直到通过或进入 `blocked`。
 

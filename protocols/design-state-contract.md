@@ -1,20 +1,18 @@
 # Design State Contract
 
-写入 `.ai/design/<feature>/.state.json`：
+`.ai/design/<feature>/.state.json`：
 
 ```json
 {
   "status": "in_progress|complete|failed",
-  "applicable_stacks": ["backend", "frontend"],
-  "completed_stacks": ["backend"],
+  "applicable_stacks": ["processor", "adapter"],
+  "completed_stacks": ["processor"],
   "failed_stack": null
 }
 ```
 
-- 适用端取值为 backend / frontend / extension / flutter / shopify；各端使用独立完成/失败记录，extension 与 frontend 不能合并状态。shopify 端由 `shopify.md` 分端文档承载（shopify-app 与 shopify-extension 两个 phase 共用同一分端设计，不拆两份状态）。
-- 调度前写 `in_progress`。
-- 每个端成功后更新 `completed_stacks`。
-- 无法恢复时写 `failed` 和 `failed_stack`。
-- 主文档、分端文档、决策闭合扫描和结构校验全部通过后写 `complete`。
-- `/t-super-run` 和 `/t-design-check` 遇到非 `complete` 状态时停止。
-- 状态文件缺失时停止，提示运行 `/t-design <feature>` 生成完整设计状态。
+保留 stacks 字段名作为结构契约，值改为目标项目真实模块 ID，与主文档 §4.2 完全一致；ID 为稳定 kebab-case，拒绝路径分隔符、点路径和重复值。分模块路径在 §4.2 显式声明，允许同一主文档覆盖小型项目（路径写 `main`）。独立模块文档位于 `.ai/design/<feature>/<module>.md`。
+
+开始生成前写 in_progress；每个模块成功后更新 completed_stacks；无法恢复时写 failed 与 failed_stack。只有全部适用模块、主文档、决策闭合和结构校验通过才写 complete；complete 要求 completed_stacks 与 applicable_stacks 集合相等、failed_stack=null。
+
+下游遇到缺失、损坏、非 complete 或集合不一致的状态必须停止并提示恢复 `/t-design <feature>`。重复执行复用有效产物，只重做受影响模块；旧领域状态不自动迁移，保留后重新规划。

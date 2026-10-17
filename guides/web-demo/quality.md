@@ -13,23 +13,19 @@
 ## 2. 五阶段验收流程
 
 ### 阶段 1：用户故事一致性（MANDATORY）
-- 测试文件必须映射到 `docs/user-stories/*.md`；交付测试文件不得引用 `.ai/user-stories/*.md`（见 `${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md`）
+- 来源遵循 requirement-source-contract，可读取候选故事和发布故事，存在相关发布基线时核对变更授权
 - 场景、角色、断言与用户故事验收标准一致
 - 场景覆盖率 < 50% 直接拒绝
 
 ### 阶段 2：测试编译验证（MANDATORY）
 
-使用目标项目 Demo 的真实类型检查入口；Shopify 初始化的 Demo 为 `cd demo && npm run type-check`。下列 build 示例只在实际提供该脚本时使用。
 
-```bash
-(cd demo && npm run build)
-```
+使用目标项目真实类型检查入口；例如 demo/package.json 已配置 type-check 时运行 `cd demo && npm run type-check`，不要求不存在的 build 脚本。
 
 标准：0 TypeScript 编译错误。
 
 ### 阶段 3：测试执行验证（MANDATORY）
 
-Shopify 项目先读取 `${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md` 的 Shopify Demo 运行模式，下列 runner 命令必须追加 `--no-auto-env` 并核查该模式的数据隔离。
 
 ```bash
 uv run scripts/web-demo-test-runner.py "${TEST_FILE}" --mode fast --log-level mini
@@ -43,8 +39,8 @@ uv run scripts/web-demo-test-runner.py "${TEST_FILE}" --mode fast --log-level mi
 ### 阶段 4：测试代码质量检查
 
 P0：
-- 使用 `verifyTestEnvironment()`
-- 使用 `cleanupTestData()` 或等价封装完成清理
+- 使用项目真实环境校验入口或等价 fixture
+- 使用项目本次运行数据清理入口或等价 fixture 完成隔离
 - 使用 `demoLogger` fixture
 - 主验收断言不得依赖 `sonner`、toast、Snackbar 等自动消失提示
 - 固定延迟 `waitForTimeout` 最小化
@@ -90,7 +86,7 @@ npx jscpd --pattern "**/*.ts" --reporters console demo/e2e
 ## 4. 拒绝条件
 
 任一满足即 `REJECTED`：
-- 用户故事文档不存在（`docs/user-stories` 未找到），或测试文件引用的是 `.ai/user-stories` 而非 `docs/user-stories`
+- 无法定位有效用户故事来源，或草稿与发布基线存在未解决冲突
 - 编译失败
 - 任一测试失败或超时
 - 缺失测试隔离（环境验证/数据清理）

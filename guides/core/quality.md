@@ -4,13 +4,7 @@
 
 本文件定义跨领域质量总原则与门禁框架。
 
-具体验收细则已下沉到：
-- `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/frontend/quality.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/quality.md`
-- `${CLAUDE_PLUGIN_ROOT}/protocols/extension-demo-acceptance-contract.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/flutter/quality.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/flutter/demo-testing.md`
+工程门禁来自目标项目已确认规则与真实配置；Web Demo 细则在 `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/quality.md`。
 
 ## 1. 设计与追踪
 
@@ -48,16 +42,8 @@
 
 报告目录：`.ai/quality/`
 
-## 4. 领域细则入口
-
-- 后端验收细则：`${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md`
-- 前端验收细则：`${CLAUDE_PLUGIN_ROOT}/guides/frontend/quality.md`
-- Web Demo 验收细则：`${CLAUDE_PLUGIN_ROOT}/guides/web-demo/quality.md`
-- 扩展 Demo 验收细则：`${CLAUDE_PLUGIN_ROOT}/protocols/extension-demo-acceptance-contract.md`
-- Flutter Demo 验收细则：`${CLAUDE_PLUGIN_ROOT}/guides/flutter/demo-testing.md`
-
 ## 5. 执行约束
 
 - 需求语义冲突时，以 `docs/`（PRD + User Stories）为准
-- 执行流程与测试约束，以 `${CLAUDE_PLUGIN_ROOT}/guides/` 为准
+- 执行流程与测试约束，优先采用目标项目已确认规范，再按适用范围读取插件通用指南
 - 未经授权不得修改与当前任务无关的文件

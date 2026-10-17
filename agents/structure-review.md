@@ -30,8 +30,7 @@ tools:
 按目标项目真实结构判断，不强行套固定目录。优先检查：
 - `docs/`：PRD、用户故事、领域模型、架构说明、ADR、教程和索引。
 - `.ai/`：decision、prd、user-stories、tech-research、design、task、quality、preview 等运行时产物。
-- backend：domain、api/http、infra、application/service、migration、tests 等。
-- frontend：routes/pages、components、hooks、api/client、state、tests 等。
+- 项目模块：真实入口、公共边界、内部实现、外部依赖和测试。
 - demo：Playwright E2E、Page Object、fixtures、logs、story mapping。
 - README、AGENTS/CLAUDE 类上下文入口。
 
@@ -43,8 +42,7 @@ tools:
 - README/AGENTS 是否是入口和目录，而不是过长百科。
 
 ### 2. 模块边界
-- 后端领域、接口、基础设施、应用服务是否有清晰归属。
-- 前端页面、组件、API client、状态管理是否按用户路径和领域边界组织。
+- 实际能力、公共契约、内部实现与依赖是否有明确归属。
 - 跨模块依赖是否有明确理由，是否存在"所有东西都放到 shared/common"的漂移。
 
 ### 3. 测试与 Demo 布局
@@ -55,7 +53,7 @@ tools:
 ### 4. AI 可操作性
 - 新 agent 是否能通过少量文件理解模块入口、实现位置和验证命令。
 - 修改某个能力时，影响范围是否局部化。
-- 验证命令是否能按 backend/frontend/demo 或模块粒度运行。
+- 验证命令是否能按 真实模块或 Demo 粒度运行。
 
 ### 5. 漂移信号
 - 同一领域散落在多个无明确边界的目录。

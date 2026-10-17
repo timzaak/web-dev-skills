@@ -95,7 +95,7 @@ evidence:       # 可引用的代码行；PLAUSIBLE 还需确认途径
 `--fix` 只改变报告之后的处置，不改变审查、验证与报告本身：
 
 - 修复只发生在报告成功写入之后；finder/verifier 阶段与原始审查结论保持只读。应用前按共享范围契约核对本地版本；目标不匹配则 pending，不自动切分支或覆盖文件。
-- CONFIRMED 发现由主会话切换到受影响端的 dev 角色边界修复：从 `${CLAUDE_PLUGIN_ROOT}/agents/` 读取对应的 dev agent 规范（`backend-dev.md`、`frontend-dev.md`、`extension-dev.md`、`miniapp-dev.md`、`flutter-dev.md`、`shopify-dev.md`、`web-demo-dev.md`、`extension-demo-dev.md`、`flutter-demo-dev.md`）作为当前角色边界（与 `t-super-run` 的主会话角色切换一致），不为此新派 subagent。
+- CONFIRMED 发现由主会话切换到受影响端的 dev 角色边界修复：从 `${CLAUDE_PLUGIN_ROOT}/agents/` 读取对应的 dev agent 规范（业务实现用 `project-dev.md`，Web Demo 资产用 `web-demo-dev.md`）作为当前角色边界（与 `t-super-run` 的主会话角色切换一致），不为此新派 subagent。
 - PLAUSIBLE 发现先按其 `failure_scenario` 复现或确认；能确认的视同 CONFIRMED 修复，无法确认的保留为 pending 并写明确认途径。
 - 会改变预期行为的修法跳过并标记 pending；不得用弱化断言、放宽校验、改需求含义或改写 verifier 结论的方式消除发现。
 - 修复与下游门禁消费完整 CONFIRMED/PLAUSIBLE 集合，不受报告摘要的 8 条上限约束；每条修复后运行覆盖所改文件的最小定向验证，立即按 `candidate_id` 把结果写入同一报告的 `## Fixes`，不等整批完成才写回。报告写入失败则停止后续修复；恢复时先核对实际代码与已记结果，避免重复应用。修复使阶段证据失效时交回编排层补跑必要回归并重新独立 accept，不能把 fixed 当作重新验收通过。

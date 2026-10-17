@@ -54,7 +54,7 @@ TARGET_PROJECT_PATH_PREFIXES = (
 INTERNAL_MD_PATH_PATTERN = re.compile(
     r"(?P<url>"
     r"\$\{CLAUDE_PLUGIN_ROOT\}/[^\s`\"')\]|,，。；;]+\.md(?:#[^\s`\"')\]|,，。；;]+)?"
-    r"|/(?:agents|guides|human|protocols|skills)/[^\s`\"')\]|,，。；;]+\.md(?:#[^\s`\"')\]|,，。；;]+)?"
+    r"|(?<![A-Za-z0-9_./-])/(?:agents|guides|human|protocols|skills)/[^\s`\"')\]|,，。；;]+\.md(?:#[^\s`\"')\]|,，。；;]+)?"
     r")"
 )
 
@@ -113,6 +113,10 @@ class MarkdownLink:
 
 def is_excluded(path: Path, extra_dirs: Set[str] | None = None, extra_files: Set[Path] | None = None) -> bool:
     rel = path.relative_to(PROJECT_ROOT)
+    # Template payloads resolve plugin references against their exported runtime.
+    # Their catalogs are checked here; validate payloads with --root after export.
+    if len(rel.parts) >= 4 and rel.parts[:2] == ("templates", "project-profiles") and rel.parts[3] == "files":
+        return True
     exclude_dirs = EXCLUDE_DIRS | (extra_dirs or set())
     if any(part in exclude_dirs for part in rel.parts):
         return True
@@ -440,9 +444,14 @@ def generate_report(
 
 
 def main() -> None:
+    global PROJECT_ROOT
     parser = argparse.ArgumentParser(description="检查 Markdown 死链接和入口可达性。")
     parser.add_argument("--report", type=Path, help="可选：输出 Markdown 报告到指定路径。")
+    parser.add_argument("--root", type=Path, default=PROJECT_ROOT, help="检查指定仓库或已导出的独立模板。")
     args = parser.parse_args()
+    PROJECT_ROOT = args.root.resolve()
+    if not PROJECT_ROOT.is_dir():
+        parser.error(f"检查根目录不存在: {PROJECT_ROOT}")
 
     print("Markdown 文档链接检查")
     print("=" * 60)

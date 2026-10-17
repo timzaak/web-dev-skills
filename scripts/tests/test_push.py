@@ -35,6 +35,9 @@ class PushRecoveryTests(unittest.TestCase):
         self.command("git", "config", "core.hooksPath", str(Path(temporary.name) / "no-hooks"))
         self.source = self.root / "sample.txt"
         self.source.write_text("base\n", encoding="utf-8")
+        ci = self.root / "scripts" / "ci.py"
+        ci.parent.mkdir()
+        ci.write_text("print('project checks passed')\n", encoding="utf-8")
         self.command("git", "add", ".")
         self.command("git", "commit", "-m", "base")
         self.command("git", "remote", "add", "origin", str(self.remote))
@@ -190,81 +193,35 @@ class PushRecoveryTests(unittest.TestCase):
         self.assertEqual(self.remote_head(), self.base_head)
 
 
-class ShopifyAreaTests(unittest.TestCase):
-    def setUp(self) -> None:
-        temporary = tempfile.TemporaryDirectory(prefix="t-tools-push-shopify-")
+class ProjectAreaTests(unittest.TestCase):
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
-        self.addCleanup(patch.stopall)
-        patch.object(push, "REPO_ROOT", self.root).start()
+        patcher = patch.object(push, "REPO_ROOT", self.root)
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
-    def test_root_files_map_to_shopify_only_when_app_toml_exists(self) -> None:
-        (self.root / "shopify.app.toml").write_text('name = "x"\n', encoding="utf-8")
-        areas = push.detect_areas(
-            ["shopify.app.toml", "app/routes/app._index.tsx", "extensions/theme/blocks.liquid", "prisma/schema.prisma"]
-        )
-        self.assertEqual(areas, {"shopify"})
+    def test_any_project_layout_requires_ci(self):
+        self.assertEqual(push.detect_areas(["src/main.py", "README.md"]), {"project"})
+        self.assertEqual(push.detect_areas([".ai/state.json"]), set())
+        with self.assertRaisesRegex(RuntimeError, "scripts/ci.py"):
+            push.project_steps()
 
-    def test_demo_files_stay_in_demo_area_for_shopify_projects(self) -> None:
-        (self.root / "shopify.app.toml").write_text('name = "x"\n', encoding="utf-8")
+    def test_shared_project_changes_recheck_demo(self):
+        package = self.root / "demo/package.json"
+        package.parent.mkdir()
+        package.write_text('{"scripts":{}}', encoding="utf-8")
+        self.assertEqual(push.detect_areas(["config.toml"]), {"project", "demo"})
         self.assertEqual(push.detect_areas(["demo/e2e/smoke.e2e.ts"]), {"demo"})
-        self.assertEqual(
-            push.detect_areas(["demo/e2e/a.e2e.ts", "app/routes/x.tsx"]),
-            {"demo", "shopify"},
-        )
+        self.assertEqual(push.area_pathspecs("project"), push.area_pathspecs("demo"))
 
-    def test_root_files_map_to_no_area_without_app_toml(self) -> None:
-        areas = push.detect_areas(["README.md", "app/routes/x.tsx"])
-        self.assertEqual(areas, set())
-
-    def test_shopify_area_fingerprint_excludes_demo(self) -> None:
-        self.assertEqual(
-            push.area_pathspecs("shopify"),
-            [".", ":(exclude)backend/", ":(exclude)frontend/", ":(exclude)demo/", ":(exclude).ai/"],
-        )
-        self.assertEqual(push.area_pathspecs("frontend"), ["frontend/"])
-
-    def test_shopify_steps_require_app_toml(self) -> None:
-        with self.assertRaises(RuntimeError):
-            push.shopify_steps()
-        (self.root / "shopify.app.toml").write_text('name = "x"\n', encoding="utf-8")
-        (self.root / "package.json").write_text(
-            '{"scripts": {"build": "react-router build"}}', encoding="utf-8"
-        )
-        with self.assertRaisesRegex(RuntimeError, "typecheck"):
-            push.shopify_steps()
-
-    def configure_app(self, scripts: dict[str, str], *, extension: bool = False) -> None:
-        (self.root / "shopify.app.toml").write_text('name = "x"\n', encoding="utf-8")
-        (self.root / "package.json").write_text(json.dumps({"scripts": scripts}), encoding="utf-8")
-        if extension:
-            path = self.root / "extensions/theme/shopify.extension.toml"
-            path.parent.mkdir(parents=True)
-            path.write_text('type = "theme"\n', encoding="utf-8")
-
-    def test_template_typecheck_is_used_and_legacy_name_supported(self) -> None:
-        for script in ("typecheck", "type-check"):
-            with self.subTest(script=script):
-                self.configure_app({script: "react-router typegen && tsc --noEmit", "build": "react-router build"})
-                steps = push.shopify_steps()
-                self.assertEqual([s.command[1:] for s in steps], [["run", script], ["run", "build"]])
-
-    def test_extensions_run_cli_build_after_application_checks(self) -> None:
-        self.configure_app({"typecheck": "tsc --noEmit", "build": "react-router build", "shopify": "shopify"}, extension=True)
-        steps = push.shopify_steps()
-        self.assertEqual(steps[-1].command[1:], ["run", "shopify", "--", "app", "build"])
-        self.assertEqual(steps[-1].cwd, self.root)
-        with patch.object(push, "run_cmd", return_value=subprocess.CompletedProcess([], 1)):
-            with self.assertRaisesRegex(RuntimeError, "Shopify extensions build failed"):
-                push.run_steps("shopify", [steps[-1]])
-
-    def test_extension_cli_and_application_build_cannot_be_missing(self) -> None:
-        self.configure_app({"typecheck": "tsc --noEmit"})
-        with self.assertRaisesRegex(RuntimeError, "build"):
-            push.shopify_steps()
-        self.configure_app({"typecheck": "tsc --noEmit", "build": "react-router build"}, extension=True)
-        with self.assertRaisesRegex(RuntimeError, "shopify"):
-            push.shopify_steps()
+    def test_failed_project_ci_stops_execution(self):
+        script = self.root / "scripts/ci.py"
+        script.parent.mkdir()
+        script.write_text("raise SystemExit(3)\n", encoding="utf-8")
+        with self.assertRaisesRegex(RuntimeError, "exit code 3"):
+            push.run_steps("project", push.project_steps())
 
 
 if __name__ == "__main__":

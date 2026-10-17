@@ -35,11 +35,9 @@ allowed-tools:
 - 若是文件路径：仅处理该文件。
 - 若是角色名：匹配 `demo/e2e/**` 下对应文件。
 - 若是 `all` 或空：扫描 `demo/e2e/**/*.e2e.ts`，排除 `fixtures/`、`templates/`、`verification/`。
-- 扫描与文件参数均排除 `demo/e2e/extension/`；扩展演示使用 `/t-tools:t-extension-demo-accept`。
 
 - 用户故事一致性检查（必须）。
 - 读取测试文件顶部注释中的用户故事路径。
-- 校验用户故事文件存在；交付测试文件只允许引用 `docs/user-stories/...`，不接受 `.ai/user-stories/...`（见 `${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md`）。
 - 核对场景覆盖、角色匹配、关键断言与验收标准。
 
 - 按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 独立核查有效运行证据及上游承接场景；可复用的命令结果不重复执行，缺失或失效时补跑下列命令。
@@ -78,8 +76,6 @@ wc -l [测试文件路径]
 - 证据路径
 
 日志路径统一使用仓库相对路径：
-- `log/backend-demo.log`
-- `log/frontend-demo.log`
 - `demo/test-results/`
 
 ## 失败处理

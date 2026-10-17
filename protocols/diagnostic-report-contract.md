@@ -9,17 +9,17 @@
 
 每份报告都必须在开头给出以下字段：
 
-- `runtime`: `web | extension | flutter`
-- `problem_code`: `TEST | FRONTEND | EXTENSION | FLUTTER | NATIVE | BACKEND | ENV | AUTH | DATA`
+- `runtime`: `web`
+- `problem_code`: `TEST | IMPLEMENTATION | ENV | AUTH | DATA`
 - `severity`: `P0 | P1 | P2`
-- `recommended_agent`: `web-demo-dev | extension-demo-dev | flutter-demo-dev | frontend-dev | extension-dev | flutter-dev | backend-dev | shopify-dev | manual`
+- `recommended_agent`: `web-demo-dev | project-dev | manual`
 - `confidence`: `high | medium | low`
 
 字段含义：
 - `problem_code`: 当前失败的唯一主分类
-- `runtime`: 决定 TEST/DATA 应返回对应的 Web、Extension 或 Flutter Demo agent
+- `runtime`: 固定为 web；TEST/DATA 返回 Web Demo 角色
 - `severity`: 对当前修复优先级的判断
-- `recommended_agent`: 推荐处理方；`manual` 表示需要人工处理环境或基础设施问题
+- `recommended_agent`: `web-demo-dev | project-dev | manual`
 - `confidence`: 对当前诊断结论的把握程度
 
 ## 标题规则
@@ -78,7 +78,7 @@
 - 证据来源
 
 证据优先级：
-- 当前 runtime 的 `playwright-output.log` 或 `patrol-output.log`
+- 当前 run 的 `playwright-output.log`
 - 当次 run 目录中的失败截图 / trace（如存在）
 - unified logs
 - 测试代码 / 前端代码 / 后端日志
@@ -124,17 +124,11 @@
 
 | problem_code | 说明 | 推荐处理方 |
 |---|---|---|
-| `TEST` | 测试代码、选择器、断言、等待、流程问题 | web: `web-demo-dev`; extension: `extension-demo-dev`; flutter: `flutter-demo-dev` |
-| `DATA` | 测试数据、前置条件、唯一性或初始化问题 | web: `web-demo-dev`; extension: `extension-demo-dev`; flutter: `flutter-demo-dev` |
-| `FRONTEND` | 前端渲染、交互、路由、可见性、遮挡问题 | `frontend-dev` |
-| `EXTENSION` | 扩展 UI、worker、消息、存储或 manifest 权限实现问题（runtime=extension） | `extension-dev` |
-| `FLUTTER` | Flutter 页面、路由、状态或业务交互实现问题 | `flutter-dev` |
-| `NATIVE` | Android 平台能力、权限或系统 UI 实现问题 | `flutter-dev` |
-| `BACKEND` | 后端接口、查询、服务端异常 | `backend-dev` |
-| `AUTH` | 登录、鉴权、授权、权限配置问题 | `backend-dev` |
-| `ENV` | 环境启动、端口、依赖服务、基础设施问题 | `manual` |
-
-Shopify 页面 Demo 保持 `runtime=web`。当证据定位到 Shopify 应用路由、Prisma、app proxy 或 Shopify `extensions/` 业务实现时，`FRONTEND / BACKEND / AUTH` 的推荐处理方覆盖为 `shopify-dev`；Shopify 扩展不是 Chrome 扩展，不使用 `runtime=extension` 或 `extension-dev`。`TEST / DATA` 仍归 `web-demo-dev`，`ENV` 仍归 `manual`；混合项目的独立后端/前端缺陷按实际文件归属沿用表中角色，不因存在 Shopify 配置而全部改派。
+| `TEST` | 测试、选择器、断言、等待或流程问题 | web-demo-dev |
+| `DATA` | 测试数据、前置条件或初始化问题 | web-demo-dev |
+| `IMPLEMENTATION` | 项目生产实现与已确认需求不符 | project-dev |
+| `AUTH` | 登录、鉴权或权限实现问题 | project-dev；缺少账号/授权则 manual |
+| `ENV` | 环境、服务或基础设施不可用 | manual |
 
 ## 严重级别定义
 
@@ -146,6 +140,6 @@ Shopify 页面 Demo 保持 `runtime=web`。当证据定位到 Shopify 应用路�
 
 ## 一致性要求
 
-- `${CLAUDE_PLUGIN_ROOT}/agents/web-demo-diagnose.md`、`${CLAUDE_PLUGIN_ROOT}/agents/extension-demo-diagnose.md` 与 `${CLAUDE_PLUGIN_ROOT}/agents/flutter-demo-diagnose.md` 必须引用本协议
+- `${CLAUDE_PLUGIN_ROOT}/agents/web-demo-diagnose.md` 必须引用本协议
 - `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/diagnose-guide.md` 只描述流程、证据优先级和产出时机
 - `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/templates/diagnose-report-template.md` 只是便捷骨架，不得与本协议冲突

@@ -38,7 +38,7 @@ class DemoPhaseCoverageTests(unittest.TestCase):
             )
             command = [
                 sys.executable, str(SCRIPTS_DIR / "check-test-runner-coverage.py"),
-                "feature", "--project-root", str(root), "--layer", "web-demo", "--no-dynamic",
+                "feature", "--project-root", str(root), "--layer", "web-demo",
             ]
             for text, expected_code, expected_output in (
                 (content, 0, "expected tests: 1"),
@@ -53,95 +53,6 @@ class DemoPhaseCoverageTests(unittest.TestCase):
                     result = subprocess.run(command, capture_output=True, text=True, check=False)
                     self.assertEqual(result.returncode, expected_code, result.stdout + result.stderr)
                     self.assertIn(expected_output, result.stdout)
-
-    def test_extension_runner_discovery_and_full_suite_gate(self) -> None:
-        with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp)
-            runner = root / ".ai/task/feature/extension/test/EX-T02-runner.md"
-            runner.parent.mkdir(parents=True)
-            content = (
-                "## Expected Test Manifest\n- `rejects invalid sender`\n"
-                "## Validation\ncd extension && npm run test:run -- lib/messaging.test.ts\n"
-            )
-            runner.write_text(content, encoding="utf-8")
-            self.assertEqual(coverage.find_runner_files(root, "feature", "extension"), [runner])
-            self.assertEqual(coverage.find_runner_files(root, "feature", None), [runner])
-            self.assertEqual(coverage.infer_layer(runner), "extension")
-            self.assertEqual(coverage.check_runner(root, runner, dynamic=False).errors, [])
-            runner.write_text(content.replace(" -- lib/messaging.test.ts", ""), encoding="utf-8")
-            errors = coverage.check_runner(root, runner, dynamic=False).errors
-            self.assertTrue(any("Full-suite command lacks" in error for error in errors))
-            runner.write_text(content.replace("cd extension && npm run test:run -- lib/messaging.test.ts", ""), encoding="utf-8")
-            self.assertIn("No test runner command found.", coverage.check_runner(root, runner, dynamic=False).errors)
-
-    def test_discovers_web_extension_and_flutter_demo_runner_items_independently(self) -> None:
-        with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp)
-            base = root / ".ai" / "task" / "feature"
-            web = base / "web-demo" / "dev" / "WD-D02-runner.md"
-            extension = base / "extension-demo" / "dev" / "ED-D02-runner.md"
-            flutter = base / "flutter-demo" / "dev" / "FD-D02-runner.md"
-            web.parent.mkdir(parents=True)
-            extension.parent.mkdir(parents=True)
-            flutter.parent.mkdir(parents=True)
-            web.write_text(
-                "## Expected Test Manifest\n- `login flow`\n"
-                "## Validation\nuv run scripts/web-demo-test-runner.py demo/e2e/login.e2e.ts --grep 'login flow'\n",
-                encoding="utf-8",
-            )
-            extension.write_text(
-                "## Expected Test Manifest\n- `settings flow`\n"
-                "## Validation\nuv run scripts/web-demo-test-runner.py demo/e2e/extension/settings.e2e.ts --no-auto-env --grep 'settings flow'\n",
-                encoding="utf-8",
-            )
-            flutter.write_text(
-                "## Expected Test Manifest\n- `password login`\n"
-                "## Validation\nuv run scripts/flutter-demo-test-runner.py patrol_test/auth/login_test.dart --device emulator-5554\n",
-                encoding="utf-8",
-            )
-            self.assertEqual(coverage.find_runner_files(root, "feature", "web-demo"), [web])
-            self.assertEqual(coverage.find_runner_files(root, "feature", "extension-demo"), [extension])
-            self.assertEqual(coverage.find_runner_files(root, "feature", "flutter-demo"), [flutter])
-            self.assertEqual(coverage.infer_layer(web), "web-demo")
-            self.assertEqual(coverage.infer_layer(extension), "extension-demo")
-            self.assertEqual(coverage.infer_layer(flutter), "flutter-demo")
-            self.assertTrue(coverage.check_runner(root, web, dynamic=False).commands)
-            self.assertEqual(coverage.check_runner(root, extension, dynamic=False).errors, [])
-            self.assertTrue(coverage.is_full_suite_command(
-                "uv run scripts/web-demo-test-runner.py demo/e2e/extension/ --mode fast", "extension-demo"
-            ))
-            self.assertTrue(coverage.check_runner(root, flutter, dynamic=False).commands)
-
-
-    def test_shopify_runner_discovery_and_full_suite_gate(self) -> None:
-        with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp)
-            runner = root / ".ai/task/feature/shopify-app/test/SA-T02-runner.md"
-            runner.parent.mkdir(parents=True)
-            content = (
-                "## Expected Test Manifest\n- `rejects tampered signature`\n"
-                "## Validation\nnpm run test -- src/proxy-verify.test.ts\n"
-            )
-            runner.write_text(content, encoding="utf-8")
-            self.assertEqual(coverage.find_runner_files(root, "feature", "shopify-app"), [runner])
-            self.assertEqual(coverage.find_runner_files(root, "feature", None), [runner])
-            self.assertEqual(coverage.infer_layer(runner), "shopify-app")
-            self.assertEqual(coverage.check_runner(root, runner, dynamic=False).errors, [])
-            runner.write_text(content.replace(" -- src/proxy-verify.test.ts", ""), encoding="utf-8")
-            errors = coverage.check_runner(root, runner, dynamic=False).errors
-            self.assertTrue(any("Full-suite command lacks" in error for error in errors))
-            extension_runner = root / ".ai/task/feature/shopify-extension/test/SX-T01-runner.md"
-            extension_runner.parent.mkdir(parents=True)
-            extension_runner.write_text(
-                "## Expected Test Manifest\n- `parses block settings`\n"
-                "## Validation\nnpm run test -- extensions/helpers/settings.test.ts\n",
-                encoding="utf-8",
-            )
-            self.assertEqual(coverage.infer_layer(extension_runner), "shopify-extension")
-            self.assertEqual(
-                coverage.find_runner_files(root, "feature", "shopify-extension"),
-                [extension_runner],
-            )
 
 
 if __name__ == "__main__":

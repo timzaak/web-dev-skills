@@ -126,7 +126,7 @@ PRD 文档额外传入 `--type prd`。
 
 ## 后端可视化选择
 
-- `backend-flow`：表达调用方、能力边界、业务步骤、结果。
+- `capability-flow`：表达调用方、能力边界、业务步骤、结果。
 - `state-diagram`：表达状态、触发条件、合法迁移、禁止迁移。
 - `dependency-graph`：表达任务、模块、文档或能力之间的依赖与阻塞关系。
 - `timeline`：表达决策、交付、迁移或演进顺序。
@@ -136,7 +136,7 @@ PRD 文档额外传入 `--type prd`。
 - `capability-matrix`：表达角色或调用方、可用能力、约束、可见性。
 - `acceptance-matrix`：表达场景、前置条件、动作、可验收结果。
 
-复杂后端场景优先组合 `backend-flow` 和 `state-diagram`；不要生成伪页面。
+复杂后端场景优先组合 `capability-flow` 和 `state-diagram`；不要生成伪页面。
 
 ## 输出契约
 
@@ -146,7 +146,7 @@ PRD 文档额外传入 `--type prd`。
 - `source_doc_path`
 - `doc_type`: `prd | decision | tech-research | design | task | generic`
 - `mode`: `create | update`
-- `visualization_type`: `prd-review | decision-map | research-map | design-change-map | task-execution-map | answer-board | interactive-preview | backend-flow | state-diagram | dependency-graph | timeline | swimlane | pipeline | hub-map | capability-matrix | acceptance-matrix | document-reader`
+- `visualization_type`: `prd-review | decision-map | research-map | design-change-map | task-execution-map | answer-board | interactive-preview | capability-flow | state-diagram | dependency-graph | timeline | swimlane | pipeline | hub-map | capability-matrix | acceptance-matrix | document-reader`
 - `files_modified`
 - `assumptions`
 - `required_doc_updates`（如有）
@@ -158,7 +158,7 @@ PRD 文档额外传入 `--type prd`。
 - Preview 必须和源文档描述一致。
 - Preview 不得引入源文档未声明的新规则或约束。
 - Preview 不得出现端点清单、请求响应 schema、数据库设计、迁移或类型定义。
-- Preview 如依赖 React、Vue、Svelte、miniapp 组件、npm、CDN、第三方图库、构建工具或目标项目构建产物，必须声明依赖来源、用途和打开/运行方式；不得把目标项目已有 UI 作为 Preview 主体复刻。
+- Preview 如依赖 应用组件、npm、CDN、第三方图库、构建工具或目标项目构建产物，必须声明依赖来源、用途和打开/运行方式；不得把目标项目已有 UI 作为 Preview 主体复刻。
 - Preview 视觉风格保持中性、低保真、可审阅，不追求最终 UI。
 
 ## 失败处理

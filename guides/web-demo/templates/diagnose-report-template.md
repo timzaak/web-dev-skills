@@ -1,5 +1,6 @@
 # [{{PROBLEM_CODE}}/{{SEVERITY}}] {{TEST_NAME}} - {{ONE_LINE_ROOT_CAUSE}}
 
+- `runtime`: `web`
 - `problem_code`: `{{PROBLEM_CODE}}`
 - `severity`: `{{SEVERITY}}`
 - `recommended_agent`: `{{RECOMMENDED_AGENT}}`

@@ -11,28 +11,13 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 
-STACKS = ("backend", "frontend", "extension", "flutter", "shopify")
 SKILL_ROOT_PREFIXES = (".claude/skills/", ".agents/skills/", "skills/")
 MAIN_HEADINGS = (
-    "## 1. 需求概述",
-    "## 2. 需求来源",
-    "### 2.4 决策追踪",
-    "### 2.5 设计覆盖矩阵",
-    "## 3. 现有实现分析",
-    "## 4. 总体方案",
-    "### 4.2 交付端范围",
-    "### 4.3 跨端契约",
-    "## 6. 测试与验收策略",
-    "## 7. 风险与验证动作",
-    "## 8. 文件影响范围",
+    "## 1. 需求概述", "## 2. 需求来源", "### 2.4 决策追踪",
+    "### 2.5 设计覆盖矩阵", "## 3. 现有实现分析", "## 4. 总体方案",
+    "### 4.2 交付端范围", "### 4.3 跨端契约", "## 6. 测试与验收策略",
+    "## 7. 风险与验证动作", "## 8. 文件影响范围",
 )
-STACK_HEADINGS = {
-    "backend": ("## 4. API 接口设计", "## 9. 详细设计", "## 12. 文件影响范围"),
-    "frontend": ("## 4. 用户体验流", "### 5.3 页面结构 / 线框说明", "## 9. 详细设计", "## 11. 文件影响范围"),
-    "extension": ("## 4. 入口与交互", "## 5. 权限与上下文", "## 6. 消息与存储", "## 7. 测试与验收", "## 9. 文件影响范围"),
-    "flutter": ("## 4. 用户体验流", "### 6.1 API 依赖", "详细设计（Flutter", "文件影响范围（Flutter"),
-    "shopify": ("## 1. 目标与范围", "## 5. 契约设计（app proxy / internal API）", "## 8. 测试与验收", "## 10. 文件影响范围（Shopify 文件）"),
-}
 PLACEHOLDERS = re.compile(
     r"\[(?:方案名称|feature|真实仓库路径|operationId|REQ/US-ID)\]"
 )
@@ -84,62 +69,47 @@ def clean_cell(value: str) -> str:
     return value.strip().strip("`").strip()
 
 
-def applicable_stacks(main_text: str) -> set[str]:
-    result: set[str] = set()
-    for cells in table_rows(main_text, "4.2 交付端范围"):
-        if len(cells) < 3:
+def module_documents(main_path: Path) -> dict[str, Path]:
+    text = main_path.read_text(encoding="utf-8")
+    result: dict[str, Path] = {}
+    design_dir = main_path.with_suffix("").resolve()
+    for cells in table_rows(text, "4.2 交付端范围"):
+        if len(cells) != 3:
+            raise ValueError("Each scope row must contain module ID, document and status")
+        module, document, status = (clean_cell(cell) for cell in cells)
+        if status.startswith("不适用"):
             continue
-        stack = clean_cell(cells[0]).lower()
-        status = clean_cell(cells[2])
-        if stack in STACKS and status.startswith("适用") and not status.startswith("不适用"):
-            result.add(stack)
+        if not status.startswith("适用") or not re.fullmatch(r"[a-z][a-z0-9]*(?:-[a-z0-9]+)*", module):
+            raise ValueError(f"Invalid scope row: {cells}")
+        if module in result:
+            raise ValueError(f"Duplicate module ID: {module}")
+        if document == "main":
+            path = main_path.resolve()
+        else:
+            if document != f"{module}.md":
+                raise ValueError(f"Module document must be {module}.md or main: {document}")
+            path = (design_dir / document).resolve()
+            if path.parent != design_dir:
+                raise ValueError(f"Module document escapes design directory: {document}")
+        result[module] = path
+    if not result:
+        raise ValueError("Delivery scope has no applicable modules")
     return result
 
 
 def design_documents(main_path: Path) -> list[Path]:
     if not main_path.is_file():
         return []
-    main_text = main_path.read_text(encoding="utf-8")
-    paths = [main_path]
-    design_dir = main_path.with_suffix("")
-    for stack in STACKS:
-        path = design_dir / f"{stack}.md"
-        if stack in applicable_stacks(main_text) and path.is_file():
-            paths.append(path)
-    return paths
-
-
-def operation_map(text: str, heading: str) -> dict[str, tuple[str, str]]:
-    result: dict[str, tuple[str, str]] = {}
-    for cells in table_rows(text, heading):
-        if len(cells) < 3:
-            continue
-        operation = clean_cell(cells[0])
-        method = clean_cell(cells[1]).upper()
-        path = clean_cell(cells[2])
-        if operation:
-            result[operation] = (method, path)
-    return result
+    try:
+        paths = module_documents(main_path).values()
+    except ValueError:
+        return [main_path]
+    return list(dict.fromkeys([main_path.resolve(), *(path for path in paths if path.is_file())]))
 
 
 def impact_rows(text: str) -> list[tuple[str, str]]:
-    for fragment in (
-        "8. 文件影响范围",
-        "文件影响范围（后端文件）",
-        "文件影响范围（前端文件）",
-        "文件影响范围（Flutter 文件）",
-        "文件影响范围（扩展文件）",
-        "文件影响范围（Shopify 文件）",
-    ):
-        rows = table_rows(text, fragment)
-        if rows:
-            return [(clean_cell(row[0]), clean_cell(row[1]).upper()) for row in rows if len(row) >= 2]
-    return []
-
-
-def contract_not_applicable(text: str, heading: str) -> bool:
-    """Require an explicit, reasoned declaration in the contract section."""
-    return re.search(r"^[ \t]*不适用[：:][ \t]*\S[^\r\n]*$", section(text, heading), re.MULTILINE) is not None
+    return [(clean_cell(row[0]), clean_cell(row[1]).upper())
+            for row in table_rows(text, "8. 文件影响范围") if len(row) >= 2]
 
 
 def under_skill_root(rel_path: str) -> bool:
@@ -175,36 +145,40 @@ def validate(main_path: Path, repo_root: Path, require_complete: bool = False) -
     main_text = documents["main"][1]
     design_dir = main_path.with_suffix("")
     state_path = design_dir / ".state.json"
+    try:
+        modules = module_documents(main_path)
+    except ValueError as exc:
+        findings.append(Finding("DELIVERY_SCOPE_INVALID", str(main_path), str(exc)))
+        modules = {}
     if require_complete:
-        if not state_path.is_file():
-            findings.append(Finding("DESIGN_GENERATION_INCOMPLETE", str(state_path), "design state file missing"))
+        try:
+            state = json.loads(state_path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+            findings.append(Finding("DESIGN_STATE_INVALID", str(state_path), str(exc)))
         else:
-            try:
-                state = json.loads(state_path.read_text(encoding="utf-8"))
-            except (OSError, UnicodeError, json.JSONDecodeError) as exc:
-                findings.append(Finding("DESIGN_STATE_INVALID", str(state_path), str(exc)))
+            if not isinstance(state, dict):
+                findings.append(Finding("DESIGN_STATE_INVALID", str(state_path), "expected object"))
             else:
-                if state.get("status") != "complete":
-                    findings.append(Finding("DESIGN_GENERATION_INCOMPLETE", str(state_path), str(state.get("status"))))
+                applicable = state.get("applicable_stacks")
+                completed = state.get("completed_stacks")
+                valid = lambda value: isinstance(value, list) and all(isinstance(x, str) for x in value) and len(value) == len(set(value))
+                if (state.get("status") != "complete" or not valid(applicable) or not valid(completed)
+                        or set(applicable) != set(modules) or set(completed) != set(modules)
+                        or "failed_stack" not in state or state.get("failed_stack") is not None):
+                    findings.append(Finding("DESIGN_GENERATION_INCOMPLETE", str(state_path), "state and delivery modules must be complete and equal"))
     for heading in MAIN_HEADINGS:
         if heading not in main_text:
             findings.append(Finding("MAIN_HEADING_MISSING", str(main_path), heading))
-
-    stacks = applicable_stacks(main_text)
-    if not table_rows(main_text, "4.2 交付端范围"):
-        findings.append(Finding("DELIVERY_SCOPE_INVALID", str(main_path), "delivery scope table is empty"))
-
-    for stack in stacks:
-        path = design_dir / f"{stack}.md"
+    for module, path in modules.items():
+        if path == main_path.resolve():
+            continue
         if not path.is_file():
-            findings.append(Finding("STACK_DOC_MISSING", str(path), f"{stack} is applicable"))
+            findings.append(Finding("MODULE_DOC_MISSING", str(path), module))
             continue
         text = path.read_text(encoding="utf-8")
-        documents[stack] = (path, text)
-        for heading in STACK_HEADINGS[stack]:
-            if heading not in text:
-                findings.append(Finding("STACK_HEADING_MISSING", str(path), heading))
-
+        documents[f"module:{module}"] = (path, text)
+        if not impact_rows(text):
+            findings.append(Finding("MODULE_IMPACT_EMPTY", str(path), module))
     for path, text in documents.values():
         for match in PLACEHOLDERS.finditer(text):
             findings.append(
@@ -218,36 +192,10 @@ def validate(main_path: Path, repo_root: Path, require_complete: bool = False) -
         if len(row) < 5 or any(not clean_cell(cell) for cell in row[:5]):
             findings.append(Finding("COVERAGE_ROW_INCOMPLETE", str(main_path), " | ".join(row)))
 
-    backend_ops: dict[str, tuple[str, str]] = {}
-    if "backend" in documents:
-        backend_ops = operation_map(documents["backend"][1], "4.1 接口清单")
-        if not backend_ops:
-            findings.append(Finding("BACKEND_CONTRACT_EMPTY", str(documents["backend"][0]), "API operation table is empty"))
-        main_ops = operation_map(main_text, "4.3 跨端契约")
-        if main_ops != backend_ops:
-            findings.append(Finding("MAIN_CONTRACT_MISMATCH", str(main_path), "operation/method/path differ from backend.md"))
-    contract_ops = backend_ops
-    if "backend" not in documents and "shopify" in documents:
-        # Shopify projects without a backend stack: shopify.md is the contract source.
-        shopify_ops = operation_map(documents["shopify"][1], "5. 契约设计")
-        main_ops = operation_map(main_text, "4.3 跨端契约")
-        if not shopify_ops and not contract_not_applicable(documents["shopify"][1], "5. 契约设计"):
-            findings.append(Finding("SHOPIFY_CONTRACT_EMPTY", str(documents["shopify"][0]), "app proxy / internal API table is empty"))
-        if main_ops != shopify_ops:
-            findings.append(Finding("MAIN_CONTRACT_MISMATCH", str(main_path), "operation/method/path differ from shopify.md"))
-        elif not main_ops and not contract_not_applicable(main_text, "4.3 跨端契约"):
-            findings.append(Finding("MAIN_CONTRACT_EMPTY", str(main_path), "declare 不适用 with a reason when no contract is involved"))
-        contract_ops = shopify_ops
-
-    for stack in ("frontend", "extension", "flutter", "shopify"):
-        if stack not in documents or not contract_ops or (stack == "shopify" and "backend" not in documents):
-            continue
-        dependencies = operation_map(documents[stack][1], "API 依赖" if stack != "shopify" else "5. 契约设计")
-        for operation, signature in dependencies.items():
-            if operation not in contract_ops:
-                findings.append(Finding("UNKNOWN_CONTRACT_OPERATION", str(documents[stack][0]), operation))
-            elif contract_ops[operation] != signature:
-                findings.append(Finding("CONTRACT_SIGNATURE_MISMATCH", str(documents[stack][0]), operation))
+    contract = section(main_text, "4.3 跨端契约")
+    content = "\n".join(contract.splitlines()[1:]).strip()
+    if not content:
+        findings.append(Finding("MAIN_CONTRACT_EMPTY", str(main_path), "declare a source or a reason for non-applicability"))
 
     main_impacts = set(impact_rows(main_text))
     if not main_impacts:

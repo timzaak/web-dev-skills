@@ -65,6 +65,3 @@
   - 禁止引用 `.ai/user-stories/...`、`.ai/design/...`、`.ai/task/...`、`.ai/prd/...`：这些都是交付时会被删除的工作流产物，引用它们必然在 `/t-prd-publish` 后变成悬空注释。硬约束，非"优先"建议。
 - **`.ai/` 内的工作流文档**（设计草稿、任务草稿、PRD 草稿）：
   - 与 `.ai/user-stories/...` 同生命周期，允许草稿阶段交叉引用 `.ai/user-stories/...` 并保留稳定 US ID；草稿本身不进入交付物，无需在发布前改写。
-
-代码注释中的临时工作流文档引用禁令、追溯注释形态与低价值注释定义以 `${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md` 为准。
-

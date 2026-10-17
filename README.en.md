@@ -2,128 +2,109 @@
 
 [中文](README.md)
 
-A Claude Code plugin for Rust, React, Chrome extension, miniapp, and Flutter projects. It turns AI programming into an executable, resumable, and acceptable engineering workflow:
+A general Claude Code engineering workflow plugin for real projects: executable, resumable, and independently accepted. The plugin supplies orchestration, decision continuity, quality gates and recovery. Production stacks, architecture and testing practices come from the target project. Web Demo and Figma remain available.
 
 ```text
-Decision -> PRD / Tech Research (choose by the main unknown; iterate if needed) -> Design -> Task -> Development -> Acceptance -> Demo -> Release
+Decision -> PRD / Tech Research -> Design -> Implementation / Testing -> Independent Acceptance -> Publish
 ```
 
-T-Tools is designed for projects that already have a delivery chain across product documents, design, task breakdown, development, testing, and demos. Its focus is not freeform model execution. It uses skills to orchestrate stages, subagents to split work, protocols to keep shared contracts stable, and check / accept stages to close quality when needed.
+Read the [structure overview](human/structure.en.md), [intent template](human/speech-template.en.md), [generalization rationale](human/generalization.en.md), and [proposed project knowledge workflow](human/generalization-plan.en.md). The knowledge proposal has not been implemented as a new command.
 
-Recommended first reading: [human/structure.en.md](human/structure.en.md) to understand how skills, subagents, and protocols work together. Before shaping a requirement, use [human/speech-template.en.md](human/speech-template.en.md) to speak through the real intent first.
+## Quick start
 
-The development log of this project's iterations is kept on [linux.do](https://linux.do/t/topic/1988118/4) (in Chinese).
+Users explicitly invoke commands. Use `/t-tools:t-how` for routing. From an existing project root:
 
-![T-Tools engineering workflow knowledge graph](knowledge-graph.en.webp)
-
-## Quick Start
-
-Not sure which command to start with? Run `t-how` — it explains the workflow for your goal and recommends the entry command.
-
-Follow [Installation](#installation) and meet its prerequisites first.
-
-Minimal end-to-end loop:
-
-```bash
-# Product decision gate; routes to tech research or PRD by the main unknown
-t-decision user-management
-
-# Run research first when feasibility, dependencies, or cost may affect scope;
-# no fixed order with PRD — converge before design
-t-tech-research user-management
-
-# Read the feature's Decision Brief and tech research first; review existing related PRDs
-# Generate .ai/prd and .ai/user-stories drafts
-t-prd user-management
-
-# Run t-prd-check by risk, or proceed directly to design
-# Generate technical design (master + per-stack)
-t-design user-management
-
-# Merge task planning, implementation, and testing per phase; repeat the loop for other phases
-t-super-run user-management --phase backend
-
-# Web Demo/E2E and final acceptance (extensions and Flutter have separate commands)
-t-web-demo-run demo/e2e/<role>/<scenario>.e2e.ts
-t-web-demo-accept <role>
-# Chrome extension loaded-browser demo and acceptance
-t-extension-demo-run demo/e2e/extension/<scenario>.e2e.ts
-t-extension-demo-run-all
-t-extension-demo-accept all
-
-# Publish formal PRD / user stories after implementation and acceptance
-t-prd-publish user-management
+```text
+/t-tools:t-init
+/t-tools:t-decision sample-feature
+/t-tools:t-prd sample-feature
+/t-tools:t-design sample-feature
+/t-tools:t-super-run sample-feature --phase implementation
+/t-tools:t-prd-publish sample-feature
 ```
 
-`t-prd-check`, `t-design-check`, and `t-task-check` are optional quality checks; use them by risk.
+Use t-tech-research first when feasibility, dependencies or costs are the main unknown, and converge with PRD before design. Only purely technical changes that do not alter business behavior, product rules, user flows or acceptance goals may proceed directly from research to design.
 
-Create or update skills with `t-skill [name or capability description]` (the plugin repository by default). Use `t-skill --project [name or capability description]` for the target project's `.claude/skills/` or `.agents/skills/` directory. Skill deliverables already planned for a feature run within their assigned phase; see the [skill authoring entry](skills/t-skill/SKILL.md).
+`t-prd-check`, `t-design-check` and `t-task-check` remain optional, risk-based checks. They do not replace post-implementation acceptance.
 
-## Phase Split
+## Phases and project constraints
 
-A typical web order is `backend -> frontend -> web-demo`; a typical extension order is `extension -> extension-demo` (with backend first when changed); a typical Flutter order is `backend -> flutter -> flutter-demo`; a typical Shopify order is `shopify-app -> shopify-extension -> web-demo` (web-demo only when the design requires storefront, admin, or customer account user-story demos).
+The current phases are generic `implementation` and optional `web-demo`. The [phase contract](protocols/task-phase-execution.md) alone defines activation, ordering, design inputs and roles. Modules follow actual project boundaries rather than preset languages or directories.
 
-- `backend`: backend APIs, data models, permissions, business logic, backend tests, and read-only acceptance.
-- `frontend`: React pages, components, state, frontend tests, and read-only acceptance.
-- `extension`: WXT / Chrome MV3 entrypoints, messaging, storage, permissions, Vitest tests, and read-only acceptance.
-- `miniapp`: miniapp pages, platform capabilities, build verification, and read-only acceptance.
-- `flutter`: Flutter views, Riverpod state, data layers, unit/widget/integration tests, and read-only acceptance.
-- `shopify-app`: Shopify app core — React Router loaders/actions, Prisma data models, admin embedded pages, app proxy HMAC-verified routes, Vitest tests, and read-only acceptance.
-- `shopify-extension`: storefront/account delivery surfaces via theme app extensions and customer account UI extensions, with read-only acceptance.
-- `web-demo`: Playwright Demo/E2E based on user stories and browser user paths (for Shopify projects: the storefront, admin, and customer account paths declared in the design).
-- `extension-demo`: Playwright integration demos with a loaded extension, covering user paths across contexts, permissions, and lifecycle behavior.
-- `flutter-demo`: Android Patrol demos based on user stories, including real App actions and native system UI.
+`t-super-run <feature> --phase <phase>` executes only the requested phase: the main session performs dev/test work and an independent read-only accept agent closes it. Resume the same command from persisted state. Use `t-task -> t-run` when a separate item plan needs review; its state is independent.
 
-Each phase uses `t-super-run` by default: the main session implements, tests, and repairs the work under the current role specification, while accept dispatches a read-only subagent for independent acceptance. `--phase` is required; each call executes one phase and stops, and repeating the same command recovers after an interruption. Use `t-task -> t-run` when plans need separate review or fine-grained item ownership; the two workflows keep independent state.
+Project AGENTS.md, code, configuration and confirmed documentation define engineering rules. t-init connects an existing project and documents actual entrypoints; it does not scaffold an application. Project CI lives in scripts/ci.py and invokes real checks. Missing or failing CI blocks push.
 
-The general syntax is `t-super-run <feature> --phase <phase>`. Phase names and activation rules are defined in the [phase execution contract](protocols/task-phase-execution.md#phases), rather than repeated in each skill's parameter descriptions. Adding a phase requires updating the shared definitions, design inputs, and role mapping, along with the corresponding execution capabilities.
+Previous domain commands and phases have been removed. They are not silently mapped and old state is not automatically migrated. Preserve old artifacts, replan from the current design and verify existing evidence before execution.
 
-When review fixes, cleanup, or CI repairs invalidate evidence, required regressions and independent acceptance run before committing; see the [push execution contract](protocols/push-execution-contract.md) for push gates and interrupted-push recovery.
+## Web Demo
 
-Before committing, manually run [`/t-tools:t-review [target] [--fix]`](skills/t-review/SKILL.md) for correctness bugs: it reports by default, verifies each candidate independently with three possible verdicts, and adds specialist angles plus one gap sweep for high-risk changes. Then use [`/t-tools:t-simplify [target]`](skills/t-simplify/SKILL.md) for four-angle cleanup with fixes applied directly. Both accept a PR, branch, path, or Git revision range, write reports to `.ai/quality/`, and do not replace accept.
+```text
+/t-tools:t-init --web-demo
+/t-tools:t-super-run sample-feature --phase web-demo
+/t-tools:t-web-demo-run demo/e2e/<role>/<scenario>.e2e.ts
+/t-tools:t-web-demo-run-all
+/t-tools:t-web-demo-run-all continue
+/t-tools:t-web-demo-accept <role>
+```
 
-These entries originated from older bundled Claude Code skills and were checked against the v2.1.302 package on 2026-10-17. The core simplify workflow still matches. The current `/review` aliases `/code-review`, whose recipe varies by model and effort and may also cover cleanup and project conventions. This plugin keeps correctness review separate from cleanup and retains independent verification. It does not directly support the built-in command's effort, `--max-findings`, `--comment`, or `ultra` arguments; use the [built-in Claude Code command](https://code.claude.com/docs/en/code-review-local) for those capabilities.
+Initialization establishes Playwright and logging infrastructure; smoke success does not accept real stories. The project defines URLs, identities, isolation and cleanup. Automatic environment management requires local scripts/demo-start.py, demo-health.py and demo-stop.py, with exit code 0 indicating success. Fixture/external management uses --no-auto-env. No application environment falls back to the plugin. See [Web Demo guides](guides/web-demo/index.md) and the [repair contract](protocols/web-demo-run-repair-contract.md).
 
-Prepare a WXT project using the [extension initialization guide](guides/extension/initialization.md); run `t-init --extension-demo` in the target project to add real-extension integration-demo infrastructure. See the [extension demo guide](guides/extension/demo-testing.md) for fixtures, environment selection, and acceptance.
+## Figma
 
-Create Shopify app projects with `t-init --shopify <project-name>` from Shopify's official React Router template (or retrofit an existing Shopify project with demo/scripts infrastructure); see the [Shopify development guide](guides/shopify/development.md). `shopify app deploy` runs explicitly by the user after `t-push` and is never triggered by a skill.
+`t-figma-assets`, `t-figma-impl` and `t-figma-ux` retain asset processing, block-based reconstruction and motion refinement in existing project files, without selecting a production framework. Assets may be prepared later but must be bound before delivery; developers perform page acceptance. See [Figma guides](guides/figma/index.md) and the [shared contract](protocols/figma-workflow-contract.md).
 
-Shopify initialization preserves existing configuration, scripts, and documentation; rerunning after failure fills only the remaining gaps. Single-file, batch, and resumed Demo runs all use `--no-auto-env`; the project's `scripts/index.md` declares store authentication, URLs, and test-data cleanup for real stories. The static initialization smoke needs no store. `t-push` recognizes `typecheck` / `type-check`, blocks when type-checking or app-build scripts are missing, and also builds Shopify extensions when extension configuration exists.
+## Quality chain and supporting commands
 
-## Usage Rules
+Close changes with `t-review --fix -> t-simplify -> t-push`. Repairs invalidating evidence require regression checks and independent acceptance. Review reports by default; unresolved correctness findings block push. Push uses project CI and preserves recovery after remote failures; see the [push contract](protocols/push-execution-contract.md). scripts/release.py and t-release govern publishing: semantic versions omit v, Git tags include v.
 
-- Every `t-*` command is manually invoked; the model must not trigger them automatically.
-- Not sure which command to use, or how a stage runs? Run `t-how`: it routes by goal and explains preconditions, outputs, and next steps.
-- PRD, tech research, and design need explicit human calibration: speak through the real intent with [Do Not Shortcut the Intent](human/speech-template.en.md) first, and never deliver with unconfirmed questions left open.
+| Goal | Entry |
+| --- | --- |
+| Workflow guidance | [t-how](skills/t-how/SKILL.md) |
+| Decisions and research | [t-decision](skills/t-decision/SKILL.md), [t-tech-research](skills/t-tech-research/SKILL.md) |
+| Requirements and publishing | [t-prd](skills/t-prd/SKILL.md), [t-prd-publish](skills/t-prd-publish/SKILL.md) |
+| Design and optional checks | [t-design](skills/t-design/SKILL.md), [t-design-check](skills/t-design-check/SKILL.md), [t-prd-check](skills/t-prd-check/SKILL.md) |
+| Planning and execution | [t-super-run](skills/t-super-run/SKILL.md), [t-task](skills/t-task/SKILL.md), [t-run](skills/t-run/SKILL.md), [t-task-check](skills/t-task-check/SKILL.md) |
+| Review, cleanup and push | [t-review](skills/t-review/SKILL.md), [t-simplify](skills/t-simplify/SKILL.md), [t-push](skills/t-push/SKILL.md) |
+| Context and consistency | [t-dream](skills/t-dream/SKILL.md) |
+| Skill authoring | [t-skill](skills/t-skill/SKILL.md), --project for target-project skills |
+| Documents and previews | [t-doc](skills/t-doc/SKILL.md), [t-html-show](skills/t-html-show/SKILL.md) |
+| Icon prompts | [t-icon-prompt](skills/t-icon-prompt/SKILL.md) |
+| Onboarding and release | [t-init](skills/t-init/SKILL.md), [t-release](skills/t-release/SKILL.md) |
+
+## Optional domain templates
+
+Migrated assets remain in [templates/](templates/index.md). [classic-stack](templates/project-profiles/classic-stack/index.md) preserves Rust/React, extension, miniapp, Flutter and Shopify roles, practices, scripts and scaffolds. [java-backend](templates/project-profiles/java-backend/index.md) preserves Java/Spring Boot/Maven backend content from java.
+
+```powershell
+python scripts/export-template.py list
+python scripts/export-template.py export classic-stack --output C:/code/ai/t-tools-classic
+python scripts/export-template.py export java-backend --output C:/code/ai/t-tools-java
+```
+
+Output must be outside this repository. --dry-run previews; repeated exports preserve user edits. Export combines domain sources with the template's pinned shared runtime, producing a standalone plugin loadable with claude --plugin-dir. Select the generic plugin or one template per session; do not mix phase/state versions. Templates are inactive by default. Fetch origin main or origin java first if pinned history is unavailable.
+
+## Ongoing maintenance
+
+Before integrating main, read the [merge guide](human/merge-main.en.md): classify generic updates and domain migrations, resolve modify/delete conflicts, advance template baselines independently, and validate both runtimes.
 
 ## Installation
 
 ```bash
-# 1. Clone this repository
 git clone <repo-url>
-
-# 2. Start Claude Code in the target project and load the plugin
 cd /your-project
-claude --plugin-dir /path/to/skills
+claude --plugin-dir /path/to/web-dev-skills
 ```
 
-Prerequisites:
+Configure Context7 MCP for entrypoints needing dependency documentation. Figma requires the official Figma MCP; asset conversion needs ffmpeg/ffprobe, svgo and kyz as described in the [asset guide](guides/figma/assets.md). Web Demo needs Python/uv, Node and Playwright browsers. Workflows create .ai/ and docs/ as needed; empty state files are not required.
 
-- MCP Server [`context7`](https://github.com/upstash/context7) is configured
-- Chrome DevTools MCP (with `--autoConnect`) is configured per the [live Chrome debugging guide](guides/extension/live-browser.md) when extension work touches the user's live Chrome (tabs, login state, installed extensions)
-- The official [Figma MCP Server](https://developers.figma.com/docs/figma-mcp-server/) is configured when using the Figma workflow; asset conversion depends on `ffmpeg`/`ffprobe`, `svgo`, and the [kyz](https://github.com/byteowlz/kyz) credential proxy
+Other AI tools can use the [thin dispatcher](human/use-in-other-agents.en.md). Shared contracts are indexed in [protocols/index.md](protocols/index.md).
 
-Run the Figma asset batch first so the script checks alpha. Fetch isolated screenshots as masks only for nodes reported with `ALPHA_MASK_REQUIRED`, then rerun; see the [asset processing guide](guides/figma/assets.md).
+## Projects using T-Tools
 
-The runtime directories `.ai/` and `docs/` are created automatically during execution — no need to create them up front.
+- [Herald](https://github.com/timzaak/herald) — multi-tenant authentication and authorization
+- [RMQTT-Things](https://github.com/timzaak/rmqtt-things) — IoT thing-model management
+- [RWiki](https://github.com/timzaak/rwiki) — RAG knowledge-base Q&A
+- [OnceWise](https://github.com/timzaak/OnceWise) — intelligent form automation
 
-For tools that do not support `claude --plugin-dir` (Codex, ZCode, etc.), see [Using t-tools in Other AI Coding Tools](human/use-in-other-agents.en.md): place a dispatcher skill under `~/.agents/skills/` that routes `/t-tool <skill>` to the cloned repository directory.
-
-## Projects Using This Plugin
-
-- [Herald](https://github.com/timzaak/herald) — A multi-tenant authentication and authorization system
-- [RMQTT-Things](https://github.com/timzaak/rmqtt-things) — An IoT thing-model management platform built on RMQTT
-- [RWiki](https://github.com/timzaak/rwiki) — RAG-powered knowledge base Q&A in a single binary, zero external databases
-- [OnceWise](https://github.com/timzaak/OnceWise) — An intelligent form-automation assistant that ends repetitive form filling
-
-> For Java backend support, see the `java` branch.
+The iteration log is on [linux.do](https://linux.do/t/topic/1988118/4) (Chinese).

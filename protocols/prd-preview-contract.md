@@ -31,7 +31,7 @@ HTML Preview 不再强制限定为单文件、内联 CSS/JS、无 npm/CDN/构建
 - Preview 主入口仍写入 `.ai/preview/<domain>/<feature>.html`。
 - 如果使用外部资源、构建工具、npm 包、CDN 或第三方图形库，必须在 Preview 可见区域标注依赖来源、用途和打开/运行方式。
 - 如果生成辅助文件，必须写入 `.ai/preview/` 下与主 HTML 同名或同目录的资源目录，不得写入目标项目源码。
-- 不引用目标项目源码中的 React/Vue/Svelte/miniapp 组件作为 Preview 的运行依赖；已有 UI 只可作为入口或约束说明，不作为 Preview 主体复刻。
+- 不引用目标项目源码中的 应用组件作为 Preview 的运行依赖；已有 UI 只可作为入口或约束说明，不作为 Preview 主体复刻。
 
 ## Review Workflow
 

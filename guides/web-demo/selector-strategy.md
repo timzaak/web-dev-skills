@@ -1,7 +1,7 @@
 # Demo 选择器策略（Agent 主规范）
 
 **定位**：本文件是 Demo/E2E 选择器策略的唯一主规范。
-**适用对象**：web-demo-dev、frontend-dev、测试维护人员。
+**适用对象**：web-demo-dev、project-dev、测试维护人员。
 
 ## 复杂度决策（MANDATORY）
 

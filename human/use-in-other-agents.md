@@ -69,7 +69,7 @@ Claude Code 里的 `/t-tools:t-<skill>` 在 Codex / ZCode 里对应 `/t-tool <sk
 | --- | --- |
 | `/t-tools:t-prd user-management` | `/t-tool t-prd user-management` |
 | `/t-tools:t-prd-check user-management` | `/t-tool t-prd-check user-management` |
-| `/t-tools:t-super-run user-management --phase backend` | `/t-tool t-super-run user-management --phase backend` |
+| `/t-tools:t-super-run user-management --phase implementation` | `/t-tool t-super-run user-management --phase implementation` |
 
 不带参数运行 `/t-tool` 会列出本仓库 `skills/` 下所有可用子 skill。
 
@@ -119,7 +119,6 @@ http_headers = { "CONTEXT7_API_KEY" = "ctx7sk-..." }
 
 ## 验证
 
-扩展开发需要用户当前浏览器时，按 [用户 Chrome 调试指南](${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md) 配置 Chrome DevTools MCP 的 `--autoConnect`；该页维护 Codex、ZCode、Claude Code 的统一接入方式。配置后还须在实际执行角色中确认工具可用并识别目标标签页，不能以 dispatcher 或 Context7 验证通过代替浏览器连通性验证。
 
 完成上面三步后,在任意目标项目目录下运行:
 

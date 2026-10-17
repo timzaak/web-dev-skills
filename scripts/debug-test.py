@@ -8,11 +8,12 @@ from lib.paths import REPO_ROOT, SCRIPTS_DIR
 
 
 def main() -> int:
-    test_file = sys.argv[1] if len(sys.argv) > 1 else ""
-    args = [sys.executable, str(SCRIPTS_DIR / "run-test-quiet.py")]
-    if test_file:
-        args.append(test_file)
-    args.extend(["--log-level", "verbose"])
+    if len(sys.argv) < 2:
+        print("Usage: debug-test.py <test-file> [runner options]", file=sys.stderr)
+        return 2
+    test_file = sys.argv[1]
+    args = [sys.executable, str(SCRIPTS_DIR / "web-demo-test-runner.py"), *sys.argv[1:]]
+    args.extend(["--mode", "fast", "--log-level", "verbose"])
 
     env = dict(os.environ)
     env["DEBUG"] = "pw:api,pw:network"
@@ -27,10 +28,9 @@ def main() -> int:
     print("")
     print("Running test...")
     print("")
-    result = subprocess.run(args, env=env)
+    result = subprocess.run(args, env=env, cwd=REPO_ROOT)
     return result.returncode
 
 
 if __name__ == "__main__":
     sys.exit(main())
-

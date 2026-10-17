@@ -1,141 +1,29 @@
 # Agent Task Output Contract
 
-实现、修复、测试和验收类 agent 按下述结构返回。设计类 agent 改用 `${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`；不得混用。
-
-## Success Envelope
-
-默认返回：
+实现、修复、测试和验收角色统一返回 `task_completion`；设计角色使用 `${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`。
 
 ```json
 {
   "task_completion": {
     "status": "success|partial|failed",
-    "summary": "任务完成摘要",
-    "files_modified": ["path/a.tsx"],
-    "files_created": ["path/b.test.tsx"],
-    "change_scope": {
-      "backend": false,
-      "frontend": true,
-      "extension": false,
-      "miniapp": false,
-      "flutter": false,
-      "shopify": false,
-      "web_demo": false,
-      "extension_demo": false,
-      "flutter_demo": false
-    },
-    "tests_to_run": [
-      {
-        "layer": "frontend",
-        "command": "cd frontend && npm run test:run -- src/example.test.tsx",
-        "reason": "最小相关回归",
-        "required": true
-      }
-    ],
-    "next_steps": ["后续建议"]
-  }
-}
-```
-
-## Required Fields
-
-- `task_completion.status`
-- `task_completion.change_scope`
-- `task_completion.tests_to_run` when the agent is used in a repair or verification loop that expects retest instructions
-
-执行验证或验收时，按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 在现有 Handoff/报告保存证据，并通过 `validation_results` 或 `summary` 引用；有后续承接时在 `next_steps` 列出待验证场景与承接位置。不得用当前 item 的 `success` 表示整个 feature 已验收。
-
-## Optional Fields
-
-按角色扩展：
-
-- `summary`
-- `files_modified`
-- `files_created`
-- `components_added`
-- `components_modified`
-- `validation_results`
-- `tests_written`
-- `next_steps`
-
-## `change_scope`
-
-```json
-{
-  "backend": false,
-  "frontend": false,
-  "extension": false,
-  "miniapp": false,
-  "flutter": false,
-  "shopify": false,
-  "web_demo": false,
-  "extension_demo": false,
-  "flutter_demo": false
-}
-```
-
-规则：
-
-- 九个字段都必须出现
-- 只将实际受影响层标记为 `true`
-- 未启用 extension/miniapp/Flutter/Shopify 的项目仍返回对应字段为 `false`，以保持修复闭环契约稳定
-- `shopify` 同时覆盖 shopify-app（App 本体）与 shopify-extension（extensions/ 目录）两 phase 的改动；需要区分时在 `summary` 或 `files_modified` 中按路径体现
-
-## `tests_to_run`
-
-字段结构和允许命令统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`
-
-规则：
-
-- 当上游编排依赖补测指令时，不能省略
-- 若无法给出可靠补测，必须在 `reason` 或 `summary` 中说明原因，而不是静默留空
-
-## Error Envelope
-
-默认失败返回：
-
-```json
-{
-  "task_completion": {
-    "status": "failed",
-    "change_scope": {
-      "backend": false,
-      "frontend": true,
-      "extension": false,
-      "miniapp": false,
-      "flutter": false,
-      "shopify": false,
-      "web_demo": false,
-      "extension_demo": false,
-      "flutter_demo": false
-    },
+    "summary": "当前责任闭环的结果",
+    "files_modified": [],
+    "files_created": [],
+    "change_scope": {"implementation": true, "web_demo": false},
     "tests_to_run": [],
-    "error": {
-      "severity": "P0|P1|P2|P3",
-      "type": "type_check_error|build_error|runtime_error|logic_error",
-      "message": "错误描述",
-      "location": "文件路径:行号",
-      "details": "详细错误信息",
-      "suggested_fix": "建议的修复方案",
-      "blocked_by": ["阻塞原因"]
-    }
+    "next_steps": []
   }
 }
 ```
 
-失败返回规则：
+`status` 与 `change_scope` 必填。change_scope 两个布尔字段必须出现，仅将实际受影响范围标为 true；文件列表说明具体模块。不再携带固定技术领域字段。
 
-- 失败也必须使用 `task_completion` envelope，便于调用方统一读取 `task_completion.status`。
-- `task_completion.status` 必须为 `failed`。
-- `change_scope` 必须按已产生或可能影响的层填写；字段为 `backend/frontend/extension/miniapp/flutter/shopify/web_demo/extension_demo/flutter_demo`。无法判断时九项都保留并在 `error.details` 说明不确定性。
-- 若失败发生在修复或验证闭环中，`tests_to_run` 可以为空数组，但必须在 `error.details` 或 `suggested_fix` 中说明无法给出补测命令的原因。
+修复或补测调用必须返回 tests_to_run，其条目按 `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`；无法给出可靠补测时明确原因。可选添加 validation_results、tests_written 等证据索引，不复制日志全文。
 
-## Role-Specific Extensions
+失败仍使用相同 envelope，status=failed，并增加 error：severity（P0/P1/P2/P3）、type、message、location、details、suggested_fix、blocked_by。部分完成使用 partial，不能作为下游成功依据。
 
-- `frontend-dev` 可补充 `validation_results`、`components_added`、`components_modified`
-- `extension-dev` 可补充 `entrypoints_changed`、`permissions_changed`、`validation_results`
-- `miniapp-dev` 可补充 `validation_results`、`components_added`、`components_modified`
-- `flutter-dev` 可补充 `validation_results`、`widgets_added`、`widgets_modified`
-- `shopify-dev` 可补充 `validation_results`、`extensions_changed`、`proxy_routes_changed`
-- `web-demo-dev` / `extension-demo-dev` / `flutter-demo-dev` 可只保留最小成功字段，不需要 `validation_results`
-- 其他实现类 agent 可在不破坏上述字段语义的前提下扩展
+执行与验收证据遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`，在 Handoff/报告中落盘并引用；存在后续承接时在 next_steps 列出待验证场景与承接位置，当前任务 success 不等于整个 feature 验收完成。
+
+## Decision Gaps
+
+需要用户裁决时返回 task_completion.needs_user_answer，并将 status 标为 partial；条目结构和处理规则见 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md` 的 Agent Decision Gap。skill 解决前不得把依赖该答案的工作视为完成。slot 规划输出遵循调用方规划契约，其 needs_user_answer 条目使用同一结构。

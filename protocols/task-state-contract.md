@@ -2,35 +2,29 @@
 
 ## Required Top-Level Shape
 
-下面示例展示启用 miniapp 与 Flutter 的状态片段；未启用的项目不包含对应 phase 或 tasks。
+下面示例展示通用实现阶段；只包含当前设计启用的 phase 与已规划 slot。
 
 ```json
 {
   "feature": "sample-feature",
-  "phase": "backend",
+  "phase": "implementation",
   "phases": {
-    "backend": {"status": "pending"},
-    "frontend": {"status": "pending"},
-    "miniapp": {"status": "pending"},
-    "flutter": {"status": "pending"},
-    "web-demo": {"status": "pending"},
-    "extension-demo": {"status": "pending"},
-    "flutter-demo": {"status": "pending"}
+    "implementation": {"status": "pending"}
   },
   "tasks": {
-    "backend": {
+    "implementation": {
       "dev": {
         "status": "pending",
-        "manifest": ".ai/task/sample-feature/backend/dev.md",
+        "manifest": ".ai/task/sample-feature/implementation/dev.md",
         "items": {
-          "BE-D01": {"status": "pending", "file": ".ai/task/sample-feature/backend/dev/BE-D01-implement.md", "agent": "backend-dev"}
+          "IM-D01": {"status": "pending", "file": ".ai/task/sample-feature/implementation/dev/IM-D01-implement.md", "agent": "project-dev"}
         }
       },
       "accept": {
         "status": "pending",
-        "manifest": ".ai/task/sample-feature/backend/accept.md",
+        "manifest": ".ai/task/sample-feature/implementation/accept.md",
         "items": {
-          "BE-A01": {"status": "pending", "file": ".ai/task/sample-feature/backend/accept/BE-A01-review.md", "agent": "backend-accept"}
+          "IM-A01": {"status": "pending", "file": ".ai/task/sample-feature/implementation/accept/IM-A01-review.md", "agent": "project-accept"}
         }
       }
     }

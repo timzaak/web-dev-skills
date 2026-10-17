@@ -79,13 +79,12 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def ensure_environment(
-    auto_manage: bool = True, require_frontend: bool = True
+    auto_manage: bool = True
 ) -> bool:
     """确保 Demo 环境运行且健康。
 
     Args:
         auto_manage: 是否自动管理环境（启动/停止）
-        require_frontend: 是否要求前端必须启动
 
     Returns:
         环境健康返回 True，否则返回 False
@@ -94,7 +93,7 @@ def ensure_environment(
         return True
 
     # 检查环境状态
-    status = demo_env.check_environment_health(require_frontend=require_frontend)
+    status = demo_env.check_environment_health()
 
     if status.healthy:
         return True
@@ -304,8 +303,7 @@ def run_tests(
         service_log_dir = (REPO_ROOT / "log").resolve()
         print(f"  Playwright: {abs_playwright_log}")
         print(f"  Unified: {unified_logs_dir}/{run_id}-*")
-        print(f"  Backend: {service_log_dir}/backend-demo.log.*")
-        print(f"  Frontend: {service_log_dir}/frontend-demo.log.*")
+        print(f"  Project service logs: see scripts/index.md (log root: {service_log_dir})")
     print(f"Result: {json.dumps(summary, ensure_ascii=False, separators=(',', ':'))}")
 
     return exit_code
@@ -318,11 +316,10 @@ def main() -> int:
     # 检查环境
     # --list-tests 不需要检查环境（快速列出测试用例）
     auto_manage = not args.no_auto_env and not args.list_tests
-    require_frontend = not args.list_tests
 
     if auto_manage:
         if not ensure_environment(
-            auto_manage=auto_manage, require_frontend=require_frontend
+            auto_manage=auto_manage
         ):
             print("ERROR: Failed to start/verify environment")
             return 1
@@ -348,5 +345,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-
-

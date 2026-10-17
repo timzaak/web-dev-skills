@@ -5,14 +5,14 @@ Discovery + reporting helper for batch Demo E2E runs.
 This script is intentionally side-effect-free at execution time: it does NOT
 run tests or spawn nested `claude` processes. The actual per-file loop, the
 diagnose -> fix -> rerun repair cycle, and the demo-environment restart are
-driven by the `/t-tools:t-web-demo-run-all` or `/t-tools:t-extension-demo-run-all`
+driven by the `/t-tools:t-web-demo-run-all`
 skill in the main session. Driving the batch
 from the main session (short, observable Bash/Agent calls with file-backed
 checkpoints) replaces the old blocking nested-CLI workflow
 subprocess loop, which froze the parent session for up to hours.
 
 Subcommands:
-  discover [continue] [--scope web|extension] [--filter-file F] [--report-prefix P]
+  discover [continue] [--filter-file F] [--report-prefix P]
       Enumerate non-live demo test files. In fresh mode, write the initial
       batch JSON payload. In continue mode, read the latest batch JSON and
       compute the resume index. Prints a single JSON line on stdout that the
@@ -86,15 +86,10 @@ def parse_boolish(value: object) -> bool:
     return False
 
 
-def discover_test_files(*, filter_file: Path | None = None, scope: str = "web") -> list[Path]:
+def discover_test_files(*, filter_file: Path | None = None) -> list[Path]:
     all_files: list[Path] = []
     for path in sorted(E2E_DIR.rglob("*.e2e.ts")):
         rel = path.relative_to(E2E_DIR)
-        is_extension = bool(rel.parts and rel.parts[0] == "extension")
-        if scope == "web" and is_extension:
-            continue
-        if scope == "extension" and not is_extension:
-            continue
         if any(part in EXCLUDED_DIR_NAMES for part in rel.parts):
             continue
         if "test-" in path.name:
@@ -370,7 +365,7 @@ def print_json_stdout(payload: dict[str, object]) -> None:
 
 def cmd_discover(args: argparse.Namespace) -> int:
     try:
-        test_files = discover_test_files(filter_file=args.filter_file, scope=args.scope)
+        test_files = discover_test_files(filter_file=args.filter_file)
     except FileNotFoundError as exc:
         print(f"ERROR: {exc}")
         return 1
@@ -941,12 +936,6 @@ def build_parser() -> argparse.ArgumentParser:
             "Blank lines and lines starting with # are skipped."
         ),
     )
-    p_discover.add_argument(
-        "--scope",
-        choices=["web", "extension"],
-        default="web",
-        help="Discover Web tests or only demo/e2e/extension/ tests (default: web).",
-    )
     p_discover.set_defaults(func=cmd_discover)
 
     p_checkpoint = sub.add_parser(
@@ -1046,8 +1035,8 @@ def main() -> int:
         # to hours. Direct batch execution must go through a Demo run-all skill.
         parser.print_help()
         print("")
-        print("Direct batch execution is driven by /t-tools:t-web-demo-run-all or")
-        print("/t-tools:t-extension-demo-run-all in the main session. Use `continue` to resume.")
+        print("Direct batch execution is driven by /t-tools:t-web-demo-run-all")
+        print("in the main session. Use `continue` to resume.")
         print("This script only provides discovery,")
         print("checkpoint persistence, and reporting helpers.")
         return 1

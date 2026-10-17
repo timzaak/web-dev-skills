@@ -3,7 +3,6 @@ import argparse
 import hashlib
 import json
 import os
-import shlex
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
@@ -62,18 +61,15 @@ def git_private_path(path: str) -> Path:
 
 def detect_areas(files: list[str]) -> set[str]:
     areas: set[str] = set()
-    shopify_root = (REPO_ROOT / "shopify.app.toml").is_file()
     for path in files:
-        if path.startswith("backend/"):
-            areas.add("backend")
-        elif path.startswith("frontend/"):
-            areas.add("frontend")
-        elif path.startswith("demo/"):
+        if path.startswith(".ai/"):
+            continue
+        if path.startswith("demo/"):
             areas.add("demo")
-        elif shopify_root:
-            # Shopify projects are single-root apps: everything outside the
-            # demo assets belongs to the app itself (app/, extensions/, prisma/, ...).
-            areas.add("shopify")
+        else:
+            areas.add("project")
+    if "project" in areas and (REPO_ROOT / "demo" / "package.json").is_file():
+        areas.add("demo")
     return areas
 
 
@@ -109,15 +105,8 @@ def normalize_ci_session(session: str) -> str:
 
 
 def area_pathspecs(area: str) -> list[str]:
-    if area == "shopify":
-        return [
-            ".",
-            ":(exclude)backend/",
-            ":(exclude)frontend/",
-            ":(exclude)demo/",
-            ":(exclude).ai/",
-        ]
-    return [f"{area}/"]
+    # Include shared configuration and dependencies in both CI fingerprints.
+    return [".", ":(exclude).ai/"]
 
 
 def area_fingerprint(area: str) -> str:
@@ -171,110 +160,11 @@ def npm_script_step(name: str, app_dir: Path, script: str, *, optional: bool = F
     return npm_script_command(name, app_dir, script)
 
 
-def is_format_check_command(command: str) -> bool:
-    normalized = " ".join(command.lower().split())
-    return "--check" in normalized or "prettier -c" in normalized
-
-
-def prettier_write_step_from_check(name: str, app_dir: Path, command: str) -> Step | None:
-    try:
-        tokens = shlex.split(command)
-    except ValueError:
-        return None
-    if not tokens or Path(tokens[0]).name not in {"prettier", "prettier.cmd"}:
-        return None
-
-    args = [token for token in tokens[1:] if token not in {"--check", "-c"}]
-    npm = require_executable("npm", windows_fallback="npm.cmd")
-    return Step(name=name, command=[npm, "exec", "prettier", "--", "--write", *args], cwd=app_dir)
-
-
-def npm_format_fix_step(name: str, app_dir: Path, *, optional: bool = False) -> Step | None:
-    scripts = read_package_scripts(app_dir / "package.json")
-    for script in ("format:write", "format:fix", "format"):
-        command = scripts.get(script)
-        if command is None:
-            continue
-        if is_format_check_command(command):
-            continue
-        return npm_script_command(name, app_dir, script)
-
-    check_command = scripts.get("format:check")
-    if check_command:
-        step = prettier_write_step_from_check(name, app_dir, check_command)
-        if step:
-            return step
-
-    if optional:
-        print(
-            f"Skipping {name}: package.json has no writable format script "
-            "('format:write', 'format:fix', non-check 'format', or Prettier 'format:check').",
-            flush=True,
-        )
-        return None
-    raise RuntimeError(
-        f"Missing writable npm format script in {app_dir.relative_to(REPO_ROOT)}/package.json "
-        "('format:write', 'format:fix', non-check 'format', or Prettier 'format:check')."
-    )
-
-
-def backend_steps() -> list[Step]:
-    backend_dir = REPO_ROOT / "backend"
-    if not (backend_dir / "Cargo.toml").is_file():
-        raise RuntimeError("Backend changes detected, but backend/Cargo.toml was not found.")
-    cargo = require_executable("cargo")
-    return [
-        Step(
-            name="Backend clippy fix",
-            command=[
-                cargo,
-                "clippy",
-                "--fix",
-                "--allow-dirty",
-                "--allow-staged",
-                "--all-targets",
-                "--all-features",
-                "--",
-                "-D",
-                "warnings",
-            ],
-            cwd=backend_dir,
-        ),
-        Step(name="Backend format", command=[cargo, "fmt", "--all"], cwd=backend_dir),
-        # `cargo clippy --fix` exits 0 even when it cannot auto-resolve a denied
-        # lint (it emits a warning instead), so a clean non-fixing check is needed
-        # to actually enforce `-D warnings` and surface unfixable lints as failures.
-        Step(
-            name="Backend clippy check",
-            command=[
-                cargo,
-                "clippy",
-                "--all-targets",
-                "--all-features",
-                "--",
-                "-D",
-                "warnings",
-            ],
-            cwd=backend_dir,
-        ),
-    ]
-
-
-def frontend_steps() -> list[Step]:
-    frontend_dir = REPO_ROOT / "frontend"
-    steps: list[Step] = []
-    format_fix = npm_format_fix_step("Frontend format fix", frontend_dir, optional=True)
-    if format_fix:
-        steps.append(format_fix)
-    for name, script, optional in (
-        ("Frontend format check", "format:check", True),
-        ("Frontend lint", "lint", False),
-        ("Frontend type check", "type-check", False),
-    ):
-        step = npm_script_step(name, frontend_dir, script, optional=optional)
-        if step:
-            steps.append(step)
-    return steps
+def project_steps() -> list[Step]:
+    hook = REPO_ROOT / "scripts" / "ci.py"
+    if not hook.is_file():
+        raise RuntimeError("Project CI entry scripts/ci.py is missing; configure real project checks before push.")
+    return [Step(name="Project CI", command=[sys.executable, str(hook)], cwd=REPO_ROOT)]
 
 
 def demo_steps() -> list[Step]:
@@ -290,28 +180,6 @@ def demo_steps() -> list[Step]:
     return steps
 
 
-def shopify_steps() -> list[Step]:
-    if not (REPO_ROOT / "shopify.app.toml").is_file():
-        raise RuntimeError("Shopify changes detected, but shopify.app.toml was not found at the repo root.")
-    scripts = read_package_scripts(REPO_ROOT / "package.json")
-    type_script = next((key for key in ("typecheck", "type-check") if key in scripts), None)
-    if type_script is None:
-        raise RuntimeError("Shopify CI requires a 'typecheck' or 'type-check' npm script.")
-    steps: list[Step] = []
-    for name, script, optional in (
-        ("Shopify lint", "lint", True),
-        ("Shopify type check", type_script, False),
-        ("Shopify build", "build", False),
-    ):
-        step = npm_script_step(name, REPO_ROOT, script, optional=optional)
-        if step:
-            steps.append(step)
-    if any((REPO_ROOT / "extensions").glob("**/shopify.extension.toml")):
-        cli_step = npm_script_step("Shopify extensions build", REPO_ROOT, "shopify")
-        steps.append(Step(cli_step.name, cli_step.command + ["--", "app", "build"], cli_step.cwd))
-    return steps
-
-
 def run_steps(area: str, steps: list[Step]) -> None:
     for step in steps:
         rel_cwd = step.cwd.relative_to(REPO_ROOT)
@@ -322,12 +190,7 @@ def run_steps(area: str, steps: list[Step]) -> None:
 
 
 def run_ci(areas: set[str], *, ci_session: str, force_checks: bool = False) -> None:
-    builders = {
-        "backend": backend_steps,
-        "frontend": frontend_steps,
-        "demo": demo_steps,
-        "shopify": shopify_steps,
-    }
+    builders = {"project": project_steps, "demo": demo_steps}
     cache = {} if force_checks else load_ci_cache(ci_session)
     selected: dict[str, list[Step]] = {}
     for area in sorted(areas):
@@ -342,7 +205,7 @@ def run_ci(areas: set[str], *, ci_session: str, force_checks: bool = False) -> N
         if areas:
             print("All selected CI areas are unchanged since their last successful run in this t-push session.", flush=True)
         else:
-            print("No backend/frontend/demo/shopify changes detected; skipping local CI.", flush=True)
+            print("No project or Demo changes detected; skipping local CI.", flush=True)
         return
 
     failures: list[str] = []

@@ -1,164 +1,31 @@
-# Skill and Subagent Design in T-Tools
+# T-Tools structure
 
-T-Tools is not a loose collection of prompts. It is an AI programming workflow for engineering delivery. It constrains Claude Code from an ad hoc Q&A tool into an executable, recoverable, and verifiable collaboration system.
+T-Tools separates engineering workflow from project domains: the plugin owns reliable progression; the target project supplies concrete engineering rules.
 
-Core responsibilities:
+| Location | Responsibility |
+| --- | --- |
+| skills/ | Orchestration, prerequisites, role selection, state, recovery and aggregation |
+| agents/ | One execution or independent read-only review role, never cross-stage orchestration |
+| protocols/ | Single shared contracts for state, outputs, scoring, dispatch and gates |
+| guides/ | General practices plus retained Web Demo/Figma guides |
+| scripts/ | Repeatable operations requiring deterministic execution |
+| templates/project-profiles/ | Opt-in domain sources exported with a pinned matching runtime |
+| human/ | Explanations and proposals, never runtime state |
 
-- `skills/`: workflow orchestration, including stage progression, prerequisite checks, state updates, and failure recovery.
-- `agents/`: specialized execution, split by roles such as dev, test, accept, and diagnose.
-- `protocols/`: shared contracts for state structures, output structures, scoring rules, and quality gates.
-- `guides/`: engineering standards for backend, frontend, demo, product, and shared quality rules.
-- `.ai/` and `docs/`: runtime artifacts and long-term business facts in the target project.
-- Humans: state real intent, make tradeoff decisions, point out detail preferences, and calibrate AI output through Preview, check, and accept stages.
+## Main workflow
 
-Before working on a requirement, PRD, or technical research, use [Do Not Shortcut the Intent](speech-template.en.md). It lets humans naturally walk through the starting goal, user story, UI/UX, third-party integration, third-party library introduction, and closing instruction; AI then evaluates executability, feasibility, missing details, and open questions, and records them in `.ai/future/[feature].md` when needed.
+After a decision, route to PRD or technical research by the main unknown and converge before design. Only purely technical work preserving product semantics can use research alone. Design follows real modules with project-design. Generic project-dev/test/accept implement, test and independently accept implementation; Web Demo retains separate roles.
 
-## Four Layers
+Default t-super-run combines goal-level planning and execution: the main session performs dev/test, while acceptance is independently dispatched. Each call executes one explicit phase, persists in .ai/super-run/<feature>/ and resumes with the same command. For separate plan review, t-task -> t-run uses serial phase/slot/item execution and .ai/task/<feature>/. Their states are independent and are not migrated.
 
-### Skills: Workflow Controllers
+## Sources and gates
 
-A skill is an imperative workflow entry point, not "a prompt that lets the model improvise." It usually:
+Project code/configuration establish implementation facts; AGENTS.md and confirmed project documents establish engineering constraints. Shared structures are in the [protocol index](/protocols/index.md), with [runtime boundaries](/protocols/runtime-boundaries.md). Commands must exist; missing/failing commands cannot fall back to another stack.
 
-- Validates inputs and prerequisites.
-- Reads upstream documents and state.
-- Dispatches the right subagent.
-- Writes standardized artifacts.
-- Advances `.ai/task/**/.state.json`.
-- Provides a recoverable path when something fails.
+Prechecks remain optional; post-implementation acceptance requires reviewable evidence. Later changes reopen affected work and acceptance when evidence is invalid. The quality chain is review --fix -> simplify -> push, followed by the explicit release entry.
 
-After Decision, the main path branches according to the primary unknown and converges before Design:
+## Domain knowledge
 
-```text
-t-decision
-├─ technical unknowns may change product scope -> t-tech-research -> t-prd -> [t-prd-check] -> t-design
-├─ product boundaries determine technical choices -> t-prd -> [t-tech-research -> t-prd update] -> [t-prd-check] -> t-design
-└─ purely technical, no business-logic change -> t-tech-research -> t-design
+The plugin no longer bundles production-domain guides, implementation roles or application scaffolds. Knowledge comes from actual implementation and verification. New preferences require human selection before becoming formal rules. See the [generalization rationale](/human/generalization.en.md) and [proposal](/human/generalization-plan.en.md).
 
-t-design -> [t-design-check] -> t-super-run
--> t-web-demo-run / t-flutter-demo-run -> matching demo accept
--> t-prd-publish -> t-push -> t-release
-```
-
-`t-prd` and `t-tech-research` have no globally fixed order. Start with research when feasibility, cost, dependencies, or compatibility may change product scope. Start with a PRD draft when product boundaries, user flows, or acceptance goals must be clear before selecting a technical route. If later research changes product semantics, rerun `t-prd` to update the draft. Before `t-design`, the artifacts must converge without unexplained conflicts. A purely technical proposal may skip PRD only when it does not change business logic, product rules, user-visible flows, or acceptance goals.
-
-Not every project needs every stage. `t-prd-check`, `t-design-check`, and `t-task-check` are optional quality checks: use them for complex, high-risk, or multi-person work to stop upstream problems before they move downstream; simple low-risk changes may continue directly to the next stage. Implementation accept stages still close delivery acceptance.
-
-### Agents: Specialized Executors
-
-Subagents are split by engineering role instead of making one agent own every responsibility:
-
-- `backend-dev` / `frontend-dev` / `miniapp-dev` / `extension-dev`: implementation.
-- `backend-test` / `frontend-test` / `miniapp-test` / `extension-test`: testing.
-- `backend-accept` / `frontend-accept` / `miniapp-accept` / `extension-accept`: read-only acceptance with evidence.
-- `web-demo-dev` / `web-demo-accept` / `web-demo-diagnose`: Playwright Demo/E2E maintenance, acceptance, and diagnosis.
-- `flutter-demo-dev` / `flutter-demo-accept` / `flutter-demo-diagnose`: Android Patrol user-story demo maintenance, acceptance, and diagnosis.
-- `context-curator` / `structure-review` / `backend-consistency`: context, structure, and implementation consistency audits.
-- `html-show`: converts Markdown into HTML Preview.
-
-The point is responsibility boundaries. When something fails, the workflow hands off to the right role instead of asking one agent to implement, test, accept, and explain everything in the same pass.
-
-### Protocols: Shared Contracts
-
-`protocols/` is the single source of truth shared by skills and agents. It defines:
-
-- The state structure of `.ai/task/[feature]/.state.json`.
-- The execution order of `phase -> slot -> item`.
-- Structured output when an agent completes or fails.
-- The `tests_to_run` set required after a fix.
-- PRD Preview location, content model, and check scope.
-- Scoring and blocking rules for PRD, design, task, Demo, and t-dream checks.
-
-Shared rules should be changed in protocols first, not copied across multiple skill or agent documents.
-
-### Guides: Engineering Standards
-
-`guides/` contains concrete engineering practice:
-
-- `backend/`: backend architecture, development, testing, validation, TDD, and quality gates.
-- `frontend/`: frontend development patterns, testing strategy, `data-testid`, and quality gates.
-- `extension/`: Chrome extension project initialization, development, testing, validation, and quality gates.
-- `miniapp/`: miniapp development, testing, validation, and quality gates.
-- `web-demo/`: Playwright E2E, selectors, Page Objects, diagnosis, and common failure handling.
-- `flutter/`: Flutter development, testing, and Android Patrol user-story demos.
-- `product/`: product documents and user story standards.
-- `core/`: environment configuration and general quality standards.
-
-Agent documents only say when to read guides, how to execute, and what to return. They do not duplicate guide rules.
-
-## Key Designs
-
-### PRD: Make AI's Product Understanding Visible
-
-`t-prd` first writes `.ai/prd` and `.ai/user-stories` drafts. Markdown is the formal contract and the human entry point for reviewing the AI's product understanding.
-
-The useful order is not to follow the AI's generated artifact immediately. First, step away from the generated artifact and use [Do Not Shortcut the Intent](speech-template.en.md) to state the requirement you would accept: what pain it solves, which user path matters most, what the UI/UX must make clear at first glance, how abnormal states should explain themselves, and whether third-party capabilities or libraries truly fit. Then ask the AI to revise the PRD and user stories against that feedback.
-
-`t-prd-check` is an optional quality check, not just a format check. It verifies that the AI's written product understanding, user stories, and formal documents are aligned. When it is skipped, `t-design` still performs its own mixed validation between drafts and published baselines for critical conflicts. After implementation, testing, and Demo acceptance are complete, `t-prd-publish` merges still-valid long-term facts back into `docs/`.
-
-### Tech Research: Make Feasibility Questions Explicit
-
-`t-tech-research` is used to decide whether the requirement is feasible, which dependencies are needed, which existing modules are affected, and which risks may change PRD or design direction. The spoken template is not a replacement for the technical research report; it helps humans first state third-party API expectations, tech stack compatibility, frontend/backend SDK needs, data idempotency, webhook ordering, and permission boundaries.
-
-After receiving the walkthrough, AI should separate confirmed technical constraints, facts that require official documentation, current-state facts that can be verified from the codebase, and product or technical decisions that must be asked of the user. Guesses in the walkthrough must not be written as confirmed conclusions.
-
-Technical research may happen before or after a PRD draft. When a draft exists, research treats it as a candidate product boundary but must not silently rewrite product decisions. If research shows that scope, business rules, user flows, or acceptance goals must change, hand the findings back to `t-prd` for an update instead of carrying the conflict into design.
-
-### Design: Human-Led UX Choices
-
-`t-design` is not only a translation from PRD to modules, APIs, and states. When a feature includes frontend UI, humans need to walk through the experience from the user's perspective:
-
-- Where the user enters, and what they should understand first.
-- How each step makes the next action clear.
-- How loading, empty, error, permission-denied, dangerous-action, and success states behave.
-- How defaults, undo, confirmation, save, and leaving the page affect trust.
-- Which interactions are good, and which are usable but unacceptable.
-
-AI can fill flows and boundaries, but "good UX" is a matter of taste and tradeoff. It must not be left for the model to generate from a generic template.
-
-### Demo: Independent User Story Closure
-
-The Demo stage is not a duplicate of backend or frontend testing. It uses Playwright E2E to validate real user paths against user stories, and treats the test code itself as part of acceptance.
-
-- Runtime-specific demo dev agents turn user stories into executable demos.
-- Matching demo accept agents check coverage, roles, scenarios, assertions, execution results, and evidence.
-- Matching demo diagnose agents attribute failures to test assets, clients, backend, or environment before handoff.
-
-It verifies deliverable demonstrability and user story closure, not only whether code compiles.
-
-## Execution Model
-
-`t-super-run` is the default execution model. The main session creates an outcome-level phase plan without manifests or items; dev/test read the current task's agent specification and related guides, then directly implement, test, and repair the work. When tests reveal a production defect, the main session switches to the dev specification for repair and then re-tests; accept dispatches the matching read-only subagent for independent acceptance and a report. The default order is `dev -> accept`; non-Demo phases add test when separate test assets are needed. `.ai/super-run/[feature]/` stores phase plans, state, and evidence references. `--phase` is required; the main session continuously advances that phase and stops when it completes. Repeat the same command after interruption to check evidence and recover; no additional continuous-run command is required. See the [super-run state contract](/protocols/super-run-state-contract.md). Repairs from review, cleanup, or CI that invalidate evidence require regressions and renewed acceptance before push. Push completes only after the remote confirms the commit. Recovery checks blocking conditions and reuses the original session to retry an existing commit.
-
-Use the standard `t-task` / `t-run` chain when plans need separate review, fine-grained items, or dev/test subagent ownership. Its state remains independent of super-run. `t-task` decomposes design into a standard task directory:
-
-```text
-.ai/task/[feature]/
-├── .state.json
-├── backend/
-├── frontend/
-└── demo/
-```
-
-The standard chain's model is `phase -> slot -> item`:
-
-- `phase`: usually `backend -> frontend -> demo`.
-- `slot`: for example, `dev -> test -> accept`.
-- `item`: the smallest executable task file.
-
-`t-run` executes only items. It does not directly execute manifests such as `index.md`, `dev.md`, `test.md`, or `accept.md`. At most one item may be `running` at a time. This trades some concurrency for smaller context, clearer failure localization, and recoverable state.
-
-A fixing agent must return `tests_to_run`, explaining which backend, frontend, or Demo commands should be rerun after the fix. This keeps the risk of "Demo passes but lower-level regression fails" visible.
-
-## Supporting Governance
-
-`t-dream` is a cross-stage context cleanup and structure drift audit tool. It is read-only: it checks PRDs, user stories, designs, tasks, code, tests, and demos for stale content, duplication, conflicts, broken traceability, or implementation mismatch. PRD governance recommendations (merge, archive, rewrite, reference fixes) are report output only and are never executed by the tool. For delivery phase wrap-up, `t-dream [feature] --phase <phase>` checks a single phase's implementation or demo consistency with PRDs and user stories.
-
-`t-push` is the local CI closure before commit. It detects backend / frontend / demo impact from the diff, runs the matching checks, then commits and pushes only after they pass. Formal version publishing remains governed by `t-release`; version files use semver without `v`, while git tags use the `v` prefix.
-
-## Design Tradeoff
-
-The core tradeoff of T-Tools is using more structure to reduce uncontrolled improvisation.
-
-It does not try to make AI finish everything at once. It makes requirements, design, tasks, implementation, tests, acceptance, and release move through explicit documents, state, contracts, and gates. The model still reasons and implements, but it must follow those engineering rails.
-
-One-sentence summary: T-Tools uses skills to orchestrate workflow, subagents to divide execution, protocols to solidify contracts, and guides to keep engineering behavior consistent, turning AI programming into a traceable, recoverable, and verifiable long-term workflow.
+Skill deliverables use the [authoring guide](/guides/core/skill-authoring.md) and [behavioral testing guide](/guides/core/skill-testing.md). Load Web Demo/Figma resources through their respective indexes rather than loading every guide.

@@ -50,11 +50,10 @@ allowed-tools:
 1. 校验设计文档存在；读取 task-phase-execution 的 Phases 和 `.state.json`，验证 schema、阶段支持值与适用性。若指定 `--phase`，仅检查该阶段（必须存在于 active phases）；否则检查当前阶段。
 2. 读取阶段目录下的 `index.md`、slot manifest，并按 rubric 的 Context Budget Rules 建立轻量 item 表（先状态/索引/manifest 和关键字段抽取，仅在有疑点或需补证时读 item 全文，大型 phase 先用 `Grep` 定位）。
 3. 对当前 phase 全部 Markdown 运行 `python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py <all-phase-markdown-paths>`，并核对 `index.md` 的 Decision Trace 覆盖相关 Active Decision。
-4. 按 rubric 的 Execution Checks 和 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 校验 item 结构、拆分阈值、Slot Item Count Limits、测试集中执行与 backend/test 闭环。补充严重度规则：
-   - 存在 test slot 时，其集中 runner 或合并编写/执行 item 优先运行 `uv run scripts/check-test-runner-coverage.py [feature] --layer [layer]` 做覆盖校验；backend 动态校验失败记 P1 或 P0（取决于是否导致新增测试无法执行），其他层静态校验失败至少记 P1。没有 test slot 时核对阶段 index 的原因和 dev Validation 中至少一项可执行验证。
-   - 后端测试命令必须使用目标项目内脚本入口 `uv run scripts/backend-test.py -- [filter]`（没有 filter 也保留 `--`）；使用 `cargo run`、裸 `cargo test`、插件根路径或省略 `--` 的记 P1，并改为统一入口。
+4. 按 rubric 的 Execution Checks 和 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 校验 item 结构、拆分阈值、Slot Item Count Limits、测试集中执行与测试执行闭环。补充严重度规则：
+   - 存在测试资产时核对 Expected Test Manifest 与项目真实定向命令；Web Demo 可用插件 check-test-runner-coverage.py 辅助静态检查。无法解析、漏选或零用例不算通过。没有 test slot 时核对阶段 index 的原因和 dev 验证。
 5. 核对设计文档与任务文档的一致性；纯技术方案任务可只追溯设计文档中的技术预研来源，不得因缺少 PRD/用户故事扣 P0。任务引用 `.ai/user-stories` 时确认其为 draft 候选来源且路径存在；不得要求先发布到 `docs/user-stories` 才能进入 `/t-run`。
-6. 通过 `Agent` tool 按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 调度当前阶段已规划 slot 对应的 subagent 做专业校验（backend: `backend-dev/backend-test/backend-accept`；frontend: `frontend-dev/frontend-test/frontend-accept`；extension: `extension-dev/extension-test/extension-accept`；miniapp: `miniapp-dev/miniapp-test/miniapp-accept`；flutter: `flutter-dev/flutter-test/flutter-accept`；web-demo: `web-demo-dev/web-demo-accept`；extension-demo: `extension-demo-dev/extension-demo-accept`；flutter-demo: `flutter-demo-dev/flutter-demo-accept`），可并行调度。没有 test slot 时主流程核对不规划原因和 dev 验证；dev、accept agent 参与检查。subagent 上下文按 rubric 的 Context Budget Rules 裁剪：
+6. 通过 Agent 按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 调度当前阶段已规划角色做只读专业校验，角色从 task-phase-execution 的 Role Mapping 获取；只传本角色相关的摘要与路径。
    - dev agent 默认只接收 dev item 与直接影响实现的跨 slot 摘要
    - test agent 默认只接收 test item、相关 dev `Handoff/Files` 摘要和集中定向测试执行闭环约束
    - accept agent 默认只接收 accept item、顺序中相关 runner/dev `Handoff` 摘要和验收闭环约束
@@ -67,7 +66,7 @@ allowed-tools:
 | 错误码 | 触发条件 | 用户可见提示 | 恢复动作 |
 |---|---|---|---|
 | `DESIGN_DOC_MISSING` | 设计文档不存在 | 未找到设计文档 | 先运行 `/t-design [feature]` |
-| `STATE_FILE_MISSING` | 任务目录或 `.state.json` 缺失 | 状态文件不存在 | 运行 `/t-task [feature] --phase backend` 重建 |
+| `STATE_FILE_MISSING` | 任务目录或 `.state.json` 缺失 | 状态文件不存在 | 运行 `/t-task [feature] --phase implementation` 重建 |
 | `STATE_JSON_INVALID` | `.state.json` 格式错误 | 状态文件解析失败 | 修复 JSON 后重试；或重建任务目录 |
 | `TASK_SCHEMA_INVALID` | 缺少 `phase/phases/tasks/status/manifest/items` 字段 | 任务状态结构不完整 | 运行 `/t-task [feature] --phase [phase]` 重建 |
 | `PHASE_INVALID` | `--phase` 不是 supported phase | 非法阶段 | 按 task-phase-execution 的 Phases 提示可选阶段后重试 |
