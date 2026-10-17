@@ -623,9 +623,9 @@ def validate_alpha_declaration(
 ) -> str | None:
     """Enforce a transparent declaration against the source pixels.
 
-    A fully opaque source declared transparent is the baked-canvas case Figma
-    produces; it must come with an isolated-screenshot mask. Returns a warning
-    message when an opaque declaration contradicts real source transparency.
+    Fully opaque sources declared transparent require an isolated-screenshot
+    mask. Inspection errors propagate without being treated as missing alpha.
+    Returns a warning for an opaque declaration with real transparent pixels.
     """
     source: Path = entry["source"]
     source_has_alpha = has_alpha(ffprobe(source, ffprobe_bin=ffprobe_bin, runner=runner))
@@ -635,8 +635,8 @@ def validate_alpha_declaration(
     if entry["transparent"]:
         if not pixel_alpha and entry["alpha_mask"] is None:
             raise RuntimeError(
-                f"plan entry {entry['id']} is declared transparent, but the source is fully "
-                "opaque: Figma baked the canvas color into the RGB channels. Call "
+                f"plan entry {entry['id']}: ALPHA_MASK_REQUIRED: declared transparent, "
+                "but the source has no transparent pixels. Call "
                 "get_screenshot(contentsOnly: true) for the node, save the isolated PNG "
                 "under raw/ and reference it via the entry's alphaMask"
             )
@@ -644,7 +644,7 @@ def validate_alpha_declaration(
     if pixel_alpha:
         return (
             f"plan entry {entry['id']} is declared opaque, but the source has transparent "
-            "pixels; declare it transparent and add an alphaMask if it should be transparent"
+            "pixels; review the declaration and set transparent to true if intended"
         )
     return None
 

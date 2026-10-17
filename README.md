@@ -54,6 +54,8 @@ t-prd-publish user-management
 
 `t-prd-check`、`t-design-check`、`t-task-check` 是可选质量检查，按风险选用。
 
+创建或更新 skill 用 `t-skill [名称或能力描述]`（默认操作插件仓库）；目标项目内的 skill 用 `t-skill --project [名称或能力描述]`，落位项目的 `.claude/skills/` 或 `.agents/skills/`。已纳入 feature 计划的 skill 交付物随所属 phase 执行，见 [Skill 创作入口](skills/t-skill/SKILL.md)。
+
 ## 阶段拆分
 
 典型 Web 顺序是 `backend -> frontend -> web-demo`；典型扩展顺序是 `extension -> extension-demo`（有后端改动时前置 backend）；典型 Flutter 顺序是 `backend -> flutter -> flutter-demo`；典型 Shopify 顺序是 `shopify-app -> shopify-extension -> web-demo`（仅在设计要求店面、admin 或顾客账户用户故事演示时启用 web-demo）。
@@ -103,6 +105,8 @@ claude --plugin-dir /path/to/skills
 - MCP Server [`context7`](https://github.com/upstash/context7) 已配置
 - 扩展开发涉及用户当前 Chrome 现场（标签页、登录态、已安装扩展）时，Chrome DevTools MCP（`--autoConnect`）已按 [用户 Chrome 调试指南](guides/extension/live-browser.md) 配置
 - 使用 Figma 工作流时，官方 [Figma MCP Server](https://developers.figma.com/docs/figma-mcp-server/) 已配置；素材转换依赖 `ffmpeg`/`ffprobe`、`svgo` 和 [kyz](https://github.com/byteowlz/kyz) 凭据代理
+
+Figma 素材先运行 batch，由脚本检测 alpha；仅对 `ALPHA_MASK_REQUIRED` 指定的节点补隔离截图作 mask 后重跑，见 [素材处理指南](guides/figma/assets.md)。
 
 `.ai/` 与 `docs/` 运行时目录无需预先创建，工作流执行过程中会自行创建。
 

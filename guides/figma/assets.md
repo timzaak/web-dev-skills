@@ -19,27 +19,21 @@
 - 按目标素材类型设置导出格式：需要位图处理的素材导出 PNG/JPEG，矢量素材导出 SVG。
 - `download_assets` 返回的临时 URL 必须立即下载到 `.ai/figma/<fileKey>-<nodeId>/raw/`，不得直接写入正式代码。
 - 这类图片条目在 manifest 中的 `source` 记录为 `download-assets`。
-- 视觉上应透明的素材不能只相信 `pix_fmt`：Figma 可能把画布色 `#1e1e1e` 烘焙进 RGB 并返回全不透明的 alpha（处理方式见下节，由 batch 强制拦截）。
 
 ## 透明声明与 alpha 处理
 
-plan 中每个 image 条目必须显式声明 `transparent`，batch 按声明强制校验；缺声明的 plan 直接报错，不会静默跳过。
+按设计意图填写 plan 的 `transparent`：图标、装饰、叠加素材、透明圆角或外发光为 `true`，实心背景和照片式插画为 `false`；无法确定时询问开发者。字段与校验规则见工作流契约的「资产 plan」。
 
-- 判定标准：图标、装饰、叠加在其他元素之上、带透明圆角或外发光的素材声明 `true`；整幅实心背景和照片式插画声明 `false`；按设计意图仍无法确定时询问开发者，不默认猜。
-- 声明 `true` 且源图已有真实透明像素：无需额外参数，脚本走默认链路并做透明终检。
-- 声明 `true` 但源图 alpha 全为 255（画布色 `#1e1e1e` 烘焙进 RGB）：batch 硬错误。对该节点调用 `get_screenshot(contentsOnly: true)`，隔离 PNG 下载到 `raw/` 作为条目 `alphaMask`；脚本保留 `download_assets` 的 3 倍 RGB，缩放并合并隔离截图的 alpha。
-- 半透明素材的 RGB 仍是与画布色复合后的值：为条目追加 `unbakeColor`（默认画布色 `1e1e1e`，非默认以实际为准），脚本按 `真实RGB=(烘焙RGB-(1-a)*背景)/a` 反解。
-- 声明 `false` 但源图存在透明像素：batch 记 warning 不阻断；逐条复核，确属 opaque 再交付，否则改声明并补 `alphaMask`。
-- 透明终检与 TinyPNG alpha 量化恢复由脚本自动执行：声明 `true` 的输出必须有 alpha 通道且有透明像素，不逐张目视评估。
+- 先不填 `alphaMask` 运行 batch，由脚本检测真实像素；仅收到 `ALPHA_MASK_REQUIRED` 时，对报错节点调用 `get_screenshot(contentsOnly: true)`，下载隔离 PNG 到 `raw/`、补入 `alphaMask` 后重跑。已有 mask 的条目可保留。脚本缩放 mask 并合并到原始 3 倍 RGB；其他检测错误直接报错，不靠目视推断或补 mask 绕过。
+- RGB 被画布色烘焙时另填 `unbakeColor`（常见为 `1e1e1e`，以实际为准），脚本结合有效 alpha 还原颜色；没有烘焙时不填。
+- 声明不透明却检测到透明像素时复核 warning：确认设计意图后保留声明或改为 `true`，无需重复获取已有的有效 alpha。透明终检及 mask/颜色修复链路中的 TinyPNG alpha 恢复由脚本完成，不逐张目视评估压缩效果。
 
 ## 批量转换
 
-1. 全部素材下载并完成透明判定后，写工作目录 `assets-plan.json` 并一次运行 `${CLAUDE_PLUGIN_ROOT}/scripts/figma-assets.py batch <plan>`：脚本先做前置校验（schema、透明声明、mask 与来源文件、正式路径不重复不覆盖），再逐条转换，全部成功后原子写 `assets-manifest.json`（无素材写 `[]`），stdout 输出汇总 JSON（manifest 路径、条目数、warnings）。plan 内相对路径按当前工作目录（目标项目根）解析。
-2. plan schema：`{"entries": [{id, name, kind: image|svg|video, source, outputPath, transparent, alphaMask, unbakeColor, publicUrl, flattened, lossless, quality, maxWidth, origin}]}`；image 必填 `transparent`，视频必填 `publicUrl`，`origin`（`download-assets|url|local-file`）写入 manifest `source` 字段，未知字段报错。单张临时转换仍可用 `image|svg|video` 子命令，参数与 plan 字段同义。
-3. TinyPNG 压缩依赖 kyz daemon 的 tinify 代理规则：默认 `127.0.0.1:8477`（`--tinypng-proxy` 覆盖），脚本按 `Host: api.tinify.com` 转发并自动读取 daemon token。转换前确认 `kyz daemon status` 的 proxy_listen 存在；脚本报代理或上游错误（401 凭据、429 月度配额、body 超限）时停止并转述，不回退为本地有损压缩。上传超过 daemon 默认 10 MiB body 上限时先调大 `request_body_limit_bytes`。
-4. 尺寸与比例由脚本 ffprobe 最终产物得出并写入 manifest；不要从 CSS 或 Figma 标注猜比例。
-5. 正式路径已存在时 batch 前置校验停止，禁止静默覆盖；修复问题后重跑加 `--overwrite-existing` 覆盖上次批处理的残留输出，开发者明确要求替换正式资产时才使用。
-6. batch 成功后删除 `raw/`（`assets-plan.json` 保留）并报告汇总；warnings 逐条复核后才能交付。
+1. 下载素材并声明透明意图后，按契约写工作目录 `assets-plan.json`，在目标项目根运行 `${CLAUDE_PLUGIN_ROOT}/scripts/figma-assets.py batch <plan>`。单张临时转换可用 `image|svg|video` 子命令。
+2. PNG 压缩需要 kyz daemon 的 tinify 代理：默认 `127.0.0.1:8477`（`--tinypng-proxy` 覆盖），按 `Host: api.tinify.com` 转发并自动读取 daemon token。转换前确认 `kyz daemon status` 的 proxy_listen 存在；代理/上游错误（401、429、body 超限）时停止并转述，不回退为本地有损压缩。上传超过默认 10 MiB 时先调大 `request_body_limit_bytes`。
+3. 失败时保留 plan 与 `raw/`，修复后重跑。输出已存在时默认停止；使用 `--overwrite-existing` 前须逐项确认是本次失败批处理的残留，或已获开发者明确替换授权。
+4. 成功后逐条复核 warnings，再删除 `raw/`、保留 plan，报告 stdout 汇总 JSON 与 manifest 路径。
 
 ## SVG 优化
 

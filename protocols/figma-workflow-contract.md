@@ -36,9 +36,20 @@
 - 优先映射项目已有组件、token、动效与响应式模式；只有视觉证据或现有代码支持时才修正 MCP 数值。
 - 整页按块推进：单次 dispatch 只承担一个块或少量相邻小块，全部完成后交付人工验收。
 
+## 资产 plan
+
+`assets-plan.json` 是 `figma-assets.py batch` 的输入，结构为 `{"entries": [...]}`（无素材时为空数组）。每条必填非空字符串 `id`、`name`、`kind`、`source`、`outputPath`；`id` 与输出路径分别唯一，未知条目字段报错。
+
+- `kind`: `image|svg|video`；`source` 为本地原始文件路径，所有相对路径按目标项目根（执行时的工作目录）解析。
+- `origin`: `download-assets|url|local-file`，默认 `download-assets`，写入 manifest 的 `source`。
+- `publicUrl`: 页面运行时 URL，video 必填，其余可选。
+- image 必填布尔 `transparent`；可选 `alphaMask`（隔离 PNG 路径）、`unbakeColor`（背景色 hex）、`flattened` / `lossless`（默认 false）、`quality`（1–100，默认 80）、`maxWidth`（非负整数，默认 0 不缩放）。这些 image 专属字段不用于 svg/video。
+
+batch 在转换前校验来源/mask 存在、输出不重复且默认不覆盖已有文件。透明数据由代码判定：ffprobe 确认 alpha 通道，FFmpeg 检测像素 alpha 最小值 `<255`（WebP 解码不兼容时回退 Pillow）。`transparent: true` 且源图无透明像素、未提供 mask 时，以 `ALPHA_MASK_REQUIRED` 和条目 id 阻断；检测失败不归类为缺 mask。声明 `false` 却有透明像素时报告 warning。全部转换成功后才原子写 manifest（无素材为 `[]`），stdout 返回 `manifestPath`、`total`、`warnings`；失败不写半成功 manifest。执行、warning 复核和恢复方法见 `${CLAUDE_PLUGIN_ROOT}/guides/figma/assets.md`。
+
 ## 资产 manifest
 
-`assets-manifest.json` 是 impl 引用资产的唯一映射；由 `figma-assets.py batch` 依据 `assets-plan.json` 的声明校验并原子写入，执行方法见 `${CLAUDE_PLUGIN_ROOT}/guides/figma/assets.md`。
+`assets-manifest.json` 是 impl 引用资产的唯一映射，由 batch 写入；宽高与约分后的比例从最终产物提取，不从 CSS 或 Figma 标注推算。
 
 ```json
 [
@@ -59,10 +70,9 @@
 ```
 
 - `kind` 为 `image|svg|gif|video`；`source` 为 `download-assets|url|local-file`；`flattened` 标记含文字合成图，impl 作为单个媒体元素引用，不再实现其内文字。
-- `transparent` 标记 image 条目的透明声明已通过脚本终检（输出有 alpha 通道且有透明像素），impl 可直接信任其 alpha。
+- `transparent` 记录 image 的透明意图；为 `true` 时，脚本已终检输出有 alpha 通道且有透明像素；`false` 不保证输出完全不透明。
 - `publicUrl` 是页面运行时 URL，视频必填；名称语义化并沿用项目命名风格，不用节点 id、hash 或 Figma 默认层名。
 - 视频必须有 MCP 返回的 URL 或 `--video-source` 来源；禁止用截图、GIF 或占位视频伪造。
-- 全部条目成功后由 batch 原子写入（脚本输出即条目数据），失败不写半成功 manifest；正式路径已存在时停止，请开发者改名或明确允许替换。
 
 ## 动效规格
 
