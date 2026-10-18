@@ -48,6 +48,6 @@
 - 按变更风险验证正常路径、前置条件缺失、下游门禁、失败恢复和重复执行；只验证受影响的场景，不编造无关测试。
 - 新增或修改脚本时直接运行脚本，并覆盖本次变更涉及的错误路径。
 - Markdown 链接使用 `${CLAUDE_PLUGIN_ROOT}/scripts/check-markdown-links.py` 检查。
-- `packages/playwright-unified-logger/` 的改动在该 package 目录内运行对应 npm 脚本。
+- `playwright-unified-logger` 已迁移为独立仓库，本仓库只按 npm 包名引用它，不维护其源码。
 - 发布仍由 `${CLAUDE_PLUGIN_ROOT}/scripts/release.py` 和 `/t-tools:t-release` 约束：语义版本不带 `v`，git tag 使用 `v` 前缀。
 - 仓库可能有用户未提交改动；不要回滚或覆盖与当前任务无关的内容。
