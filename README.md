@@ -116,6 +116,8 @@ Figma 素材先运行 batch，由脚本检测 alpha；仅对 `ALPHA_MASK_REQUIRE
 
 使用 Codex、ZCode 等不支持 `claude --plugin-dir` 的工具时，见 [在其它 AI 编程工具中使用 t-tools](human/use-in-other-agents.md)：通过在 `~/.agents/skills/` 下放置路由 skill，把 `/t-tool <skill>` 指向克隆后的仓库目录。
 
+Web 与扩展 Demo 的测试日志库 [`playwright-unified-logger`](https://github.com/timzaak/playwright-unified-logger) 以独立 npm 包分发，`t-init` 会把它安装进目标项目的 Demo 工程，源码维护在该独立仓库。
+
 ## 使用本插件的项目
 
 - [Herald](https://github.com/timzaak/herald) — 多租户认证与授权系统

@@ -119,6 +119,8 @@ The runtime directories `.ai/` and `docs/` are created automatically during exec
 
 For tools that do not support `claude --plugin-dir` (Codex, ZCode, etc.), see [Using t-tools in Other AI Coding Tools](human/use-in-other-agents.en.md): place a dispatcher skill under `~/.agents/skills/` that routes `/t-tool <skill>` to the cloned repository directory.
 
+The test logging library for web and extension demos, [`playwright-unified-logger`](https://github.com/timzaak/playwright-unified-logger), ships as a standalone npm package: `t-init` installs it into the target project's demo workspace, and its source lives in that separate repository.
+
 ## Projects Using This Plugin
 
 - [Herald](https://github.com/timzaak/herald) — A multi-tenant authentication and authorization system
