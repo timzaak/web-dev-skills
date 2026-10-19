@@ -44,9 +44,9 @@ npm create @shopify/app@latest -- --name <project-name> --template reactRouter -
 
 ### 3.2 scripts/
 
-从 `${CLAUDE_PLUGIN_ROOT}/scripts/` 按增量规则补齐 `web-demo-test-runner.py`、`web-demo-run-all.py`、`web-demo-failure-summary.py`、`cleanup-demo.py`、`cleanup-test-logs.py` 及其 `lib/` 依赖。不新增 `backend-test.py`、`test-start.py`、`test-stop.py`、`demo-start.py`、`demo-stop.py`；已有其他交付端的脚本保留。
+从 `${CLAUDE_PLUGIN_ROOT}/scripts/` 按增量规则补齐 `web-demo-test-runner.py`、`web-demo-run-all.py`、`web-demo-failure-summary.py`、`cleanup-demo.py`、`cleanup-test-logs.py` 及其 `lib/` 依赖，并生成 Shopify 版 `demo-start.py`、`demo-stop.py`。全部脚本读取 [脚本复制与适配规则](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/script-adaptation.md) 完成改写和交付验证：Shopify 版启停脚本管理 `shopify app dev` 与已登记的自动化 Chrome 附加会话，不引入默认 Web 的 Docker 环境和后端进程；runner 依赖的 `lib/demo_env.py` 自动环境路径改写为显式不适用。不新增 `backend-test.py`、`test-start.py`、`test-stop.py`；已有其他交付端的脚本保留，已存在的启停脚本按适配规则的增量场景处理，自定义实现保留。
 
-在 `scripts/index.md` 登记实际 runner 入口，遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md` 的 Shopify Demo 运行模式；单文件、批量、scan、重试和 continue 均保留 `--no-auto-env`。
+在 `scripts/index.md` 登记实际 runner 入口和 Shopify 版启停脚本，遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md` 的 Shopify Demo 运行模式；单文件、批量、scan、重试和 continue 均保留 `--no-auto-env`。
 
 ### 3.3 根文件
 
@@ -69,7 +69,7 @@ npm create @shopify/app@latest -- --name <project-name> --template reactRouter -
 - 优先复用根 `typecheck`，其次 `type-check`。二者都缺失时，基于实际 React Router 配置补充 `typecheck`（通常为 `react-router typegen && tsc --noEmit`），不以裸 `tsc` 省略路由类型生成。已有等价自定义入口可通过上述稳定入口转调；不得覆盖原脚本。
 - `build` 必须存在；扩展存在时还需可调用本地 CLI 的 `shopify` 脚本（模板通常为 `shopify`）。缺失时先核实项目实际入口并补齐，不能虚构构建脚本。lint 按已有配置执行，不引入无依据的新 lint 配置。
 - 按 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/validation.md` 执行类型检查、应用构建及适用的扩展构建；执行 Demo 类型检查和初始化静态 smoke：`uv run scripts/web-demo-test-runner.py "demo/e2e/smoke.e2e.ts" --no-auto-env`（复用时使用实际 smoke 路径）。缺少 Playwright 浏览器时按项目配置安装后重试。
-- 确认 `shopify.app.toml`、`demo/`、5 个脚本及 lib/index、AGENTS/README 齐备。任何必要验证失败或缺工具均记录为未完成/未验证，保留当前产物；修复后重跑 Step 5，不以“文件存在”宣告初始化完成。
+- 确认 `shopify.app.toml`、`demo/`、7 个脚本（含 Shopify 版 `demo-start.py`、`demo-stop.py`）及 lib/index、AGENTS/README 齐备；按 [脚本复制与适配规则](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/script-adaptation.md) 的交付验证执行启停脚本 — CLI 登录可用时运行一次 `demo-start.py`（记录预览 URL）后 `demo-stop.py`，登录或网络受阻时至少空跑一次 `demo-stop.py` 并标注未验证项。任何必要验证失败或缺工具均记录为未完成/未验证，保留当前产物；修复后重跑 Step 5，不以“文件存在”宣告初始化完成。
 - admin 页面、proxy 与扩展的真实店铺冒烟依赖 Step 4；环境缺项时记录为未验证，不计为用户故事验收。
 
 ## 收尾输出

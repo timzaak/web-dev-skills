@@ -53,10 +53,10 @@ Result: {"success":"true|false","fixed":"false","logs":"...","exitCode":0,"testF
 
 ## Shopify Demo 运行模式
 
-- 适用 Shopify 店面、admin 嵌入页和 customer account 页面 Demo，设计输入取 `shopify.md`；单文件、定向重测、整文件终验、批次、scan 和 continue 的所有 runner 命令均追加 `--no-auto-env`。不调用默认 Web `demo-start.py` / `demo-stop.py`，也不通过插件回退入口启动 Docker 环境。
-- 真实故事运行前，按 `scripts/index.md` 核实用户已启动的 `shopify app dev`、目标测试店铺/预览 URL 和该故事的身份入口（登录 fixture 或已登录的自动化浏览器 CDP 会话，承载方式见 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/environment.md`）；缺身份、URL 或服务时记录环境受阻，交回编排层，不拿占位 smoke 代替。初始化静态 smoke 只验证 Playwright/日志通路，可不启动 Shopify。
+- 适用 Shopify 店面、admin 嵌入页和 customer account 页面 Demo，设计输入取 `shopify.md`；单文件、定向重测、整文件终验、批次、scan 和 continue 的所有 runner 命令均追加 `--no-auto-env`。环境启停只使用项目内 Shopify 适配版 `demo-start.py` / `demo-stop.py`（管理 `shopify app dev` 与已登记的自动化 Chrome 会话）；项目未提供时交由用户手动管理，不通过插件回退入口启动默认 Web Docker 环境。
+- 真实故事运行前，按 `scripts/index.md` 核实 `shopify app dev` 已在运行（用户手动启动或项目 `demo-start.py` 启动）、目标测试店铺/预览 URL 和该故事的身份入口（登录 fixture 或已登录的自动化浏览器 CDP 会话，承载方式见 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/environment.md`）；缺身份、URL 或服务时记录环境受阻，交回编排层，不拿占位 smoke 代替。初始化静态 smoke 只验证 Playwright/日志通路，可不启动 Shopify。
 - 业务数据隔离由项目 fixture/清理入口负责：为本次运行创建可追踪的独立测试数据，结束后只清理本次数据；有写操作却没有可靠的隔离/清理入口时停止。批次在文件之间核查清理成功，失败使用 `block` 保存断点；恢复时先处理上次遗留数据，再重跑未完成文件，不重建店铺或清空业务数据库。
-- 修复 Shopify 业务代码后，按实际变更补跑 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/validation.md` 的门禁，并确认 dev 进程已加载新应用/扩展；需要重启时按项目已声明的 Shopify 启动流程处理，登录受阻则保留失败证据并交回编排层。每次验证使用新的 run ID，保留历史日志。
+- 修复 Shopify 业务代码后，按实际变更补跑 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/validation.md` 的门禁，并确认 dev 进程已加载新应用/扩展；需要重启时用项目 Shopify 版 `demo-stop.py` / `demo-start.py`（或 `scripts/index.md` 声明的等价流程）处理，登录受阻则保留失败证据并交回编排层。每次验证使用新的 run ID，保留历史日志。
 
 ## 默认 Web 环境和数据隔离
 

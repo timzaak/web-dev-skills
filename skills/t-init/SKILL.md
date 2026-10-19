@@ -93,7 +93,7 @@ allowed-tools:
 | 4 | `t-tools:frontend-dev` | frontend-dev 模板 | `<project-name>/frontend/` | `npm install` + `type-check`（routeTree.gen.ts 错误除外）+ `lint`（@shadcn/lint 0 error） |
 | 5 | `t-tools:web-demo-dev` | web-demo-dev 模板 | `<project-name>/demo/` | `npm install` + smoke test 全部通过 |
 
-### Step 6: 生成项目本地 scripts（主 Agent）
+### Step 6: 复制并适配项目本地 scripts（主 Agent）
 
 将插件运行时脚本复制到目标项目根目录 `scripts/`，作为该项目后续环境启动、测试执行和 Demo 运行的优先入口。
 
@@ -113,9 +113,9 @@ allowed-tools:
 - `web-demo-failure-summary.py`
 - `lib/*.py`
 
-复制后按当前项目调整脚本默认配置：
-- Docker 镜像、容器名和端口必须使用当前项目语义，避免多个初始化项目互相冲突。
-- 默认数据库名、Redis 端口、后端/前端启动命令应与本次生成的 `backend/`、`frontend/`、`demo/` 保持一致。
+插件脚本提取自源全栈工程，内置该工程的二进制名、配置环境变量、容器名和端口，原样交付不可运行。复制后必须读取 [references/script-adaptation.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/script-adaptation.md)，以本次生成的 `backend/`、`frontend/`、`demo/` 实际事实为输入逐项改写，并执行其中的交付验证（环境可执行时运行一次 `demo-start.py` → `demo-stop.py` 循环；不可执行时在收尾输出标注未验证）。
+
+约束：
 - 脚本文件名、主要 CLI 参数和输出 JSON/日志契约保持稳定，便于 `/t-tools:t-*` 流程复用。
 - 运行类命令优先使用 `uv run scripts/<name>.py`；只有目标项目缺少对应脚本时，才回退到 `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/<name>.py`。
 
@@ -136,7 +136,7 @@ allowed-tools:
 
 收集各 subagent 的验证结果（见 Step 3 ~ 5 表格），并按「输出文件清单」用 Glob 确认所有文件都已创建。如果验证工具不可用，跳过并提示用户手动验证。
 
-确认根目录 AGENTS.md 指向 `scripts/index.md`，索引中的目录、命令、前置条件和结果位置与生成的脚本、配置一致。缺少测试入口时注明缺口，不虚构命令；未执行的验证明确标为未验证。重试生成索引时保留用户已有说明，仅更新本次涉及的入口。
+确认根目录 AGENTS.md 指向 `scripts/index.md`，索引中的目录、命令、前置条件和结果位置与生成的脚本、配置一致；按 [references/script-adaptation.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/script-adaptation.md) 的交付验证核对脚本内容与生成工程事实一致、脚本内无源项目残留。缺少测试入口时注明缺口，不虚构命令；未执行的验证（含脚本适配执行验证）明确标为未验证。重试生成索引时保留用户已有说明，仅更新本次涉及的入口。
 
 ## 输出文件清单
 
@@ -163,6 +163,7 @@ allowed-tools:
 - sonner 等 UI 组件通过 CLI 命令生成（不是 AI 手写）；关键文件含中文注释，配置字段有完整说明
 - demo smoke test 不依赖后端且能独立运行通过；demo 中 import 路径正确指向 `playwright-unified-logger`（npm 包）
 - 所有占位符已替换为实际项目名称
+- 项目本地脚本已完成适配并通过交付验证（含 `demo-start.py` → `demo-stop.py` 循环），或明确记录未验证原因；脚本内无源工程残留
 - OpenAPI 开关、健康检查（DB + Redis）、启动自动迁移行为符合模板约束
 
 ## 失败处理
@@ -184,5 +185,6 @@ allowed-tools:
 - Demo E2E 测试模板：[references/demo-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/demo-template.md)
 - Unified Logger 包模板：[references/unified-logger-package-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/unified-logger-package-template.md)
 - 脚本模板：[references/scripts-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/scripts-template.md)
+- 脚本复制与适配规则：[references/script-adaptation.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/script-adaptation.md)
 - AGENTS.md 模板：[references/agents-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/agents-template.md)
 - Shopify 初始化流程：[references/shopify-init.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/shopify-init.md)

@@ -1,6 +1,6 @@
 # Scripts 模板
 
-全栈 Step 6、extension-demo 或 Shopify 模式适配本地脚本后，按下述结构生成目标项目 `scripts/index.md`；测试说明只在该文件维护，AGENTS.md 只提供读取入口。
+全栈 Step 6、extension-demo 或 Shopify 模式适配本地脚本后，按下述结构生成目标项目 `scripts/index.md`；测试说明只在该文件维护，AGENTS.md 只提供读取入口。脚本复制与改写规则见 [脚本复制与适配规则](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/script-adaptation.md)。
 
 生成时读取 [测试命令契约](${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md) 和 [Demo 执行契约](${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md)；包含后端测试时再读 [后端执行契约](${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md)。核对项目实际脚本、package.json 和测试配置。只列已启用的测试层，用真实路径替换示例参数；未配置的测试标明缺口，不虚构命令。
 
@@ -35,6 +35,6 @@
 
 扩展目录使用 `/t-tools:t-extension-demo-run-all` 及其 `continue`，单文件用 `/t-tools:t-extension-demo-run`，故事验收用 `/t-tools:t-extension-demo-accept`。独立扩展只列扩展入口，不指向默认 Web 启停脚本。记录扩展源码/产物路径、ID 来源（需要时）、宿主/stub 与真实服务依赖，重跑沿用环境模式；初始化 smoke 通过不代表故事已验收。
 
-Shopify 项目另列实际类型检查、应用构建、扩展构建入口，以及测试店铺 URL 配置、身份 fixture、启动与清理步骤；所有 Demo 命令保留 `--no-auto-env`，批次和恢复遵循共享修复协议的 Shopify Demo 运行模式，不列默认 Web 启停脚本。
+Shopify 项目另列实际类型检查、应用构建、扩展构建入口，以及测试店铺 URL 配置、身份 fixture、启动与清理步骤；启停入口列项目实际生成的 Shopify 版 `demo-start.py` / `demo-stop.py`（`shopify app dev` 与自动化 Chrome 附加会话），不列默认 Web Docker 启停命令；所有 Demo 测试命令保留 `--no-auto-env`，批次和恢复遵循共享修复协议的 Shopify Demo 运行模式。
 
 新增或修改测试入口时同步更新本索引。

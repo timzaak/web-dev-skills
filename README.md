@@ -85,7 +85,7 @@ review、simplify 或 CI 修复使证据失效时，先补跑必要回归和独�
 
 Shopify App 项目用 `t-init --shopify <project-name>` 基于 Shopify 官方 React Router 模板创建工程（或为已有 Shopify 工程增量补齐 demo/scripts 设施）；开发规范见 [Shopify 开发指南](guides/shopify/development.md)。`shopify app deploy` 部署在 `t-push` 之后由用户显式执行，不并入任何 skill。
 
-Shopify 初始化保留已有配置、脚本和文档，失败后重跑同一入口仅补齐缺口。Demo 的单文件、批量和恢复运行都使用 `--no-auto-env`，真实故事的店铺登录、URL 和测试数据清理由项目 `scripts/index.md` 声明；初始化静态 smoke 不依赖店铺。`t-push` 识别 `typecheck` / `type-check`，缺少类型检查或应用构建入口时阻断；存在扩展配置时另跑 Shopify 扩展构建。
+Shopify 初始化保留已有配置、脚本和文档，失败后重跑同一入口仅补齐缺口。本地脚本按项目形态复制改造，不做原样拷贝：Shopify 版 `demo-start.py` / `demo-stop.py` 只管理 `shopify app dev` 和已登记的自动化 Chrome 会话，不引入默认 Docker 环境。Demo 的单文件、批量和恢复运行都使用 `--no-auto-env`，真实故事的店铺登录、URL 和测试数据清理由项目 `scripts/index.md` 声明；初始化静态 smoke 不依赖店铺。`t-push` 识别 `typecheck` / `type-check`，缺少类型检查或应用构建入口时阻断；存在扩展配置时另跑 Shopify 扩展构建。
 
 ## 使用规则
 

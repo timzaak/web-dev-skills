@@ -17,7 +17,7 @@
 
 按 [subagent 调度协议](${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md)，用 [subagent prompt 模板](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/subagent-prompts.md) 的 `extension-demo-dev` 部分传入上述事实；该角色按 [extension-demo 模板](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/extension-demo-template.md) 增量生成配置、fixture 和最小加载测试。业务逻辑不在初始化范围，发现生产缺陷时返回证据。
 
-主 Agent 从 `${CLAUDE_PLUGIN_ROOT}/scripts/` 复制缺失的 `web-demo-test-runner.py`、`web-demo-run-all.py`、`web-demo-failure-summary.py`、`lib/*.py` 到目标项目。已存在脚本先检查 CLI/结果兼容性，不直接覆盖；独立模式不复制或启动默认 Web 环境。需要真实后端时复用并核实项目现有环境脚本，缺失配置先补齐或报告阻塞，不能套用默认 Docker 容器。
+主 Agent 从 `${CLAUDE_PLUGIN_ROOT}/scripts/` 复制缺失的 `web-demo-test-runner.py`、`web-demo-run-all.py`、`web-demo-failure-summary.py`、`lib/*.py` 到目标项目，并按 [脚本复制与适配规则](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/script-adaptation.md) 完成改写和交付验证；项目不保留默认 Web 环境时，把 `lib/demo_env.py` 的自动环境路径改写为显式不适用。已存在脚本先检查 CLI/结果兼容性，不直接覆盖；独立模式不复制或启动默认 Web 环境。需要真实后端时复用并核实项目现有环境脚本，缺失配置先补齐或报告阻塞，不能套用默认 Docker 容器。
 
 按 [scripts 模板](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/scripts-template.md) 仅生成或更新 extension-demo 相关说明。记录扩展目录、构建命令和产物、环境模式、依赖安装、定向 runner 命令、日志位置与失败恢复。根目录 AGENTS.md 缺失时按 [AGENTS 模板](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/agents-template.md) 创建，已存在时仅补充 `scripts/index.md` 读取入口；README 只链接该索引，避免重复维护命令。复制 runner 后向根目录 `.gitignore` 增补缺失的 `log/` 忽略（本地脚本日志目录），保留其余内容不改写。
 
