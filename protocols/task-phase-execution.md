@@ -94,6 +94,8 @@
 - 当前阶段 `index.md`（含验证责任表及相关上游待验证场景；验证记录遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`）
 - 当前 item 之前已完成 item 的状态、文件路径与必要 `Handoff` 片段
 
+accept 额外提供 `${CLAUDE_PLUGIN_ROOT}/protocols/acceptance-contract.md`、原始证据入口、验证责任表及上游待验证场景；报告与结构化返回按该协议，不在 item 内另定义结论或评分。
+
 可选提供当前 slot manifest、阶段设计摘要、最小状态切片、completion criteria / validation。
 
 当前阶段 `index.md` 必须包含 `Decision ID | Status | Task/Item Location | Notes` 追踪表，覆盖影响该 phase 的 Active Decision。受具体决定约束的 item 在 `Goal` 或 `Handoff` 引用稳定 DEC ID；不得采用 Superseded Decision。

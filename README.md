@@ -73,6 +73,8 @@ t-prd-publish user-management
 
 每个 phase 的默认闭环是 `t-super-run`：主会话按当前角色规范持续完成实现、测试和修复，accept 派发对应只读 subagent 独立验收。`--phase` 必填，每次只执行一个 phase，完成后停止，中断后用同一命令恢复。需要单独审阅任务计划或细粒度 item 分工时，改用 `t-task -> t-run` 标准链路，两套状态互相独立。
 
+所有 accept 按[公共验收协议](protocols/acceptance-contract.md)统一结论、报告、证据和生成物边界：必要门禁须通过，未解决 P0/P1 阻断，P2 可带改进通过。独立 Demo accept 命令也串行派发独立 subagent。发布前通过稳定 US ID 和工作流映射验收草稿故事，代码注释不引用尚不存在的正式路径；发布时先核查正式故事映射，再删除草稿。
+
 通用写法是 `t-super-run <feature> --phase <phase>`。阶段名称与启用条件统一查阅 [阶段执行协议](protocols/task-phase-execution.md#phases)，各 skill 的参数说明不重复枚举；新增阶段时在共享协议中补齐定义、设计输入和角色映射，并完善对应执行能力。
 
 review、simplify 或 CI 修复使证据失效时，先补跑必要回归和独立验收再提交；push 门禁与中断恢复见 [push 执行协议](protocols/push-execution-contract.md)。
@@ -110,7 +112,7 @@ claude --plugin-dir /path/to/skills
 - 扩展开发涉及用户当前 Chrome 现场（标签页、登录态、已安装扩展）时，Chrome DevTools MCP（`--autoConnect`）已按 [用户 Chrome 调试指南](guides/extension/live-browser.md) 配置
 - 使用 Figma 工作流时，官方 [Figma MCP Server](https://developers.figma.com/docs/figma-mcp-server/) 已配置；素材转换依赖 `ffmpeg`/`ffprobe`、`svgo` 和 [kyz](https://github.com/byteowlz/kyz) 凭据代理
 
-Figma 素材先运行 batch，由脚本检测 alpha；仅对 `ALPHA_MASK_REQUIRED` 指定的节点补隔离截图作 mask 后重跑，见 [素材处理指南](guides/figma/assets.md)。
+Figma 还原使用 [`t-figma-assets`](skills/t-figma-assets/SKILL.md) → [`t-figma-impl`](skills/t-figma-impl/SKILL.md)：准备素材后按块实现整页，交付人工验收；素材未就绪可先 impl，交付前补跑 assets 并绑定。素材先运行 batch，由脚本检测 alpha；仅对 `ALPHA_MASK_REQUIRED` 指定的节点补隔离截图作 mask 后重跑，见 [素材处理指南](guides/figma/assets.md)。
 
 `.ai/` 与 `docs/` 运行时目录无需预先创建，工作流执行过程中会自行创建。
 

@@ -1,6 +1,6 @@
 # Agent Task Output Contract
 
-实现、修复、测试和验收类 agent 按下述结构返回。设计类 agent 改用 `${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`；不得混用。
+实现、修复、测试和验收类 agent 按下述结构返回。验收类在本结构上按 `${CLAUDE_PLUGIN_ROOT}/protocols/acceptance-contract.md` 补齐专属必填字段与状态映射。设计类 agent 改用 `${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`；不得混用。
 
 ## Success Envelope
 

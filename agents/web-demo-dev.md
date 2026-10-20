@@ -90,7 +90,7 @@ Runtime Dependencies：
 
 - 编写前必须完成选择器校准
 - 测试必须与用户故事建立可追溯关系
-- 引用 `.ai/user-stories` 时必须保留 draft 来源路径，不得改写为已发布事实。
+- 按 `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md` 的 Story Traceability 建立映射：真实 draft 路径写入任务/Handoff，测试注释只保留稳定 US ID 或有效正式故事路径，不写临时路径。
 - 测试必须通过统一 fixture 接入 `demoLogger`，不得绕过 fixture 或在测试中手动调用 `logger.finalize()`
 - 不得硬编码选择器字符串
 - 不得把 `sonner`、toast、Snackbar 等自动消失提示作为主判断条件或唯一验收依据

@@ -7,6 +7,7 @@
 | 代码注释默认不写的保留白名单、低价值注释禁令与临时工作流文档引用禁令 | [code-comment-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md) |
 | 产品立项决策简报结构、结论和下游承接规则 | [decision-brief-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/decision-brief-contract.md) |
 | 跨阶段决策账本、用户决策暴露和消费追踪 | [decision-continuity-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md) |
+| 所有 accept 的公共输入、结论、报告、只读边界和结果消费 | [acceptance-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/acceptance-contract.md) |
 | 实现类 agent 的通用结构化输出 | [agent-task-output-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md) |
 | 设计类 agent 的结构化输出与跨端契约摘要 | [design-agent-output-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md) |
 | `.ai/design/.../.state.json` 的生成状态 | [design-state-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/design-state-contract.md) |
@@ -29,7 +30,7 @@
 | Web / Extension Playwright Demo 单文件运行、修复、补测与环境刷新 | [web-demo-run-repair-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md) |
 | Chrome 扩展 Demo 验收 | [extension-demo-acceptance-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/extension-demo-acceptance-contract.md) |
 | Flutter Patrol Demo 单文件与批量修复 | [flutter-demo-run-repair-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/flutter-demo-run-repair-contract.md) |
-| Figma 素材、整页实现与动效验收 | [figma-workflow-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md) |
+| Figma 素材、整页实现与人工验收 | [figma-workflow-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md) |
 | t-simplify 四角度清理审查、finding 结构与修复边界 | [simplify-cleanup-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/simplify-cleanup-contract.md) |
 | t-review / t-simplify 默认范围、显式目标解析与修复前版本核对 | [review-scope-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/review-scope-contract.md) |
 | t-review 正确性角度、高风险查漏、逐候选三态验证、报告与 `--fix` 修复边界 | [review-correctness-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/review-correctness-contract.md) |

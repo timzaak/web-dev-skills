@@ -167,12 +167,12 @@ python "${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py" ".ai/design/<feature>.md"
 
 accept task 到达执行位时，主会话按 `subagent-dispatch.md` 派发 `agent_spec` 对应的只读 accept agent：
 
-1. 读取 accept agent 规范全文并按该协议注入为 `# Agent Role:`，追加最小上下文：设计主文档与当前 phase 分端设计、消费后端契约时的 `backend.md`、改动范围与上游 handoff、dev/test 的证据入口、当前验证责任表及上游待验证场景，并提供 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`。
+1. 读取 accept agent 规范全文并按该协议注入为 `# Agent Role:`，追加最小上下文：设计主文档与当前 phase 分端设计、消费后端契约时的 `backend.md`、改动范围与上游 handoff、dev/test 的证据入口、当前验证责任表及上游待验证场景，并提供 `${CLAUDE_PLUGIN_ROOT}/protocols/acceptance-contract.md`。
 2. 写入 `in_progress` 后串行派发，一次只派发一个 accept subagent。
-3. subagent 只产出验收报告与结论，不读写 `.state.json`，不修改生产代码或测试。主会话把结论映射为状态，不得代出、改写或降级 subagent 结论：
-   - `ACCEPTED`，或没有 P0/P1 的 `ACCEPTED_WITH_IMPROVEMENTS`：写 `completed`，把报告路径追加进 `evidence`。
+3. 按 `${CLAUDE_PLUGIN_ROOT}/protocols/acceptance-contract.md` 校验结构化返回和本轮报告，公共只读/派生物边界按该协议；subagent 不读写 `.state.json`。主会话只消费有效结论，不代出、改写或降级：
+   - 公共协议定义的两个通过结论：写 `completed`，把报告路径追加进 `evidence`。
    - `REJECTED`：按证据重新打开 dev 或 test，accept 重置为 `pending`；修复、重测后重新派发验收。
-4. 派发失败或 subagent 未产出报告与有效结论时，accept 写 `failed` 与 `last_error` 后重新派发；连续三次没有有效结论转 `blocked`。
+4. 环境/设备/用户裁决缺口先按 Failure Rules 记录阻塞与解除条件，不空转重派。派发失败或 subagent 未产出报告与有效结论时，accept 写 `failed` 与 `last_error` 后重新派发；连续三次没有有效结论转 `blocked`。
 5. 恢复到 `in_progress` 的 accept task 时，先确认旧 subagent 已结束；仍运行则等待，不能并行派发第二个 accept。旧调用已中断且无法取得有效结果时重新派发，不得把中断当作通过。
 
 ## Test And Acceptance Loop
@@ -197,4 +197,5 @@ accept task 到达执行位时，主会话按 `subagent-dispatch.md` 派发 `age
 - 状态 JSON 损坏或结构非法：停止并报告具体字段，不覆盖原文件。
 - 需求来源或 Active Decision 冲突：写入 `blocked`，按 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md` 处理。
 - 验证命令不存在：先从目标项目配置和脚本查明真实入口；无法查明时标记 `blocked`，不得编造命令。
+- accept 缺少必要环境、设备、账号、工具或用户裁决时：保留拒绝报告和证据，将 accept/phase 写 `blocked` 并列出解除条件；不重开无缺陷的 dev/test，不用重新派发代替解除阻塞。
 - 自动修复连续三次得到相同失败且没有新证据：保留失败证据并转为 `blocked`，不要用无界重试掩盖阻塞。计数跨恢复保留；重派 accept 或切换角色不清零，没有实际修复或新增诊断证据不能重置计数。

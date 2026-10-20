@@ -33,7 +33,7 @@ allowed-tools:
 - 固定在实现、测试和 Demo 验收完成之后运行；缺少完成证据时停止。
 - 核心动作是先做发布总结并获用户确认，再修正增补现有正式文档；以差异归纳和事实合并为主，只把仍然成立、且属于长期产品语义的内容写入 `docs/prd`。
 - 正式 PRD 内容聚焦产品语义；端点明细、schema、建表、代码类型和实施进度状态留在设计、任务或实现证据中。
-- 发布范围限定为正式 PRD、正式用户故事、PRD 索引、草稿清理和决策账本内化移除。
+- 发布范围限定为正式 PRD、正式用户故事、PRD 索引、草稿清理和决策账本内化移除；不修改交付代码。故事追溯按 `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md` 的 Story Traceability。
 - 仍然有效的 D0/D1 决策必须内化为正式 PRD 的产品事实（业务规则、范围、边界表述），不照搬账本表格、不携带 DEC/Q ID；D2 决策留在设计与任务产物，不进正式 PRD。
 
 ## Input Contract
@@ -84,12 +84,14 @@ allowed-tools:
 - 基于草稿、正式 PRD 和实现后证据，修正/增补 `docs/prd/<domain>/<feature>.md` 和 `docs/user-stories/**/*.md`；保留仍有效的既有内容，只修正缺失、过期、冲突或需增补的部分；新增或合并 draft story 时保持角色引用、INVEST 和 GWT 验收标准
 - 写入内容采用当前产品能力、业务规则或验收目标表述，避免用"已完成/已实现/本次交付"等实施进度表述承载长期事实
 - 目标正式 PRD 不存在时才创建；如索引存在，更新 `docs/prd/00-index.md` 对应条目（遵循目标项目现有索引文件）
+- 删除草稿前核对本轮测试的稳定 US ID 可在正式故事唯一定位、已有正式路径引用有效；不要求仅有 US ID 的测试补路径。映射缺失则保留草稿并报告收尾未完成，修正后重入；验收语义变化先重新验收。
 - 删除 `.ai/prd/<domain>/<feature>.md` 和 `.ai/user-stories/<domain>/<feature>.md`（如存在）；对应空目录可一并删除
 - 删除 `.ai/decision-log/<feature>.md`（如存在）；删除前提是其仍然有效的 D0/D1 决策已内化到正式 PRD，且无未解决或未经用户确认关闭的 Deferred Question
 
 ### 4. 发布后验证
 
 - 重新检查正式 PRD 可读且路径正确
+- 确认本轮测试故事映射在正式来源可解析，记录来源迁移；US ID 合并时保留可追溯关系。
 - 确认对应 `.ai/prd` 草稿已不存在；`.ai/user-stories` 草稿已不存在或本轮本就不存在
 - 确认 `.ai/decision-log/<feature>.md` 已不存在或本轮本就不存在
 

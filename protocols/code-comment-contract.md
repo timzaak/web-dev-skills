@@ -13,7 +13,7 @@
 ## 追溯注释
 
 - 测试追溯注释只引用用户故事，不引用设计或任务文档。
-- 追溯注释必须写明具体来源路径，且只能是 `docs/user-stories/...`；禁止引用 `.ai/user-stories/...` 等 `.ai/` 临时产物（来源约束与理由见 `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md` 的 Reference Rules）。
+- 追溯使用稳定 US ID，可附真实存在的 `docs/user-stories/...` 路径；发布前只有草稿时，真实路径与场景映射留在工作流文档，代码只写 US ID。唯一定位、存量路径兼容和发布后核查按 `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md` 的 Story Traceability；不虚构正式路径，不引用 `.ai/` 临时产物。
 
 ## 禁止编写的低价值注释
 
@@ -40,4 +40,4 @@
 - 本次 diff 新增的注释逐条对照"必须保留的注释"审计：命中至少一条才允许保留，否则删除；"看起来有信息量"不构成保留理由。
 - 变更文件中本次 diff 未触及的存量注释，只按禁止条款清理（临时工作流文档引用、低价值注释、违规追溯），不回溯套用保留白名单。
 - 编写阶段已遵守本协议时，兜底清理应基本无活可干；`/t-push` 频繁清出同类注释说明编写侧未遵守本协议。
-- `/t-prd-publish` 时，需要将代码注释中残留的 `.ai/user-stories/` 引用调整成 `docs/user-stories/` 中的用户故事（此类引用本不该出现在交付代码中，兜底清理时按违规注释处理）。
+- 残留 `.ai/user-stories/` 注释按违规处理，由当前实现/提交清理入口改为稳定 US ID 或有效正式来源；accept 只报告，发布入口不越界修改代码。

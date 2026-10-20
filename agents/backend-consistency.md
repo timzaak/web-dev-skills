@@ -40,7 +40,7 @@ tools:
 
 确定目标模块名，优先使用调用方传入的 PRD 路径；未传入时，在 `docs/prd/**/*.md` 中按文件名、标题、模块名、用户故事引用和索引入口定位最匹配的 PRD。不要假设 PRD 平铺在 `docs/prd/${MODULE}.md`。
 
-如果 PRD 不存在：提示先执行 `/t-prd ${MODULE}`，符合 `bugfix-`、`refactor-`、`test-` 豁免前缀的任务可记录豁免说明。
+PRD 缺失时按 `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md` 查相关草稿与正式来源；纯技术任务以明确的技术输入为依据，业务验收目标缺失则交回调用方，不按名称豁免。
 
 ### 步骤 2：提取 PRD 需求清单
 

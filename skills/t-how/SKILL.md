@@ -61,7 +61,7 @@ t-decision -> t-prd / t-tech-research（无固定顺序，进设计前收敛）
 | 写项目教程 / 文档 | `/t-tools:t-doc [名称]` | 不用于 PRD 和技术设计 |
 | 审计上下文 / 结构漂移 | `/t-tools:t-dream [feature]` | 只读；报告可含 PRD 治理建议，不执行写入 |
 | 阶段收口一致性 | `/t-tools:t-dream [feature] --phase <phase>` | 检查该交付阶段实现或 Demo 与 PRD / 用户故事的一致性；阶段取值见共享阶段执行协议 |
-| Figma 还原 | `/t-tools:t-figma-assets` → `/t-tools:t-figma-impl` | 素材未就绪可先 impl，交付前补 assets 并绑定；动效精修用 `t-figma-ux` |
+| Figma 还原 | `/t-tools:t-figma-assets` → `/t-tools:t-figma-impl` | 素材未就绪可先 impl，交付前补 assets 并绑定 |
 | 为产品图标 / logo 生成提示词 | `/t-tools:t-icon-prompt [icon-name]` | 问答产出提示词卡；只出提示词不生成图片，UI 图标集请用图标库 |
 | 新项目脚手架 | `/t-tools:t-init <project-name>` | Rust + React 全栈骨架；Shopify 项目用 `/t-tools:t-init --shopify <project-name>` |
 

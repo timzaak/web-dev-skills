@@ -19,5 +19,8 @@
 
 ## Output
 
-- 实现、修复、测试、验收 agent：`${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`
+仅请求任务规划时，返回调用方要求的计划结构，不执行验收命令或生成验收结论。实际执行按以下协议返回：
+
+- 实现、修复、测试 agent：`${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`
+- 验收 agent：`${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md` 与 `${CLAUDE_PLUGIN_ROOT}/protocols/acceptance-contract.md` 的验收扩展；派发前提供本轮范围、实际证据入口、验证责任表及上游承接场景。
 - backend/frontend/extension/flutter design agent：`${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`

@@ -77,7 +77,9 @@ allowed-tools:
      BE-D01: completed, file=.ai/task/sample-feature/backend/dev/BE-D01-domain-models.md, handoff=<必要片段>
    ```
 
-4. item 成功后写入 `tasks[phase][slot].items[item_id].status = completed`；失败后写入 `status = failed`、`last_error = <summary>`，并把 `tasks[phase][slot].status` 与 `phases[phase].status` 聚合为 `failed`，停止当前 phase 的后续执行。
+4. accept item 按 `${CLAUDE_PLUGIN_ROOT}/protocols/acceptance-contract.md` 校验结论和报告，按 task-state-contract 的 Acceptance Result 写入状态与恢复入口；其他 item 按通用输出判断成功。
+
+   item 成功后写入 `tasks[phase][slot].items[item_id].status = completed`；失败后写入 `status = failed`、`last_error = <summary>`，并把 `tasks[phase][slot].status` 与 `phases[phase].status` 聚合为 `failed`，停止当前 phase 的后续执行。
 5. 每个 item 完成或失败后重新聚合 slot 和 phase 状态；item 成功且仍有可执行 item 时回到步骤 3 继续串行执行。backend 阶段在 `accept` slot 全部 completed 后聚合为 completed。
 
 执行验证和阶段收尾时读取 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`：accept 独立复核证据；报告当前 phase 结果及后续待验证场景。最后承接阶段不得遗漏上游交接的业务验证。

@@ -76,6 +76,8 @@ A typical web order is `backend -> frontend -> web-demo`; a typical extension or
 
 Each phase uses `t-super-run` by default: the main session implements, tests, and repairs the work under the current role specification, while accept dispatches a read-only subagent for independent acceptance. `--phase` is required; each call executes one phase and stops, and repeating the same command recovers after an interruption. Use `t-task -> t-run` when plans need separate review or fine-grained item ownership; the two workflows keep independent state.
 
+All accept roles use the [acceptance contract](protocols/acceptance-contract.md) for verdicts, reports, evidence and generated-file boundaries. Required gates must pass; unresolved P0/P1 reject, while P2 improvements may pass. Standalone Demo accept commands also dispatch serial independent subagents. Before publication, demos can validate draft stories through stable US IDs and workflow mappings; code comments do not need nonexistent published paths. Publication checks that those IDs resolve in formal stories before removing drafts.
+
 The general syntax is `t-super-run <feature> --phase <phase>`. Phase names and activation rules are defined in the [phase execution contract](protocols/task-phase-execution.md#phases), rather than repeated in each skill's parameter descriptions. Adding a phase requires updating the shared definitions, design inputs, and role mapping, along with the corresponding execution capabilities.
 
 When review fixes, cleanup, or CI repairs invalidate evidence, required regressions and independent acceptance run before committing; see the [push execution contract](protocols/push-execution-contract.md) for push gates and interrupted-push recovery.
@@ -113,7 +115,7 @@ Prerequisites:
 - Chrome DevTools MCP (with `--autoConnect`) is configured per the [live Chrome debugging guide](guides/extension/live-browser.md) when extension work touches the user's live Chrome (tabs, login state, installed extensions)
 - The official [Figma MCP Server](https://developers.figma.com/docs/figma-mcp-server/) is configured when using the Figma workflow; asset conversion depends on `ffmpeg`/`ffprobe`, `svgo`, and the [kyz](https://github.com/byteowlz/kyz) credential proxy
 
-Run the Figma asset batch first so the script checks alpha. Fetch isolated screenshots as masks only for nodes reported with `ALPHA_MASK_REQUIRED`, then rerun; see the [asset processing guide](guides/figma/assets.md).
+Figma reconstruction uses [`t-figma-assets`](skills/t-figma-assets/SKILL.md) → [`t-figma-impl`](skills/t-figma-impl/SKILL.md): prepare assets, implement the full page block by block, then hand it over for manual acceptance. Implementation may start before assets are ready; run assets and bind them before delivery. Run the asset batch first so the script checks alpha. Fetch isolated screenshots as masks only for nodes reported with `ALPHA_MASK_REQUIRED`, then rerun; see the [asset processing guide](guides/figma/assets.md).
 
 The runtime directories `.ai/` and `docs/` are created automatically during execution — no need to create them up front.
 

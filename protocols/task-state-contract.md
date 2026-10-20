@@ -88,6 +88,12 @@
 - 验证由后续 Demo 承接时，同时标记验证表对应行为为未执行并重新打开已完成的承接验收；记录失效原因和恢复入口，不自动执行其他 phase。
 - 若需要生产修复，由编排层重新打开对应 dev item；先持久化状态与 Handoff 再启动 agent。状态写入失败时停止，不以旧 completed 返回成功。
 
+## Acceptance Result
+
+`/t-run` 按 `${CLAUDE_PLUGIN_ROOT}/protocols/acceptance-contract.md` 校验返回与报告，仅有效通过结论将 accept item 写为 completed。有效拒绝保留 accept=failed、last_error 和 Handoff，按根因将对应 dev/test 及失效下游 item 重开为 pending，聚合后停止；同命令重入先修复、重测，再独立验收。仅缺环境/设备/用户裁决时，不重开无缺陷的 dev/test，记录解除条件后停止。无效输出记录失败，不代出结论。
+
+accept 不可单独 skipped 绕过门禁；仅整个 phase 有不适用依据且全部 item skipped 时允许跳过。
+
 ## Aggregation Rules
 
 slot 状态：

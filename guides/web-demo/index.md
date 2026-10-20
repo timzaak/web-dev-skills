@@ -13,7 +13,7 @@ Demo 规范入口，按“先确认测试基线，再按失败类型进入对应
 | Page Object 或页面结构变化后的更新方式 | [pom-update.md](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/pom-update.md) |
 | 前端改动后的同步检查项 | [frontend-sync-checklist.md](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/frontend-sync-checklist.md) |
 | 失败诊断流程与证据优先级 | [diagnose-guide.md](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/diagnose-guide.md) |
-| 只读验收门禁、评分和拒绝条件 | [quality.md](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/quality.md) |
+| Web Demo 必要门禁与证据 | [quality.md](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/quality.md) |
 | 前端联调调试辅助说明 | [demo-debugging.md](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/demo-debugging.md) |
 | `/t-tools:t-web-demo-run-all` 批次 token 去向诊断与改造分流 | [batch-token-profiling.md](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/batch-token-profiling.md) |
 | Shopify admin 嵌入页 Demo：iframe 定位、Polaris web components 交互、ResourcePicker | [shopify-embedded-app.md](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/shopify-embedded-app.md) |
@@ -23,4 +23,4 @@ Demo 规范入口，按“先确认测试基线，再按失败类型进入对应
 - `e2e-testing.md` 是 Demo 测试基线入口；先看这里，再按失败类型进入细页。
 - `test-maintenance.md` 负责分流到 `selector-repair.md`、`pom-update.md`、`common-failures.md`，不要在 agent 文档里复制这套路由。
 - `diagnose-guide.md` 只描述诊断流程；诊断报告结构以 `${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-contract.md` 为准。
-- `quality.md` 只定义验收门禁和评分，不替代测试实现规范。
+- `quality.md` 只补充领域门禁，结论与报告按公共验收协议，不替代测试实现规范。
