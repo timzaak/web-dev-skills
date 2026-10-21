@@ -34,5 +34,5 @@ allowed-tools:
 
 ## 交付
 
-4. 全部块完成后过素材门禁：manifest 缺失时停止，提示以同一主稿 URL 运行 `t-figma-assets`；其完成后做一次绑定（语义引用替换为真实 `outputPath`/`publicUrl`/`aspectRatio`）并重跑栈验证。
+4. 全部块完成后过素材门禁：在目标项目根运行 `python ${CLAUDE_PLUGIN_ROOT}/scripts/figma-assets.py verify <工作目录>/assets-plan.json`；plan/manifest 缺失、旧产物缺少验证证据或复验失败时停止，提示以同一主稿 URL 运行 `t-figma-assets`。其完成后做一次绑定（语义引用替换为真实 `outputPath`/`publicUrl`/`aspectRatio`）并重跑 verify 与栈验证。
 5. 报告完成块清单与失败项，附 preview URL（如有）和 baseline 位置，由开发者对照页面人工验收；栈验证失败不宣称完成。

@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """Convert, optimize and inspect Figma assets with ffmpeg, TinyPNG and SVGO.
 
-Single assets convert via `image|svg|video`; `batch` consumes an assets-plan.json
-whose image entries must declare `transparent`, enforces baked-canvas alpha masks
-and atomically writes the asset manifest.
+Single assets convert via `image|svg|video`; `batch` derives transparency and
+canvas-color repair from mandatory isolated PNG references. `verify` checks the
+retained evidence and outputs before implementation delivery.
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import os
@@ -128,6 +129,112 @@ def has_transparent_pixels(
     raise RuntimeError("ffmpeg did not return alpha statistics")
 
 
+def pillow_image() -> Any:
+    try:
+        from PIL import Image
+    except ImportError as exc:
+        raise RuntimeError("image processing requires Pillow; install `python -m pip install Pillow`") from exc
+    return Image
+
+
+def read_rgba(path: Path, *, require_png: bool = False) -> Any:
+    Image = pillow_image()
+    try:
+        with Image.open(path) as image:
+            if require_png and image.format != "PNG":
+                raise RuntimeError(f"REFERENCE_INVALID: isolated reference must be a PNG: {path}")
+            image.load()
+            return image.convert("RGBA")
+    except (OSError, ValueError) as exc:
+        raise RuntimeError(f"cannot decode image {path}: {exc}") from exc
+
+
+def resized_alpha(reference: Path, size: tuple[int, int]) -> Any:
+    Image = pillow_image()
+    return read_rgba(reference, require_png=True).getchannel("A").resize(size, Image.Resampling.LANCZOS)
+
+
+def check_reference_alpha(output: Path, reference: Path) -> bool:
+    """Check every alpha pixel, including opaque references, rather than just alpha min."""
+    image = read_rgba(output)
+    expected = resized_alpha(reference, image.size)
+    if image.getchannel("A").tobytes() != expected.tobytes():
+        raise RuntimeError(f"ALPHA_MISMATCH: output alpha differs from isolated reference: {output}")
+    return expected.getextrema()[0] < 255
+
+
+def analyze_transparency(source: Path, reference: Path) -> dict[str, Any]:
+    """Choose straight RGB or a fitted constant canvas color; ambiguous evidence blocks."""
+    Image = pillow_image()
+    original = read_rgba(source)
+    isolated = read_rgba(reference, require_png=True)
+    width, height = original.size
+    ref_width, ref_height = isolated.size
+    # Allow integer rounding of the same bounds, never silently stretch a different crop.
+    if abs(width * ref_height - height * ref_width) > max(width, height, ref_width, ref_height):
+        raise RuntimeError("REFERENCE_BOUNDS_MISMATCH: source and isolated PNG have different aspect ratios")
+    minimum, maximum = isolated.getchannel("A").getextrema()
+    if maximum == 0:
+        raise RuntimeError("REFERENCE_EMPTY: isolated PNG is entirely transparent")
+    sample_size = isolated.size
+    if max(sample_size) > 256:
+        factor = 256 / max(sample_size)
+        sample_size = (max(1, round(ref_width * factor)), max(1, round(ref_height * factor)))
+    # Resize RGBA before dropping alpha so undefined RGB outside a native
+    # transparent silhouette does not look like a baked black fringe.
+    rgb = original.resize(sample_size, Image.Resampling.LANCZOS).convert("RGB")
+    target = isolated.resize(sample_size, Image.Resampling.LANCZOS)
+    pairs = list(zip(struct.iter_unpack("3B", rgb.tobytes()), struct.iter_unpack("4B", target.tobytes())))
+    visible = [(s, r) for s, r in pairs if r[3] > 0]
+    opaque = [(s, r) for s, r in visible if r[3] == 255]
+    translucent = [(s, r) for s, r in visible if r[3] < 255]
+
+    def error(samples: list[Any], background: tuple[int, int, int] | None = None) -> float:
+        if not samples:
+            return 0.0
+        total = 0.0
+        for actual, expected in samples:
+            alpha = expected[3] / 255
+            for channel in range(3):
+                predicted = expected[channel] if background is None else (
+                    alpha * expected[channel] + (1 - alpha) * background[channel]
+                )
+                total += abs(actual[channel] - predicted)
+        return total / (3 * len(samples))
+
+    # Interior mismatch cannot be repaired with alpha or canvas-color subtraction.
+    if error(opaque) > 4:
+        raise RuntimeError("REFERENCE_RGB_MISMATCH: opaque RGB differs from isolated PNG; check node and crop")
+    straight_error = error(translucent)
+    background = None
+    if straight_error > 4:
+        # Fully transparent RGB is undefined and may have been zeroed by an encoder.
+        fit = [(s, r) for s, r in pairs if 0 < r[3] < 240]
+        denominator = sum((1 - r[3] / 255) ** 2 for _, r in fit)
+        if not denominator:
+            raise RuntimeError("RGB_REPAIR_UNCERTAIN: no usable pixels to infer canvas color")
+        fitted = tuple(
+            sum((1 - r[3] / 255) * (s[c] - r[3] / 255 * r[c]) for s, r in fit) / denominator
+            for c in range(3)
+        )
+        candidate = tuple(round(max(0, min(255, value))) for value in fitted)
+        baked_error = error(translucent, candidate)
+        if any(value < -4 or value > 259 for value in fitted) or baked_error > 4 or straight_error - baked_error < 2:
+            raise RuntimeError("RGB_REPAIR_UNCERTAIN: RGB is neither straight nor consistently baked over one color; re-export evidence")
+        background = candidate
+    return {
+        "transparent": minimum < 255,
+        "unbake": background,
+        "reference": reference,
+        "mode": "unbake" if background is not None else "reference-alpha",
+    }
+
+
+def sha256(path: Path) -> str:
+    with path.open("rb") as handle:
+        return hashlib.file_digest(handle, "sha256").hexdigest()
+
+
 def top_level_atoms(path: Path) -> list[tuple[str, int]]:
     atoms: list[tuple[str, int]] = []
     size_total = path.stat().st_size
@@ -160,13 +267,6 @@ def top_level_atoms(path: Path) -> list[tuple[str, int]]:
 def is_faststart(path: Path) -> bool:
     offsets = dict(top_level_atoms(path))
     return "moov" in offsets and "mdat" in offsets and offsets["moov"] < offsets["mdat"]
-
-
-def parse_hex_color(value: str) -> tuple[int, int, int]:
-    text = value.strip().lstrip("#")
-    if len(text) != 6 or any(c not in "0123456789abcdefABCDEF" for c in text):
-        raise RuntimeError(f"color must be a 6-digit hex value, got: {value}")
-    return tuple(int(text[i:i + 2], 16) for i in (0, 2, 4))  # type: ignore[return-value]
 
 
 def unbake_expression(sample: str, background: int) -> str:
@@ -399,8 +499,7 @@ def convert_image(
         source, ffmpeg_bin=ffmpeg_bin, runner=runner,
     ):
         raise RuntimeError(
-            "--unbake-color needs per-pixel alpha, but the source is fully opaque; "
-            "provide --alpha-mask from an isolated screenshot"
+            "canvas-color repair needs per-pixel alpha from an isolated reference PNG"
         )
     # PNG sources (and anything needing alpha work) go: local transparency fixup
     # -> TinyPNG compression via the kyz credential proxy -> WebP at the
@@ -431,6 +530,19 @@ def convert_image(
                     preprocess += ["-vf", tail]
                 preprocess += [str(processed_png)]
                 run(preprocess, runner=runner)
+                if alpha_mask is not None:
+                    # Upscaling a reference mask can expose pixels whose original
+                    # alpha was zero. Their stored RGB is undefined (often black),
+                    # so take only those colors from the isolated render.
+                    Image = pillow_image()
+                    prepared = read_rgba(processed_png)
+                    original_alpha = read_rgba(source).getchannel("A").resize(prepared.size, Image.Resampling.LANCZOS)
+                    if original_alpha.getextrema()[0] == 0:
+                        undefined = original_alpha.point(lambda value: 255 if value == 0 else 0)
+                        reference_rgb = read_rgba(alpha_mask, require_png=True).resize(prepared.size, Image.Resampling.LANCZOS)
+                        repaired = Image.composite(reference_rgb, prepared, undefined)
+                        repaired.putalpha(prepared.getchannel("A"))
+                        repaired.save(processed_png)
             tinify_compress(
                 upload_source, tinified_png, proxy=tinypng_proxy, token=kyz_proxy_token(),
             )
@@ -440,10 +552,13 @@ def convert_image(
                 file=sys.stderr,
             )
             command = [ffmpeg_bin, "-y", "-i", str(tinified_png)]
-            if alpha_mask is not None or unbake is not None:
+            if alpha_mask is not None:
                 # TinyPNG may quantize rare alpha values (even fully transparent
-                # corners) into nonzero opacity. Keep its compressed RGB while
-                # restoring the exact, already scaled alpha prepared above.
+                # corners). Restore reference alpha at the exact output dimensions,
+                # independent of FFmpeg/TinyPNG resampling and quantization.
+                prepared = read_rgba(tinified_png)
+                prepared.putalpha(resized_alpha(alpha_mask, prepared.size))
+                prepared.save(processed_png)
                 command += [
                     "-i", str(processed_png), "-filter_complex",
                     "[1:v]alphaextract[alpha];[0:v][alpha]alphamerge",
@@ -467,7 +582,9 @@ def convert_image(
             command += [str(temporary_output)]
             run(command, runner=runner)
         final_probe = ffprobe(temporary_output, ffprobe_bin=ffprobe_bin, runner=runner)
-        if expect_alpha or alpha_mask is not None:
+        if alpha_mask is not None:
+            check_reference_alpha(temporary_output, alpha_mask)
+        if expect_alpha:
             if not has_alpha(final_probe):
                 raise RuntimeError("expected transparent output, but the output has no alpha channel")
             if not has_transparent_pixels(temporary_output, ffmpeg_bin=ffmpeg_bin, runner=runner):
@@ -520,7 +637,7 @@ def convert_video(
 PLAN_KINDS = ("image", "svg", "video")
 PLAN_ENTRY_FIELDS = {"id", "name", "kind", "source", "outputPath", "publicUrl", "origin"}
 IMAGE_ONLY_FIELDS = {
-    "transparent", "alphaMask", "unbakeColor", "lossless", "quality", "maxWidth", "flattened",
+    "referencePng", "lossless", "quality", "maxWidth", "flattened",
 }
 
 
@@ -530,7 +647,7 @@ def plan_entry_error(index: int, entry: dict[str, Any], message: str) -> Runtime
 
 
 def load_plan(path: Path) -> list[dict[str, Any]]:
-    """Parse and validate the asset plan; per-image transparency must be declared explicitly."""
+    """Require independent pixel evidence; transparency choices are not plan inputs."""
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
@@ -552,6 +669,8 @@ def load_plan(path: Path) -> list[dict[str, Any]]:
             raise plan_entry_error(index, raw, f"duplicate id: {identity}")
         seen_ids.add(identity)
         output_key = os.path.normcase(str(Path(raw["outputPath"]).resolve()))
+        if Path(raw["outputPath"]).resolve() == path.resolve():
+            raise plan_entry_error(index, raw, "output must not overwrite the asset plan")
         if output_key in seen_outputs:
             raise plan_entry_error(index, raw, f"duplicate outputPath: {raw['outputPath']}")
         seen_outputs.add(output_key)
@@ -576,32 +695,21 @@ def load_plan(path: Path) -> list[dict[str, Any]]:
         if kind == "video" and not entry["publicUrl"]:
             raise plan_entry_error(index, raw, "'publicUrl' is required for video entries")
         if kind == "image":
-            transparent = raw.get("transparent")
-            if not isinstance(transparent, bool):
+            reference = raw.get("referencePng")
+            if not isinstance(reference, str) or not reference.strip():
                 raise plan_entry_error(
-                    index, raw, "'transparent' must be declared as true or false for image entries",
+                    index, raw, "REFERENCE_REQUIRED: image entries need 'referencePng' from an isolated node screenshot",
                 )
+            if Path(reference).resolve().is_relative_to((path.parent / "raw").resolve()):
+                raise plan_entry_error(index, raw, "REFERENCE_NOT_PERSISTENT: keep isolated PNG outside the disposable raw directory")
             quality = raw.get("quality", 80)
             if isinstance(quality, bool) or not isinstance(quality, int) or not 1 <= quality <= 100:
                 raise plan_entry_error(index, raw, "'quality' must be an integer between 1 and 100")
             max_width = raw.get("maxWidth", 0)
             if isinstance(max_width, bool) or not isinstance(max_width, int) or max_width < 0:
                 raise plan_entry_error(index, raw, "'maxWidth' must be a non-negative integer")
-            alpha_mask = raw.get("alphaMask")
-            if alpha_mask is not None and not isinstance(alpha_mask, str):
-                raise plan_entry_error(index, raw, "'alphaMask' must be a path string")
-            unbake = raw.get("unbakeColor")
-            if unbake is not None:
-                if not isinstance(unbake, str):
-                    raise plan_entry_error(index, raw, "'unbakeColor' must be a hex string like 1e1e1e")
-                try:
-                    unbake = parse_hex_color(unbake)
-                except RuntimeError as exc:
-                    raise plan_entry_error(index, raw, str(exc)) from exc
             entry.update({
-                "transparent": transparent,
-                "alpha_mask": Path(alpha_mask) if alpha_mask else None,
-                "unbake": unbake,
+                "reference": Path(reference),
                 "lossless": bool(raw.get("lossless", False)),
                 "quality": quality,
                 "max_width": max_width,
@@ -610,43 +718,11 @@ def load_plan(path: Path) -> list[dict[str, Any]]:
             for field in IMAGE_ONLY_FIELDS:
                 if field in raw:
                     raise plan_entry_error(index, raw, f"'{field}' only applies to image entries")
+        entry["planEntrySha256"] = hashlib.sha256(
+            json.dumps(raw, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
         entries.append(entry)
     return entries
-
-
-def validate_alpha_declaration(
-    entry: dict[str, Any],
-    *,
-    ffmpeg_bin: str,
-    ffprobe_bin: str,
-    runner: Runner = subprocess.run,
-) -> str | None:
-    """Enforce a transparent declaration against the source pixels.
-
-    Fully opaque sources declared transparent require an isolated-screenshot
-    mask. Inspection errors propagate without being treated as missing alpha.
-    Returns a warning for an opaque declaration with real transparent pixels.
-    """
-    source: Path = entry["source"]
-    source_has_alpha = has_alpha(ffprobe(source, ffprobe_bin=ffprobe_bin, runner=runner))
-    pixel_alpha = source_has_alpha and has_transparent_pixels(
-        source, ffmpeg_bin=ffmpeg_bin, runner=runner,
-    )
-    if entry["transparent"]:
-        if not pixel_alpha and entry["alpha_mask"] is None:
-            raise RuntimeError(
-                f"plan entry {entry['id']}: ALPHA_MASK_REQUIRED: declared transparent, "
-                "but the source has no transparent pixels. Call "
-                "get_screenshot(contentsOnly: true) for the node, save the isolated PNG "
-                "under raw/ and reference it via the entry's alphaMask"
-            )
-        return None
-    if pixel_alpha:
-        return (
-            f"plan entry {entry['id']} is declared opaque, but the source has transparent "
-            "pixels; review the declaration and set transparent to true if intended"
-        )
-    return None
 
 
 def write_manifest(manifest_path: Path, manifest_entries: list[dict[str, Any]]) -> None:
@@ -669,27 +745,34 @@ def run_batch(
     svgo_bin: str | None = None,
     runner: Runner = subprocess.run,
 ) -> dict[str, Any]:
+    inputs = {entry["source"].resolve() for entry in entries}
+    inputs.update(entry["reference"].resolve() for entry in entries if entry["kind"] == "image")
+    if manifest_path.resolve() in inputs:
+        raise RuntimeError("manifest must not overwrite a source or reference PNG")
     for entry in entries:
         if not entry["source"].is_file():
             raise RuntimeError(f"plan entry {entry['id']}: source not found: {entry['source']}")
-        alpha_mask = entry.get("alpha_mask")
-        if alpha_mask is not None and not alpha_mask.is_file():
-            raise RuntimeError(f"plan entry {entry['id']}: alphaMask not found: {alpha_mask}")
+        reference = entry.get("reference")
+        if reference is not None:
+            if not reference.is_file():
+                raise RuntimeError(f"plan entry {entry['id']}: REFERENCE_REQUIRED: PNG not found: {reference}")
+            if reference.resolve() == entry["source"].resolve():
+                raise RuntimeError(f"plan entry {entry['id']}: referencePng must be independent of the export source")
+        if entry["output"].resolve() in inputs or entry["output"].resolve() == manifest_path.resolve():
+            raise RuntimeError(f"plan entry {entry['id']}: output would overwrite an input or manifest")
         if entry["output"].exists() and not overwrite_existing:
             raise RuntimeError(
                 f"plan entry {entry['id']}: output already exists: {entry['output']}; "
                 "use --overwrite-existing to replace outputs from an earlier batch run"
             )
-    warnings: list[dict[str, str]] = []
+    analyses: dict[str, dict[str, Any]] = {}
     for entry in entries:
         if entry["kind"] != "image":
             continue
-        warning = validate_alpha_declaration(
-            entry, ffmpeg_bin=ffmpeg_bin, ffprobe_bin=ffprobe_bin, runner=runner,
-        )
-        if warning:
-            print(f"batch warning: {warning}", file=sys.stderr)
-            warnings.append({"id": entry["id"], "message": warning})
+        try:
+            analyses[entry["id"]] = analyze_transparency(entry["source"], entry["reference"])
+        except RuntimeError as exc:
+            raise RuntimeError(f"plan entry {entry['id']}: {exc}") from exc
     manifest_entries: list[dict[str, Any]] = []
     total = len(entries)
     for index, entry in enumerate(entries, start=1):
@@ -698,12 +781,13 @@ def run_batch(
             file=sys.stderr,
         )
         if entry["kind"] == "image":
+            analysis = analyses[entry["id"]]
             result = convert_image(
                 entry["source"], entry["output"],
                 flattened=entry["flattened"], lossless=entry["lossless"],
                 quality=entry["quality"], max_width=entry["max_width"],
-                alpha_mask=entry["alpha_mask"], unbake=entry["unbake"],
-                expect_alpha=entry["transparent"], tinypng_proxy=tinypng_proxy,
+                alpha_mask=entry["reference"], unbake=analysis["unbake"],
+                expect_alpha=analysis["transparent"], tinypng_proxy=tinypng_proxy,
                 ffmpeg_bin=ffmpeg_bin, ffprobe_bin=ffprobe_bin, runner=runner,
             )
         elif entry["kind"] == "svg":
@@ -726,7 +810,15 @@ def run_batch(
         if entry["flattened"]:
             manifest_entry["flattened"] = True
         if entry["kind"] == "image":
-            manifest_entry["transparent"] = entry["transparent"]
+            manifest_entry["transparent"] = analysis["transparent"]
+            manifest_entry["alpha"] = {
+                "referencePath": str(entry["reference"]),
+                "referenceSha256": sha256(entry["reference"]),
+                "mode": analysis["mode"],
+                "unbakeColor": "".join(f"{c:02x}" for c in analysis["unbake"]) if analysis["unbake"] is not None else None,
+            }
+        manifest_entry["sha256"] = sha256(entry["output"])
+        manifest_entry["planEntrySha256"] = entry["planEntrySha256"]
         manifest_entry["outputPath"] = result["outputPath"]
         if entry["publicUrl"]:
             manifest_entry["publicUrl"] = entry["publicUrl"]
@@ -734,8 +826,56 @@ def run_batch(
             key: result[key] for key in ("width", "height", "aspectRatio")
         })
         manifest_entries.append(manifest_entry)
+    verify_manifest_entries(entries, manifest_entries)
     write_manifest(manifest_path, manifest_entries)
-    return {"manifestPath": str(manifest_path), "total": total, "warnings": warnings}
+    return {"manifestPath": str(manifest_path), "total": total, "warnings": []}
+
+
+def verify_manifest_entries(entries: list[dict[str, Any]], manifest: Any) -> None:
+    if not isinstance(manifest, list) or len(manifest) != len(entries):
+        raise RuntimeError("MANIFEST_INVALID: manifest must match every plan entry")
+    actual: dict[str, dict[str, Any]] = {}
+    for item in manifest:
+        if not isinstance(item, dict) or not isinstance(item.get("id"), str) or item["id"] in actual:
+            raise RuntimeError("MANIFEST_INVALID: missing or duplicate asset id")
+        actual[item["id"]] = item
+    for entry in entries:
+        item = actual.get(entry["id"])
+        if item is None or item.get("planEntrySha256") != entry["planEntrySha256"]:
+            raise RuntimeError(f"MANIFEST_STALE: plan entry {entry['id']} changed or has no verification evidence; rerun batch")
+        output = entry["output"]
+        if (
+            item.get("kind") != entry["kind"] or item.get("name") != entry["name"]
+            or item.get("outputPath") != str(output)
+            or item.get("publicUrl") != entry["publicUrl"]
+        ):
+            raise RuntimeError(f"MANIFEST_INVALID: mapping differs from plan entry {entry['id']}")
+        if not output.is_file() or sha256(output) != item.get("sha256"):
+            raise RuntimeError(f"OUTPUT_CHANGED: asset missing or changed: {output}")
+        if entry["kind"] == "image":
+            evidence = item.get("alpha")
+            reference = entry["reference"]
+            if (
+                not isinstance(evidence, dict) or evidence.get("referencePath") != str(reference)
+                or not reference.is_file() or sha256(reference) != evidence.get("referenceSha256")
+            ):
+                raise RuntimeError(f"REFERENCE_CHANGED: missing or changed isolated PNG for {entry['id']}")
+            transparent = check_reference_alpha(output, reference)
+            if type(item.get("transparent")) is not bool or item["transparent"] != transparent:
+                raise RuntimeError(f"MANIFEST_INVALID: transparency differs from reference for {entry['id']}")
+            width, height = read_rgba(output).size
+            if (item.get("width"), item.get("height"), item.get("aspectRatio")) != (width, height, ratio(width, height)):
+                raise RuntimeError(f"MANIFEST_INVALID: image dimensions differ for {entry['id']}")
+
+
+def verify_plan(plan_path: Path, manifest_path: Path) -> dict[str, Any]:
+    entries = load_plan(plan_path)
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f"cannot read manifest {manifest_path}: {exc}") from exc
+    verify_manifest_entries(entries, manifest)
+    return {"manifestPath": str(manifest_path), "total": len(entries), "verified": True}
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -749,9 +889,7 @@ def build_parser() -> argparse.ArgumentParser:
     image.add_argument("--lossless", action="store_true")
     image.add_argument("--quality", type=int, default=80)
     image.add_argument("--max-width", type=int, default=0, help="Downscale wider sources to this pixel width with lanczos before encoding; 0 keeps the source resolution.")
-    image.add_argument("--alpha-mask", type=Path, help="Isolated PNG whose alpha channel replaces the export alpha; it is scaled to the source dimensions.")
-    image.add_argument("--unbake-color", help="Hex color (e.g. 1e1e1e) that Figma baked into semi-transparent RGB; true colors are restored via true=(baked-(1-a)*bg)/a after the optional alpha-mask merge.")
-    image.add_argument("--expect-alpha", action="store_true", help="Fail when the converted image has no transparent pixels.")
+    image.add_argument("--reference-png", required=True, type=Path, help="Independent isolated node PNG; script derives transparency and canvas-color repair.")
     image.add_argument(
         "--tinypng-proxy",
         default=KYZ_PROXY_DEFAULT,
@@ -768,9 +906,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     batch = subparsers.add_parser(
         "batch",
-        help="Convert every plan entry and atomically write the asset manifest; "
-        "image entries must declare transparent true/false and baked-canvas sources "
-        "must come with an alphaMask.",
+        help="Convert every plan entry and atomically write a verified manifest; every image requires referencePng.",
     )
     batch.add_argument("plan", help="Path to assets-plan.json; relative paths inside resolve against the current directory.")
     batch.add_argument(
@@ -782,6 +918,9 @@ def build_parser() -> argparse.ArgumentParser:
         "--overwrite-existing", action="store_true",
         help="Replace outputs left by an earlier batch run; never use it to bypass review.",
     )
+    verify = subparsers.add_parser("verify", help="Verify plan, manifest, output hashes and every image's reference alpha without raw sources.")
+    verify.add_argument("plan")
+    verify.add_argument("--manifest", type=Path, default=None)
     return parser
 
 
@@ -789,12 +928,18 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         result: dict[str, Any]
-        if args.command == "batch":
+        if args.command in ("batch", "verify"):
             plan_path = Path(args.plan)
             if not plan_path.is_file():
                 print(f"plan not found: {plan_path}", file=sys.stderr)
                 return 2
             manifest_path = args.manifest or plan_path.parent / "assets-manifest.json"
+            if manifest_path.resolve() == plan_path.resolve():
+                raise RuntimeError("manifest must not overwrite the asset plan")
+            if args.command == "verify":
+                result = verify_plan(plan_path, manifest_path)
+                print(json.dumps(result, ensure_ascii=False))
+                return 0
             entries = load_plan(plan_path)
             needs_av_tools = any(entry["kind"] in ("image", "video") for entry in entries)
             result = run_batch(
@@ -828,12 +973,14 @@ def main(argv: list[str] | None = None) -> int:
                         raise RuntimeError("--quality must be between 1 and 100")
                     if args.max_width < 0:
                         raise RuntimeError("--max-width must be a non-negative pixel width")
-                    unbake = parse_hex_color(args.unbake_color) if args.unbake_color else None
+                    if args.reference_png.resolve() in (source.resolve(), output.resolve()):
+                        raise RuntimeError("reference PNG must be independent of source and output")
+                    analysis = analyze_transparency(source, args.reference_png)
                     result = convert_image(
                         source, output, flattened=args.flattened, lossless=args.lossless,
                         quality=args.quality, max_width=args.max_width,
-                        alpha_mask=args.alpha_mask, unbake=unbake,
-                        expect_alpha=args.expect_alpha, tinypng_proxy=args.tinypng_proxy,
+                        alpha_mask=args.reference_png, unbake=analysis["unbake"],
+                        expect_alpha=analysis["transparent"], tinypng_proxy=args.tinypng_proxy,
                         ffmpeg_bin=ffmpeg_bin, ffprobe_bin=ffprobe_bin,
                     )
                 else:

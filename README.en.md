@@ -113,9 +113,9 @@ Prerequisites:
 
 - MCP Server [`context7`](https://github.com/upstash/context7) is configured
 - Chrome DevTools MCP (with `--autoConnect`) is configured per the [live Chrome debugging guide](guides/extension/live-browser.md) when extension work touches the user's live Chrome (tabs, login state, installed extensions)
-- The official [Figma MCP Server](https://developers.figma.com/docs/figma-mcp-server/) is configured when using the Figma workflow; asset conversion depends on `ffmpeg`/`ffprobe`, `svgo`, and the [kyz](https://github.com/byteowlz/kyz) credential proxy
+- The official [Figma MCP Server](https://developers.figma.com/docs/figma-mcp-server/) is configured when using the Figma workflow; asset conversion depends on Python `Pillow`, `ffmpeg`/`ffprobe`, `svgo`, and the [kyz](https://github.com/byteowlz/kyz) credential proxy
 
-Figma reconstruction uses [`t-figma-assets`](skills/t-figma-assets/SKILL.md) → [`t-figma-impl`](skills/t-figma-impl/SKILL.md): prepare assets, implement the full page block by block, then hand it over for manual acceptance. Implementation may start before assets are ready; run assets and bind them before delivery. Run the asset batch first so the script checks alpha. Fetch isolated screenshots as masks only for nodes reported with `ALPHA_MASK_REQUIRED`, then rerun; see the [asset processing guide](guides/figma/assets.md).
+Figma reconstruction uses [`t-figma-assets`](skills/t-figma-assets/SKILL.md) → [`t-figma-impl`](skills/t-figma-impl/SKILL.md): prepare assets, implement the full page block by block, then hand it over for manual acceptance. Implementation may start before assets are ready; run assets and bind them before delivery. Every bitmap requires an isolated PNG of the same node. The batch derives transparency, repairs alpha and recognizable baked canvas colors, and blocks uncertain evidence; run verify again before delivery. See the [asset processing guide](guides/figma/assets.md).
 
 The runtime directories `.ai/` and `docs/` are created automatically during execution — no need to create them up front.
 

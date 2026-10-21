@@ -110,9 +110,9 @@ claude --plugin-dir /path/to/skills
 
 - MCP Server [`context7`](https://github.com/upstash/context7) 已配置
 - 扩展开发涉及用户当前 Chrome 现场（标签页、登录态、已安装扩展）时，Chrome DevTools MCP（`--autoConnect`）已按 [用户 Chrome 调试指南](guides/extension/live-browser.md) 配置
-- 使用 Figma 工作流时，官方 [Figma MCP Server](https://developers.figma.com/docs/figma-mcp-server/) 已配置；素材转换依赖 `ffmpeg`/`ffprobe`、`svgo` 和 [kyz](https://github.com/byteowlz/kyz) 凭据代理
+- 使用 Figma 工作流时，官方 [Figma MCP Server](https://developers.figma.com/docs/figma-mcp-server/) 已配置；素材转换依赖 Python `Pillow`、`ffmpeg`/`ffprobe`、`svgo` 和 [kyz](https://github.com/byteowlz/kyz) 凭据代理
 
-Figma 还原使用 [`t-figma-assets`](skills/t-figma-assets/SKILL.md) → [`t-figma-impl`](skills/t-figma-impl/SKILL.md)：准备素材后按块实现整页，交付人工验收；素材未就绪可先 impl，交付前补跑 assets 并绑定。素材先运行 batch，由脚本检测 alpha；仅对 `ALPHA_MASK_REQUIRED` 指定的节点补隔离截图作 mask 后重跑，见 [素材处理指南](guides/figma/assets.md)。
+Figma 还原使用 [`t-figma-assets`](skills/t-figma-assets/SKILL.md) → [`t-figma-impl`](skills/t-figma-impl/SKILL.md)：准备素材后按块实现整页，交付人工验收；素材未就绪可先 impl，交付前补跑 assets 并绑定。每张位图必须提供同节点隔离 PNG，batch 自动判定透明度、修复 alpha 和可识别的烘焙底色；证据不确定时阻断，交付前运行 verify 复验，见 [素材处理指南](guides/figma/assets.md)。
 
 `.ai/` 与 `docs/` 运行时目录无需预先创建，工作流执行过程中会自行创建。
 

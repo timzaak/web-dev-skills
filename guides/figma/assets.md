@@ -20,20 +20,23 @@
 - `download_assets` 返回的临时 URL 必须立即下载到 `.ai/figma/<fileKey>-<nodeId>/raw/`，不得直接写入正式代码。
 - 这类图片条目在 manifest 中的 `source` 记录为 `download-assets`。
 
-## 透明声明与 alpha 处理
+## 隔离证据与自动透明修复
 
-按设计意图填写 plan 的 `transparent`：图标、装饰、叠加素材、透明圆角或外发光为 `true`，实心背景和照片式插画为 `false`；无法确定时询问开发者。字段与校验规则见工作流契约的「资产 plan」。
+每个 image 条目都需要同一导出节点的独立隔离 PNG，包含照片和看起来不透明的素材；不能先由 AI 决定哪些图片需要检查。字段、自动判定规则与失败码以工作流契约的「资产 plan」为准。
 
-- 先不填 `alphaMask` 运行 batch，由脚本检测真实像素；仅收到 `ALPHA_MASK_REQUIRED` 时，对报错节点调用 `get_screenshot(contentsOnly: true)`，下载隔离 PNG 到 `raw/`、补入 `alphaMask` 后重跑。已有 mask 的条目可保留。脚本缩放 mask 并合并到原始 3 倍 RGB；其他检测错误直接报错，不靠目视推断或补 mask 绕过。
-- RGB 被画布色烘焙时另填 `unbakeColor`（常见为 `1e1e1e`，以实际为准），脚本结合有效 alpha 还原颜色；没有烘焙时不填。
-- 声明不透明却检测到透明像素时复核 warning：确认设计意图后保留声明或改为 `true`，无需重复获取已有的有效 alpha。透明终检及 mask/颜色修复链路中的 TinyPNG alpha 恢复由脚本完成，不逐张目视评估压缩效果。
+- 对每个 image 调用 `get_screenshot(contentsOnly: true)`，下载 PNG 到 `source/asset-<node-id>.png`（文件名中的冒号替换为连字符），plan 的 `referencePng` 指向它。使用导出节点的完整边界，不能用整页截图、原始 image fill 或另一节点代替；可按 metadata 的较长边设置 `maxDimension`，避免默认上限缩小分辨率。
+- 隔离证据一次写入后保留；已存在时复用同一稿的证据。设计发生变化或证据需重新获取时，使用带版本后缀的新文件并更新 plan，不覆盖旧快照。截图失败或不提供可下载 PNG 时停止。
+- plan 不再接受 `transparent`、`alphaMask`、`unbakeColor`。脚本使用参考 alpha、检测 RGB 与参考是否一致、拟合可识别的烘焙底色，并自动修复；不确定时重新获取正确导出与隔离证据，不猜底色、不增加人工 override。
+- TinyPNG 后恢复完整参考 alpha，最终逐像素核对；正式产物保留原始高清 RGB 分辨率，只有显式 `maxWidth` 才缩小。脚本不能认证截图来自哪个 Figma 节点，AI 仅负责保证两个 MCP 请求的 fileKey/nodeId 相同。
 
 ## 批量转换
 
-1. 下载素材并声明透明意图后，按契约写工作目录 `assets-plan.json`，在目标项目根运行 `${CLAUDE_PLUGIN_ROOT}/scripts/figma-assets.py batch <plan>`。单张临时转换可用 `image|svg|video` 子命令。
+1. 下载素材和隔离证据后，按契约写工作目录 `assets-plan.json`，在目标项目根运行 `python ${CLAUDE_PLUGIN_ROOT}/scripts/figma-assets.py batch <plan>`。图片处理需要 Pillow，缺失时运行 `python -m pip install Pillow` 后重跑。单张临时转换使用 `image <source> <output> --reference-png <isolated.png>`；矢量/视频使用 `svg|video` 子命令，临时转换不能代替 batch manifest。
 2. PNG 压缩需要 kyz daemon 的 tinify 代理：默认 `127.0.0.1:8477`（`--tinypng-proxy` 覆盖），按 `Host: api.tinify.com` 转发并自动读取 daemon token。转换前确认 `kyz daemon status` 的 proxy_listen 存在；代理/上游错误（401、429、body 超限）时停止并转述，不回退为本地有损压缩。上传超过默认 10 MiB 时先调大 `request_body_limit_bytes`。
 3. 失败时保留 plan 与 `raw/`，修复后重跑。输出已存在时默认停止；使用 `--overwrite-existing` 前须逐项确认是本次失败批处理的残留，或已获开发者明确替换授权。
-4. 成功后逐条复核 warnings，再删除 `raw/`、保留 plan，报告 stdout 汇总 JSON 与 manifest 路径。
+4. batch 成功后在同一目标项目根运行 `python ${CLAUDE_PLUGIN_ROOT}/scripts/figma-assets.py verify <plan>`，成功后再删除 `raw/`；保留 plan、manifest 与 `source/asset-*.png`，报告 batch/verify 的 stdout 汇总 JSON 与 manifest 路径。verify 不依赖 raw，可在 impl 交付前重跑。
+
+旧 plan 的透明字段和旧 manifest 没有脚本复验依据，不直接沿用：为所有 image 补充独立隔离 PNG，移除旧字段，再按失败恢复规则重新运行 batch。verify 失败回到 assets 修复，不以人工确认代替脚本门禁。
 
 ## SVG 优化
 
