@@ -136,6 +136,48 @@ class TransparencyTests(unittest.TestCase):
         self.assertIn("REFERENCE_REQUIRED", error)
         self.assertFalse(self.manifest.exists())
 
+    def test_native_nearly_invisible_rgb_is_compared_as_visible_contribution(self) -> None:
+        self.fixture()
+        reference = assets.read_rgba(self.reference)
+        source = assets.read_rgba(self.source)
+        for y in range(32):
+            for x in range(8):
+                reference.putpixel((x, y), (255, 255, 255, 1))
+                source.putpixel((x, y), (0, 0, 0, 1))
+        reference.save(self.reference)
+        source.save(self.source)
+        # RGB differs by 255, but rendered contribution differs by only 1.
+        self.assertIsNone(assets.analyze_transparency(self.source, self.reference)["unbake"])
+
+    def test_different_native_rasterization_rates_have_a_common_sampling_grid(self) -> None:
+        source = Image.new("RGBA", (384, 256), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(source)
+        draw.ellipse((19, 7, 367, 249), fill=(245, 240, 235, 255))
+        draw.polygon([(40, 20), (355, 70), (125, 244)], fill=(30, 60, 90, 255))
+        source.save(self.source)
+        source.resize((48, 32), Image.Resampling.BILINEAR).save(self.reference)
+        result = assets.analyze_transparency(self.source, self.reference)
+        self.assertTrue(result["transparent"])
+        self.assertIsNone(result["unbake"])
+
+    def test_native_alpha_does_not_hide_opaque_or_visible_edge_mismatch(self) -> None:
+        self.fixture()
+        source = assets.read_rgba(self.source)
+        for y in range(32):
+            for x in range(24, 32):
+                source.putpixel((x, y), (5, 240, 210, 255))
+        source.save(self.source)
+        with self.assertRaisesRegex(RuntimeError, "REFERENCE_RGB_MISMATCH"):
+            assets.analyze_transparency(self.source, self.reference)
+        self.fixture()
+        source = assets.read_rgba(self.source)
+        for y in range(32):
+            for x in range(8, 24):
+                source.putpixel((x, y), (0 if y < 16 else 255, 255, 255, source.getpixel((x, y))[3]))
+        source.save(self.source)
+        with self.assertRaisesRegex(RuntimeError, "RGB_REPAIR_UNCERTAIN"):
+            assets.analyze_transparency(self.source, self.reference)
+
     def test_single_image_requires_evidence_and_repairs_automatically(self) -> None:
         self.fixture(baked=(30, 100, 180))
         with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as missing:

@@ -176,10 +176,14 @@ def analyze_transparency(source: Path, reference: Path) -> dict[str, Any]:
     minimum, maximum = isolated.getchannel("A").getextrema()
     if maximum == 0:
         raise RuntimeError("REFERENCE_EMPTY: isolated PNG is entirely transparent")
-    sample_size = isolated.size
-    if max(sample_size) > 256:
-        factor = 256 / max(sample_size)
-        sample_size = (max(1, round(ref_width * factor)), max(1, round(ref_height * factor)))
+    native_alpha = original.getchannel("A").getextrema()[0] < 255
+    # A high-resolution native image and a 1x render have different edge
+    # coverage after rasterization. Compare below BOTH input sampling rates,
+    # rather than treating a nearly 1:1 reference resize as a shared low-pass.
+    factor = min(1.0, 256 / max(isolated.size))
+    if native_alpha and width > ref_width and height > ref_height:
+        factor = min(factor, 0.5)
+    sample_size = (max(1, round(ref_width * factor)), max(1, round(ref_height * factor)))
     # Resize RGBA before dropping alpha so undefined RGB outside a native
     # transparent silhouette does not look like a baked black fringe.
     rgb = original.resize(sample_size, Image.Resampling.LANCZOS).convert("RGB")
@@ -189,7 +193,7 @@ def analyze_transparency(source: Path, reference: Path) -> dict[str, Any]:
     opaque = [(s, r) for s, r in visible if r[3] == 255]
     translucent = [(s, r) for s, r in visible if r[3] < 255]
 
-    def error(samples: list[Any], background: tuple[int, int, int] | None = None) -> float:
+    def error(samples: list[Any], background: tuple[int, int, int] | None = None, *, premultiplied: bool = False) -> float:
         if not samples:
             return 0.0
         total = 0.0
@@ -199,13 +203,17 @@ def analyze_transparency(source: Path, reference: Path) -> dict[str, Any]:
                 predicted = expected[channel] if background is None else (
                     alpha * expected[channel] + (1 - alpha) * background[channel]
                 )
-                total += abs(actual[channel] - predicted)
+                # Straight RGB at tiny alpha is numerically unstable: a one
+                # unit premultiplied change can become a 255-unit RGB change.
+                # Measure its visible contribution, without relaxing the
+                # opaque-interior or constant-matte checks.
+                total += abs(actual[channel] - predicted) * (alpha if premultiplied else 1)
         return total / (3 * len(samples))
 
     # Interior mismatch cannot be repaired with alpha or canvas-color subtraction.
     if error(opaque) > 4:
         raise RuntimeError("REFERENCE_RGB_MISMATCH: opaque RGB differs from isolated PNG; check node and crop")
-    straight_error = error(translucent)
+    straight_error = error(translucent, premultiplied=native_alpha)
     background = None
     if straight_error > 4:
         # Fully transparent RGB is undefined and may have been zeroed by an encoder.
@@ -219,7 +227,9 @@ def analyze_transparency(source: Path, reference: Path) -> dict[str, Any]:
         )
         candidate = tuple(round(max(0, min(255, value))) for value in fitted)
         baked_error = error(translucent, candidate)
-        if any(value < -4 or value > 259 for value in fitted) or baked_error > 4 or straight_error - baked_error < 2:
+        # Compare improvements in the same (unweighted) color space as the
+        # matte fit. Native-alpha straight detection uses visible RGB above.
+        if any(value < -4 or value > 259 for value in fitted) or baked_error > 4 or error(translucent) - baked_error < 2:
             raise RuntimeError("RGB_REPAIR_UNCERTAIN: RGB is neither straight nor consistently baked over one color; re-export evidence")
         background = candidate
     return {

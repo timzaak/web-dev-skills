@@ -48,7 +48,7 @@ batch 在任何转换前检查全部来源和隔离证据、禁止输出覆盖�
 
 1. 隔离 PNG 缺失报 `REFERENCE_REQUIRED`；放入 plan 同级可清理的 `raw/` 时报 `REFERENCE_NOT_PERSISTENT`。PNG 解码失败或格式错误阻断；全透明参考报 `REFERENCE_EMPTY`。源与参考的宽高比允许最多 1 像素取整误差，否则报 `REFERENCE_BOUNDS_MISMATCH`。独立参考不能与原导出使用同一路径。
 2. `transparent` 由完整参考 alpha 最小值 `<255` 自动计算。即使源图已有 alpha，仍以参考 alpha 为准，避免不完整透明度通过；不透明参考同样强制校验。RGB PNG 的隐式 alpha 为 255。
-3. RGB 比较缩采样到参考尺寸且最长边最多 256。参考不透明像素的逐通道平均绝对误差超过 4 时，报 `REFERENCE_RGB_MISMATCH`；半透明像素的 RGB 误差不超过 4 时保留原 RGB。否则用 `source = alpha * reference + (1-alpha) * background` 最小二乘拟合恒定底色，拟合仅使用 `0 < alpha <240` 的像素，不使用未定义的全透明 RGB。底色各通道需在 `[-4,259]`（取整并裁到 `[0,255]`），半透明像素拟合误差需不超过 4 且比原误差至少改善 2；否则报 `RGB_REPAIR_UNCERTAIN` 并停止，不猜常见底色。修复使用 `true = (baked-(1-alpha)*background)/alpha`，alpha 为 0/255 单独处理。
+3. RGB 比较最长边最多 256。原图自带透明度且分辨率高于参考时，共同采样尺寸不超过参考宽高的一半，使两者都经过低通采样，避免把高清原图与近乎 1:1 的参考边缘锯齿直接比较；其它情况不放大参考。参考不透明像素的逐通道平均绝对误差超过 4 时，报 `REFERENCE_RGB_MISMATCH`。原图自带透明度时，半透明像素的直通 RGB 差异乘参考 alpha，以可见颜色贡献计算误差，避免接近透明像素的量化误差被放大；原图全不透明时保持未经加权的 RGB 检查。该误差不超过 4 时保留原 RGB。否则用 `source = alpha * reference + (1-alpha) * background` 最小二乘拟合恒定底色，拟合仅使用 `0 < alpha <240` 的像素，不使用未定义的全透明 RGB。底色各通道需在 `[-4,259]`（取整并裁到 `[0,255]`），半透明像素未经加权的拟合误差需不超过 4 且比未经加权的原误差至少改善 2；否则报 `RGB_REPAIR_UNCERTAIN` 并停止，不猜常见底色。修复使用 `true = (baked-(1-alpha)*background)/alpha`，alpha 为 0/255 单独处理。
 4. 参考 alpha 缩放后与高清 RGB 合并；原图 alpha 为 0 的位置没有有效 RGB，参考放大后若暴露这些位置，使用隔离参考颜色补齐，避免黑边。TinyPNG 压缩后，以 Pillow Lanczos 缩放到最终尺寸的完整参考 alpha 重新合并。WebP 终检逐像素要求 alpha 完全一致，否则报 `ALPHA_MISMATCH`，不以“存在一个透明像素”作为充分条件。
 
 参考采集的 fileKey/nodeId 一致性由 MCP 调用方保证；脚本检查像素、边界和颜色一致性，不能认证文件的远端来源。数值误差阈值用于识别受支持的恒定底色烘焙，不代表任意渐变底色或复杂混合模式都能自动恢复；证据不确定时必须重新导出，不能降级放行。
