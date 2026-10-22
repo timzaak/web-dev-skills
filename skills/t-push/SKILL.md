@@ -9,7 +9,7 @@ allowed-tools:
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
-提交前输入门禁、调用模式和中断恢复统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/push-execution-contract.md`；执行脚本前读取。
+提交前输入门禁、commit message 格式、调用模式和中断恢复统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/push-execution-contract.md`；执行脚本前读取。
 
 ## Fixed Flow
 
