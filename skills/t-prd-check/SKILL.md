@@ -44,7 +44,7 @@ allowed-tools:
 
 全部按 `${CLAUDE_PLUGIN_ROOT}/protocols/prd-check-rubric.md` 执行：
 
-- 先过 Decision Closure Gate：运行 `check-decision-closure.py`，`needs_user_answer` 未解决时用 `AskUserQuestion` 阻塞提问；用户回答写入 Decision Log 后，先由 `/t-prd [feature]` 更新 PRD，重新扫描通过后再继续检查
+- 先按 rubric 执行 Decision Closure Gate，核验确认依据与覆盖并运行扫描；有用户裁决缺口时提问、入账，由 `/t-prd [feature]` 更新 PRD 后重新检查，再评分
 - 按 PRD Score / User Story Score 维度表逐项检查，并执行一致性门禁
 - 对 `.ai/user-stories` 与 `docs/user-stories` 分别标注 draft / published 来源
 - draft 与已发布基线的差异分类：补充新场景且不冲突记为 publish 候选；修改已发布语义必须识别差异性质；严重度按 rubric 的 P0/P1 定义

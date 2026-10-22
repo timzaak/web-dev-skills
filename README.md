@@ -54,6 +54,8 @@ t-prd-publish user-management
 
 `t-prd-check`、`t-design-check`、`t-task-check` 是可选质量检查，按风险选用。
 
+`t-prd` 写入前主动澄清缺少确认依据的产品选择，已有明确依据不重复问，无需额外邀请；可选的 `t-prd-check` 复核同一门禁。
+
 创建或更新 skill 用 `t-skill [名称或能力描述]`（默认操作插件仓库）；目标项目内的 skill 用 `t-skill --project [名称或能力描述]`，落位项目的 `.claude/skills/` 或 `.agents/skills/`。已纳入 feature 计划的 skill 交付物随所属 phase 执行，见 [Skill 创作入口](skills/t-skill/SKILL.md)。
 
 ## 阶段拆分

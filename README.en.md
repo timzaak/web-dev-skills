@@ -57,6 +57,8 @@ t-prd-publish user-management
 
 `t-prd-check`, `t-design-check`, and `t-task-check` are optional quality checks; use them by risk.
 
+Before writing, `t-prd` proactively clarifies product choices lacking confirmation evidence, without repeating confirmed questions or needing an invitation. The optional `t-prd-check` verifies the same gate.
+
 Create or update skills with `t-skill [name or capability description]` (the plugin repository by default). Use `t-skill --project [name or capability description]` for the target project's `.claude/skills/` or `.agents/skills/` directory. Skill deliverables already planned for a feature run within their assigned phase; see the [skill authoring entry](skills/t-skill/SKILL.md).
 
 ## Phase Split
