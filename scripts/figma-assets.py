@@ -20,6 +20,7 @@ import subprocess
 import sys
 import urllib.error
 import urllib.request
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any, Callable
 from urllib.parse import urlsplit, urlunsplit
@@ -137,12 +138,14 @@ def pillow_image() -> Any:
     return Image
 
 
-def read_rgba(path: Path, *, require_png: bool = False) -> Any:
+def read_rgba(path: Path, *, require_png: bool = False, expected_format: str | None = None) -> Any:
     Image = pillow_image()
     try:
         with Image.open(path) as image:
             if require_png and image.format != "PNG":
                 raise RuntimeError(f"REFERENCE_INVALID: isolated reference must be a PNG: {path}")
+            if expected_format is not None and image.format != expected_format:
+                raise RuntimeError(f"TYPE_MISMATCH: expected {expected_format}, got {image.format}: {path}")
             image.load()
             return image.convert("RGBA")
     except (OSError, ValueError) as exc:
@@ -287,21 +290,13 @@ def unbake_expression(sample: str, background: int) -> str:
     )
 
 
-def svg_root_tag(text: str) -> str:
-    match = re.search(r"<svg\b[^>]*>", text)
-    if match is None:
-        raise RuntimeError("source does not contain an <svg> root element")
-    return match.group(0)
-
-
 def svg_dimensions(text: str) -> tuple[int, int]:
-    tag = svg_root_tag(text)
-
-    def attribute(name: str) -> str | None:
-        found = re.search(rf'{name}\s*=\s*"([^"]*)"', tag) or re.search(
-            rf"{name}\s*=\s*'([^']*)'", tag
-        )
-        return found.group(1) if found else None
+    try:
+        root = ET.fromstring(text)
+    except ET.ParseError as exc:
+        raise RuntimeError(f"TYPE_MISMATCH: invalid SVG XML: {exc}") from exc
+    if root.tag not in ("svg", "{http://www.w3.org/2000/svg}svg"):
+        raise RuntimeError("TYPE_MISMATCH: expected an SVG root element")
 
     def parse_length(value: str | None) -> float | None:
         if value is None:
@@ -310,18 +305,33 @@ def svg_dimensions(text: str) -> tuple[int, int]:
             length = float(re.sub(r"(?i)px$", "", value.strip()))
         except ValueError:
             return None
-        return length if length > 0 else None
+        return length if math.isfinite(length) and length > 0 else None
 
-    width = parse_length(attribute("width"))
-    height = parse_length(attribute("height"))
+    width = parse_length(root.get("width"))
+    height = parse_length(root.get("height"))
     if width is None or height is None:
-        parts = (attribute("viewBox") or attribute("viewbox") or "").replace(",", " ").split()
+        parts = (root.get("viewBox") or root.get("viewbox") or "").replace(",", " ").split()
         if len(parts) == 4:
             width = width if width is not None else parse_length(parts[2])
             height = height if height is not None else parse_length(parts[3])
     if width is None or height is None:
         raise RuntimeError("cannot determine SVG dimensions from width/height or viewBox")
+    if round(width) <= 0 or round(height) <= 0:
+        raise RuntimeError("SVG dimensions must round to positive pixels")
     return round(width), round(height)
+
+
+def read_svg_dimensions(path: Path) -> tuple[int, int]:
+    try:
+        return svg_dimensions(path.read_text(encoding="utf-8-sig"))
+    except (OSError, UnicodeError) as exc:
+        raise RuntimeError(f"TYPE_MISMATCH: cannot read SVG XML: {path}: {exc}") from exc
+
+
+def validate_output_extension(kind: str, output: Path) -> None:
+    expected = {"image": ".webp", "svg": ".svg", "video": ".mp4"}[kind]
+    if output.suffix.lower() != expected:
+        raise RuntimeError(f"TYPE_MISMATCH: {kind} output must use {expected}: {output}")
 
 
 def optimize_svg(
@@ -331,6 +341,8 @@ def optimize_svg(
     svgo_bin: str,
     runner: Runner = subprocess.run,
 ) -> dict[str, Any]:
+    validate_output_extension("svg", output)
+    read_svg_dimensions(source)
     output.parent.mkdir(parents=True, exist_ok=True)
     temporary_output = output.with_name(f".{output.stem}.tmp{output.suffix}")
     try:
@@ -340,7 +352,7 @@ def optimize_svg(
         )
         if not temporary_output.is_file():
             raise RuntimeError("svgo did not produce an output file")
-        width, height = svg_dimensions(temporary_output.read_text(encoding="utf-8"))
+        width, height = read_svg_dimensions(temporary_output)
         os.replace(temporary_output, output)
     finally:
         if temporary_output.exists():
@@ -689,6 +701,10 @@ def load_plan(path: Path) -> list[dict[str, Any]]:
             raise plan_entry_error(
                 index, raw, f"'kind' must be one of {', '.join(PLAN_KINDS)}; got {kind}",
             )
+        try:
+            validate_output_extension(kind, Path(raw["outputPath"]))
+        except RuntimeError as exc:
+            raise plan_entry_error(index, raw, str(exc)) from exc
         unknown = set(raw) - PLAN_ENTRY_FIELDS - IMAGE_ONLY_FIELDS
         if unknown:
             raise plan_entry_error(index, raw, f"unknown field(s): {', '.join(sorted(unknown))}")
@@ -762,6 +778,8 @@ def run_batch(
     for entry in entries:
         if not entry["source"].is_file():
             raise RuntimeError(f"plan entry {entry['id']}: source not found: {entry['source']}")
+        if entry["kind"] == "svg":
+            read_svg_dimensions(entry["source"])
         reference = entry.get("reference")
         if reference is not None:
             if not reference.is_file():
@@ -863,6 +881,7 @@ def verify_manifest_entries(entries: list[dict[str, Any]], manifest: Any) -> Non
         if not output.is_file() or sha256(output) != item.get("sha256"):
             raise RuntimeError(f"OUTPUT_CHANGED: asset missing or changed: {output}")
         if entry["kind"] == "image":
+            width, height = read_rgba(output, expected_format="WEBP").size
             evidence = item.get("alpha")
             reference = entry["reference"]
             if (
@@ -873,9 +892,12 @@ def verify_manifest_entries(entries: list[dict[str, Any]], manifest: Any) -> Non
             transparent = check_reference_alpha(output, reference)
             if type(item.get("transparent")) is not bool or item["transparent"] != transparent:
                 raise RuntimeError(f"MANIFEST_INVALID: transparency differs from reference for {entry['id']}")
-            width, height = read_rgba(output).size
             if (item.get("width"), item.get("height"), item.get("aspectRatio")) != (width, height, ratio(width, height)):
                 raise RuntimeError(f"MANIFEST_INVALID: image dimensions differ for {entry['id']}")
+        elif entry["kind"] == "svg":
+            width, height = read_svg_dimensions(output)
+            if (item.get("width"), item.get("height"), item.get("aspectRatio")) != (width, height, ratio(width, height)):
+                raise RuntimeError(f"MANIFEST_INVALID: SVG dimensions differ for {entry['id']}")
 
 
 def verify_plan(plan_path: Path, manifest_path: Path) -> dict[str, Any]:
@@ -968,6 +990,7 @@ def main(argv: list[str] | None = None) -> int:
             if source.resolve() == output.resolve():
                 print("source and output must be different files", file=sys.stderr)
                 return 2
+            validate_output_extension(args.command, output)
             if args.command == "svg":
                 svgo_bin = shutil.which("svgo")
                 if not svgo_bin:

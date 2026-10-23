@@ -6,6 +6,16 @@
 
 先提取主 frame，再获取同文件 page 清单和稀疏 metadata。用节点名称、类型、宽高和层级筛选候选；不要对整文件逐节点请求 design context，也不要逐张截图预览。开发者给出的 `--asset-url` 直接加入候选，匹配不唯一时列 metadata 证据询问。
 
+## 素材识别与类型校验
+
+下载前后按工作流契约的「素材类型保真」核对，仅处理本轮人确认范围内的素材。
+
+1. 用 metadata 定位候选，不能把 GROUP/FRAME 直接归为位图，也不能因名称含 icon/logo 就判定 SVG。导入 SVG 可能已变为组合矢量层，应结合资源返回识别。
+2. 按实际 `download_assets` 响应逐项关联节点与素材：`export` 是整节点渲染，`rawImages` 是内部原始位图，`svgAssets` 是可用矢量素材；有 `format` 时一并记录为判断依据。某个 `export` 为 PNG 不能覆盖内部 `svgAssets` 的类型。版本未提供这些字段时只使用实际提供的资源信息；响应提示截断时按需缩小到候选子节点，不把空数组或缺字段当成整页无 SVG 的证明。
+3. 只下载设计中需要的素材，不把同一节点的整图、内部位图和 SVG 全部重复落位。原始位图含裁切、遮罩或效果时，原图与最终节点不是同一成品；需要保留这些效果的素材使用对应节点导出，以便与隔离证据边界一致。
+4. 下载后检查实际格式，再写 plan：SVG 解析 XML 根和尺寸，位图用解码器确认格式，视频用 ffprobe 确认媒体流；无扩展名的临时 URL 不影响判断。报告的格式与实际内容不符、只拿到位图但预期应为矢量，或无法确定资源对应哪个设计位置时，保留文件并列节点、报告格式与实际格式，交给人确认或重新导出；不自动降级或只改后缀放行。
+5. 类型确定后按契约选择输出扩展名并运行 batch。脚本类型错误先修正来源或 plan，再重跑；不手写 manifest。未完成项继续交给 impl 留空，素材处理成功不代表整页已可交付。
+
 ## 合成含文字图片
 
 当图片、装饰和文字共同构成不可拆的营销素材时，按节点层级找到覆盖它们的最小父节点并导出。检查节点信息是否包含按钮、动态价格、本地化文案或其它 live UI；存在这些情况先询问。合成图在 manifest 标记 `flattened: true`，页面不得再重复渲染同一文字。
@@ -14,7 +24,7 @@
 
 节点确认后必须通过 Figma MCP `download_assets` 导出原始素材。`get_design_context` 中的素材 URL 只用于识别和理解设计，不作为下载源。
 
-- `defaultScale` 默认使用 `3`；banner、hero 和主要内容图均保持 3 倍导出。
+- 位图节点导出的 `defaultScale` 默认使用 `3`；banner、hero 和主要内容图均保持 3 倍导出；SVG 保留矢量，不套用位图倍图处理。
 - 只有明确属于小型、非关键的图标或装饰素材时，才将 `defaultScale` 降为 `2`。
 - 按目标素材类型设置导出格式：需要位图处理的素材导出 PNG/JPEG，矢量素材导出 SVG。
 - `download_assets` 返回的临时 URL 必须立即下载到 `.ai/figma/<fileKey>-<nodeId>/raw/`，不得直接写入正式代码。
@@ -40,7 +50,7 @@
 
 ## SVG 优化
 
-矢量素材不直接复制：plan 条目 `kind: svg` 由 batch 统一处理，脚本用 SVGO（默认预设 + multipass）清理 Figma 导出的冗余并落位，同时从优化产物的 width/height 或 viewBox 提取 manifest 尺寸。SVGO 缺失时脚本报错，安装 `npm install -g svgo` 后重跑；不回退为直接复制。
+识别与选择格式时遵循工作流契约的「素材类型保真」。矢量素材不直接复制：plan 条目 `kind: svg`、`outputPath` 使用 `.svg`，由 batch 统一处理，脚本用 SVGO（默认预设 + multipass）清理 Figma 导出的冗余并落位，同时从优化产物的 width/height 或 viewBox 提取 manifest 尺寸。SVGO 缺失时脚本报错，安装 `npm install -g svgo` 后重跑；不回退为直接复制。
 
 ## 视频转换
 

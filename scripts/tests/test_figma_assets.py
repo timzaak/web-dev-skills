@@ -4,6 +4,7 @@ import importlib.util
 import io
 import json
 import shutil
+import subprocess
 import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
@@ -288,6 +289,16 @@ class TransparencyTests(unittest.TestCase):
         self.manifest.write_text(json.dumps(manifest))
         self.assertIn("ALPHA_MISMATCH", self.cli("verify", str(self.plan))[2])
 
+    def test_verify_rejects_png_disguised_as_webp(self) -> None:
+        self.fixture()
+        self.write_plan()
+        self.assertEqual(self.batch()[0], 0)
+        assets.read_rgba(self.output).save(self.output, format="PNG")
+        manifest = json.loads(self.manifest.read_text(encoding="utf-8"))
+        manifest[0]["sha256"] = assets.sha256(self.output)
+        self.manifest.write_text(json.dumps(manifest), encoding="utf-8")
+        self.assertIn("TYPE_MISMATCH", self.cli("verify", str(self.plan))[2])
+
     def test_empty_plan_needs_no_media_dependencies(self) -> None:
         self.plan.write_text('{"entries": []}')
         with patch.object(assets, "require_tool", side_effect=AssertionError("unexpected dependency")):
@@ -306,6 +317,99 @@ class TransparencyTests(unittest.TestCase):
         self.assertFalse(self.output.exists())
         self.assertFalse(self.manifest.exists())
         self.assertFalse(list(self.output.parent.glob(".*.tmp*")))
+
+
+class SvgTypeTests(unittest.TestCase):
+    def setUp(self) -> None:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name)
+        self.source = self.root / "source.svg"
+        self.source.write_text(
+            '<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 12">'
+            '<path d="M0 0h24v12H0z"/></svg>',
+            encoding="utf-8-sig",
+        )
+        self.output = self.root / "logo.svg"
+        self.plan = self.root / "assets-plan.json"
+        self.manifest = self.root / "assets-manifest.json"
+        self.write_plan()
+
+    def write_plan(self, **extra: object) -> None:
+        self.plan.write_text(json.dumps({"entries": [{
+            "id": "1:5", "name": "logo", "kind": "svg",
+            "source": str(self.source), "outputPath": str(self.output), **extra,
+        }]}), encoding="utf-8")
+
+    @staticmethod
+    def fixture_svgo(command: list[str], **_: object) -> subprocess.CompletedProcess[str]:
+        # Keep real SVG files while isolating type checks from the SVGO installation.
+        shutil.copyfile(command[command.index("-i") + 1], command[command.index("-o") + 1])
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    def batch(self) -> None:
+        with redirect_stderr(io.StringIO()):
+            assets.run_batch(
+                assets.load_plan(self.plan), self.manifest,
+                svgo_bin="fixture-svgo", runner=self.fixture_svgo,
+            )
+
+    def test_svg_batch_and_verify_keep_vector_type_without_raw_source(self) -> None:
+        self.batch()
+        manifest = json.loads(self.manifest.read_text(encoding="utf-8"))
+        self.assertEqual(manifest[0]["kind"], "svg")
+        self.assertEqual((manifest[0]["width"], manifest[0]["height"], manifest[0]["aspectRatio"]), (24, 12, "2/1"))
+        self.assertNotIn("alpha", manifest[0])
+        self.source.unlink()
+        self.assertTrue(assets.verify_plan(self.plan, self.manifest)["verified"])
+
+    def test_plan_rejects_output_extensions_inconsistent_with_type(self) -> None:
+        for kind, extension in (("svg", ".png"), ("image", ".svg"), ("video", ".webp")):
+            with self.subTest(kind=kind):
+                self.write_plan(kind=kind, outputPath=str(self.output.with_suffix(extension)))
+                with self.assertRaisesRegex(RuntimeError, "TYPE_MISMATCH"):
+                    assets.load_plan(self.plan)
+
+    def test_invalid_svg_sources_do_not_publish_assets(self) -> None:
+        sources = (
+            b"\x89PNG\r\n\x1a\n",
+            b'<html><svg width="24" height="12"/></html>',
+            b'<svg width="24" height="12">',
+        )
+        for content in sources:
+            with self.subTest(content=content):
+                self.source.write_bytes(content)
+                with self.assertRaisesRegex(RuntimeError, "TYPE_MISMATCH"):
+                    self.batch()
+                self.assertFalse(self.output.exists())
+                self.assertFalse(self.manifest.exists())
+
+    def test_verify_rejects_wrong_svg_metadata(self) -> None:
+        self.batch()
+        original = self.manifest.read_text(encoding="utf-8")
+        for field, wrong in (("width", 999), ("height", 999), ("aspectRatio", "1/1")):
+            with self.subTest(field=field):
+                manifest = json.loads(original)
+                manifest[0][field] = wrong
+                self.manifest.write_text(json.dumps(manifest), encoding="utf-8")
+                with self.assertRaisesRegex(RuntimeError, "SVG dimensions differ"):
+                    assets.verify_plan(self.plan, self.manifest)
+
+    def test_verify_rejects_non_svg_content_even_with_updated_hash(self) -> None:
+        self.batch()
+        self.output.write_text('<html><svg width="24" height="12"/></html>', encoding="utf-8")
+        manifest = json.loads(self.manifest.read_text(encoding="utf-8"))
+        manifest[0]["sha256"] = assets.sha256(self.output)
+        self.manifest.write_text(json.dumps(manifest), encoding="utf-8")
+        with self.assertRaisesRegex(RuntimeError, "TYPE_MISMATCH"):
+            assets.verify_plan(self.plan, self.manifest)
+
+    def test_single_svg_rejects_wrong_extension_and_preserves_existing_output(self) -> None:
+        output = self.output.with_suffix(".png")
+        output.write_bytes(b"existing")
+        with self.assertRaisesRegex(RuntimeError, "TYPE_MISMATCH"):
+            assets.optimize_svg(self.source, output, svgo_bin="fixture-svgo", runner=self.fixture_svgo)
+        self.assertEqual(output.read_bytes(), b"existing")
 
 
 if __name__ == "__main__":
