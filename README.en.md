@@ -64,7 +64,7 @@ Phase orders: web is `backend -> frontend -> web-demo`; extension is `extension 
 | User-story demos and acceptance | `t-web-demo-*` / `t-extension-demo-*` / `t-flutter-demo-*` plus the matching `*-accept` |
 | Chrome extension projects | Set up a WXT project per the [extension initialization guide](guides/extension/initialization.md), then `--phase extension`; loaded-extension demos via `t-init --extension-demo` |
 | Shopify app projects | `t-init --shopify <project-name>`; see the [Shopify development guide](guides/shopify/development.md). `shopify app deploy` runs manually by the user after `t-push` |
-| Figma reconstruction | `t-figma-assets` -> `t-figma-impl`: start coding when the human-authored design is about 30% complete — humans confirm scope, AI implements block by block; see the [asset processing guide](guides/figma/assets.md) |
+| Figma reconstruction | `t-figma-assets` -> `t-figma-impl`: start coding when the human-authored design is about 30% complete; reconstruct irregular layouts from evidence, let humans resolve ambiguities, and implement block by block for manual acceptance; see the [reconstruction guide](guides/figma/reconstruction.md) and [asset processing guide](guides/figma/assets.md) |
 | Commit and quality close-out | `t-review` (reports correctness bugs only) -> `t-simplify` (four-angle cleanup) -> `t-push` ([push execution contract](protocols/push-execution-contract.md)); review / simplify do not replace accept |
 | New project scaffold | `t-init <project-name>` (Rust + React full stack; `--shopify` for Shopify) |
 | Maintain the plugin and project knowledge | `t-skill` (create/modify skills), `t-doc` (tutorials and docs), `t-dream` (context audit), `t-release` (versioning) |

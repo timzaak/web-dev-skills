@@ -64,7 +64,7 @@ t-prd-publish user-management   # 验收通过后发布正式 PRD / 用户故事
 | 用户故事 Demo 与验收 | `t-web-demo-*` / `t-extension-demo-*` / `t-flutter-demo-*` 及对应 `*-accept` |
 | Chrome 扩展项目 | 先按[扩展初始化指南](guides/extension/initialization.md)建 WXT 工程，再 `--phase extension`；真实加载演示用 `t-init --extension-demo` |
 | Shopify App 项目 | `t-init --shopify <project-name>` 建工程，规范见 [Shopify 开发指南](guides/shopify/development.md)；`shopify app deploy` 在 `t-push` 后由用户手动执行 |
-| Figma 还原 | `t-figma-assets` -> `t-figma-impl`：人类设计稿完成约 30% 即可介入编码，人确认范围、AI 分块实现并交付验收，见[素材处理指南](guides/figma/assets.md) |
+| Figma 还原 | `t-figma-assets` -> `t-figma-impl`：人类设计稿完成约 30% 即可介入编码；非规范稿按证据重建布局，歧义由人裁决，AI 分块实现并交付人工验收，见[还原指南](guides/figma/reconstruction.md)与[素材处理指南](guides/figma/assets.md) |
 | 提交与质量收口 | `t-review`（只报告正确性缺陷）-> `t-simplify`（四角度清理）-> `t-push`（[push 执行协议](protocols/push-execution-contract.md)）；review / simplify 不能替代 accept |
 | 新项目脚手架 | `t-init <project-name>`（Rust + React 全栈骨架；Shopify 用 `--shopify`） |
 | 维护插件与项目知识 | `t-skill`（创建/修改 skill）、`t-doc`（教程文档）、`t-dream`（上下文审计）、`t-release`（发版） |
