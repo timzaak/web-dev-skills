@@ -6,7 +6,7 @@ t-review 的审查角度、候选结构、Pass-Through、去重/三态验证和�
 
 ## Review Angles
 
-三个核心角度互不重叠，每个 finder agent 只负责注入的一个角度。以下角度翻译自 Claude Code 内置 `/code-review`（源版本 v2.1.269，2026-10-17 核对 npm v2.1.302 安装包）。新版按模型和 effort 路由，部分流程已混入清理/Conventions，或改为 inline 且不验证；本插件保留正确性审查与清理分离、逐候选独立验证和 Markdown 报告，不声称完整复刻新版默认流程。范围收集前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/review-scope-contract.md`。
+三个核心角度互不重叠，每个 finder agent 只负责注入的一个角度。以下角度翻译自 Claude Code 内置 `/code-review`（源版本 v2.1.269，2026-10-31 核对 npm v2.1.316 安装包）。新版按模型和 effort 路由，部分流程已混入清理/Conventions，或改为 inline 且不验证；本插件保留正确性审查与清理分离、逐候选独立验证和 Markdown 报告，不声称完整复刻新版默认流程。范围收集前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/review-scope-contract.md`。
 
 ### Angle A — 逐行 diff 扫描（line-by-line diff scan）
 
