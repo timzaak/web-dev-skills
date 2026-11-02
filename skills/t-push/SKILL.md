@@ -35,7 +35,8 @@ session 规则只说一次：同一次 `/t-push` 执行内（含 CI 失败后 AI
 - Frontend 变更：`npm run lint`、`npm run format:check`（不存在时跳过）、`npm run type-check`。
 - Demo 变更：`npm run lint` 和 `npm run type-check`。
 - Shopify 变更（项目根存在 `shopify.app.toml` 时，除 `demo/` 外的全部变更）：按 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/validation.md` 的 push 门禁执行，类型检查兼容 `typecheck` / `type-check` 且不能缺失；存在 Shopify 扩展配置时必须覆盖扩展构建。
-- 无 backend/frontend/demo/shopify 变更时跳过本地 CI，直接进入 commit/push。
+- pi 变更：按 `${CLAUDE_PLUGIN_ROOT}/protocols/pi-project-contract.md` 识别独立包（含无清单约定目录包）与项目级 `.pi/` 资源；按实际变更选择本地门禁，纯文档/skill/prompt/theme 文本不强制类型检查，代码与相关配置不能跳过必要检查。运行时与 skill 行为证据仍按 `${CLAUDE_PLUGIN_ROOT}/guides/pi/validation.md` 由 accept 核对。
+- 无 backend/frontend/demo/shopify/pi 变更时跳过本地 CI，直接进入 commit/push。
 
 `--force-checks` 参数可忽略 session 缓存，强制重跑本次 diff 涉及的所有区域 CI。
 

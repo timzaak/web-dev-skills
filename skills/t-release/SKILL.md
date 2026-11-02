@@ -37,6 +37,8 @@ allowed-tools:
 - 更新各自清单内的版本文件（项目脚本以仓库实际为准）。
 - 运行验证，创建 commit `chore: bump version to <版本号>`，创建并推送 tag `v<版本号>`。
 
+pi 独立包发布前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/pi-project-contract.md`：根包版本及已有 npm 锁文件一起更新，本地检查按包内实际代码选择；项目级 `.pi/` 资源不单独要求 npm 版本。发布脚本不执行 `npm publish` 或改写 pi settings。
+
 ## 失败处理
 - 按脚本错误输出处理。
 - 验证失败时终止，不创建 commit/tag。

@@ -1,7 +1,7 @@
 ---
 name: t-init
-description: Initialize a new Rust + React full-stack project; use --extension-demo to add Playwright integration-test infrastructure to an existing WXT extension; use --shopify to create a Shopify React Router app project (or retrofit an existing one) with the same demo/scripts infrastructure. Does not implement feature stories or perform their acceptance.
-argument-hint: "<project-name> | --extension-demo [--extension-dir <path>] | --shopify <project-name>"
+description: Initialize a Rust + React full-stack project, a Shopify app with --shopify, or pi coding agent extension/package development with --pi; --extension-demo adds Playwright infrastructure to an existing WXT extension. Supports incremental pi setup without replacing existing resources. Does not implement feature stories, fork pi core, or perform feature acceptance.
+argument-hint: "<project-name> | --extension-demo [--extension-dir <path>] | --shopify <project-name> | --pi <project-name|.>"
 allowed-tools:
   - AskUserQuestion
   - Read
@@ -17,7 +17,7 @@ allowed-tools:
 
 # 项目初始化
 
-初始化全栈项目骨架、为已有 WXT 扩展补齐 extension-demo 基础设施，或初始化 Shopify App 工程。先按参数选择模式；三个模式不串行执行。
+初始化全栈、Shopify 或 pi 开发工程，或为已有 WXT 扩展补齐 extension-demo 基础设施。先按参数选择模式；各模式独立执行。
 
 ## 模式路由
 
@@ -26,8 +26,9 @@ allowed-tools:
 | `<project-name>` | 创建 Rust + React + Web Demo 全栈工程，执行下文流程 |
 | `--extension-demo [--extension-dir <path>]` | 在当前目标项目根目录增量初始化扩展 Demo，仅读取并执行 [extension-demo 初始化流程](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/extension-demo-init.md)，完成后返回 |
 | `--shopify <project-name>` | 创建 Shopify App 工程（Shopify 官方 React Router 模板）或为已有 Shopify 工程增量补齐 demo/scripts 设施，仅读取并执行 [Shopify 初始化流程](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/shopify-init.md)，完成后返回，不执行下文全栈生成步骤 |
+| `--pi <project-name\|.>` | 创建 pi TypeScript extension 包，或在指定/当前项目增量补齐 pi 开发设施；仅读取并执行 [pi 初始化流程](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/pi-init.md)，完成后返回 |
 
-拒绝混用项目名和 `--extension-demo`、混用 `--shopify` 与 `--extension-demo`、单独使用 `--extension-dir`、`--shopify` 缺少项目名或未知参数，并给出以上用法。扩展模式不创建新的 WXT 工程、Shopify 模式不执行全栈生成步骤。
+模式参数互斥；拒绝混用 `--pi`、`--shopify`、`--extension-demo`，拒绝额外位置参数、单独使用 `--extension-dir`、非扩展模式使用 `--extension-dir`、`--pi`/`--shopify` 缺少目标或未知参数，并给出以上用法。`.` 仅允许作为 `--pi` 的当前项目目标。专用模式不执行下文全栈生成步骤。
 
 ## 适用范围
 
@@ -35,18 +36,20 @@ allowed-tools:
 - 用户明确执行 `/t-init <project-name>`
 - 用户明确执行 `/t-init --extension-demo` 或要求为已有扩展搭建集成测试基础设施
 - 用户明确执行 `/t-init --shopify <project-name>` 或要求创建 / 改造 Shopify App 工程
+- 用户明确执行 `/t-init --pi <project-name|.>` 或要求初始化 pi extension/package 开发工程
 - 用户要求创建新项目、初始化全栈项目骨架
 - 用户提到 "搭建项目""新建项目""项目初始化"
 
 不要用于：
 - Chrome 扩展生产工程初始化：按 [extension 初始化指南](${CLAUDE_PLUGIN_ROOT}/guides/extension/initialization.md) 搭建 WXT 工程；工程就绪后可用扩展模式补齐 Demo
-- 已有项目的业务增量开发（扩展 Demo / Shopify 设施增量初始化除外）
+- 已有项目的业务增量开发（扩展 Demo / Shopify / pi 设施增量初始化除外）
+- 嵌入 pi SDK 的独立宿主应用或 fork pi 内核：先明确架构与交付范围，不自动套用 extension 包模板
 - 代码修改或重构
 - 单纯的前端或后端初始化（如果明确只做一侧，提示用户本 skill 生成完整全栈）
 
 ## 参数
 
-以下参数与流程仅适用于全栈模式。
+以下参数、占位符、生成流程、输出清单、收尾、门禁和失败处理仅适用于全栈模式；专用模式使用路由指向的流程。
 
 - `$ARGUMENTS` = 项目名称（必须）
 - 仅允许英文、数字、连字符、下划线；拒绝 `..`、`/`、`\`；长度 1-50 字符
@@ -188,3 +191,4 @@ allowed-tools:
 - 脚本复制与适配规则：[references/script-adaptation.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/script-adaptation.md)
 - AGENTS.md 模板：[references/agents-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/agents-template.md)
 - Shopify 初始化流程：[references/shopify-init.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/shopify-init.md)
+- pi 初始化流程：[references/pi-init.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/pi-init.md)

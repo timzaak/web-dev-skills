@@ -143,6 +143,26 @@ class DemoPhaseCoverageTests(unittest.TestCase):
                 [extension_runner],
             )
 
+    def test_pi_runner_discovery_and_full_suite_gate(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            runner = root / ".ai/task/feature/pi/test/PI-T01-runner.md"
+            runner.parent.mkdir(parents=True)
+            content = (
+                "## Expected Test Manifest\n- `rejects oversized output`\n"
+                "## Validation\nnpm run test:run -- extensions/summarize.test.ts\n"
+            )
+            runner.write_text(content, encoding="utf-8")
+            self.assertEqual(coverage.find_runner_files(root, "feature", "pi"), [runner])
+            self.assertEqual(coverage.find_runner_files(root, "feature", None), [runner])
+            self.assertEqual(coverage.infer_layer(runner), "pi")
+            self.assertEqual(coverage.check_runner(root, runner, dynamic=False).errors, [])
+            self.assertTrue(coverage.is_full_suite_command("npm run test:run", "pi"))
+            self.assertFalse(coverage.is_full_suite_command("npm run test:run -- extensions/summarize.test.ts", "pi"))
+            runner.write_text(content.replace(" -- extensions/summarize.test.ts", ""), encoding="utf-8")
+            errors = coverage.check_runner(root, runner, dynamic=False).errors
+            self.assertTrue(any("Full-suite command lacks" in error for error in errors))
+
 
 if __name__ == "__main__":
     unittest.main()

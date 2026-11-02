@@ -2,7 +2,7 @@
 
 [English](README.en.md)
 
-T-Tools 是面向 Rust、React、Chrome 扩展、小程序、Flutter 与 Shopify 项目的 Claude Code plugin。它把 AI 编程从“模型自由发挥”约束成**可执行、可恢复、可验收**的工程工作流：
+T-Tools 是面向 Rust、React、Chrome 扩展、小程序、Flutter、Shopify 与 pi coding agent 二次开发项目的 Claude Code plugin。它把 AI 编程从“模型自由发挥”约束成**可执行、可恢复、可验收**的工程工作流：
 
 ```text
 Decision -> PRD / 技术预研（按主要未知项选择，可回环）-> 设计 -> 开发 -> 验收 -> Demo -> 发布
@@ -16,7 +16,7 @@ Decision -> PRD / 技术预研（按主要未知项选择，可回环）-> 设�
 - **中断可恢复。** 任何阶段被打断，重跑同一命令即从断点继续，不依赖会话记忆。
 - **独立验收，证据说话。** accept 由只读 subagent 按[公共验收协议](protocols/acceptance-contract.md)出结论：必要门禁必须通过，未解决的 P0/P1 阻断交付。
 - **人裁决，AI 执行。** 产品取舍由人确认——`t-prd` 写入前主动澄清缺少依据的选择；AI 负责执行、测试和证据。
-- **多端覆盖。** Web、Chrome 扩展、小程序、Flutter、Shopify 与 Figma 还原各有专用阶段和演示验收。
+- **多端覆盖。** Web、Chrome 扩展、小程序、Flutter、Shopify、pi 扩展与 Figma 还原各有专用交付流程；pi 在实现阶段记录运行时冒烟证据。
 
 想理解 skill、subagent、protocol 如何协同，读 [human/structure.md](human/structure.md)。
 
@@ -34,7 +34,7 @@ claude --plugin-dir /path/to/skills
 - 按需配置：Chrome DevTools MCP（`--autoConnect`，扩展真实浏览器协作，见[用户 Chrome 调试指南](guides/extension/live-browser.md)）；官方 [Figma MCP Server](https://developers.figma.com/docs/figma-mcp-server/)（Figma 工作流，素材转换另依赖 Python `Pillow`、`ffmpeg`/`ffprobe`、`svgo` 和 [kyz](https://github.com/byteowlz/kyz) 凭据代理）
 - 使用 Codex、ZCode 等不支持 `claude --plugin-dir` 的工具时，见[在其它 AI 编程工具中使用 t-tools](human/use-in-other-agents.md)
 
-`.ai/` 与 `docs/` 运行时目录无需预先创建，工作流执行过程中会自行创建；Web 与扩展 Demo 的日志库 [`playwright-unified-logger`](https://github.com/timzaak/playwright-unified-logger) 由 `t-init` 自动安装。
+`.ai/` 与 `docs/` 运行时目录无需预先创建，工作流执行过程中会自行创建；Web 与扩展 Demo 的日志库 [`playwright-unified-logger`](https://github.com/timzaak/playwright-unified-logger) 由 `t-init` 的相应 Demo 模式安装；pi 模式不安装 Web Demo 设施。
 
 ## 快速上手
 
@@ -51,7 +51,7 @@ t-web-demo-accept <role>                           # 浏览器用户路径验收
 t-prd-publish user-management   # 验收通过后发布正式 PRD / 用户故事
 ```
 
-阶段顺序：Web 为 `backend -> frontend -> web-demo`，扩展为 `extension -> extension-demo`，Flutter 为 `backend -> flutter -> flutter-demo`，Shopify 为 `shopify-app -> shopify-extension -> web-demo`。全部阶段与启用条件见[阶段执行协议](protocols/task-phase-execution.md#phases)。
+阶段顺序：Web 为 `backend -> frontend -> web-demo`，扩展为 `extension -> extension-demo`，Flutter 为 `backend -> flutter -> flutter-demo`，Shopify 为 `shopify-app -> shopify-extension -> web-demo`，pi 为 `pi`（需要后端改动时前置 backend）。全部阶段与启用条件见[阶段执行协议](protocols/task-phase-execution.md#phases)。
 
 `t-prd-check`、`t-design-check`、`t-task-check` 是可选质量检查，按风险选用；需要单独审阅任务计划或细粒度分工时，用 `t-task -> t-run` 代替 `t-super-run`。
 
@@ -64,9 +64,10 @@ t-prd-publish user-management   # 验收通过后发布正式 PRD / 用户故事
 | 用户故事 Demo 与验收 | `t-web-demo-*` / `t-extension-demo-*` / `t-flutter-demo-*` 及对应 `*-accept` |
 | Chrome 扩展项目 | 先按[扩展初始化指南](guides/extension/initialization.md)建 WXT 工程，再 `--phase extension`；真实加载演示用 `t-init --extension-demo` |
 | Shopify App 项目 | `t-init --shopify <project-name>` 建工程，规范见 [Shopify 开发指南](guides/shopify/development.md)；`shopify app deploy` 在 `t-push` 后由用户手动执行 |
+| pi coding agent 二次开发 | 新工程用 `t-init --pi <project-name>`，已有工程用 `t-init --pi .` 增量补齐开发设施；再 `t-design` 后 `--phase pi`，支持首次交付、无清单约定目录包及项目级 `.pi/` 资源；识别与提交/发布门禁见 [pi 项目协议](protocols/pi-project-contract.md)，纯 skill 文本不强制类型检查；规范见 [pi 开发规范](guides/pi/development.md)，运行时冒烟证据见 [pi 测试指南](guides/pi/testing.md)；`npm publish` / `pi install` 在 `t-release` 后由用户手动执行 |
 | Figma 还原 | `t-figma-assets` -> `t-figma-impl`：人类设计稿完成约 30% 即可介入编码；非规范稿按证据重建布局，歧义由人裁决，AI 分块实现并交付人工验收，见[还原指南](guides/figma/reconstruction.md)与[素材处理指南](guides/figma/assets.md) |
 | 提交与质量收口 | `t-review`（只报告正确性缺陷）-> `t-simplify`（四角度清理）-> `t-push`（[push 执行协议](protocols/push-execution-contract.md)）；review / simplify 不能替代 accept |
-| 新项目脚手架 | `t-init <project-name>`（Rust + React 全栈骨架；Shopify 用 `--shopify`） |
+| 新项目脚手架 | `t-init <project-name>`（Rust + React 全栈骨架；Shopify 用 `--shopify`，pi 用 `--pi`） |
 | 维护插件与项目知识 | `t-skill`（创建/修改 skill）、`t-doc`（教程文档）、`t-dream`（上下文审计）、`t-release`（发版） |
 
 每个命令的参数、前置条件和下一步，运行 `t-how` 交互式讲解。
@@ -91,5 +92,5 @@ t-prd-publish user-management   # 验收通过后发布正式 PRD / 用户故事
 
 - [human/structure.md](human/structure.md) — skill、subagent、protocol 如何协同
 - [protocols/](protocols/) — 阶段执行、验收、push 等共享契约
-- [guides/](guides/) — 后端、前端、扩展、Shopify、Figma 等领域工程规范
+- [guides/](guides/) — 后端、前端、扩展、Shopify、pi、Figma 等领域工程规范
 - 开发迭代日志：[linux.do](https://linux.do/t/topic/1988118/4)

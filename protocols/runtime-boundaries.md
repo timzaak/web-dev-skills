@@ -11,7 +11,7 @@
 | 目标项目 `docs/` | 已发布的长期产品、设计和使用事实 |
 | 目标项目 `.ai/` | 当前工作流的草稿、状态、质量报告、预览产物，以及 Figma 工作目录和原始证据 |
 | 目标项目 `scripts/` | 环境、测试和 Demo 的本地执行入口 |
-| 目标项目 skill 目录（`.claude/skills/`、`.agents/skills/` 等按项目运行时） | 项目级 AI 能力资产，由 `t-skill --project` 和 skill 交付 task 写入 |
+| 目标项目 skill 目录（`.claude/skills/`、`.agents/skills/`、`.pi/skills/` 或 pi 包 `skills/` 等按项目运行时） | 项目级 AI 能力资产，由 `t-skill --project` 和 skill 交付 task 写入 |
 | `${CLAUDE_PLUGIN_ROOT}/protocols/` | 跨 skill 和 agent 的共享契约 |
 | `${CLAUDE_PLUGIN_ROOT}/guides/` | 默认工程规范和领域实践 |
 | `${CLAUDE_PLUGIN_ROOT}/skills/` | 阶段入口和编排逻辑 |
@@ -39,6 +39,8 @@ PRD、用户故事和技术预研的正式来源与候选来源边界见 `${CLAU
 3. 目标项目脚本存在但执行失败时，不得用插件脚本绕过；应报告失败原因。
 
 项目可以调整本地脚本内部的 Docker 镜像、容器名、端口、环境变量和启动命令，但脚本文件名、主要命令行参数、JSON 输出和日志契约必须保持稳定。
+
+Node 等非 Python 入口按目标项目 `package.json` 与 `scripts/index.md` 执行；例如 pi 初始化加载诊断是项目 `npm run smoke:pi`，不套用 `uv run` 或 Python 脚本回退规则。
 
 ## Subagent Runtime
 

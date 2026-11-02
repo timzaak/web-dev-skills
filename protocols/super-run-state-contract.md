@@ -182,6 +182,7 @@ accept task 到达执行位时，主会话按 `subagent-dispatch.md` 派发 `age
 - extension/test 按 `extension-test` 规范完成 Vitest 测试资产和定向执行；浏览器用户故事用例归 extension-demo/dev。dev/test 涉及用户当前浏览器现场时，按 `${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md` 接入并按 `${CLAUDE_PLUGIN_ROOT}/protocols/extension-acceptance-contract.md` 采集现场证据，浏览器工具仅用于观察。
 - miniapp/test 按 `miniapp-test` 规范完成独立测试或专项 gate 资产及其验证；没有 test task 时，typecheck 和构建回归归 dev task。
 - shopify-app/test 与 shopify-extension/test 按 `shopify-test` 规范完成 Vitest 测试资产和定向执行；店面与 admin 用户故事用例归 web-demo/dev，不在本阶段编写 Playwright。
+- pi/test 按 `pi-test` 规范完成 Vitest 纯逻辑测试资产和定向执行；运行时冒烟不是 test 资产，由 pi/dev 与 accept 按 `${CLAUDE_PLUGIN_ROOT}/guides/pi/testing.md` 记录证据，不以 fake 证明事件顺序或并行调度。
 - 测试发现生产代码缺陷时，在同一个 test task 中记录失败证据，主会话切换到对应 dev agent 规范修复，再切回测试执行边界重新执行受影响测试；测试角色本身不接管生产修复，不得弱化断言、权限预期或业务规则。修复影响已完成的验证或其他 phase 时，按证据失效规则重开并报告恢复入口，不自动执行其他 phase。
 - web-demo/dev 同时承担 Playwright 资产维护和定向执行，不新增独立 test task。失败时读取 `web-demo-diagnose` 规范分类，再切换对应 dev 规范修复并补跑底层定向测试。
 - extension-demo/dev 同时承担扩展 Playwright 资产维护和定向执行，不新增独立 test task。失败时读取 `extension-demo-diagnose` 分类，再切换对应 dev 规范修复、重建加载产物并补跑定向测试。

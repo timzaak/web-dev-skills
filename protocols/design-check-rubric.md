@@ -2,7 +2,7 @@
 
 ## Scoring
 
-设计产物是"主文档 + 分端文档"结构：`.ai/design/<feature>.md`（主文档）加 `.ai/design/<feature>/backend.md`、`frontend.md`、`extension.md`、`flutter.md` 中适用端。评分先按维度打分，再按适用维度归一化。
+设计产物是"主文档 + 分端文档"结构：`.ai/design/<feature>.md`（主文档）加设计状态协议声明的适用分端文档；pi 交付使用 `pi.md`。评分先按维度打分，再按适用维度归一化。
 
 | 维度 | 分值 | 说明 |
 |---|---:|---|
@@ -12,12 +12,13 @@
 | 前端设计完整性 | 15 | `frontend.md`：页面/组件、线框说明、状态与数据流、关键状态、契约依赖 |
 | 扩展设计完整性 | 15 | `extension.md`：入口、权限依据、消息/存储、生命周期、拒绝/恢复路径和真实浏览器验证 |
 | Flutter 设计完整性 | 15 | `flutter.md`：分层架构、状态管理、页面与导航、可测试性 |
+| pi 设计完整性 | 15 | `pi.md`：资源发现、工具/事件契约、生命周期与状态恢复、模式与权限、运行时证据 |
 | 测试与验收策略 | 10 | 各端测试入口和主验收路径明确 |
 | 决策闭合与跨端一致性 | 10 | `needs_user_answer=0`，决策追踪和覆盖矩阵完整，契约消费一致，主文档 §8 全量汇总 |
 
 归一化规则：
 
-- 分端维度（后端/前端/扩展/Flutter）仅对适用端计分；不适用的维度记"不适用"，不参与计分。
+- 分端维度（后端/前端/扩展/Flutter/pi）仅对适用端计分；不适用的维度记"不适用"，不参与计分。
 - 基础维度（需求追溯、现有实现分析、测试与验收、决策闭合与跨端一致性）始终计分。
 - 总分 = Σ适用维度得分 ÷ Σ适用维度满分 × 100，四舍五入取整；报告中必须列出参与计分的维度。
 
@@ -34,13 +35,7 @@
 
 已由证据确认的问题继续按 P0/P1/P2 记录；必须由用户裁决的问题状态为 `needs_user_answer`，不参与 P0 计数。
 
-评分前必须对主文档和全部适用分端文档运行：
-
-```bash
-python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py ".ai/design/<feature>.md" ".ai/design/<feature>/backend.md" ".ai/design/<feature>/frontend.md" ".ai/design/<feature>/extension.md" ".ai/design/<feature>/flutter.md"
-```
-
-（仅扫描实际存在的文档。）
+评分前，将 `check-design.py --json` 返回的 `design_documents` 逐项作为路径参数，传给 `python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py`，覆盖主文档和全部适用分端文档，不扫描不适用文档。
 
 扫描命中项必须按 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md` 分类。设计完成态必须满足 `needs_user_answer=0`，且主文档 Decision Trace 覆盖所有影响设计的 Active Decision。
 
@@ -50,14 +45,15 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py ".ai/design/<feat
 
 - 主文档不存在，或适用端的分端文档不存在
 - 扩展适用但入口、权限依据、消息/存储边界或关键恢复路径缺失，无法形成可执行方案
+- pi 适用但工具/事件的执行与阻断契约、关键生命周期/状态恢复或权限边界缺失，无法形成可执行方案
 - 涉及后端接口但 `backend.md` 缺少 API 设计，或涉及数据库变更但缺少数据库设计
 - 涉及前端但 `frontend.md` 缺少页面/交互说明；涉及 Flutter 但 `flutter.md` 缺少页面/分层说明（适用端）
-- `frontend.md` / `extension.md` / `flutter.md` 的 API 依赖与契约源（`backend.md` 或现有接口）冲突
+- `frontend.md` / `extension.md` / `flutter.md` / `pi.md` 的 API 依赖与契约源（`backend.md` 或现有接口）冲突
 - 主文档 §8 文件影响范围未全量汇总适用端的文件影响表
 - 主文档缺少设计覆盖矩阵，或 P0 requirement/story 没有设计、测试和文件影响落点
 - 业务功能设计目标与 PRD/用户故事明显冲突
 - 纯技术方案设计目标与引用的技术预研明显冲突
-- 使用不存在的路径作为现状依据，或 MODIFY/DELETE 路径不存在；CREATE 路径父目录不存在或没有命名依据
+- 使用不存在的路径作为现状依据，或 MODIFY/DELETE 路径不存在；CREATE 路径不满足 task-phase-execution 的 Skill Deliverables 路径规则或没有命名依据
 
 ### P1
 
@@ -67,10 +63,11 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py ".ai/design/<feat
 - 前端/Flutter 的用户体验流或页面描述过于抽象，缺少入口、操作路径、系统反馈或错误状态
 - Flutter 分层或状态管理偏离 Riverpod 技术线（`${CLAUDE_PLUGIN_ROOT}/guides/flutter/constitution.md`），或明显过度分层
 - 前端违反状态分工：服务端数据进入 Zustand（应由 TanStack Query 独占管理），或缓存/刷新策略缺失
-- `frontend.md` / `extension.md` / `flutter.md` 单列或复制 API 契约字段表，破坏契约单一来源
+- `frontend.md` / `extension.md` / `flutter.md` / `pi.md` 单列或复制 API 契约字段表，破坏契约单一来源
 - 主文档承载 API 字段表、数据库表结构或页面线框等分端细节，而非摘要与链接
 - 测试策略缺少实际入口；业务行为变更缺少 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 要求的场景、关键断言或承接位置
 - 分端文档缺少本端 Decision Trace 子集，或与主文档 Decision Trace 矛盾
+- pi 的运行模式守卫、工具截断/文件队列、清单发现或必要运行时冒烟计划不符合 pi 专项检查，且影响本轮交付
 
 ### P2
 
@@ -121,22 +118,30 @@ Flutter（`flutter.md`）：
 - 依赖注入与可测试边界明确；验证入口、关键断言、环境及阶段承接符合验证证据协议，Demo 平台范围与资产归属符合 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/demo-testing.md`
 - API 依赖只引用契约源，不复制契约字段表
 
+pi（`pi.md`）：
+
+- 按 `${CLAUDE_PLUGIN_ROOT}/skills/t-design/template-pi.md` 检查适用的 extension、skill、prompt、theme、清单与依赖；纯资源包不强求工具或 Node 工程，首次交付不要求已有项目标记，范围按 `${CLAUDE_PLUGIN_ROOT}/protocols/pi-project-contract.md`。
+- 工具的 schema、错误/截断、并发与文件写入队列明确；事件钩子的阻断/转换语义与循环守卫明确；必要权限门有失败关闭和拒绝路径。
+- 工厂不启动后台资源，`session_shutdown` 幂等清理；状态从活动分支重建，跨会话替换不复用旧 ctx；UI 具备模式守卫。
+- API 依赖引用唯一契约源；host 依赖归属、资源发现与过滤、兼容版本明确。缺加载环境或 provider 时给出承接阶段，不将计划或 fake 测试记为运行时证据。
+- 按 `${CLAUDE_PLUGIN_ROOT}/guides/pi/testing.md` 区分定向纯逻辑测试、真实加载/行为冒烟及 skill 行为验证；必要命令和关键断言可执行，不为纯文本交付强制 TS 门禁。
+
 跨端一致性：
 
 - 主文档 §4.3 契约源声明明确，摘要与 `backend.md` 一致
-- `frontend.md` / `extension.md` / `flutter.md` 的 API 依赖表与契约源不冲突
+- `frontend.md` / `extension.md` / `flutter.md` / `pi.md` 的 API 依赖表与契约源不冲突
 - 主文档 §6 测试汇总覆盖全部适用端的测试入口与 Demo 主路径
 - 主文档设计覆盖矩阵逐项连接 Requirement/Story、设计落点、契约或组件、测试验收和文件影响；不得复制需求正文
 
 文档结构：
 
-- 主文档 §8 文件影响范围必须存在，表格包含 `文件 | 操作 | 说明` 三列（可含来源分端列），操作列使用 CREATE/MODIFY/DELETE，来源分端取值限于 backend/frontend/extension/flutter/shopify/web-demo/extension-demo/flutter-demo/跨端（Demo 演示资产按交付端标 web-demo/extension-demo/flutter-demo；shopify 资产在说明列标注归属 phase），且全量覆盖各分端文档的文件影响表
+- 主文档 §8 文件影响范围必须存在，表格包含 `文件 | 操作 | 说明` 三列（可含来源分端列），操作列使用 CREATE/MODIFY/DELETE，来源分端取值限于 backend/frontend/extension/flutter/shopify/pi/web-demo/extension-demo/flutter-demo/跨端（Demo 演示资产按交付端标 web-demo/extension-demo/flutter-demo；shopify 资产在说明列标注归属 phase），且全量覆盖各分端文档的文件影响表
 - backend 详细设计包含必要的数据结构、公开签名、错误类型或算法骨架
 - frontend 详细设计包含页面状态转换、关键事件/副作用和公开 hook/schema/query/store 边界
 - Flutter 详细设计包含适用的状态转换、用户事件/副作用、查询刷新/失效入口和 provider/repository/service/路由边界
 - 风险与验证动作只记录方向已经确定的风险和不需要用户选择的验证动作，包含风险项、等级、缓解或验证动作、负责人、完成条件
 - 完整 Decision Trace 在主文档 §2.4；分端文档只追踪影响本端的 DEC 子集
-- 现状依据及 MODIFY/DELETE 路径必须存在；CREATE 路径允许尚不存在，但父目录必须存在，并给出相邻实现或项目规范作为命名依据
+- 现状依据及 MODIFY/DELETE 路径必须存在；CREATE 父目录与新 skill 目录例外按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Skill Deliverables 校验，并给出命名依据
 
 ## Report Requirements
 

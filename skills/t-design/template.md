@@ -91,6 +91,7 @@
 | frontend | `.ai/design/[feature]/frontend.md` | 适用 / 不适用（原因） |
 | extension | `.ai/design/[feature]/extension.md` | 适用 / 不适用（原因） |
 | flutter | `.ai/design/[feature]/flutter.md` | 适用 / 不适用（原因） |
+| pi | `.ai/design/[feature]/pi.md` | 适用 / 不适用（原因） |
 
 > 仅对"适用"的端生成分端设计文档；不适用端不创建文件。
 
@@ -123,6 +124,10 @@
 - [核心结论与关键取舍，3-5 行；不适用时说明]
 - 详见 `.ai/design/[feature]/extension.md`
 
+### 5.5 pi 扩展
+- [核心结论与关键取舍，3-5 行；不适用时说明]
+- 详见 `.ai/design/[feature]/pi.md`
+
 ## 6. 测试与验收策略（跨端汇总）
 
 > 各端测试细节在分端文档；本节汇总跨端测试入口和主验收路径，供 `/t-super-run` 直接消费。按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 记录验证责任表，业务行为变更不能只填编译/类型检查；尚未执行的场景标明承接阶段。
@@ -152,12 +157,12 @@
 ## 8. 文件影响范围（全量汇总）
 
 > 汇总所有适用分端文档的文件影响范围；`/t-super-run` 直接对照本表拆分任务。
-> MODIFY/DELETE 路径必须存在。CREATE 路径允许尚不存在，但父目录必须存在，并在说明中给出相邻实现或命名规范依据；skill 根目录（`.claude/skills/`、`.agents/skills/`、`skills/`）下的 CREATE 路径例外，新 skill 目录随交付创建。
+> MODIFY/DELETE 路径必须存在；CREATE 父目录与新 skill 目录例外按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Skill Deliverables 校验，并在说明中给出命名依据。
 > 设计要求用户故事演示时，Web Playwright 资产标 `web-demo`，扩展 Playwright `demo/e2e/extension/` 资产标 `extension-demo`，Patrol 资产标 `flutter-demo`；shopify 分端的资产在说明列标注归属 phase（shopify-app / shopify-extension）；skill 交付物标其服务或操作的交付端，独立于任何端时标 `跨端` 并在说明列注明 skill 根目录；无需演示时不出现对应值。
 
 | 文件 | 操作 | 说明 | 来源分端 |
 |---|---|---|---|
-| `[真实仓库路径]` | CREATE / MODIFY / DELETE | [变更摘要] | backend / frontend / extension / flutter / shopify / web-demo / extension-demo / flutter-demo / 跨端 |
+| `[真实仓库路径]` | CREATE / MODIFY / DELETE | [变更摘要] | backend / frontend / extension / flutter / shopify / pi / web-demo / extension-demo / flutter-demo / 跨端 |
 
 ## 9. 外部参考
 

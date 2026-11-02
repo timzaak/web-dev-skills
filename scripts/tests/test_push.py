@@ -267,5 +267,141 @@ class ShopifyAreaTests(unittest.TestCase):
             push.shopify_steps()
 
 
+class PiAreaTests(unittest.TestCase):
+    def setUp(self) -> None:
+        temporary = tempfile.TemporaryDirectory(prefix="t-tools-push-pi-")
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name)
+        self.addCleanup(patch.stopall)
+        patch.object(push, "REPO_ROOT", self.root).start()
+
+    def configure_package(self, scripts: dict[str, str], *, manifest: bool = True, keyword: bool = False) -> None:
+        data: dict[str, object] = {"scripts": scripts}
+        if manifest:
+            data["pi"] = {"extensions": ["./extensions/*.ts"]}
+        if keyword:
+            data["keywords"] = ["pi-package"]
+        (self.root / "package.json").write_text(json.dumps(data), encoding="utf-8")
+
+    def test_root_files_map_to_pi_when_manifest_or_keyword_exists(self) -> None:
+        self.configure_package({"type-check": "tsc --noEmit"})
+        self.assertEqual(
+            push.detect_areas(["package.json", "extensions/hello.ts", "skills/review/SKILL.md"]),
+            {"pi"},
+        )
+        self.configure_package({"type-check": "tsc --noEmit"}, manifest=False, keyword=True)
+        self.assertEqual(push.detect_areas(["extensions/hello.ts"]), {"pi"})
+
+    def test_root_files_map_to_no_area_without_pi_markers(self) -> None:
+        self.configure_package({"type-check": "tsc --noEmit"}, manifest=False)
+        self.assertEqual(push.detect_areas(["README.md", "src/hello.ts"]), set())
+
+    def test_conventional_resources_and_last_resource_deletion_are_detected(self) -> None:
+        self.configure_package({"type-check": "tsc --noEmit"}, manifest=False)
+        resource = self.root / "extensions/hello.ts"
+        resource.parent.mkdir()
+        resource.write_text("export default () => {};", encoding="utf-8")
+        self.assertEqual(push.detect_areas(["README.md"]), {"pi"})
+        resource.unlink()
+        self.assertEqual(push.detect_areas(["extensions/hello.ts"]), {"pi"})
+        self.assertEqual(push.detect_areas(["README.md"]), set())
+
+    def test_project_resources_without_a_package_are_detected_even_on_deletion(self) -> None:
+        self.assertEqual(push.detect_areas([".pi/extensions/hello.ts"]), {"pi"})
+        self.assertEqual(push.detect_areas([".pi/skills/review/SKILL.md"]), {"pi"})
+        self.assertEqual(push.pi_steps([".pi/skills/review/SKILL.md"]), [])
+        with self.assertRaisesRegex(RuntimeError, "pi code changes require"):
+            push.pi_steps([".pi/extensions/hello.ts"])
+
+    def test_project_resource_config_is_checked_and_workflow_state_is_excluded(self) -> None:
+        (self.root / ".pi/extensions").mkdir(parents=True)
+        self.assertEqual(push.detect_areas(["package.json", ".pi/settings.json"]), {"pi"})
+        self.assertEqual(push.detect_areas([".ai/task/feature/.state.json"]), set())
+
+    def test_demo_and_backend_files_keep_their_own_areas(self) -> None:
+        self.configure_package({"type-check": "tsc --noEmit"})
+        self.assertEqual(
+            push.detect_areas(["demo/e2e/a.e2e.ts", "backend/src/main.rs", "extensions/hello.ts"]),
+            {"demo", "backend", "pi"},
+        )
+
+    def test_shopify_root_takes_precedence_over_pi(self) -> None:
+        (self.root / "shopify.app.toml").write_text('name = "x"\n', encoding="utf-8")
+        self.configure_package({"type-check": "tsc --noEmit"})
+        self.assertEqual(push.detect_areas(["app/routes/x.tsx"]), {"shopify"})
+        self.assertEqual(push.detect_areas(["app/routes/x.tsx", ".pi/extensions/tool.ts"]), {"shopify", "pi"})
+
+    def test_pi_area_fingerprint_excludes_other_areas(self) -> None:
+        self.assertEqual(
+            push.area_pathspecs("pi"),
+            [".", ":(exclude)backend/", ":(exclude)frontend/", ":(exclude)demo/", ":(exclude).ai/"],
+        )
+
+    def test_pi_code_steps_require_checks_but_text_assets_do_not(self) -> None:
+        self.assertEqual(push.pi_steps([".pi/skills/review/SKILL.md"]), [])
+        self.configure_package({"build": "tsc"})
+        with self.assertRaisesRegex(RuntimeError, "type-check"):
+            push.pi_steps(["extensions/tool.ts"])
+        self.configure_package({})
+        self.assertEqual(push.pi_steps(["skills/review/SKILL.md", "prompts/review.md", "themes/dark.json"]), [])
+
+    def test_pi_text_diff_skips_types_even_with_an_existing_script(self) -> None:
+        self.configure_package({"type-check": "tsc --noEmit"})
+        self.assertEqual(push.pi_steps(["skills/review/SKILL.md"]), [])
+        self.assertEqual(len(push.pi_steps(["package.json"])), 1)
+        self.configure_package({})
+        self.assertEqual(push.pi_steps(["frontend/src/app.ts", "demo/setup.ts", "skills/review/SKILL.md"]), [])
+
+    def test_pi_code_falls_back_to_existing_compiler_without_installing(self) -> None:
+        self.configure_package({})
+        compiler = self.root / "node_modules/typescript/bin/tsc"
+        compiler.parent.mkdir(parents=True)
+        compiler.write_text("", encoding="utf-8")
+        (self.root / "tsconfig.json").write_text("{}", encoding="utf-8")
+        steps = push.pi_steps(["extensions/tool.ts"])
+        self.assertEqual(steps[0].command[1:], [str(compiler), "--noEmit"])
+        (self.root / "tsconfig.json").unlink()
+        with self.assertRaisesRegex(RuntimeError, "tsconfig.json"):
+            push.pi_steps(["extensions/tool.ts"])
+
+    def test_pi_ci_failure_does_not_cache_a_success_and_retry_reruns(self) -> None:
+        self.configure_package({"type-check": "tsc --noEmit"})
+        with patch.object(push, "load_ci_cache", return_value={}), patch.object(push, "area_fingerprint", return_value="hash"), patch.object(push, "save_ci_cache") as save:
+            with patch.object(push, "run_cmd", return_value=subprocess.CompletedProcess([], 1)):
+                with self.assertRaisesRegex(RuntimeError, "Local CI failed"):
+                    push.run_ci({"pi"}, ci_session="retry", files=["extensions/tool.ts"])
+            save.assert_not_called()
+            with patch.object(push, "run_cmd", return_value=subprocess.CompletedProcess([], 0)) as run:
+                push.run_ci({"pi"}, ci_session="retry", files=["extensions/tool.ts"])
+                run.assert_called_once()
+            self.assertEqual(save.call_args.args[1]["pi"]["status"], "passed")
+
+    def test_pi_unchanged_success_uses_session_cache(self) -> None:
+        with patch.object(push, "load_ci_cache", return_value={"pi": {"status": "passed", "fingerprint": "hash"}}), patch.object(push, "area_fingerprint", return_value="hash"), patch.object(push, "pi_steps") as build:
+            push.run_ci({"pi"}, ci_session="cached", files=["extensions/tool.ts"])
+            build.assert_not_called()
+
+    def test_invalid_manifest_stops_detection_instead_of_skipping_ci(self) -> None:
+        (self.root / "package.json").write_text("{broken", encoding="utf-8")
+        with self.assertRaises(json.JSONDecodeError):
+            push.detect_areas(["extensions/tool.ts"])
+
+    def test_pi_steps_accept_any_type_check_alias_and_optional_lint_build(self) -> None:
+        for script in ("type-check:pi", "typecheck:pi", "type-check", "typecheck", "check"):
+            with self.subTest(script=script):
+                self.configure_package({script: "tsc --noEmit"})
+                steps = push.pi_steps()
+                self.assertEqual([s.command[1:] for s in steps], [["run", script]])
+                self.assertTrue(all(step.cwd == self.root for step in steps))
+        self.configure_package({"lint": "biome check .", "type-check": "tsc --noEmit", "build": "tsc"})
+        steps = push.pi_steps()
+        self.assertEqual([s.command[1:] for s in steps], [["run", "lint"], ["run", "type-check"], ["run", "build"]])
+
+    def test_pi_specific_check_is_preferred_without_replacing_the_app_check(self) -> None:
+        self.configure_package({"type-check": "tsc -p tsconfig.app.json", "type-check:pi": "tsc -p tsconfig.pi.json"})
+        steps = push.pi_steps([".pi/extensions/tool.ts"])
+        self.assertEqual(steps[0].command[1:], ["run", "type-check:pi"])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -45,7 +45,7 @@ allowed-tools:
   - 必须包含：目标、范围、交付端范围、跨端契约摘要、测试与验收汇总、文件影响范围全量汇总
   - 应包含：现有实现分析概览、用户故事/PRD/技术预研引用、Decision Trace
   - 纯技术方案设计可只包含技术预研引用，但必须声明不涉及业务逻辑、产品规则、用户可见流程或验收目标变动
-- `.ai/design/[feature]/backend.md`、`frontend.md`、`extension.md`、`flutter.md`、`shopify.md` — 分端设计文档；主文档 §4.2 标记适用时必须存在，生成对应 phase 时必须读取（分端细节以分端文档为准）
+- `.ai/design/[feature]/backend.md`、`frontend.md`、`extension.md`、`flutter.md`、`shopify.md`、`pi.md` — 分端设计文档；主文档 §4.2 标记适用时必须存在，生成对应 phase 时必须读取（分端细节以分端文档为准）
 - `.ai/design/[feature]/.state.json` — 必须存在且为 `complete`，否则停止并提示恢复 `/t-design [feature]`
 - `.ai/decision-log/[feature].md` — 跨阶段决策账本（存在时必须读取；本阶段不得采用 Superseded Decision）
 

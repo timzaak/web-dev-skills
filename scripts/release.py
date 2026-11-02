@@ -8,6 +8,7 @@ from pathlib import Path
 
 from lib.cli import require_executable, run_cmd
 from lib.paths import REPO_ROOT
+from lib.pi_project import is_pi_package_root, pi_check_commands
 
 
 SEMVER_RE = re.compile(r"^v?(\d+)\.(\d+)\.(\d+)$")
@@ -167,6 +168,20 @@ def update_package_json(path: Path, version: str) -> FileChange | None:
 def update_version_files(version: str) -> list[FileChange]:
     changes: list[FileChange] = []
 
+    if is_pi_package_root(REPO_ROOT / "package.json"):
+        # Let npm keep root metadata and existing npm locks in sync, without
+        # lifecycle hooks or a second release commit/tag owner.
+        version_paths = [REPO_ROOT / name for name in ("package.json", "package-lock.json", "npm-shrinkwrap.json")]
+        before = {path: json.loads(path.read_text(encoding="utf-8")).get("version") for path in version_paths if path.is_file()}
+        npm = require_executable("npm", "npm.cmd")
+        result = run_cmd(
+            [npm, "version", version, "--no-git-tag-version", "--ignore-scripts", "--allow-same-version", "--workspaces=false"],
+            cwd=REPO_ROOT,
+        )
+        ensure_success(result, "Unable to update pi package version; inspect package/lockfile changes before retrying.")
+        for path, old_version in before.items():
+            changes.append(FileChange(path, old_version, version))
+
     for cargo_path in (
         REPO_ROOT / "backend" / "Cargo.toml",
         REPO_ROOT / "Cargo.toml",
@@ -223,6 +238,9 @@ def run_validation() -> None:
         if "lint" in scripts:
             commands.append(([npm, "run", "lint"], app_dir))
 
+    if is_pi_package_root(REPO_ROOT / "package.json"):
+        commands.extend((command, REPO_ROOT) for _, command in pi_check_commands(REPO_ROOT))
+
     if not commands:
         print("No validation commands detected; skipping validation.")
         return
@@ -248,6 +266,8 @@ def commit_tag_and_push(version: str, push: bool) -> str:
         "sdk-js/package.json",
         "sdk-js/package-lock.json",
     ]
+    if is_pi_package_root(REPO_ROOT / "package.json"):
+        release_paths.extend(["package.json", "package-lock.json", "npm-shrinkwrap.json"])
     existing_paths = [path for path in release_paths if (REPO_ROOT / path).exists()]
     add = git("add", *existing_paths)
     ensure_success(add, "Unable to stage release files.")

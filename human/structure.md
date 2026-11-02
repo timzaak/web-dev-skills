@@ -81,6 +81,7 @@ Subagent 按工程角色拆分，而不是让一个 agent 同时承担所有职�
 - `web-demo/`：Playwright E2E、选择器、Page Object、诊断和常见失败处理。
 - `flutter/`：Flutter 开发、测试以及 Android Patrol 用户故事演示。
 - `shopify/`：Shopify App（React Router 模板）开发、app proxy 验签、扩展交付面、测试、验证和质量门禁。
+- `pi/`：pi coding agent 二次开发——TypeScript extension、随包 Agent Skills 与 pi package 的开发、测试、验证和质量门禁。
 - `product/`：产品文档和用户故事规范。
 - `core/`：环境配置和通用质量标准。
 

@@ -22,7 +22,7 @@ allowed-tools:
 | 模式 | 落位与命名 | 规则归属 | 验证与同步 |
 | --- | --- | --- | --- |
 | 默认：插件模式 | `${CLAUDE_PLUGIN_ROOT}/skills/`，名称加 `t-` 前缀 | 按仓库 AGENTS.md 分配到 skill、agent、protocol、guide、script，并同步消费者及相关索引 | 运行 `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/check-markdown-links.py`；命令入口变化时同步 t-how 和中英文 README |
-| `--project`：项目模式 | 项目 `.claude/skills/` 或 `.agents/skills/`，沿用项目命名 | 遵守项目 AGENTS.md；无其他约定时收敛在 skill 目录内 | 核对引用文件存在，只写选定的 skill 根目录 |
+| `--project`：项目模式 | 项目既有 skill 根目录（如 `.claude/skills/`、`.agents/skills/`、`.pi/skills/` 或 pi 包的 `skills/`），沿用项目命名 | 遵守项目 AGENTS.md；无其他约定时收敛在 skill 目录内 | 核对引用文件存在，只写选定的 skill 根目录 |
 
 项目模式恰有一个既有 skill 根目录时直接使用；没有或多个并存时用 AskUserQuestion 选定（也可由用户指定全局目录），全程保持。产物默认自足，使用相对路径引用内部资源；确需依赖插件时用 `${CLAUDE_PLUGIN_ROOT}` 并声明依赖前提。项目与插件约束冲突时按 `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md` 报告冲突，不静默覆盖。
 

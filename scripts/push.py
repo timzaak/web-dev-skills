@@ -11,6 +11,7 @@ from pathlib import Path
 
 from lib.cli import require_executable, run_cmd
 from lib.paths import REPO_ROOT
+from lib.pi_project import has_project_resources, is_pi_package_root, is_project_resource, pi_check_commands
 
 
 @dataclass(frozen=True)
@@ -63,6 +64,8 @@ def git_private_path(path: str) -> Path:
 def detect_areas(files: list[str]) -> set[str]:
     areas: set[str] = set()
     shopify_root = (REPO_ROOT / "shopify.app.toml").is_file()
+    pi_root = is_pi_package_root(REPO_ROOT / "package.json", files)
+    pi_project = has_project_resources(REPO_ROOT)
     for path in files:
         if path.startswith("backend/"):
             areas.add("backend")
@@ -70,10 +73,16 @@ def detect_areas(files: list[str]) -> set[str]:
             areas.add("frontend")
         elif path.startswith("demo/"):
             areas.add("demo")
+        elif is_project_resource(path):
+            areas.add("pi")
         elif shopify_root:
             # Shopify projects are single-root apps: everything outside the
             # demo assets belongs to the app itself (app/, extensions/, prisma/, ...).
             areas.add("shopify")
+        elif (pi_root or pi_project) and not path.startswith(".ai/"):
+            # pi packages are single-root too: extensions/, skills/, prompts/,
+            # themes/ and the manifest all belong to the package itself.
+            areas.add("pi")
     return areas
 
 
@@ -109,7 +118,7 @@ def normalize_ci_session(session: str) -> str:
 
 
 def area_pathspecs(area: str) -> list[str]:
-    if area == "shopify":
+    if area in {"shopify", "pi"}:
         return [
             ".",
             ":(exclude)backend/",
@@ -312,6 +321,13 @@ def shopify_steps() -> list[Step]:
     return steps
 
 
+def pi_steps(files: list[str] | None = None) -> list[Step]:
+    scoped_files = None if files is None else [
+        path for path in files if not path.startswith(("backend/", "frontend/", "demo/", ".ai/"))
+    ]
+    return [Step(name, command, REPO_ROOT) for name, command in pi_check_commands(REPO_ROOT, scoped_files)]
+
+
 def run_steps(area: str, steps: list[Step]) -> None:
     for step in steps:
         rel_cwd = step.cwd.relative_to(REPO_ROOT)
@@ -321,12 +337,13 @@ def run_steps(area: str, steps: list[Step]) -> None:
             raise RuntimeError(f"{step.name} failed with exit code {result.returncode}.")
 
 
-def run_ci(areas: set[str], *, ci_session: str, force_checks: bool = False) -> None:
+def run_ci(areas: set[str], *, ci_session: str, force_checks: bool = False, files: list[str] | None = None) -> None:
     builders = {
         "backend": backend_steps,
         "frontend": frontend_steps,
         "demo": demo_steps,
         "shopify": shopify_steps,
+        "pi": lambda: pi_steps(files),
     }
     cache = {} if force_checks else load_ci_cache(ci_session)
     selected: dict[str, list[Step]] = {}
@@ -337,12 +354,14 @@ def run_ci(areas: set[str], *, ci_session: str, force_checks: bool = False) -> N
             print(f"[{area}] Skipping CI: unchanged since last successful run in session {ci_session}.", flush=True)
             continue
         selected[area] = builders[area]()
+        if area == "pi" and not selected[area]:
+            print("[pi] No applicable local CI commands for these assets; runtime/skill evidence is checked by accept.", flush=True)
 
     if not selected:
         if areas:
             print("All selected CI areas are unchanged since their last successful run in this t-push session.", flush=True)
         else:
-            print("No backend/frontend/demo/shopify changes detected; skipping local CI.", flush=True)
+            print("No backend/frontend/demo/shopify/pi changes detected; skipping local CI.", flush=True)
         return
 
     failures: list[str] = []
@@ -575,7 +594,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"CI session: {ci_session}")
         print(f"Commit message: {message}")
 
-        run_ci(areas, ci_session=ci_session, force_checks=args.force_checks)
+        run_ci(areas, ci_session=ci_session, force_checks=args.force_checks, files=files)
         commit_hash = stage_commit_push(message, ci_session=ci_session)
         print(f"Changes committed and pushed: {commit_hash}")
         return 0

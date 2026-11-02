@@ -374,5 +374,127 @@ class ShopifyDesignTests(unittest.TestCase):
             self.assertIn("CONTRACT_SIGNATURE_MISMATCH", {f.code for f in checker.validate(main, root)})
 
 
+PI_MAIN = """
+# Sample pi 技术设计（主文档）
+## 1. 需求概述
+## 2. 需求来源
+### 2.4 决策追踪
+### 2.5 设计覆盖矩阵
+| Requirement / Story ID | 设计落点 | 契约/组件 | 测试与验收 | 文件影响 |
+|---|---|---|---|---|
+| REQ-001 | pi §4 | summarize_tests | npm run test:run | extensions/summarize-tests.ts |
+## 3. 现有实现分析
+## 4. 总体方案
+### 4.2 交付端范围
+| 端 | 分端设计文档 | 状态 |
+|---|---|---|
+| backend | backend.md | 不适用（无后端） |
+| pi | pi.md | 适用 |
+### 4.3 跨端契约（API 契约摘要）
+- 契约源: 不适用：pi 扩展不消费后端 API
+## 6. 测试与验收策略
+## 7. 风险与验证动作
+## 8. 文件影响范围（全量汇总）
+| 文件 | 操作 | 说明 | 来源分端 |
+|---|---|---|---|
+| extensions/summarize-tests.ts | CREATE | 汇总测试结果的工具 | pi |
+"""
+
+PI_STACK = """
+# pi 分端设计
+## 1. 目标与范围
+## 2. 需求来源与决策追踪
+## 3. 现有实现分析
+## 4. 扩展入口与工具契约
+## 5. 命令、事件钩子与阻塞语义
+## 6. 状态与持久化
+## 7. UI 与运行模式
+## 8. Provider、MCP、依赖与清单
+### 8.1 API 依赖
+- 契约源：不适用：无后端
+## 9. Skills 交付（适用时）
+## 10. 测试与验收
+## 11. 风险与验证动作
+## 12. 文件影响范围（pi 文件）
+| 文件 | 操作 | 说明 |
+|---|---|---|
+| extensions/summarize-tests.ts | CREATE | 汇总测试结果的工具 |
+"""
+
+
+class PiDesignTests(unittest.TestCase):
+    def make_pi_design(self, root: Path, stack_content: str = PI_STACK) -> Path:
+        (root / "extensions").mkdir(parents=True, exist_ok=True)
+        main = root / ".ai/design/sample.md"
+        write(main, PI_MAIN)
+        write(main.with_suffix("") / "pi.md", stack_content)
+        return main
+
+    def test_pi_only_design_passes(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            main = self.make_pi_design(root)
+            self.assertEqual(checker.validate(main, root), [])
+            self.assertIn(main.with_suffix("") / "pi.md", checker.design_documents(main))
+
+    def test_first_project_skill_can_create_its_directory_without_a_package(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            main = self.make_pi_design(root)
+            path = ".pi/skills/review/SKILL.md"
+            write(main, PI_MAIN.replace("extensions/summarize-tests.ts", path))
+            write(main.with_suffix("") / "pi.md", PI_STACK.replace("extensions/summarize-tests.ts", path))
+            self.assertFalse((root / "package.json").exists())
+            self.assertFalse((root / ".pi").exists())
+            self.assertEqual(checker.validate(main, root), [])
+
+    def test_pi_skill_directory_exception_does_not_allow_other_paths_or_escape(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            self.assertEqual(checker.validate_path(root, root / "pi.md", ".pi/skills/review/scripts/run.py", "CREATE"), [])
+            for path, code in ((".pi/extensions/new/tool.ts", "CREATE_PARENT_MISSING"), (".pi/skills/../extensions/new.ts", "CREATE_PARENT_MISSING"), (".pi/skills/../../../outside/SKILL.md", "IMPACT_PATH_OUTSIDE_REPO")):
+                self.assertIn(code, {f.code for f in checker.validate_path(root, root / "pi.md", path, "CREATE")})
+
+    def test_pi_missing_heading_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            broken = PI_STACK.replace("## 4. 扩展入口与工具契约", "## 4. 工具")
+            main = self.make_pi_design(root, broken)
+            self.assertIn("STACK_HEADING_MISSING", {f.code for f in checker.validate(main, root)})
+
+    def test_pi_impact_rows_must_aggregate_into_main(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            main = self.make_pi_design(root, PI_STACK.replace("extensions/summarize-tests.ts", "extensions/other.ts"))
+            self.assertIn("IMPACT_NOT_AGGREGATED", {f.code for f in checker.validate(main, root)})
+
+    def test_pi_api_dependency_is_checked_against_backend_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "src").mkdir()
+            (root / "src/lib.rs").write_text("", encoding="utf-8")
+            main = self.make_pi_design(root)
+            write(
+                main,
+                PI_MAIN.replace("| backend | backend.md | 不适用（无后端） |", "| backend | backend.md | 适用 |")
+                .replace(
+                    "- 契约源: 不适用：pi 扩展不消费后端 API",
+                    "| Operation ID | 方法 | 路径 | 用途 | 调用方 |\n|---|---|---|---|---|\n| createExport | POST | /api/exports | create | pi |",
+                )
+                + "| src/new.rs | CREATE | adjacent to src/lib.rs | backend |\n",
+            )
+            write(main.with_suffix("") / "backend.md", BACKEND)
+            dependency = (
+                "| Operation ID | 方法 | 路径 | 使用的请求字段 | 使用的响应字段 | 用途 |\n"
+                "|---|---|---|---|---|---|\n"
+                "| createExport | POST | /api/exports | format | id | 汇总导出 |"
+            )
+            stack = PI_STACK.replace("- 契约源：不适用：无后端", dependency)
+            write(main.with_suffix("") / "pi.md", stack)
+            self.assertEqual(checker.validate(main, root), [])
+            write(main.with_suffix("") / "pi.md", stack.replace("/api/exports | format", "/api/wrong | format"))
+            self.assertIn("CONTRACT_SIGNATURE_MISMATCH", {f.code for f in checker.validate(main, root)})
+
+
 if __name__ == "__main__":
     unittest.main()

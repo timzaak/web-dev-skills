@@ -52,7 +52,7 @@
 - `findings`：未解决问题数组；每项包含 `severity`、`location`、`evidence`（证据路径数组）、`impact`、`suggested_fix`。无问题时为空数组。
 - `pending_verification`：后续承接数组；每项包含 `scenario`、`owner`、`location`。无承接时为空数组。
 
-`change_scope` 只表示实际改动，不表示检查范围；只写报告/日志时九项为 false，受版本控制的生成物变化按实际层填写。执行了全部检查但发现缺陷时，仍按 `REJECTED/failed` 返回。报告写入失败、字段缺失或结论与门禁/问题不一致是无效验收输出；不得编造报告路径或将其视为通过。
+`change_scope` 只表示实际改动，不表示检查范围；只写报告/日志时全部字段为 false，字段集合以 agent output 协议为准；受版本控制的生成物变化按实际层填写。执行了全部检查但发现缺陷时，仍按 `REJECTED/failed` 返回。报告写入失败、字段缺失或结论与门禁/问题不一致是无效验收输出；不得编造报告路径或将其视为通过。
 
 ## 调用方消费与恢复
 

@@ -25,7 +25,7 @@ allowed-tools:
 ## 输入范围
 
 - 设计主文档：`.ai/design/[feature].md`
-- 分端设计文档（适用端必须存在）：`.ai/design/[feature]/backend.md`、`.ai/design/[feature]/frontend.md`、`.ai/design/[feature]/extension.md`、`.ai/design/[feature]/flutter.md`
+- 分端设计文档：按主文档 §4.2 与设计状态协议读取全部适用端（pi 使用 `.ai/design/[feature]/pi.md`），适用端文档必须存在；确定性脚本返回的 `design_documents` 用于后续扫描
 - 设计生成状态：`.ai/design/[feature]/.state.json`（必须存在且为 `complete`）
 - 决策账本：`.ai/decision-log/[feature].md`（存在时必须读取）
 - 需求来源：`.ai/user-stories/**/*.md`、`docs/user-stories/**/*.md`、`.ai/prd/**/*.md`、`docs/prd/**/*.md`、`.ai/tech-research/**/*.md`
@@ -36,6 +36,7 @@ allowed-tools:
   - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md`
   - `${CLAUDE_PLUGIN_ROOT}/guides/extension/development.md`（扩展适用时）
   - `${CLAUDE_PLUGIN_ROOT}/guides/flutter/development.md`（目标项目启用 Flutter 时）
+  - `${CLAUDE_PLUGIN_ROOT}/guides/pi/development.md` 与 `${CLAUDE_PLUGIN_ROOT}/guides/pi/testing.md`（本次有 pi 交付时）
   - `AGENTS.md`
 
 ## 执行流程
@@ -43,11 +44,11 @@ allowed-tools:
 - 校验主文档是否存在，并按主文档 §4.2 交付端范围校验适用端的分端文档是否存在。
 - `.ai/design/[feature]/.state.json` 缺失或状态不是 `complete` 时停止，提示先恢复 `/t-design [feature]`。
 - 从设计文档提取引用的用户故事、PRD、技术预研、接口、数据库变更、各端范围、测试策略。
-- 运行 `python ${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py ".ai/design/[feature].md" --require-complete`；失败时先按结构化结果修正文档，不进入评分。
+- 运行 `python ${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py ".ai/design/[feature].md" --require-complete --json`；失败时先按结构化结果修正文档，不进入评分，后续扫描使用其 `design_documents` 列表。
 - 对主文档和全部适用分端文档运行决策闭合扫描；`needs_user_answer` 和澄清处理按 rubric 的 Clarification Gate 执行（先查 Decision Log，未解决时 `AskUserQuestion` 阻塞提问，回答后更新 Decision Log 和设计文档再重新扫描）。
 - 核对设计文档与需求来源的一致性。设计引用 `.ai/user-stories` 时确认其为 draft 候选来源且路径存在；同时存在相关 `docs/user-stories` 时检查是否有未说明冲突。纯技术方案可接受 `.ai/tech-research/[feature].md` 作为唯一需求来源，不得因缺少 PRD/用户故事扣 P0。
 - 核对设计文档与项目规范的一致性。
-- 按 rubric 的维度和 Detailed Checks 分别检查：主文档（需求追溯、跨端契约与汇总）、backend 分端（API、数据库、领域逻辑）、frontend 分端（页面、状态与数据流）、extension 分端（权限、消息/存储与生命周期）、flutter 分端（分层、状态管理、导航）与测试策略。
+- 按 rubric 的维度和 Detailed Checks 检查主文档、全部适用分端与测试策略；pi 分端必须参与专项完整性评分，覆盖工具/事件、生命周期与状态恢复、模式/权限、资源发现和运行时证据。
 - 评估设计方案的章节组织是否内聚：若同一业务闭环、同一数据模型或同一外部契约被拆分为多个独立章节，应在设计阶段合并，避免 `/t-super-run` 拆出颗粒度过细的任务；分端文档内部不得重复其他端的设计内容。
 - 按 rubric 的归一化规则生成评分与问题清单，并按其 Pass Gate 输出 `PASS / CONDITIONAL PASS / FAIL`，不得只凭总分宣布通过。
 - 输出下一步建议：通过或风险可接受时进入 `/t-super-run [feature] --phase <phase>`；修复后可重新运行 `/t-design-check [feature]`。

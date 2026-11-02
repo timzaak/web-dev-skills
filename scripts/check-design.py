@@ -11,8 +11,8 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 
-STACKS = ("backend", "frontend", "extension", "flutter", "shopify")
-SKILL_ROOT_PREFIXES = (".claude/skills/", ".agents/skills/", "skills/")
+STACKS = ("backend", "frontend", "extension", "flutter", "shopify", "pi")
+SKILL_ROOT_PREFIXES = (".claude/skills/", ".agents/skills/", ".pi/skills/", "skills/")
 MAIN_HEADINGS = (
     "## 1. 需求概述",
     "## 2. 需求来源",
@@ -32,6 +32,7 @@ STACK_HEADINGS = {
     "extension": ("## 4. 入口与交互", "## 5. 权限与上下文", "## 6. 消息与存储", "## 7. 测试与验收", "## 9. 文件影响范围"),
     "flutter": ("## 4. 用户体验流", "### 6.1 API 依赖", "详细设计（Flutter", "文件影响范围（Flutter"),
     "shopify": ("## 1. 目标与范围", "## 5. 契约设计（app proxy / internal API）", "## 8. 测试与验收", "## 10. 文件影响范围（Shopify 文件）"),
+    "pi": ("## 1. 目标与范围", "## 4. 扩展入口与工具契约", "## 5. 命令、事件钩子与阻塞语义", "## 10. 测试与验收", "## 12. 文件影响范围（pi 文件）"),
 }
 PLACEHOLDERS = re.compile(
     r"\[(?:方案名称|feature|真实仓库路径|operationId|REQ/US-ID)\]"
@@ -130,6 +131,7 @@ def impact_rows(text: str) -> list[tuple[str, str]]:
         "文件影响范围（Flutter 文件）",
         "文件影响范围（扩展文件）",
         "文件影响范围（Shopify 文件）",
+        "文件影响范围（pi 文件）",
     ):
         rows = table_rows(text, fragment)
         if rows:
@@ -159,7 +161,8 @@ def validate_path(repo_root: Path, source: Path, rel_path: str, operation: str) 
         findings.append(Finding("INVALID_IMPACT_OPERATION", str(source), f"{rel_path}: {operation}"))
     elif operation == "CREATE":
         # skill 根目录子树的新 skill 目录允许随交付创建；其余 CREATE 仍要求父目录存在。
-        if not candidate.parent.exists() and not under_skill_root(rel_path):
+        normalized_path = candidate.relative_to(repo_root.resolve()).as_posix()
+        if not candidate.parent.exists() and not under_skill_root(normalized_path):
             findings.append(Finding("CREATE_PARENT_MISSING", str(source), rel_path))
     elif not candidate.exists():
         findings.append(Finding("IMPACT_TARGET_MISSING", str(source), f"{operation}: {rel_path}"))
@@ -239,7 +242,7 @@ def validate(main_path: Path, repo_root: Path, require_complete: bool = False) -
             findings.append(Finding("MAIN_CONTRACT_EMPTY", str(main_path), "declare 不适用 with a reason when no contract is involved"))
         contract_ops = shopify_ops
 
-    for stack in ("frontend", "extension", "flutter", "shopify"):
+    for stack in ("frontend", "extension", "flutter", "shopify", "pi"):
         if stack not in documents or not contract_ops or (stack == "shopify" and "backend" not in documents):
             continue
         dependencies = operation_map(documents[stack][1], "API 依赖" if stack != "shopify" else "5. 契约设计")
