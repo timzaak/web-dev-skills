@@ -85,6 +85,8 @@ t-prd-publish user-management   # 验收通过后发布正式 PRD / 用户故事
 
 > Java 后端支持见 `java` 分支。
 >
+> pi coding agent 二次开发支持见 `pi` 分支。
+>
 > `general` 分支是[泛化方案](human/generalization.md)的落地：移除生产技术栈预设，改用通用 project 角色适配任意技术栈，移出的领域资产转为可选导出模板。
 
 ## 了解更多

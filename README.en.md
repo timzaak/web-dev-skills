@@ -85,6 +85,8 @@ For every command's parameters, preconditions, and next steps, run `t-how` for a
 
 > For Java backend support, see the `java` branch.
 >
+> For pi coding agent customization support, see the `pi` branch.
+>
 > The `general` branch implements the [generalization plan](human/generalization.en.md): production tech-stack presets are removed in favor of generic project roles that fit any stack, and the extracted domain assets live on as optional exportable templates.
 
 ## Learn More
