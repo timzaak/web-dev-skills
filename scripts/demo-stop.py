@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 import argparse
 import sys
-import subprocess
 import time
 from pathlib import Path
 
 from lib import docker
-from lib.proc import kill_process_by_port
+from lib.proc import kill_process_by_port, kill_processes_by_path
 # Removed state file dependencies: terminate_from_state, wait_process_exit, load_state
-from lib.paths import LOG_DIR
+from lib.paths import LOG_DIR, REPO_ROOT
 
 
 def should_print(quiet: bool) -> bool:
@@ -16,8 +15,6 @@ def should_print(quiet: bool) -> bool:
     return not quiet
 
 
-# Demo environment ports that may have node processes
-DEMO_PORTS = [3000, 3001, 3002, 3003]
 BACKEND_PORT = 8080
 LOG_DELETE_RETRIES = 5
 LOG_DELETE_RETRY_INTERVAL_SECONDS = 0.3
@@ -38,57 +35,6 @@ def log_verbose(message: str) -> None:
     """Print message only in verbose mode."""
     if verbose:
         print(message)
-
-
-def kill_demo_node_processes(quiet: bool) -> None:
-    """Kill node processes occupying demo-related ports.
-
-    This is a fallback when process state files are missing or corrupted.
-    Only kills processes on ports 3000-3003 that are typically used by Vite dev servers.
-    """
-    killed_count = 0
-    for port in DEMO_PORTS:
-        log_verbose(f"Checking port {port}...")
-        if kill_process_by_port(port):
-            killed_count += 1
-            log_verbose(f"Killed process on port {port}")
-    if killed_count > 0 and should_print(quiet):
-        print(f"Killed {killed_count} process(es) on demo ports")
-
-
-def _pids_holding_path_windows(path: str) -> set[int]:
-    """Return PIDs holding a file path by querying Sysinternals handle.exe on Windows.
-
-    Disabled for Git Bash compatibility issues.
-    """
-    # Disabled: handle.exe has compatibility issues with Git Bash
-    return set()
-
-
-def kill_demo_log_holders(quiet: bool) -> None:
-    """Best-effort cleanup for orphan processes still holding demo log files."""
-    if sys.platform != "win32":
-        return
-
-    pids: set[int] = set()
-    for log_file in DEMO_LOG_FILES:
-        pids.update(_pids_holding_path_windows(str(log_file)))
-
-    killed = 0
-    for pid in sorted(pids):
-        result = subprocess.run(
-            ["taskkill", "/PID", str(pid), "/F", "/T"],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            check=False,
-        )
-        if result.returncode == 0:
-            killed += 1
-
-    if killed > 0 and should_print(quiet):
-        print(f"Killed {killed} orphan process(es) holding demo logs")
 
 
 def _delete_with_retry(path: Path) -> bool:
@@ -139,10 +85,12 @@ def main() -> int:
     kill_process_by_port(BACKEND_PORT)
     log_verbose(f"Backend process on port {BACKEND_PORT} killed (if present)")
 
-    # Step 2: Kill frontend processes by demo ports
+    # Step 2: Kill frontend processes by project path
     if should_print(quiet):
         print("Stopping frontend...")
-    kill_demo_node_processes(quiet)
+    frontend_dir = REPO_ROOT / "frontend"
+    killed = kill_processes_by_path(frontend_dir)
+    log_verbose(f"Killed {killed} frontend process tree(s) under {frontend_dir}")
 
     # Step 3: Stop and remove Docker containers
     if should_print(quiet):
@@ -160,10 +108,7 @@ def main() -> int:
             log_verbose(f"Removing container: {container}")
             docker.rm_force_container(container)
 
-    # Step 4: Best-effort cleanup for orphan processes
-    kill_demo_log_holders(quiet)
-
-    # Step 5: Cleanup log files (optional, non-fatal)
+    # Step 4: Cleanup log files (optional, non-fatal)
     failed_logs = cleanup_demo_files()[1]
     if failed_logs and should_print(quiet):
         for failed in failed_logs:

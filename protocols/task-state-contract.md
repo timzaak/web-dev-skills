@@ -57,14 +57,13 @@
 
 ## State Rules
 
-- `phase` 只允许 supported phases：`backend | frontend | extension | miniapp | flutter | web-demo | extension-demo | flutter-demo`。
-- `phases` / `tasks` 只要求包含当前任务的 `active_phases`；未启用 extension/miniapp/Flutter 的项目不得强制要求对应 phase。
-- `extension` / `miniapp` / `flutter` 启用规则统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md`。
+- 校验 `phase` 时读取 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Phases；只允许其中的 `supported_phases`，并按该节确定启用条件。
+- `phases` / `tasks` 只要求包含当前任务的 `active_phases`，不得强制要求未启用的阶段。
 - `status` 只允许 `pending | failed | completed | skipped | generated`。
   - `skipped`：阶段或已规划的 item 不适用于当前任务
   - `generated`：任务规划已生成，尚未开始执行
 
-backend/frontend/extension/miniapp/flutter 的 `tasks[phase]` 必含 `dev` 与 `accept`；只有需要测试角色新增或修改测试用例、fixture/helper 或专项验证脚本时才包含 `test`。每个已规划 slot 都必须有 manifest 和至少一个 item；仅运行现有测试或编译、类型检查、构建时，`tasks[phase]` 和阶段目录都不包含 test slot。web-demo/extension-demo/flutter-demo 只含 `dev` 与 `accept`。
+`tasks[phase]` 的必需 slot 与 test 启用条件按 task-phase-execution 的 Slot Order 校验。每个已规划 slot 都必须有 manifest 和至少一个 item；未规划的 test slot 不得出现在 `tasks[phase]` 或阶段目录中。
 
 ## Execution Entry Transition
 
@@ -88,6 +87,12 @@ backend/frontend/extension/miniapp/flutter 的 `tasks[phase]` 必含 `dev` 与 `
 - 证据缺失或相关输入变化时，将持有失效验证的已完成 item、依赖其结果的已完成下游 item 及对应 accept item 置为 pending，并重新聚合 slot/phase；不重置无关 item 或尚未执行的 generated item。
 - 验证由后续 Demo 承接时，同时标记验证表对应行为为未执行并重新打开已完成的承接验收；记录失效原因和恢复入口，不自动执行其他 phase。
 - 若需要生产修复，由编排层重新打开对应 dev item；先持久化状态与 Handoff 再启动 agent。状态写入失败时停止，不以旧 completed 返回成功。
+
+## Acceptance Result
+
+`/t-run` 按 `${CLAUDE_PLUGIN_ROOT}/protocols/acceptance-contract.md` 校验返回与报告，仅有效通过结论将 accept item 写为 completed。有效拒绝保留 accept=failed、last_error 和 Handoff，按根因将对应 dev/test 及失效下游 item 重开为 pending，聚合后停止；同命令重入先修复、重测，再独立验收。仅缺环境/设备/用户裁决时，不重开无缺陷的 dev/test，记录解除条件后停止。无效输出记录失败，不代出结论。
+
+accept 不可单独 skipped 绕过门禁；仅整个 phase 有不适用依据且全部 item skipped 时允许跳过。
 
 ## Aggregation Rules
 

@@ -283,6 +283,14 @@ class HealthControllerTest {
 }
 ```
 
+## 11. backend/.gitignore
+
+```gitignore
+/target
+```
+
+`/target` 是 Maven 构建产物目录，不提交；源码与 `src/main/resources/application.yml` 正常提交。
+
 ## 注意事项
 
 - 默认 Java 版本为 17，这是 Spring Boot 3 的最低基线；如果目标环境明确使用 Java 21，可修改 `java.version` 并同步 README。

@@ -1,6 +1,6 @@
 ---
 name: t-figma-impl
-description: Reconstruct and implement a complete Figma UI in an existing frontend file, block by block, using prepared assets and visual acceptance.
+description: Implement a Figma UI in an existing frontend file, block by block; leave pending assets empty, bind prepared assets, and hand over for manual acceptance. Does not prepare media assets.
 argument-hint: "<figma-url> <target-file> <preview-url>"
 allowed-tools:
   - AskUserQuestion
@@ -18,32 +18,21 @@ allowed-tools:
 
 # Figma 整页实现
 
-运行时边界：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`（判断产物写入位置或项目事实与插件默认冲突时读）
-共享契约：`${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md`（校验 session、分块、写 context 或晋升长期规则前读）
-二次重建：`${CLAUDE_PLUGIN_ROOT}/guides/figma/reconstruction.md`（分块或修订结构理解前读）
+按人确认的本轮范围重建 Figma UI 并实现到既有前端文件；遵循工作流契约的「协作范围」，不补全未确认设计，不下载、转换素材。还原方法见 `${CLAUDE_PLUGIN_ROOT}/guides/figma/reconstruction.md`（分块前读），manifest 与交付规则见 `${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md`，agent 派发遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md`。
 
-负责完整 UI 稿的结构重建、代码实现和有界目视验收；不重新承担素材下载和转换。
+## 前置
 
-## 前置和上下文
+校验 URL 与 target-file；`<preview-url>` 可选，仅用于交付报告回显。工作目录为 `.ai/figma/<fileKey>-<nodeId>/`。先读已有 `context.md`，再读取目标文件、邻近模块与项目 token/组件/动效模式；按工作流契约的「布局决策与恢复」补齐块清单和决策信息，记录主稿 viewport、适用断点和目标栈验证命令。manifest 用路径引用，不复述内容。栈无法确定时询问。
 
-校验 URL 与 target-file，通过 `${CLAUDE_PLUGIN_ROOT}/scripts/figma-session.py resolve` 找 active session，并按共享契约的 Session Resolve 表执行。impl 只复用 fileKey/mainNodeId 与主稿 URL 一致且 assets 阶段已完成的 session；missing 或 mismatch 时停止并提示先运行 `t-figma-assets` 或回到匹配主稿，不得自行归档或创建 session。`assets-manifest.json` 不存在则停止；空数组合法。
+按工作流契约的「工作目录」检查素材就绪情况：已就绪的引用 manifest 条目；manifest 缺失、部分条目缺失或产物未就绪时，对应位置跳过留空，缺项写 `context.md`，继续实现其它内容。位图、SVG、视频均交给 `t-figma-assets` 准备，impl 不补做素材。绑定遵循契约的「素材类型保真」。
 
-读取项目约束、目标文件及邻近模块、现有 token/组件/动效/响应式模式、`docs/figma-rules.md`、session candidates 和 assets manifest，生成固定章节的 `context.md`。栈或资产引用方式无法确定时停止询问。`<preview-url>` 缺失时 `AskUserQuestion` 补齐一次，仍无则停止。
+## 还原与实现
 
-## 二次重建与分块
+1. 在 MCP 窗口内为主节点和各视觉块保存 baseline 截图到 `source/`（一次写入，不覆盖）；metadata、design context 和 variables 只在窗口内消费，不整页落盘。
+2. 按 reconstruction 指南分块：截图定结构、节点树补精确数值与显式布局属性；按契约记录原始观测、采用规则与待裁决项。有裁决需求时按影响范围询问，不将候选写成已采用规则。
+3. 逐块委派 `figma-impl` agent：每次一个块或少量相邻小块，给出该块的 baseline、观测与采用规则、已就绪资产条目 id、待补素材清单和组件映射。按契约消费 agent 输出并更新 context；汇总 `layout_questions` 询问用户，记录答复后仅恢复受影响部分，其它独立部分可继续。执行失败先处理原因再重试该块，布局待裁决不走失败重试；中断后按契约恢复未完成块、待裁决项与待补素材。
 
-1. 在 MCP 窗口内保存主节点 metadata、design context、variables 和 baseline 到 session `source/`（一次写入，后续不覆盖）。
-2. 按 reconstruction 指南执行：baseline 截图定结构（视觉块、stacking、裁切、绝对定位、合成素材），节点树只补精确数值，不照搬 frame/group 层次。
-3. 把页面划分为可独立实现的视觉块（按文档顺序），在 MCP 窗口内为每块保存 `source/baseline-<block>.png`；块清单（名称、baseline、使用资产、组件映射）与主稿 viewport 写入 `context.md`。
+## 交付
 
-## 逐块实现与整页验收
-
-4. 按块清单顺序逐块委派 `figma-impl`：每次 dispatch 只承担一个块或少量相邻小块，给出该块的 baseline、资产和组件映射；agent 完成该块并执行目标栈验证。块失败先重试该块，不带病推进；中断后从 `context.md` 块清单的未完成块恢复。
-5. 全部块完成后注入并委派只读 `figma-accept` 做整页目视比对。有阻塞问题且未到 5 轮时，把问题按所在块归组交回 impl；若视觉证据证明分块理解错误，先更新 `context.md` 再修实现。
-6. 收敛后晋升符合契约的规则候选，合并改写 `docs/figma-rules.md`，最多 10 条；否则候选留在 session。
-
-## 结束状态
-
-- 验收通过：stage=`accepted`，报告 `PASS`。
-- 达 5 轮：stage 保持 `implemented`，报告 `EXHAUSTED`。
-- 栈验证失败：不进入 accept，不宣称完成。
+4. 按契约检查本轮块进度与待裁决项，存在未完成部分时报告进度和恢复条件，不宣称完成。仅剩待补素材时报告留空清单，提示以同一主稿 URL 运行 `t-figma-assets`，本轮以待绑定状态结束。素材补齐后重读 manifest，按「素材类型保真」绑定并核对目标代码实际引用，重跑栈验证；无需重做已完成布局。
+5. 按契约核对本轮进度与缺项，再在目标项目根运行 `python ${CLAUDE_PLUGIN_ROOT}/scripts/figma-assets.py verify <工作目录>/assets-plan.json`；plan/manifest 缺失、旧产物缺少验证证据或复验失败时交回 assets 修复，保留布局。栈验证和素材门禁均通过才按契约「验收」交付范围、布局调整依据、preview URL（如有）和 baseline 位置，并列出本轮人工检查项；未做页面比对不报告视觉验收通过。

@@ -3,8 +3,9 @@
 
 This is a planning gate. It does not execute tests. For Java/Maven backend
 runners it statically enumerates the @Test methods selected by the documented
---module / --tests filter. Frontend, extension, miniapp, Flutter, Web Demo,
-Extension Demo, and Flutter Demo runners are checked statically because project scripts vary.
+--module / --tests filter. Frontend, extension, miniapp, Flutter, Shopify,
+Web Demo, Extension Demo, and Flutter Demo runners are checked statically
+because project scripts vary.
 """
 
 from __future__ import annotations
@@ -24,6 +25,8 @@ COMMAND_MARKERS = {
     "extension": "npm run test",
     "miniapp": "npm run",
     "flutter": "",
+    "shopify-app": "npm run test",
+    "shopify-extension": "npm run test",
     "web-demo": "web-demo-test-runner.py",
     "extension-demo": "web-demo-test-runner.py",
     "flutter-demo": "flutter-demo-test-runner.py",
@@ -64,7 +67,18 @@ def normalize_path(path: Path, root: Path) -> str:
 
 def infer_layer(path: Path) -> str | None:
     parts = [part.lower() for part in path.parts]
-    for layer in ("backend", "frontend", "extension", "miniapp", "flutter", "web-demo", "extension-demo", "flutter-demo"):
+    for layer in (
+        "shopify-app",
+        "shopify-extension",
+        "backend",
+        "frontend",
+        "extension",
+        "miniapp",
+        "flutter",
+        "web-demo",
+        "extension-demo",
+        "flutter-demo",
+    ):
         if layer in parts:
             return layer
     return None
@@ -75,7 +89,7 @@ def find_runner_files(root: Path, feature: str, layer: str | None) -> list[Path]
     if not task_root.is_dir():
         raise SystemExit(f"Task directory not found: {task_root}")
 
-    layers = [layer] if layer else ["backend", "frontend", "extension", "miniapp", "flutter", "web-demo", "extension-demo", "flutter-demo"]
+    layers = [layer] if layer else ["backend", "frontend", "extension", "miniapp", "flutter", "shopify-app", "shopify-extension", "web-demo", "extension-demo", "flutter-demo"]
     files: list[Path] = []
     for current_layer in layers:
         if current_layer in {"web-demo", "extension-demo", "flutter-demo"}:
@@ -117,7 +131,7 @@ def is_probable_test_token(token: str) -> bool:
         return False
     if lower.startswith(("uv ", "cd ", "npm ", "mvn ", "skills/")):
         return False
-    if lower in {"backend", "frontend", "extension", "miniapp", "flutter", "web-demo", "extension-demo", "flutter-demo", "authoring", "runner", "none"}:
+    if lower in {"backend", "frontend", "extension", "miniapp", "flutter", "shopify-app", "shopify-extension", "web-demo", "extension-demo", "flutter-demo", "authoring", "runner", "none"}:
         return False
     return bool(re.search(r"[A-Za-z0-9_\u4e00-\u9fff]", token))
 
@@ -158,7 +172,7 @@ def is_full_suite_command(command: str, layer: str) -> bool:
             "uv run scripts/backend-test.py --",
             "uv run scripts\\backend-test.py --",
         }
-    if layer in {"frontend", "extension"}:
+    if layer in {"frontend", "extension", "shopify-app", "shopify-extension"}:
         return re.fullmatch(r"(?:cd\s+\S+\s+&&\s+)?npm\s+run\s+test(?::run)?", normalized) is not None
     if layer == "miniapp":
         return re.fullmatch(r"(?:cd\s+\S+\s+&&\s+)?npm\s+run\s+build(?::\S+)?", normalized) is not None
@@ -410,7 +424,7 @@ def check_runner(root: Path, path: Path, dynamic: bool) -> RunnerCheck:
         missing = {test for test in expected if test not in selected}
         if missing:
             errors.append("Expected backend tests not selected by runner command: " + ", ".join(sorted(missing)))
-    elif layer in {"frontend", "extension", "miniapp", "flutter", "web-demo", "extension-demo", "flutter-demo"} and expected and commands:
+    elif layer in {"frontend", "extension", "miniapp", "flutter", "shopify-app", "shopify-extension", "web-demo", "extension-demo", "flutter-demo"} and expected and commands:
         mentioned: set[str] = set()
         for command in commands:
             mentioned.update(command_mentions_expected(command, expected, layer))
@@ -453,7 +467,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Validate task runner test coverage.")
     parser.add_argument("feature", help="Feature name under .ai/task/")
     parser.add_argument("--project-root", type=Path, default=Path.cwd(), help="Target project root. Defaults to cwd.")
-    parser.add_argument("--layer", choices=["backend", "frontend", "extension", "miniapp", "flutter", "web-demo", "extension-demo", "flutter-demo"], help="Limit to one layer.")
+    parser.add_argument("--layer", choices=["backend", "frontend", "extension", "miniapp", "flutter", "shopify-app", "shopify-extension", "web-demo", "extension-demo", "flutter-demo"], help="Limit to one layer.")
     parser.add_argument("--runner-file", type=Path, action="append", help="Specific runner item file to check.")
     parser.add_argument("--no-dynamic", action="store_true", help="Skip dynamic backend test-listing checks.")
     args = parser.parse_args()

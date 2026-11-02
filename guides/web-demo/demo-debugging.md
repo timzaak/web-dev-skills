@@ -9,7 +9,7 @@
 - 日志摘要：`demo/test-results/console-logs/*-summary.json`
 - 后端日志：`log/backend-demo.log`
 - 前端日志：`log/frontend-demo.log`
-- 测试产物：`demo/test-results/artifacts/`
+- 测试产物：`demo/test-results/runs/<runId>/` 内的失败截图与 `trace.zip`；直接运行 Playwright（未注入 `DEMO_RUN_ID`）时为 `demo/test-results/artifacts/`
 
 ## 常用查看命令
 

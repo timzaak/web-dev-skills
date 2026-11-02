@@ -222,6 +222,97 @@ def _get_process_name_windows(pid: str) -> str | None:
     return None
 
 
+def _get_pids_by_path_windows(fragment: str) -> set[str]:
+    """Get PIDs of node/esbuild processes whose command line contains a path fragment.
+
+    Only the dev-server chain (node/esbuild) is matched; other programs that
+    merely mention the path in their command line (e.g. an editor opened on
+    the folder) must never be killed.
+    """
+    command = (
+        "Get-CimInstance Win32_Process -Filter \"Name='node.exe' or Name='esbuild.exe'\" | "
+        f"Where-Object {{ $_.CommandLine -and $_.CommandLine.ToLower().Contains('{fragment}') }} | "
+        "ForEach-Object { $_.ProcessId }"
+    )
+    try:
+        result = subprocess.run(
+            ["powershell", "-NoProfile", "-Command", command],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+            timeout=10,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+        return set()
+
+    if result.returncode != 0:
+        return set()
+
+    return {
+        line.strip()
+        for line in result.stdout.splitlines()
+        if line.strip().isdigit()
+    }
+
+
+def kill_processes_by_path(path: Path) -> int:
+    """Kill node/esbuild process trees whose command line references the path.
+
+    kill_process_by_port only sees processes that reached the listening state,
+    so a dev server stuck in startup — still holding its redirected log file
+    handles — survives it and blocks log deletion. Matching on the project
+    path instead catches those orphans and cannot kill another project's
+    processes that merely share the port.
+
+    Returns the number of process trees killed.
+    """
+    fragment = str(path.resolve()).replace("'", "''")
+    killed = 0
+    if os.name == "nt":
+        for pid in _get_pids_by_path_windows(fragment.lower()):
+            try:
+                result = subprocess.run(
+                    ["taskkill", "/PID", pid, "/T", "/F"],
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    check=False,
+                )
+            except (ValueError, FileNotFoundError, OSError):
+                continue
+            if result.returncode == 0:
+                killed += 1
+        return killed
+
+    try:
+        result = subprocess.run(
+            ["pgrep", "-f", fragment],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+            timeout=5,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+        return 0
+    for pid in result.stdout.split():
+        kill_result = subprocess.run(
+            ["kill", "-9", pid],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+        if kill_result.returncode == 0:
+            killed += 1
+    return killed
+
+
 def kill_process_by_port(port: int) -> bool:
     """Kill the process occupying the specified TCP port.
 

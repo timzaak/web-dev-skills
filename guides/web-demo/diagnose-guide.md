@@ -8,6 +8,7 @@
 
 - **收集失败证据**
    - `demo/test-results/runs/<runId>/playwright-output.log`
+   - `demo/test-results/runs/<runId>/` 内的失败截图与 `trace.zip`（按用例子目录存放；FRONTEND 类现场的主要证据，旧项目可能不存在）
    - `demo/test-results/unified-logs/*`
    - `log/backend-demo.log`
    - 失败测试文件、相关 page object、必要的前端组件与用户故事

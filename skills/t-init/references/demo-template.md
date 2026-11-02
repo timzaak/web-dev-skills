@@ -82,16 +82,24 @@ Demo 使用 `playwright-unified-logger` 包作为日志依赖。
  * - timeout: 单个测试最长执行时间（120s）
  * - expect.timeout: 断言等待时间（10s）
  * - workers: 单线程执行，确保测试稳定
- * - screenshot/video/trace: 默认关闭，按需开启
+ * - screenshot/trace: 失败时自动保留，作为 FRONTEND 类问题的现场证据
+ * - video: 默认关闭
  *
  * 环境变量：
  * - BASE_URL: 后端地址（默认 http://localhost:8080）
+ * - DEMO_RUN_ID: runner 注入的运行 ID；存在时失败产物落入当次 run 证据目录
  * - UNIFIED_LOG_LEVEL: mini | normal | verbose | silent（默认 mini）
  */
 
 import { defineConfig, devices } from '@playwright/test'
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:8080'
+
+// runner 注入 DEMO_RUN_ID 时失败截图 / trace 直接写入当次 run 目录；
+// 直接执行 playwright test 时回退到 artifacts 目录
+const OUTPUT_DIR = process.env.DEMO_RUN_ID
+  ? `test-results/runs/${process.env.DEMO_RUN_ID}`
+  : 'test-results/artifacts'
 
 export default defineConfig({
   testDir: './e2e',
@@ -106,13 +114,13 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
 
-  outputDir: 'test-results/artifacts',
+  outputDir: OUTPUT_DIR,
 
   use: {
     baseURL: BASE_URL,
-    screenshot: 'off',
+    screenshot: 'only-on-failure',
     video: 'off',
-    trace: 'off',
+    trace: 'retain-on-failure',
     actionTimeout: 0,
     navigationTimeout: 15 * 1000,
   },

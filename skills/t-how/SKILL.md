@@ -30,11 +30,13 @@ t-decision -> t-prd / t-tech-research（无固定顺序，进设计前收敛）
 -> t-web-demo-* / t-extension-demo-* / t-flutter-demo-* -> t-prd-publish -> t-push -> t-release
 ```
 
-`t-prd-check`、`t-design-check`、`t-task-check` 是可选质量检查。phase 顺序：Web 为 `backend -> frontend -> web-demo`，扩展项目为 `extension -> extension-demo`（需要后端改动时前置 backend），Flutter 为 `backend -> flutter -> flutter-demo`。
+`t-prd-check`、`t-design-check`、`t-task-check` 是可选质量检查。phase 顺序：Web 为 `backend -> frontend -> web-demo`，扩展项目为 `extension -> extension-demo`（需要后端改动时前置 backend），Flutter 为 `backend -> flutter -> flutter-demo`，Shopify 为 `shopify-app -> shopify-extension -> web-demo`（仅在设计要求店面、admin 或顾客账户用户故事演示时启用 web-demo）。
 
 ## 场景路由
 
 按用户目标匹配下表，讲解时给出命令、关键前置条件和下一步。匹配多个场景时全部列出，让用户确认顺序。
+
+讲解 `--phase <phase>` 可选值或启用条件时，读取 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Phases；只展示与用户场景相关的阶段，参数说明不展开完整枚举。
 
 | 用户目标 | 入口命令 | 说明 / 下一步 |
 |---|---|---|
@@ -44,18 +46,24 @@ t-decision -> t-prd / t-tech-research（无固定顺序，进设计前收敛）
 | 把已验收需求转正 | `/t-tools:t-prd-publish <feature>` | 长期事实合并回 `docs/` |
 | 技术设计 | `/t-tools:t-design <feature>` | 主文档 + 分端设计，后端契约先行 |
 | 实现 + 测试 | `/t-tools:t-super-run <feature> --phase <phase>` | 合并任务规划与执行；`--phase` 必填，每次只执行一个 phase |
-| 无人值守连跑全部剩余 phase | `/t-tools:t-super-run-all <feature>` | 设计 complete 后一次跑完剩余 phase；每 phase 完成后自动接续 `t-review --fix -> t-simplify -> t-push` 再进入下一 phase |
 | Chrome 扩展开发 | `/t-tools:t-design <feature>`，再 `t-super-run --phase extension` | 先按 [extension 初始化指南](${CLAUDE_PLUGIN_ROOT}/guides/extension/initialization.md) 建 WXT 工程；用户故事演示用 extension-demo |
+| Shopify App 开发 | `/t-tools:t-design <feature>`，再 `t-super-run --phase shopify-app` / `--phase shopify-extension` | 先 `/t-tools:t-init --shopify <project>` 建工程；规范见 [Shopify 开发指南](${CLAUDE_PLUGIN_ROOT}/guides/shopify/index.md)；店面、admin 或顾客账户用户故事演示用 web-demo |
+| Shopify 项目脚手架 | `/t-tools:t-init --shopify <project-name>` | Shopify 官方 React Router 模板 + demo/scripts 设施；已有 Shopify 工程可增量补齐 |
+| 部署 Shopify 应用 | push 之后手动执行 `shopify app deploy` | 部署不并入 `t-push`；时机与迁移注意事项见 [Shopify 开发指南](${CLAUDE_PLUGIN_ROOT}/guides/shopify/development.md) |
 | 扩展 Demo 基础设施初始化 | `/t-tools:t-init --extension-demo [--extension-dir <path>]` | 为已有 WXT 工程增量生成 Playwright fixture、真实加载 smoke 与运行说明；不代替故事验收 |
 | Web Demo / E2E | `/t-tools:t-web-demo-run <file>` 或 `/t-tools:t-web-demo-run-all` | 之后 `/t-tools:t-web-demo-accept <role>` |
 | Extension Demo / E2E | `/t-tools:t-extension-demo-run <file>` 或 `/t-tools:t-extension-demo-run-all` | 之后 `/t-tools:t-extension-demo-accept <file\|all>` |
 | Flutter Demo | `/t-tools:t-flutter-demo-run <file> --device <id>` 或 `/t-tools:t-flutter-demo-run-all` | 之后 `/t-tools:t-flutter-demo-accept <domain\|all>` |
 | 提交推送 | `/t-tools:t-review`、`/t-tools:t-simplify`，再 `/t-tools:t-push` | review 只报告，发现缺陷先修复；push 会清理注释并跑受影响 CI |
 | 发版 | `/t-tools:t-release [版本号]` | semver 不带 `v`，git tag 带 `v` |
+| 给插件新增或修改 skill | `/t-tools:t-skill [名称或能力描述]` | 只操作插件仓库自身，不用于目标项目业务开发 |
+| 在目标项目内创建或更新 skill | `/t-tools:t-skill --project [名称或能力描述]` | 按项目运行时落位 `.claude/skills/` 或 `.agents/skills/`；feature 中已规划的 skill 交付物走 `t-super-run` 对应 phase |
 | 写项目教程 / 文档 | `/t-tools:t-doc [名称]` | 不用于 PRD 和技术设计 |
-| 审计上下文 / 结构漂移 | `/t-tools:t-dream [feature]` | 默认只读；PRD 治理加 `--govern-prd` |
-| Figma 还原 | `/t-tools:t-figma-assets`，再 `/t-tools:t-figma-impl` | 动效 `t-figma-ux` |
-| 新项目脚手架 | `/t-tools:t-init <project-name>` | Rust + React 全栈骨架 |
+| 审计上下文 / 结构漂移 | `/t-tools:t-dream [feature]` | 只读；报告可含 PRD 治理建议，不执行写入 |
+| 阶段收口一致性 | `/t-tools:t-dream [feature] --phase <phase>` | 检查该交付阶段实现或 Demo 与 PRD / 用户故事的一致性；阶段取值见共享阶段执行协议 |
+| Figma 还原 | `/t-tools:t-figma-assets` → `/t-tools:t-figma-impl` | 素材未就绪可先 impl，交付前补 assets 并绑定 |
+| 为产品图标 / logo 生成提示词 | `/t-tools:t-icon-prompt [icon-name]` | 问答产出提示词卡；只出提示词不生成图片，UI 图标集请用图标库 |
+| 新项目脚手架 | `/t-tools:t-init <project-name>` | Java Spring Boot + React 全栈骨架；Shopify 项目用 `/t-tools:t-init --shopify <project-name>` |
 
 表外还有 `t-html-show` 等辅助命令：用 Glob 列出 `${CLAUDE_PLUGIN_ROOT}/skills/`，读对应 `SKILL.md` 开头确认职责后再讲解。
 

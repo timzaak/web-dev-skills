@@ -24,6 +24,7 @@ Chrome 扩展演示失败归 `extension-demo-diagnose`；本角色只诊断 Web 
 # Demo Diagnose Agent
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+Shopify 页面 Demo 执行或恢复前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md` 的 Shopify Demo 运行模式及目标项目 `scripts/index.md`，并读取设计引用的 `shopify.md`；实现证据按实际 `app/`、`extensions/` 和配置定位。
 
 你是 Demo 测试失败诊断代理。职责边界：
 - 只读取日志、测试代码、前端代码、相关规范并生成诊断报告
@@ -49,6 +50,7 @@ Chrome 扩展演示失败归 `extension-demo-diagnose`；本角色只诊断 Web 
 
 按以下优先级读取证据：
 - `demo/test-results/runs/${runId}/playwright-output.log`
+- `demo/test-results/runs/${runId}/` 内的失败截图与 `trace.zip`（FRONTEND 类现场证据；旧项目可能不存在）
 - `demo/test-results/unified-logs/*`
 - `log/backend-demo.log`
 - 失败测试文件与相关 page object / helper

@@ -17,6 +17,7 @@
     "build": "vite build && tsc --noEmit",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
+    "lint": "eslint src/",
     "generate-api": "openapi-ts"
   },
   "dependencies": {
@@ -44,11 +45,16 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
     "@hey-api/openapi-ts": "^0.92.3",
+    "@shadcn/lint": "^0.2.0",
     "@types/node": "^25.0.3",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "@typescript-eslint/eslint-plugin": "^8.71.1",
+    "@typescript-eslint/parser": "^8.71.1",
     "@vitejs/plugin-react": "^5.1.2",
+    "eslint": "^9.39.5",
     "typescript": "^5.9.3",
     "vite": "^7.3.1"
   }
@@ -58,6 +64,7 @@
 > **Scripts 说明**：
 > - `dev` — 启动开发服务器（端口 3000）
 > - `build` — 构建生产版本，包含类型检查
+> - `lint` — ESLint 检查（含 `@shadcn/lint` 设计系统守卫，见 eslint.config.js）
 > - `generate-api` — 从后端 OpenAPI 规范生成 TypeScript API 客户端
 > - `predev` / `prebuild` — npm 生命周期钩子，在 dev/build 前自动生成 API
 
@@ -167,7 +174,106 @@ export default defineConfig({
 
 ---
 
-## 4. frontend/openapi-ts.config.ts
+## 4. frontend/eslint.config.js
+
+```javascript
+/**
+ * ESLint 配置（含 @shadcn/lint 设计系统守卫）
+ *
+ * 两层规则：
+ * 1. TypeScript 基础规则（@eslint/js + @typescript-eslint）
+ * 2. @shadcn/lint — 面向 AI/agent 的设计系统 linter：
+ *    - no-raw-colors        禁止裸色值（如 bg-pink-500），必须走主题令牌
+ *    - no-arbitrary-values  禁止任意值（如 p-[13px]），必须走主题刻度
+ *    - no-inline-styles     禁止内联 style
+ *    - require-static-classes 捕获 linter 无法读取的动态类（如 `bg-${color}`）
+ *    - no-restyle           禁止用 className 重涂组件样式（契约见下）
+ *
+ * 关键约束：
+ * - src/components/ui/** 必须豁免 shadcn 规则——那是组件定义处（设计系统的
+ *   「立法区」），上游代码自带任意值；规则只管用法层。
+ *   注意：flat config 中 files 负向模式（'!src/...'）不生效，必须用块级 ignores。
+ * - 出现有意的例外时（如项目定制类、代码字段等宽），写入 no-restyle 的
+ *   contracts 并注明设计依据，不要内联关规则。
+ */
+import eslint from '@eslint/js'
+import tsParser from '@typescript-eslint/parser'
+import tsPlugin from '@typescript-eslint/eslint-plugin'
+import { plugin as shadcn } from '@shadcn/lint'
+
+export default [
+  eslint.configs.recommended,
+  {
+    files: ['src/**/*.ts', 'src/**/*.tsx'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: 'module',
+        ecmaFeatures: { jsx: true },
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tsPlugin,
+    },
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-explicit-any': 'warn',
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'prefer-const': 'error',
+      'no-unused-vars': 'off',
+      // TypeScript 编译器已覆盖未定义变量检查（tsc --noEmit），
+      // no-undef 对浏览器/Vite 全局产生误报，故对 TS 文件关闭
+      'no-undef': 'off',
+    },
+  },
+  {
+    // @shadcn/lint：组件经 components.json 自动发现（shadcn init 生成）
+    files: ['src/**/*.ts', 'src/**/*.tsx'],
+    ignores: ['src/components/ui/**'],
+    plugins: { shadcn },
+    settings: {
+      shadcn: {
+        // note 会附加在每条报错后，指引到项目设计规范
+        note: '设计规范见项目 DESIGN.md（如有）；设计系统例外写入下方 contracts。',
+      },
+    },
+    rules: {
+      'shadcn/no-raw-colors': 'error',
+      'shadcn/no-arbitrary-values': 'error',
+      'shadcn/no-inline-styles': 'error',
+      'shadcn/require-static-classes': 'error',
+      'shadcn/no-restyle': [
+        'warn',
+        {
+          allow: ['layout'],
+          // 示例：项目有定制 CSS 类或批准的组件用法时，按组件声明契约（类模式支持通配）
+          // contracts: [
+          //   { pattern: '^Button$', allow: ['layout', 'w-full', 'h-10'] },
+          //   { pattern: '.*', allow: ['layout', 'wb-*'] },
+          // ],
+        },
+      ],
+    },
+  },
+  {
+    ignores: [
+      'node_modules/**',
+      'dist/**',
+      // 生成目录不入 lint：TanStack Router 插件 / openapi-ts
+      'src/routeTree.gen.ts',
+      'src/routeTree.d.ts',
+      'src/lib/api-generated/**',
+    ],
+  },
+]
+```
+
+> **版本要求**：`@shadcn/lint` 需要 ESLint ≥ 9.30 与 Node ≥ 20.19；只支持 Tailwind v4。
+
+---
+
+## 5. frontend/openapi-ts.config.ts
 
 ```typescript
 /**
@@ -207,7 +313,7 @@ export default defineConfig({
 
 ---
 
-## 5. frontend/index.html
+## 6. frontend/index.html
 
 ```html
 <!DOCTYPE html>
@@ -228,7 +334,7 @@ export default defineConfig({
 
 ---
 
-## 6. frontend/src/main.tsx
+## 7. frontend/src/main.tsx
 
 ```typescript
 /**
@@ -319,7 +425,7 @@ ReactDOM.createRoot(rootElement).render(
 
 ---
 
-## 7. frontend/src/styles.css
+## 8. frontend/src/styles.css
 
 ```css
 /**
@@ -482,7 +588,7 @@ body {
 
 ---
 
-## 8. frontend/src/routes/__root.tsx
+## 9. frontend/src/routes/__root.tsx
 
 ```typescript
 /**
@@ -548,7 +654,7 @@ function RootComponent() {
 
 ---
 
-## 9. frontend/src/routes/index.tsx
+## 10. frontend/src/routes/index.tsx
 
 ```typescript
 /**
@@ -585,7 +691,7 @@ function HomeRoute() {
 
 ---
 
-## 10. frontend/src/lib/api-client.ts
+## 11. frontend/src/lib/api-client.ts
 
 ```typescript
 /**
@@ -655,7 +761,7 @@ export default apiClient
 
 ---
 
-## 11. frontend/src/components/ui/sonner.tsx
+## 12. frontend/src/components/ui/sonner.tsx
 
 此文件由 `npx shadcn@latest add sonner` 自动生成，不需要 AI 编写。
 生成的 sonner.tsx 使用 `next-themes` 的 `useTheme`，因此 main.tsx 必须包含 `ThemeProvider`。
@@ -668,7 +774,7 @@ export { Toaster, toast } from 'sonner'
 
 ---
 
-## 12. frontend/src/routeTree.d.ts
+## 13. frontend/src/routeTree.d.ts
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-empty-object-type */
@@ -694,6 +800,18 @@ declare module './routeTree.gen' {
 
 ---
 
+## 14. frontend/.gitignore
+
+```gitignore
+node_modules/
+dist/
+src/routeTree.gen.ts
+```
+
+`routeTree.gen.ts` 由 TanStack Router 插件在 `npm run dev` 时自动生成，不提交；`routeTree.d.ts` 占位声明正常提交。
+
+---
+
 ## 生成时的注意事项
 
 - 所有 `{{PROJECT_NAME}}` 替换为实际项目名（kebab-case）
@@ -702,7 +820,9 @@ declare module './routeTree.gen' {
 - 依赖版本应根据 Context7 查询结果更新
 - TanStack Router 版本更新可能影响路由 API，需确认兼容性
 - 如果不需要暗色主题，可以简化 styles.css 中的 .dark 块
-- **UI 组件（sonner 等）不要 AI 手写**，必须通过 CLI 命令生成：
+- **UI 组件（sonner 等）不要 AI 手写**，必须通过 CLI 命令生成
+- **Base UI 的 Button 强制 `type="button"`** — 表单内的提交按钮必须显式写 `type="submit"`，否则提交失效（shadcn 新版组件基于 @base-ui/react）
+- 新增 shadcn 组件后保持 `npm run lint` 为 0 error；有意的样式例外写入 eslint.config.js 的 no-restyle contracts，不要内联关闭规则
 
 ### CLI 驱动的组件初始化
 
@@ -712,7 +832,7 @@ declare module './routeTree.gen' {
 # 1. 初始化 shadcn/ui（非交互式）
 npx shadcn@latest init -d --defaults
 #    自动生成：
-#    - components.json（shadcn 配置）
+#    - components.json（shadcn 配置；@shadcn/lint 据此自动发现组件）
 #    - src/components/ui/button.tsx（基础按钮组件）
 #    - src/lib/utils.ts（cn 工具函数）
 #    - 更新 src/styles.css（补充 CSS 变量）
@@ -733,6 +853,9 @@ export { Toaster, toast } from 'sonner'
 ```bash
 # 类型检查（routeTree.gen.ts 报错是正常的，首次 npm run dev 后会消失）
 npm run type-check
+
+# ESLint + @shadcn/lint 设计系统检查（应 0 error；warning 需处理或写入契约）
+npm run lint
 ```
 
 注意：`routeTree.gen.ts` 在首次 `npm run dev` 时由 TanStack Router 插件自动生成。

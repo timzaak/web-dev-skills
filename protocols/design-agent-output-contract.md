@@ -1,6 +1,6 @@
 # Design Agent Output Contract
 
-`backend-design`、`frontend-design`、`extension-design`、`flutter-design` 严格返回下述结构。实现、测试和验收类 agent 改用 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`。
+`backend-design`、`frontend-design`、`extension-design`、`flutter-design`、`shopify-design` 严格返回下述结构。实现、测试和验收类 agent 改用 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`。
 
 ## Envelope
 
@@ -19,6 +19,7 @@
       "extension": false,
       "miniapp": false,
       "flutter": false,
+      "shopify": false,
       "web_demo": false,
       "extension_demo": false,
       "flutter_demo": false
@@ -41,7 +42,7 @@
 
 ## Status Rules
 
-`extension-design` 的 `doc_path` 为 `.ai/design/[feature]/extension.md`，`change_scope.extension=true`、`change_scope.frontend=false`；Web 与扩展分别返回各自结果。change_scope 字段集合沿用 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`，本协议只定义设计专有字段。
+`extension-design` 的 `doc_path` 为 `.ai/design/[feature]/extension.md`，`change_scope.extension=true`、`change_scope.frontend=false`；Web 与扩展分别返回各自结果。`shopify-design` 的 `doc_path` 为 `.ai/design/[feature]/shopify.md`，`change_scope.shopify=true`。change_scope 字段集合沿用 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`，本协议只定义设计专有字段。
 
 - `task_completion.status=success`：文档已完整写入，`needs_user_answer` 为空，`self_check` 全部通过。
 - `task_completion.status=partial`：只保留可诊断的中间文档；修复后重新调度或终止本轮。
@@ -81,6 +82,10 @@
 - `operation_id` 在当前方案内唯一，并与 `backend.md` 接口清单一致。
 - 不适用请求体或响应体时使用空数组，不省略字段。
 - `error_codes` 使用整数数组。
+
+Shopify 项目不适用 backend 端时，`shopify-design` 产出的 app proxy / internal API 契约是唯一契约源：`shopify.md` 接口清单承担 `contract_summary`，其 `operation_id` 规则与上表一致；此时 backend 契约摘要不返回。
+
+Shopify feature 不涉及接口新增、修改或消费时（如纯展示 block），允许 `contract_summary=[]`；必须在 `shopify.md` §5 与主文档 §4.3 各以独立行 `不适用：<具体原因>` 声明，不用空表代替。不改变接口但仍消费现有接口时，列出实际依赖，不能声明不适用。有接口时主文档的 operation/method/path 集合必须与契约源完整一致。
 
 ## Client Contract Dependencies
 

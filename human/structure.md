@@ -82,6 +82,7 @@ Subagent 按工程角色拆分，而不是让一个 agent 同时承担所有职�
 - `miniapp/`：小程序开发、测试、验证和质量门禁。
 - `web-demo/`：Playwright E2E、选择器、Page Object、诊断和常见失败处理。
 - `flutter/`：Flutter 开发、测试以及 Android Patrol 用户故事演示。
+- `shopify/`：Shopify App（React Router 模板）开发、app proxy 验签、扩展交付面、测试、验证和质量门禁。
 - `product/`：产品文档和用户故事规范。
 - `core/`：环境配置和通用质量标准。
 
@@ -129,7 +130,7 @@ Demo 阶段不是后端或前端测试的重复。它用 Playwright E2E 按用�
 
 ## 执行模型
 
-`t-super-run` 是默认执行模型。主会话生成目标级阶段计划，不生成 manifest 或 item；dev/test 按当前 task 读取对应 agent 规范和关联 guide，直接完成实现、测试与修复。测试发现生产缺陷时，主会话切换 dev 规范修复后再复测；accept 派发对应只读 subagent 独立验收并写报告。默认顺序为 `dev -> accept`，非 Demo 阶段需要独立测试资产时插入 test。阶段计划、状态和证据入口保存在 `.ai/super-run/[feature]/`；`--phase` 必填，主会话在该 phase 内持续推进，完成后停止，中断后用同一命令核查证据并恢复，不依赖额外的持续运行命令。具体契约见 [super-run 状态协议](/protocols/super-run-state-contract.md)。需要无人值守连跑剩余全部 phase 时，`t-super-run-all` 在每个 phase 的闭环之后追加 `t-review --fix -> t-simplify -> t-push` 质量链再进入下一 phase，契约见 [super-run-all pipeline 协议](/protocols/super-run-all-pipeline.md)。
+`t-super-run` 是默认执行模型。主会话生成目标级阶段计划，不生成 manifest 或 item；dev/test 按当前 task 读取对应 agent 规范和关联 guide，直接完成实现、测试与修复。测试发现生产缺陷时，主会话切换 dev 规范修复后再复测；accept 派发对应只读 subagent 独立验收并写报告。默认顺序为 `dev -> accept`，非 Demo 阶段需要独立测试资产时插入 test。阶段计划、状态和证据入口保存在 `.ai/super-run/[feature]/`；`--phase` 必填，主会话在该 phase 内持续推进，完成后停止，中断后用同一命令核查证据并恢复，不依赖额外的持续运行命令。具体契约见 [super-run 状态协议](/protocols/super-run-state-contract.md)。review、simplify 及 CI 修复使证据失效时先回归并重新 accept，push 确认远端后才完成。阻塞恢复先核对解除条件，push 恢复复用原 session 补推已有 commit。
 
 需要单独审阅计划、细粒度 item 或 dev/test 子 agent 分工时，使用 `t-task` / `t-run` 标准链路；其状态与 super-run 独立。`t-task` 会把设计拆成标准任务目录：
 
@@ -153,7 +154,7 @@ Demo 阶段不是后端或前端测试的重复。它用 Playwright E2E 按用�
 
 ## 辅助治理
 
-`t-dream` 是跨阶段的上下文整理和结构漂移审计工具。它默认只读检查 PRD、用户故事、设计、任务、代码、测试和 Demo 是否存在过期、重复、冲突、断链或实现不一致；需要写入 PRD 治理时才使用 `--govern-prd`。
+`t-dream` 是跨阶段的上下文整理和结构漂移审计工具。它只读检查 PRD、用户故事、设计、任务、代码、测试和 Demo 是否存在过期、重复、冲突、断链或实现不一致；PRD 治理建议（合并、归档、重写、改引用）只作为报告输出，不在工具内执行写入。交付阶段收口时可用 `t-dream [feature] --phase <phase>` 只检查该阶段实现或 Demo 与 PRD / 用户故事的一致性。
 
 `t-push` 是提交前的本地 CI 收口入口。它根据 diff 判断 backend / frontend / demo 影响范围，运行对应检查，通过后再提交和推送。正式版本发布仍由 `t-release` 约束，版本文件使用不带 `v` 的 semver，git tag 使用 `v` 前缀。
 

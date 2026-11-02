@@ -9,6 +9,8 @@ allowed-tools:
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 
+提交前输入门禁、commit message 格式、调用模式和中断恢复统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/push-execution-contract.md`；执行脚本前读取。
+
 ## Fixed Flow
 
 先由 AI 读取 `git status --short` 和必要的 `git diff`，识别本次变更涉及的源码文件。
@@ -25,18 +27,19 @@ uv run ${CLAUDE_PLUGIN_ROOT}/scripts/push.py --ci-session "<本次 t-push sessio
 
 session 规则只说一次：同一次 `/t-push` 执行内（含 CI 失败后 AI 修复重跑）复用同一 session id；新的 `/t-push` 执行必须生成新 session id，避免复用上一次的区域通过缓存。
 
-脚本负责：检测 backend/frontend/demo 变更范围（若仓库根目录是 Maven backend 项目且不存在 `backend/` 分层，则将根目录项目改动视为 backend 变更）并为受影响区域并发运行本地 CI（区域 CI 内容见下节）；按 session 记录每个区域通过 CI 时的 diff 指纹，重跑时已通过且 diff 未变的区域直接跳过；CI 全部通过后执行 `git add -A`、`git commit` 和 `git push`。无变更或缺少 `--message` 时脚本自行停止。
+脚本负责：检测 backend/frontend/demo 变更范围（若仓库根目录是 Maven backend 项目且不存在 `backend/` 分层，则将根目录项目改动视为 backend 变更）并为受影响区域并发运行本地 CI（区域 CI 内容见下节）；按 session 记录每个区域通过 CI 时的 diff 指纹，重跑时已通过且 diff 未变的区域直接跳过；CI 全部通过后执行 `git add -A`、`git commit` 和推送目标分支。无 diff 时仍核对并补推现有 commit。未提交变更需要 `--message`。
 
 ## CI Rules
 
 - Backend 变更：执行项目已有 Java 编译、测试和 Maven 质量任务（优先 wrapper：`mvn test` 和 `mvn verify`；若 `pom.xml` 已配置格式化或静态检查插件，再按项目已有 goal 补充执行）。若静态检查报错，AI 应根据错误信息修复代码后重新运行脚本，直到通过。
 - Frontend 变更：`npm run lint`、`npm run format:check`（不存在时跳过）、`npm run type-check`。
 - Demo 变更：`npm run lint` 和 `npm run type-check`。
-- 无 backend/frontend/demo 变更时跳过本地 CI，直接进入 commit/push。
+- Shopify 变更（项目根存在 `shopify.app.toml` 时，除 `demo/` 外的全部变更）：按 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/validation.md` 的 push 门禁执行，类型检查兼容 `typecheck` / `type-check` 且不能缺失；存在 Shopify 扩展配置时必须覆盖扩展构建。
+- 无 backend/frontend/demo/shopify 变更时跳过本地 CI，直接进入 commit/push。
 
 `--force-checks` 参数可忽略 session 缓存，强制重跑本次 diff 涉及的所有区域 CI。
 
 ## Failure
 
 - 任一 CI 步骤失败：脚本停止且不 commit/push，并输出失败区域和步骤；AI 根据错误信息修复代码后，用同一 session id 重新运行脚本，直到通过。
-- commit/push 失败：脚本停止并报告错误；push 失败时本地 commit 已保留。
+- commit/push 失败：脚本停止并报告错误；按共享契约用同一 session 恢复本地 commit 并确认远端，不生成重复提交；代码变化时先重新验证和验收。

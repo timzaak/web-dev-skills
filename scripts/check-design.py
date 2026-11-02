@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import re
 import sys
@@ -12,7 +11,8 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 
-STACKS = ("backend", "frontend", "extension", "flutter")
+STACKS = ("backend", "frontend", "extension", "flutter", "shopify")
+SKILL_ROOT_PREFIXES = (".claude/skills/", ".agents/skills/", "skills/")
 MAIN_HEADINGS = (
     "## 1. 需求概述",
     "## 2. 需求来源",
@@ -31,6 +31,7 @@ STACK_HEADINGS = {
     "frontend": ("## 4. 用户体验流", "### 5.3 页面结构 / 线框说明", "## 9. 详细设计", "## 11. 文件影响范围"),
     "extension": ("## 4. 入口与交互", "## 5. 权限与上下文", "## 6. 消息与存储", "## 7. 测试与验收", "## 9. 文件影响范围"),
     "flutter": ("## 4. 用户体验流", "### 6.1 API 依赖", "详细设计（Flutter", "文件影响范围（Flutter"),
+    "shopify": ("## 1. 目标与范围", "## 5. 契约设计（app proxy / internal API）", "## 8. 测试与验收", "## 10. 文件影响范围（Shopify 文件）"),
 }
 PLACEHOLDERS = re.compile(
     r"\[(?:方案名称|feature|真实仓库路径|operationId|REQ/US-ID)\]"
@@ -108,20 +109,6 @@ def design_documents(main_path: Path) -> list[Path]:
     return paths
 
 
-def design_fingerprint(main_path: Path) -> str | None:
-    paths = design_documents(main_path)
-    if not paths:
-        return None
-    digest = hashlib.sha256()
-    for path in paths:
-        role = "main" if path == main_path else path.stem
-        digest.update(role.encode("utf-8"))
-        digest.update(b"\0")
-        digest.update(path.read_bytes())
-        digest.update(b"\0")
-    return f"sha256:{digest.hexdigest()}"
-
-
 def operation_map(text: str, heading: str) -> dict[str, tuple[str, str]]:
     result: dict[str, tuple[str, str]] = {}
     for cells in table_rows(text, heading):
@@ -136,11 +123,27 @@ def operation_map(text: str, heading: str) -> dict[str, tuple[str, str]]:
 
 
 def impact_rows(text: str) -> list[tuple[str, str]]:
-    for fragment in ("8. 文件影响范围", "文件影响范围（后端文件）", "文件影响范围（前端文件）", "文件影响范围（Flutter 文件）", "文件影响范围（扩展文件）"):
+    for fragment in (
+        "8. 文件影响范围",
+        "文件影响范围（后端文件）",
+        "文件影响范围（前端文件）",
+        "文件影响范围（Flutter 文件）",
+        "文件影响范围（扩展文件）",
+        "文件影响范围（Shopify 文件）",
+    ):
         rows = table_rows(text, fragment)
         if rows:
             return [(clean_cell(row[0]), clean_cell(row[1]).upper()) for row in rows if len(row) >= 2]
     return []
+
+
+def contract_not_applicable(text: str, heading: str) -> bool:
+    """Require an explicit, reasoned declaration in the contract section."""
+    return re.search(r"^[ \t]*不适用[：:][ \t]*\S[^\r\n]*$", section(text, heading), re.MULTILINE) is not None
+
+
+def under_skill_root(rel_path: str) -> bool:
+    return rel_path.replace("\\", "/").startswith(SKILL_ROOT_PREFIXES)
 
 
 def validate_path(repo_root: Path, source: Path, rel_path: str, operation: str) -> list[Finding]:
@@ -155,7 +158,8 @@ def validate_path(repo_root: Path, source: Path, rel_path: str, operation: str) 
     if operation not in {"CREATE", "MODIFY", "DELETE"}:
         findings.append(Finding("INVALID_IMPACT_OPERATION", str(source), f"{rel_path}: {operation}"))
     elif operation == "CREATE":
-        if not candidate.parent.exists():
+        # skill 根目录子树的新 skill 目录允许随交付创建；其余 CREATE 仍要求父目录存在。
+        if not candidate.parent.exists() and not under_skill_root(rel_path):
             findings.append(Finding("CREATE_PARENT_MISSING", str(source), rel_path))
     elif not candidate.exists():
         findings.append(Finding("IMPACT_TARGET_MISSING", str(source), f"{operation}: {rel_path}"))
@@ -222,15 +226,27 @@ def validate(main_path: Path, repo_root: Path, require_complete: bool = False) -
         main_ops = operation_map(main_text, "4.3 跨端契约")
         if main_ops != backend_ops:
             findings.append(Finding("MAIN_CONTRACT_MISMATCH", str(main_path), "operation/method/path differ from backend.md"))
+    contract_ops = backend_ops
+    if "backend" not in documents and "shopify" in documents:
+        # Shopify projects without a backend stack: shopify.md is the contract source.
+        shopify_ops = operation_map(documents["shopify"][1], "5. 契约设计")
+        main_ops = operation_map(main_text, "4.3 跨端契约")
+        if not shopify_ops and not contract_not_applicable(documents["shopify"][1], "5. 契约设计"):
+            findings.append(Finding("SHOPIFY_CONTRACT_EMPTY", str(documents["shopify"][0]), "app proxy / internal API table is empty"))
+        if main_ops != shopify_ops:
+            findings.append(Finding("MAIN_CONTRACT_MISMATCH", str(main_path), "operation/method/path differ from shopify.md"))
+        elif not main_ops and not contract_not_applicable(main_text, "4.3 跨端契约"):
+            findings.append(Finding("MAIN_CONTRACT_EMPTY", str(main_path), "declare 不适用 with a reason when no contract is involved"))
+        contract_ops = shopify_ops
 
-    for stack in ("frontend", "extension", "flutter"):
-        if stack not in documents or not backend_ops:
+    for stack in ("frontend", "extension", "flutter", "shopify"):
+        if stack not in documents or not contract_ops or (stack == "shopify" and "backend" not in documents):
             continue
-        dependencies = operation_map(documents[stack][1], "API 依赖")
+        dependencies = operation_map(documents[stack][1], "API 依赖" if stack != "shopify" else "5. 契约设计")
         for operation, signature in dependencies.items():
-            if operation not in backend_ops:
+            if operation not in contract_ops:
                 findings.append(Finding("UNKNOWN_CONTRACT_OPERATION", str(documents[stack][0]), operation))
-            elif backend_ops[operation] != signature:
+            elif contract_ops[operation] != signature:
                 findings.append(Finding("CONTRACT_SIGNATURE_MISMATCH", str(documents[stack][0]), operation))
 
     main_impacts = set(impact_rows(main_text))
@@ -267,7 +283,6 @@ def main(argv: list[str] | None = None) -> int:
             documents.append(str(path.resolve()))
     result = {
         "status": "failed" if findings else "passed",
-        "design_fingerprint": design_fingerprint(main_document),
         "design_documents": documents,
         "finding_count": len(findings),
         "findings": [asdict(item) for item in findings],

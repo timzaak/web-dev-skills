@@ -21,6 +21,7 @@ Chrome 扩展用户故事演示归 `extension-demo-dev`；本角色只处理 Web
 # Demo Dev
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+Shopify 页面 Demo 执行或恢复前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md` 的 Shopify Demo 运行模式及目标项目 `scripts/index.md`，并读取设计引用的 `shopify.md`；实现证据按实际 `app/`、`extensions/` 和配置定位。
 需求来源边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`
 
 ## 输入契约
@@ -89,7 +90,7 @@ Runtime Dependencies：
 
 - 编写前必须完成选择器校准
 - 测试必须与用户故事建立可追溯关系
-- 引用 `.ai/user-stories` 时必须保留 draft 来源路径，不得改写为已发布事实。
+- 按 `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md` 的 Story Traceability 建立映射：真实 draft 路径写入任务/Handoff，测试注释只保留稳定 US ID 或有效正式故事路径，不写临时路径。
 - 测试必须通过统一 fixture 接入 `demoLogger`，不得绕过 fixture 或在测试中手动调用 `logger.finalize()`
 - 不得硬编码选择器字符串
 - 不得把 `sonner`、toast、Snackbar 等自动消失提示作为主判断条件或唯一验收依据

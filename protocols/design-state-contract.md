@@ -11,7 +11,7 @@
 }
 ```
 
-- 适用端取值为 backend / frontend / extension / flutter；各端使用独立完成/失败记录，extension 与 frontend 不能合并状态。
+- 适用端取值为 backend / frontend / extension / flutter / shopify；各端使用独立完成/失败记录，extension 与 frontend 不能合并状态。shopify 端由 `shopify.md` 分端文档承载（shopify-app 与 shopify-extension 两个 phase 共用同一分端设计，不拆两份状态）。
 - 调度前写 `in_progress`。
 - 每个端成功后更新 `completed_stacks`。
 - 无法恢复时写 `failed` 和 `failed_stack`。

@@ -13,11 +13,13 @@
 - [ ] `backend/src/main/resources/application.yml`
 - [ ] `backend/src/test/java/{{PROJECT_PACKAGE_PATH}}/{{PROJECT_NAME_PASCAL}}ApplicationTests.java`
 - [ ] `backend/src/test/java/{{PROJECT_PACKAGE_PATH}}/web/HealthControllerTest.java`
+- [ ] `backend/.gitignore`（忽略 `target/`）
 
 **前端（必须）：**
-- [ ] `frontend/package.json`
+- [ ] `frontend/package.json`（含 `lint` 脚本与 `@shadcn/lint` devDependency）
 - [ ] `frontend/tsconfig.json`
 - [ ] `frontend/vite.config.ts`
+- [ ] `frontend/eslint.config.js`（ESLint + `@shadcn/lint`；`src/components/ui/**` 块级 ignores 豁免）
 - [ ] `frontend/openapi-ts.config.ts`
 - [ ] `frontend/index.html`
 - [ ] `frontend/src/main.tsx`
@@ -26,6 +28,7 @@
 - [ ] `frontend/src/routes/index.tsx`
 - [ ] `frontend/src/components/ui/sonner.tsx`（由 shadcn CLI 生成）
 - [ ] `frontend/src/lib/api-client.ts`
+- [ ] `frontend/.gitignore`（忽略 `node_modules/`、`dist/`、`src/routeTree.gen.ts`）
 
 **脚本和文档：**
 - [ ] `scripts/index.md`（测试运行说明，由根目录 AGENTS.md 指向）
@@ -42,6 +45,7 @@
 - [ ] `scripts/web-demo-failure-summary.py`
 - [ ] `scripts/lib/*.py`
 - [ ] `README.md`
+- [ ] `.gitignore`（忽略根目录 `log/`）
 
 **AI 辅助配置（必须）：**
 - [ ] `AGENTS.md`

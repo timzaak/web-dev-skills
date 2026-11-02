@@ -24,7 +24,7 @@ allowed-tools:
 - 自动发现除 `live/`、`fixtures/`、`templates/`、`verification/` 和文件名含 `test-` 之外的全部 Demo 测试（发现规则脚本内固化，不在 skill 层重写）。
 - **由当前主会话逐个文件驱动**，每一步都是可观察、可中断的短 Bash / Agent 调用。
 - 单文件失败时按 `web-demo-run-repair-contract.md` 的修复闭环处理，每文件最多 6 次尝试。
-- 文件之间重建 Demo 环境和数据容器，避免前一文件产生的业务数据影响后续测试。
+- 文件之间按共享协议的环境模式隔离数据，避免前一文件产生的业务数据影响后续测试。
 - 每文件达到上限仍失败则标记 `FAILED` 并继续下一个文件，不阻塞整批。
 - 持续写盘批次状态，支持 `continue` 从未完成文件的断点恢复；产出 Markdown + JSON 汇总报告。
 
@@ -39,6 +39,8 @@ allowed-tools:
 ## 执行流程（默认逐文件模式）
 
 ### A. 发现阶段（一次性，脚本辅助）
+
+首次、`continue` 及 `scan` 都先按共享修复协议读取项目 `scripts/index.md` 和 fixture，恢复环境模式、URL、身份及清理入口。下列 B2 / S2 runner 示例展示默认 Web 命令；Shopify 模式必须追加 `--no-auto-env`，其清理与修复后加载验证均按协议的 Shopify Demo 运行模式执行。
 
 ```bash
 uv run scripts/web-demo-run-all.py discover [--filter-file <path>]   # fresh
@@ -63,7 +65,7 @@ uv run scripts/web-demo-run-all.py checkpoint --json <json_report> --index <zero
 uv run scripts/web-demo-test-runner.py "<rel_path>" --run-id "<batch_run_id>-<file_key>-initial" --mode fast
 ```
 
-`web-demo-test-runner.py` 会自检并按需启动/恢复 demo 环境。解析其**最后一行** `Result: {...}`，按 `web-demo-run-repair-contract.md` 的 Runner 输出适配映射为 snake_case 批次 entry 字段。`file_key` 必须由相对路径的稳定 slug 或短哈希生成，避免不同目录的同名文件冲突。
+默认 Web 模式下 `web-demo-test-runner.py` 会自检并按需启动/恢复 demo 环境；Shopify 模式使用已就绪的外部环境。解析其**最后一行** `Result: {...}`，按 `web-demo-run-repair-contract.md` 的 Runner 输出适配映射为 snake_case 批次 entry 字段。`file_key` 必须由相对路径的稳定 slug 或短哈希生成，避免不同目录的同名文件冲突。
 
 #### B3. 整文件通过
 
@@ -76,7 +78,7 @@ uv run scripts/web-demo-test-runner.py "<rel_path>" --run-id "<batch_run_id>-<fi
 #### B5. 持久化 + 文件间数据隔离
 
 1. **保留最小结果**：只保留 `{status, exit_code, duration, run_id, logs, fixed}`；仅失败时再保留一句简短 `error`。文件名、下标、计数和总耗时由脚本推导。
-2. **数据隔离**：若还有下一个文件，无论当前文件成功或失败，均按共享修复协议选择隔离方式。独立扩展模式确认 fixture 已清理 profile/stub；默认 Web 模式重建 Demo 环境和数据容器。隔离失败时执行 `block` 后中止批次（该命令保留断点且不追加结果）。以下 stop/start 仅用于默认 Web 模式：
+2. **数据隔离**：若还有下一个文件，无论当前文件成功或失败，均按共享修复协议选择隔离方式。Shopify 模式核查项目 fixture 已清理本次测试数据；独立扩展模式确认 fixture 已清理 profile/stub；默认 Web 模式重建 Demo 环境和数据容器。隔离失败时执行 `block` 后中止批次（该命令保留断点且不追加结果）。以下 stop/start 仅用于默认 Web 模式：
    ```bash
    uv run scripts/demo-stop.py --quiet && uv run scripts/demo-start.py
    uv run scripts/web-demo-run-all.py block --json <json_report> --error "<简短原因>"
@@ -179,6 +181,6 @@ uv run scripts/web-demo-run-all.py cluster --json <json_report>
 ## 失败处理
 
 - `discover` 找不到文件或 `continue` 无可继续内容：终止并给出脚本返回的错误。
-- 后端代码变动后的验证前重建失败：记录本轮失败，不在旧后端进程上验证。
+- 业务代码变动后，当前环境模式要求的重建或加载验证失败：记录本轮失败，不在旧进程/产物上验证。
 - 文件间数据隔离失败：记入 `last_error` 并中断批次，由 `continue` 恢复。
 - runner 启动失败：按整文件失败处理，记录错误并继续。

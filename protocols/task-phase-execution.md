@@ -2,33 +2,75 @@
 
 ## Phases
 
-`supported_phases` 固定为 `backend`, `frontend`, `extension`, `miniapp`, `flutter`, `web-demo`, `extension-demo`, `flutter-demo`。
+本节是交付阶段名称与启用规则的唯一清单来源。解析 `--phase <phase>`、校验状态或生成阶段计划前读取；各入口不另行枚举支持值。
 
-`active_phases` 只包含当前 feature 需要生成和执行的阶段。`extension` 仅在当前设计明确包含 Chrome 扩展交付或变更影响实际扩展工程时启用；目录存在本身不启用无关 feature 的扩展阶段。`miniapp` 仅在项目根目录存在 `miniapp/`，或设计文档明确包含小程序交付时启用。`flutter` 仅在目标项目/子目录的 `pubspec.yaml` 声明 Flutter SDK，或设计文档明确包含 Flutter 交付时启用。`web-demo` 仅在设计要求 Web 用户故事演示且项目存在 Web 交付端时启用；`extension-demo` 仅在设计要求 Chrome 扩展用户故事演示且项目存在扩展交付端时启用；`flutter-demo` 仅在设计要求 Flutter 用户故事演示且项目声明 Flutter SDK 时启用。普通 integration test、扩展 Vitest 或 Patrol 技术门禁本身不自动启用 Demo phase。演示同时覆盖 Web 页面和扩展时，按用户故事及测试资产归属分别启用两个 phase。
+`supported_phases` 为 `backend`, `frontend`, `extension`, `miniapp`, `flutter`, `shopify-app`, `shopify-extension`, `web-demo`, `extension-demo`, `flutter-demo`。其中 Demo 阶段为 `web-demo`, `extension-demo`, `flutter-demo`，其余为实现阶段。
+
+显式参数不在 `supported_phases` 中时停止，提示 `--phase <phase>` 并从本节读取支持值；已识别当前适用阶段时同时列出。支持但不适用的阶段同样停止，并列出当前适用阶段，不编造交付范围。参数是否必填、省略时选择哪个阶段由各入口定义。
+
+`active_phases` 只包含当前 feature 需要生成和执行的阶段。`extension` 仅在当前设计明确包含 Chrome 扩展交付或变更影响实际扩展工程时启用；目录存在本身不启用无关 feature 的扩展阶段。`miniapp` 仅在项目根目录存在 `miniapp/`，或设计文档明确包含小程序交付时启用。`flutter` 仅在目标项目/子目录的 `pubspec.yaml` 声明 Flutter SDK，或设计文档明确包含 Flutter 交付时启用。`shopify-app` 仅在项目根目录存在 `shopify.app.toml` 且设计涉及 Shopify App 本体交付（数据模型、admin 嵌入页、app proxy 或 internal API 路由）时启用。`shopify-extension` 仅在设计明确包含 `extensions/` 交付（theme app extension 或 customer account UI extension）时启用；`extensions/` 目录存在本身不启用该阶段。`web-demo` 仅在设计要求 Web 用户故事演示且项目存在 Web 交付端时启用；`extension-demo` 仅在设计要求 Chrome 扩展用户故事演示且项目存在扩展交付端时启用；`flutter-demo` 仅在设计要求 Flutter 用户故事演示且项目声明 Flutter SDK 时启用。普通 integration test、扩展 Vitest 或 Patrol 技术门禁本身不自动启用 Demo phase。演示同时覆盖 Web 页面和扩展时，按用户故事及测试资产归属分别启用两个 phase。
+
+设计主文档声明 Demo 主路径，或文件影响表包含对应 Demo 阶段的资产行，均视为设计要求该类演示；仍须满足上述真实交付端条件。Demo 资产由对应 Demo 阶段交付，不并入实现阶段。
 
 默认顺序：
 
 - Web 项目：`backend -> frontend -> web-demo`
 - 扩展项目：`extension -> extension-demo`，仅在需要后端改动时前置 backend，仅在设计要求演示时启用 extension-demo
 - Flutter 项目：`backend -> flutter -> flutter-demo`
-- 多端项目：`backend -> frontend/extension/miniapp/flutter -> web-demo/extension-demo/flutter-demo`，只包含实际交付端，固定排序为 `frontend -> extension -> miniapp -> flutter -> web-demo -> extension-demo -> flutter-demo`
-
-`t-super-run-all` 连跑全部 phase 时的 pipeline 投影顺序与每阶段质量链见 `${CLAUDE_PLUGIN_ROOT}/protocols/super-run-all-pipeline.md`。
+- Shopify 项目：`shopify-app -> shopify-extension -> web-demo`，仅在设计要求店面、admin 或顾客账户用户故事演示时启用 web-demo
+- 多端项目：`backend -> frontend/extension/miniapp/flutter/shopify-app -> web-demo/extension-demo/flutter-demo`，只包含实际交付端，固定排序为 `frontend -> extension -> miniapp -> flutter -> shopify-app -> shopify-extension -> web-demo -> extension-demo -> flutter-demo`
 
 业务行为的验证责任、后续阶段承接和最终交付门禁按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 执行；未启用 Demo 时也必须为受影响行为安排适用的运行验证。
 
 ## Slot Order
 
-backend、frontend、extension、miniapp、flutter 默认执行 `dev -> accept`。本次任务需要由测试角色新增或修改测试用例、测试 fixture/helper，或专项验证脚本时，执行 `dev -> test -> accept`。web-demo、extension-demo、flutter-demo 执行 `dev -> accept`，Demo 用例及其辅助代码由该阶段的 dev slot 负责。
+实现阶段默认执行 `dev -> accept`。本次任务需要由测试角色新增或修改测试用例、测试 fixture/helper，或专项验证脚本时，执行 `dev -> test -> accept`。Demo 阶段执行 `dev -> accept`，Demo 用例及其辅助代码由该阶段的 dev slot 负责。阶段分类见 Phases；本顺序同时适用于 super-run 的 task 和标准链路的 slot。
 
-仅运行现有测试、编译、类型检查或构建时，不生成 `test` slot、`test.md` 或 test item；这些命令写入 `dev` item 的 Validation，至少执行一项。backend-dev 在实现文件内编写必要的高价值单元测试，也归 dev，不单独生成 test slot。阶段 index 说明测试选择和适用的后续 Demo 计划；`accept` 核查实际执行证据。若 dev 发现需要测试角色新增或修改上述用例或脚本，先更新任务计划和状态，插入 `test` slot，再进入 accept。
+仅运行现有测试、编译、类型检查或构建时，验证归 dev，至少执行一项，不生成独立 test。backend-dev 在实现文件内编写必要的高价值单元测试，也归 dev。标准链路把命令写入 `dev` item 的 Validation，在阶段 index 说明测试选择和适用的后续 Demo 计划，不生成 `test` slot、`test.md` 或 test item；super-run 将这些内容写入 phase 计划，不生成 item。`accept` 核查实际执行证据。若 dev 发现需要测试角色新增或修改上述用例或脚本，先更新任务计划和状态，插入 `test`，再进入 accept。
+
+## Design Inputs
+
+规划或恢复当前 phase 前，读取设计主文档 `.ai/design/<feature>.md`，并按下表加载 `.ai/design/<feature>/` 下适用的分端设计；消费后端契约时同时读取 `backend.md`。不得根据 phase 名称猜测设计文件名。
+
+| phase | 分端设计输入 |
+| --- | --- |
+| backend | `backend.md` |
+| frontend | `frontend.md` |
+| extension / extension-demo | `extension.md` |
+| miniapp | 主文档小程序相关部分，当前无独立分端设计 |
+| flutter / flutter-demo | `flutter.md` |
+| shopify-app / shopify-extension | `shopify.md` |
+| web-demo | 按实际页面交付端读取 `frontend.md` 或 `shopify.md`，跨两端时都读 |
+
+## Skill Deliverables
+
+设计文件影响表包含 skill 交付物（`.claude/skills/`、`.agents/skills/`、`skills/` 下的 SKILL.md 及其 references/scripts）时：
+
+- 规划规则：skill 交付 task 归属最相关的实现 phase——skill 服务或操作的交付端优先；独立于任何端时由规划阶段指定一个最相关 phase 并在计划中说明理由。不新增 phase，也不为 skill 生成 Demo 阶段。
+- agent 上下文：该 dev task 的 agent 必须注入 `${CLAUDE_PLUGIN_ROOT}/guides/core/skill-authoring.md` 与 `${CLAUDE_PLUGIN_ROOT}/guides/core/skill-testing.md`，写作与行为验证遵循两份准则；其余实现规则按所属 phase 的角色规范执行。
+- Validation：以行为测试为证据——前向用例加触发边界抽测，深度按风险裁剪；不得以编译、类型检查或 lint 门禁替代。证据记录遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`。
+
+## Role Mapping
+
+规划当前阶段的 task 或 slot 时按下表选择角色，角色规范路径为 `${CLAUDE_PLUGIN_ROOT}/agents/` 下对应名称的 `.md` 文件；不得从 phase 名称推导角色。是否启用 test 按 Slot Order；主会话角色加载与 subagent 调度方式由对应执行协议规定。
+
+| phase | dev | test（按需） | accept |
+| --- | --- | --- | --- |
+| backend | backend-dev | backend-test | backend-accept |
+| frontend | frontend-dev | frontend-test | frontend-accept |
+| extension | extension-dev | extension-test | extension-accept |
+| miniapp | miniapp-dev | miniapp-test | miniapp-accept |
+| flutter | flutter-dev | flutter-test | flutter-accept |
+| shopify-app / shopify-extension | shopify-dev | shopify-test | shopify-accept |
+| web-demo | web-demo-dev | 不适用 | web-demo-accept |
+| extension-demo | extension-demo-dev | 不适用 | extension-demo-accept |
+| flutter-demo | flutter-demo-dev | 不适用 | flutter-demo-accept |
 
 ## Execution Unit
 
 `/t-run` 只执行以下 item 文件：
 
-- `{backend,frontend,extension,miniapp,flutter}/{dev,test,accept}/*.md`
-- `{web-demo,extension-demo,flutter-demo}/{dev,accept}/*.md`
+- `<phase>/<slot>/*.md`，phase 按 Phases 校验，slot 按 Slot Order 确定且必须已规划。
 
 不直接执行 `index.md`, `dev.md`, `test.md`, `accept.md`。
 
@@ -52,6 +94,8 @@ backend、frontend、extension、miniapp、flutter 默认执行 `dev -> accept`�
 - 当前阶段 `index.md`（含验证责任表及相关上游待验证场景；验证记录遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`）
 - 当前 item 之前已完成 item 的状态、文件路径与必要 `Handoff` 片段
 
+accept 额外提供 `${CLAUDE_PLUGIN_ROOT}/protocols/acceptance-contract.md`、原始证据入口、验证责任表及上游待验证场景；报告与结构化返回按该协议，不在 item 内另定义结论或评分。
+
 可选提供当前 slot manifest、阶段设计摘要、最小状态切片、completion criteria / validation。
 
 当前阶段 `index.md` 必须包含 `Decision ID | Status | Task/Item Location | Notes` 追踪表，覆盖影响该 phase 的 Active Decision。受具体决定约束的 item 在 `Goal` 或 `Handoff` 引用稳定 DEC ID；不得采用 Superseded Decision。
@@ -60,7 +104,7 @@ backend、frontend、extension、miniapp、flutter 默认执行 `dev -> accept`�
 
 每个 item 必须能让 `/t-run` 单独恢复执行，并包含：
 
-- `id`: 稳定 ID，例如 `BE-D01`, `FE-T02`, `EX-D01`, `MA-A01`, `FL-T01`, `WD-D01`, `ED-D01`, `FD-A01`
+- `id`: 稳定 ID，例如 `BE-D01`, `FE-T02`, `EX-D01`, `MA-A01`, `FL-T01`, `SA-D01`, `SX-T01`, `WD-D01`, `ED-D01`, `FD-A01`
 - `title`
 - `agent`
 
@@ -153,12 +197,14 @@ web-demo / extension-demo / flutter-demo 阶段的 `accept` slot 同样适用 `a
 - frontend dev：按页面域、用户流程、可复用组件族或数据闭环拆分；同一页面闭环内的 API/type、schema/query/store、主流程、状态与错误处理、权限与空态可合并。
 - miniapp dev：按页面域、平台能力或模板/主题闭环拆分；页面注册、组件主流程、主题接线、token/icon 集成在同一闭环内可合并。
 - flutter dev：按 feature、用户流程、平台能力或数据闭环拆分；同一 feature 内的 View、Notifier、Repository 适配与关键状态可合并。
+- shopify-app dev：按数据模型闭环、admin 页面域、app proxy / internal API 路由闭环拆分；同一页面域内的 loader/action、Prisma 模型、Polaris 页面主流程与错误态可合并。
+- shopify-extension dev：按扩展类型闭环拆分（theme app extension 与 customer account UI extension 不合并进同一 item）；同一扩展内的 block 资产、挂载容器与店面接线可合并。
 - web-demo dev：按用户故事、业务状态流或 Playwright 测试基础设施闭环拆分。
 - extension-demo dev：按扩展用户故事、跨上下文交互或 Playwright fixture 闭环拆分。
 - flutter-demo dev：按用户故事、业务状态流或 Patrol 测试基础设施闭环拆分；一个文件默认只承载一个用户故事或强耦合状态流。
 - accept：design consistency、public API contract、business rules、permission/security、test evidence、demo readiness；纯技术方案聚焦技术目标、兼容性、公共契约、迁移/配置影响、测试证据和回归风险。
 
-backend/test、frontend/test、extension/test、miniapp/test、flutter/test、web-demo/dev、extension-demo/dev、flutter-demo/dev 的测试拆分与执行见 [Test Execution Consolidation](#test-execution-consolidation) 与 [Backend Test Item Types](#backend-test-item-types)。
+backend/test、frontend/test、extension/test、miniapp/test、flutter/test、shopify-app/test、shopify-extension/test、web-demo/dev、extension-demo/dev、flutter-demo/dev 的测试拆分与执行见 [Test Execution Consolidation](#test-execution-consolidation) 与 [Backend Test Item Types](#backend-test-item-types)。
 
 ## Test Execution Consolidation
 
@@ -175,7 +221,7 @@ backend/test、frontend/test、extension/test、miniapp/test、flutter/test、we
 - runner 的 Validation 必须包含 `### Expected Test Manifest`：测试文件、测试函数/用例标题、来源 authoring item、预期 runner 命令。
 - runner 只运行覆盖来源所需的最小可靠定向测试、类型检查或构建命令；全量测试只在定向范围无法覆盖风险，或发布/验收门禁要求时使用，并说明原因。
 - 编译、预构建、项目启动等等待成本允许存在，但 item 必须记录实际命令和失败/耗时证据。
-- 可用 `uv run scripts/check-test-runner-coverage.py <feature> --layer <backend|frontend|extension|miniapp|flutter|web-demo|extension-demo|flutter-demo>` 校验集中 runner 或合并 item 的覆盖关系；发现器不支持项目命令时传 `--runner-file <item>`，脚本无法解析的命令仍需按真实入口人工核查，不把未解析当通过。
+- 可用 `uv run scripts/check-test-runner-coverage.py <feature> --layer <backend|frontend|extension|miniapp|flutter|shopify-app|shopify-extension|web-demo|extension-demo|flutter-demo>` 校验集中 runner 或合并 item 的覆盖关系；发现器不支持项目命令时传 `--runner-file <item>`，脚本无法解析的命令仍需按真实入口人工核查，不把未解析当通过。
 
 适用阶段：
 
@@ -184,6 +230,7 @@ backend/test、frontend/test、extension/test、miniapp/test、flutter/test、we
 - extension/test：测试 authoring 后由 extension-test 集中执行项目实际 Vitest 定向命令；浏览器用户故事用例归 extension-demo/dev。runner 验证范围从相关 authoring item 推导，不默认全量。
 - miniapp/test：测试或验证资产完成后执行相关 `typecheck`、构建或专项 gate。
 - flutter/test：单元/widget 测试资产完成后执行相关定向 `flutter test`；按改动范围执行 integration_test、Patrol、analyze 或构建门禁。
+- shopify-app/test、shopify-extension/test：Vitest 测试资产（loader/action 纯逻辑、app proxy 验签函数、扩展辅助模块）完成后执行项目实际 Vitest 定向命令；店面与 admin 用户故事用例归 web-demo/dev。
 - web-demo/dev：Playwright Demo、fixture、Page Object 完成后执行相关 `web-demo-test-runner.py [test-file] --grep [pattern]` 或少量相关文件。
 - extension-demo/dev：扩展 Playwright Demo、fixture、helper 完成后执行相关 `web-demo-test-runner.py demo/e2e/extension/[test-file] [--no-auto-env] --grep [pattern]`；环境参数按 `${CLAUDE_PLUGIN_ROOT}/guides/extension/demo-testing.md` 选择。
 - flutter-demo/dev：Patrol 测试、screen/helper 完成后按文件执行相关 `flutter-demo-test-runner.py [test-file] --device [android-id]`；不规划不存在的标题 grep。

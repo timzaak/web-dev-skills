@@ -1,7 +1,7 @@
 ---
 name: t-init
-description: Initialize a full-stack project skeleton with Java Spring Boot backend and React frontend (TypeScript + TanStack + Tailwind), or use --extension-demo to add Playwright integration-test infrastructure to an existing WXT extension; does not implement feature stories or perform their acceptance.
-argument-hint: "<project-name> | --extension-demo [--extension-dir <path>]"
+description: Initialize a full-stack project skeleton with Java Spring Boot backend and React frontend (TypeScript + TanStack + Tailwind), or use --extension-demo to add Playwright integration-test infrastructure to an existing WXT extension; use --shopify to create a Shopify React Router app project (or retrofit an existing one) with the same demo/scripts infrastructure. Does not implement feature stories or perform their acceptance.
+argument-hint: "<project-name> | --extension-demo [--extension-dir <path>] | --shopify <project-name>"
 allowed-tools:
   - AskUserQuestion
   - Read
@@ -17,7 +17,7 @@ allowed-tools:
 
 # 项目初始化
 
-初始化全栈项目骨架（Java Spring Boot 后端 + React 前端 + Demo E2E），或为已有 WXT 扩展补齐 extension-demo 基础设施。先按参数选择模式；两个模式不串行执行。
+初始化全栈项目骨架（Java Spring Boot 后端 + React 前端 + Demo E2E）、为已有 WXT 扩展补齐 extension-demo 基础设施，或初始化 Shopify App 工程。先按参数选择模式；三个模式不串行执行。
 
 ## 模式路由
 
@@ -25,20 +25,22 @@ allowed-tools:
 | --- | --- |
 | `<project-name>` | 创建 Java Spring Boot + React + Web Demo 全栈工程，执行下文流程 |
 | `--extension-demo [--extension-dir <path>]` | 在当前目标项目根目录增量初始化扩展 Demo，仅读取并执行 [extension-demo 初始化流程](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/extension-demo-init.md)，完成后返回 |
+| `--shopify <project-name>` | 创建 Shopify App 工程（Shopify 官方 React Router 模板）或为已有 Shopify 工程增量补齐 demo/scripts 设施，仅读取并执行 [Shopify 初始化流程](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/shopify-init.md)，完成后返回，不执行下文全栈生成步骤 |
 
-拒绝混用项目名和 `--extension-demo`、单独使用 `--extension-dir` 或未知参数，并给出以上用法。扩展模式不创建新的 WXT 工程、不执行下文全栈生成步骤。
+拒绝混用项目名和 `--extension-demo`、混用 `--shopify` 与 `--extension-demo`、单独使用 `--extension-dir`、`--shopify` 缺少项目名或未知参数，并给出以上用法。扩展模式不创建新的 WXT 工程、Shopify 模式不执行全栈生成步骤。
 
 ## 适用范围
 
 仅在以下场景使用：
 - 用户明确执行 `/t-init <project-name>`
 - 用户明确执行 `/t-init --extension-demo` 或要求为已有扩展搭建集成测试基础设施
+- 用户明确执行 `/t-init --shopify <project-name>` 或要求创建 / 改造 Shopify App 工程
 - 用户要求创建新项目、初始化全栈项目骨架
 - 用户提到 "搭建项目""新建项目""项目初始化"
 
 不要用于：
 - Chrome 扩展生产工程初始化：按 [extension 初始化指南](${CLAUDE_PLUGIN_ROOT}/guides/extension/initialization.md) 搭建 WXT 工程；工程就绪后可用扩展模式补齐 Demo
-- 已有项目的业务增量开发（扩展 Demo 基础设施初始化除外）
+- 已有项目的业务增量开发（扩展 Demo / Shopify 设施增量初始化除外）
 - 代码修改或重构
 - 单纯的前端或后端初始化（如果明确只做一侧，提示用户本 skill 生成完整全栈）
 
@@ -77,6 +79,7 @@ allowed-tools:
 - **springdoc-openapi** — OpenAPI 3, Swagger UI, `/v3/api-docs`
 - **TanStack Router** — 文件路由、Vite 插件、createRouter
 - **TanStack Query** — QueryClient、useQuery、Provider
+- **@shadcn/lint** — ESLint 集成方式、规则集（no-raw-colors / no-arbitrary-values / no-inline-styles / no-restyle 等）、`settings.shadcn` 与 contracts 配置
 
 如果某个 Context7 查询失败，降级到 `WebSearch` 搜索官方文档。如果都无法获取，基于已有知识生成但标注可能需要调整版本。将查询结果中的版本号和 API 用法保存，传递给后续 subagent。
 
@@ -87,10 +90,10 @@ allowed-tools:
 | Step | subagent | 模板 | 输出目录 | 完成验证 |
 |---|---|---|---|---|
 | 3 | `t-tools:backend-dev` | backend-dev 模板 | `<project-name>/backend/` | `mvn test` |
-| 4 | `t-tools:frontend-dev` | frontend-dev 模板 | `<project-name>/frontend/` | `npm install` + `type-check`（routeTree.gen.ts 错误除外） |
+| 4 | `t-tools:frontend-dev` | frontend-dev 模板 | `<project-name>/frontend/` | `npm install` + `type-check`（routeTree.gen.ts 错误除外）+ `lint`（@shadcn/lint 0 error） |
 | 5 | `t-tools:web-demo-dev` | web-demo-dev 模板 | `<project-name>/demo/` | `npm install` + smoke test 全部通过 |
 
-### Step 6: 生成项目本地 scripts（主 Agent）
+### Step 6: 复制并适配项目本地 scripts（主 Agent）
 
 将插件运行时脚本复制到目标项目根目录 `scripts/`，作为该项目后续环境启动、测试执行和 Demo 运行的优先入口。
 
@@ -110,21 +113,22 @@ allowed-tools:
 - `web-demo-failure-summary.py`
 - `lib/*.py`
 
-复制后按当前项目调整脚本默认配置：
-- Docker 镜像、容器名和端口必须使用当前项目语义，避免多个初始化项目互相冲突。
-- 默认数据库名、Redis 端口、后端/前端启动命令应与本次生成的 `backend/`、`frontend/`、`demo/` 保持一致。
+插件脚本提取自源全栈工程，内置该工程的二进制名、配置环境变量、容器名和端口，原样交付不可运行。复制后必须读取 [references/script-adaptation.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/script-adaptation.md)，以本次生成的 `backend/`、`frontend/`、`demo/` 实际事实为输入逐项改写，并执行其中的交付验证（环境可执行时运行一次 `demo-start.py` → `demo-stop.py` 循环；不可执行时在收尾输出标注未验证）。
+
+约束：
 - 脚本文件名、主要 CLI 参数和输出 JSON/日志契约保持稳定，便于 `/t-tools:t-*` 流程复用。
 - 运行类命令优先使用 `uv run scripts/<name>.py`；只有目标项目缺少对应脚本时，才回退到 `uv run ${CLAUDE_PLUGIN_ROOT}/scripts/<name>.py`。
 
 脚本适配完成后，读取 [references/scripts-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/scripts-template.md)，根据实际脚本和各端测试配置生成目标项目 `scripts/index.md`，作为测试运行说明的唯一维护位置。
 
-### Step 7: 生成 AGENTS.md 和 README.md（主 Agent）
+### Step 7: 生成 AGENTS.md、README.md 和 .gitignore（主 Agent）
 
 读取 [references/agents-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/agents-template.md) 获取模板内容。
 
-生成两个根目录文件：
+生成三个根目录文件：
 - `AGENTS.md` — 项目描述占位符 + 项目行为准则 + `scripts/index.md` 读取入口；不重复测试命令，也不为此生成分端 AGENTS.md
 - `README.md` — 快速启动指南；测试运行说明统一维护在 `scripts/index.md`
+- `.gitignore` — 只覆盖跨端运行时产物：`log/`（项目本地脚本写入的日志与运行时文件）；`backend/`、`frontend/`、`demo/` 的构建产物由各 subagent 按模板内的分端 `.gitignore` 处理，不在此重复。已存在 `.gitignore` 时只增补缺失条目，不重写已有内容
 
 生成后提示用户填写 `AGENTS.md` 顶部的项目描述占位符。
 
@@ -132,7 +136,7 @@ allowed-tools:
 
 收集各 subagent 的验证结果（见 Step 3 ~ 5 表格），并按「输出文件清单」用 Glob 确认所有文件都已创建。如果验证工具不可用，跳过并提示用户手动验证。
 
-确认根目录 AGENTS.md 指向 `scripts/index.md`，索引中的目录、命令、前置条件和结果位置与生成的脚本、配置一致。缺少测试入口时注明缺口，不虚构命令；未执行的验证明确标为未验证。重试生成索引时保留用户已有说明，仅更新本次涉及的入口。
+确认根目录 AGENTS.md 指向 `scripts/index.md`，索引中的目录、命令、前置条件和结果位置与生成的脚本、配置一致；按 [references/script-adaptation.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/script-adaptation.md) 的交付验证核对脚本内容与生成工程事实一致、脚本内无源项目残留。缺少测试入口时注明缺口，不虚构命令；未执行的验证（含脚本适配执行验证）明确标为未验证。重试生成索引时保留用户已有说明，仅更新本次涉及的入口。
 
 ## 输出文件清单
 
@@ -142,7 +146,7 @@ allowed-tools:
 
 完成后在响应中明确说明：
 - 项目路径、已生成的文件数量
-- 各 subagent 验证结果（mvn test / npm install / smoke test）
+- 各 subagent 验证结果（mvn test / npm install + type-check + lint / smoke test）
 - OpenAPI 位置（`/v3/api-docs`，Swagger UI 由 springdoc 配置）
 - 项目本地脚本已生成到 `scripts/`，后续优先执行 `uv run scripts/<name>.py`；UnifiedLogger 通过 `npm install playwright-unified-logger` 安装
 - Demo smoke test 运行命令（`cd demo && npx playwright test e2e/smoke.e2e.ts`）与日志环境变量说明（`UNIFIED_LOG_LEVEL` 等）
@@ -155,10 +159,12 @@ allowed-tools:
 生成前逐项自检：
 - 已查询 Context7 确认 Spring Boot、Spring Framework、springdoc 和前端依赖版本，并把版本信息传递给了 subagent
 - 后端是 Java Spring Boot 项目结构，包含 Actuator health 与 `/health` 兼容入口、`/v3/api-docs` OpenAPI 能力
-- 后端 `mvn test`、前端 install + type-check、Demo smoke test 通过，或明确记录跳过原因
+- 后端 `mvn test`、前端 install + type-check + lint、Demo smoke test 通过，或明确记录跳过原因
+- `@shadcn/lint` 生效且 0 error：`src/components/ui/**` 已豁免（块级 ignores，不用 files 负向模式）；有意的样式例外写入 contracts 而非关闭规则
 - sonner 等 UI 组件通过 CLI 命令生成（不是 AI 手写）；关键文件含中文注释，配置字段有完整说明
 - demo smoke test 不依赖后端且能独立运行通过；demo 中 import 路径正确指向 `playwright-unified-logger`（npm 包）
 - 所有占位符已替换为实际项目名称
+- 项目本地脚本已完成适配并通过交付验证（含 `demo-start.py` → `demo-stop.py` 循环），或明确记录未验证原因；脚本内无源工程残留
 
 ## 失败处理
 
@@ -179,4 +185,6 @@ allowed-tools:
 - Demo E2E 测试模板：[references/demo-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/demo-template.md)
 - Unified Logger 包模板：[references/unified-logger-package-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/unified-logger-package-template.md)
 - 脚本模板：[references/scripts-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/scripts-template.md)
+- 脚本复制与适配规则：[references/script-adaptation.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/script-adaptation.md)
 - AGENTS.md 模板：[references/agents-template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/agents-template.md)
+- Shopify 初始化流程：[references/shopify-init.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/shopify-init.md)

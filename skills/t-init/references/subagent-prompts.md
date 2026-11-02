@@ -36,6 +36,7 @@
    - {{PROJECT_PACKAGE_PATH}} → <package 路径，如 com/example/myproject>
 - 默认使用 Maven 项目结构
 - 根据 Context7 查询结果调整依赖版本（版本信息：[附上 Step 2 收集的版本]）
+- 生成 backend/.gitignore（忽略 target/）
 
 关键约束：
 - Java 版本基线为 17（Spring Boot 3 最低基线）；目标环境明确使用 Java 21 时可修改 java.version
@@ -65,6 +66,7 @@
 - package.json（含所有依赖）
 - tsconfig.json
 - vite.config.ts（Tailwind + TanStack Router + React 插件）
+- eslint.config.js（ESLint + @shadcn/lint 设计系统守卫；ui/ 目录须用块级 ignores 豁免）
 - openapi-ts.config.ts
 - index.html
 - src/main.tsx（React Query + TanStack Router 初始化）
@@ -73,6 +75,7 @@
 - src/routes/index.tsx（首页）
 - src/lib/api-client.ts（Axios 实例）
 - src/routeTree.d.ts（类型声明占位）
+- .gitignore（忽略 node_modules/、dist/、src/routeTree.gen.ts）
 
 替换占位符：
 - {{PROJECT_NAME}} → <实际项目名>
@@ -86,9 +89,11 @@
 - npx shadcn@latest init -d --defaults
    - 自动生成 components.json、button.tsx、utils.ts，更新 styles.css
    - 自动安装额外依赖（@base-ui/react、next-themes 等）
+   - components.json 生成后，@shadcn/lint 即可自动发现组件
 - npx shadcn@latest add sonner --overwrite（生成 sonner.tsx）
    - 生成的 sonner.tsx 使用 next-themes，main.tsx 已包含 ThemeProvider
 - npm run type-check 验证
+- npm run lint 验证（@shadcn/lint 应 0 error；warning 需处理或在 eslint.config.js 契约中注明设计依据）
 
 注意：routeTree.gen.ts 在首次 npm run dev 时才会生成，type-check 可能因此报错，这是正常的。
 
