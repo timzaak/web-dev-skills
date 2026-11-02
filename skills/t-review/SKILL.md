@@ -43,7 +43,7 @@ allowed-tools:
 
 ## 变更收集
 
-先读取 `${CLAUDE_PLUGIN_ROOT}/protocols/review-scope-contract.md`，按默认范围或显式目标收集 diff、文件版本和项目约束；范围不可确定时停止，成功解析且为空时返回 `NO_CHANGES`。解析 `--fix` 后才解析目标；不支持的选项显式报错，不把内置 `/code-review` 的 effort、`--comment`、`ultra` 等选项假装执行。
+先读取 `${CLAUDE_PLUGIN_ROOT}/protocols/review-scope-contract.md`，按默认范围或显式目标收集 diff、文件版本和项目约束；范围不可确定时停止，成功解析且为空时返回 `NO_CHANGES`。解析 `--fix` 后才解析目标；不支持的选项显式报错，不把内置 `/code-review` 的 effort、`--comment`、`--max-findings`、`ultra` 等选项假装执行。
 
 ## 执行流程
 

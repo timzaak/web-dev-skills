@@ -52,7 +52,7 @@ Decision -> PRD / 技术预研 -> 设计 -> 实现 / 测试 -> 独立验收 -> �
 
 ## Figma
 
-保留 `t-figma-assets`、`t-figma-impl`、`t-figma-ux`，面向目标项目现有文件完成素材处理、分块还原与动效精修；不指定生产框架。素材可延后准备，但交付前须绑定真实资产，页面由开发者验收。见 [Figma 指南](guides/figma/index.md) 和 [共享契约](protocols/figma-workflow-contract.md)。
+保留 `t-figma-assets`、`t-figma-impl`，面向目标项目现有文件完成素材处理与分块还原；不指定生产框架。素材可延后准备，但交付前须绑定真实资产，页面由开发者验收。见 [Figma 指南](guides/figma/index.md) 和 [共享契约](protocols/figma-workflow-contract.md)。
 
 ## 质量链与辅助入口
 
@@ -74,15 +74,16 @@ Decision -> PRD / 技术预研 -> 设计 -> 实现 / 测试 -> 独立验收 -> �
 
 ## 可选领域模板
 
-已移出的领域资产保留在 [templates/](templates/index.md)：[classic-stack](templates/project-profiles/classic-stack/index.md) 提供原 Rust/React、扩展、小程序、Flutter 与 Shopify 角色、实践、脚本和工程模板；[java-backend](templates/project-profiles/java-backend/index.md) 提供 java 分支的 Java/Spring Boot/Maven 后端内容。
+已移出的领域资产保留在 [templates/](templates/index.md)：[classic-stack](templates/project-profiles/classic-stack/index.md) 提供原 Rust/React、扩展、小程序、Flutter 与 Shopify 角色、实践、脚本和工程模板；[java-backend](templates/project-profiles/java-backend/index.md) 提供 java 分支的 Java/Spring Boot/Maven 后端内容；[pi-agent](templates/project-profiles/pi-agent/index.md) 提供 `pi` 分支的 extension/skill/package 工作流和 `t-init --pi` 初始化。
 
 ```powershell
 python scripts/export-template.py list
 python scripts/export-template.py export classic-stack --output C:/code/ai/t-tools-classic
 python scripts/export-template.py export java-backend --output C:/code/ai/t-tools-java
+python scripts/export-template.py export pi-agent --output C:/code/ai/t-tools-pi
 ```
 
-导出目录位于本仓库之外；--dry-run 只预览，重复执行不覆盖用户修改。导出会从模板固定提交取得配套共享运行时，再加入模板领域文件，得到可由 claude --plugin-dir 加载的独立插件。同一会话只选择通用插件或一份模板，不混用不同版本的 phase/state。模板默认不加载，不改变通用主链路；缺少来源提交时先 git fetch origin main 或 git fetch origin java。
+导出目录位于本仓库之外；--dry-run 只预览，重复执行不覆盖用户修改。导出会从模板固定提交取得配套共享运行时，再加入模板领域文件，得到可由 claude --plugin-dir 加载的独立插件。同一会话只选择通用插件或一份模板，不混用不同版本的 phase/state。模板默认不加载，不改变通用主链路；缺少来源提交时先 按模板 upstream_branch 执行 git fetch origin main、git fetch origin java 或 git fetch origin pi。
 
 ## 持续维护
 

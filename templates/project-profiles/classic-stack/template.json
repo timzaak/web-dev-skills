@@ -2,7 +2,7 @@
   "schema_version": 1,
   "id": "classic-stack",
   "description": "Optional Rust/React, extension, miniapp, Flutter and Shopify workflow template",
-  "upstream_revision": "0221a413be1e1d41ac073e5b9bf1dfa077caa41e",
+  "upstream_revision": "752e026ff9f9c75538bcb936795d028a532e0356",
   "source_paths": [
     "agents/backend-accept.md",
     "agents/backend-consistency.md",
@@ -118,6 +118,7 @@
     "skills/t-init/references/extension-demo-template.md",
     "skills/t-init/references/frontend-template.md",
     "skills/t-init/references/output-checklist.md",
+    "skills/t-init/references/script-adaptation.md",
     "skills/t-init/references/shopify-init.md",
     "skills/t-init/references/subagent-prompts.md"
   ],

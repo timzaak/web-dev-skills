@@ -100,8 +100,7 @@ tools:
 
 ### Design-First 检查
 
-- 非 `bugfix-`、`refactor-`、`doc-`、`test-`、`style-` 前缀任务，必须确认设计文档存在
-- 以 `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md` 为准
+- 按 `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md` 判断设计输入；主链沿用设计门禁，不按命名前缀豁免。
 
 ### UI 变更检查
 

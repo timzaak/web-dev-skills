@@ -1,0 +1,210 @@
+# Task Check Rubric
+
+## Source Of Truth Boundaries
+
+单一真相源：
+
+- 状态字段、状态取值和聚合规则只以 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 为准。
+- phase/slot/item 执行顺序、active phases、backend test item 类型只以 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 为准。
+- 评分、严重度和报告字段只以本文件为准。
+- skill、agent、README 可以引用上述协议，但不得复制出第二套冲突规则。
+
+## Evidence Priority
+
+最终结论的证据优先级必须为：
+
+`docs/`、`.ai/tech-research/`、`${CLAUDE_PLUGIN_ROOT}/guides/` 与仓库实际文件 > 当前 phase 任务文档 > sub agent 评审意见
+
+规则：
+
+- sub agent 只能提供候选问题，不能直接充当最终裁决
+- 可从仓库发现的事实必须由主流程再次核验
+- 规范冲突若能从真源或仓库事实裁决，按裁决结果记录；若必须由用户决策，进入 [Clarification Gate](#clarification-gate)，不得只记为 P0/P1/P2
+
+## Clarification Gate
+
+用户决策查重、Decision Log 更新和完成态要求统一参考 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`。
+
+设计、规划或检查过程中，凡问题会影响任务是否可执行、拆分方向、交付范围、权限/安全边界、数据模型、兼容性策略、验收标准或测试闭环，且无法从真源文档、仓库事实或用户已给上下文裁决时，必须停止当前阶段并使用 `AskUserQuestion` 向用户提问。
+
+要求：
+
+- 不得把这类问题仅写入 P0/P1/P2 清单、风险表或假设列表后继续推进。
+- 问题必须具体、可回答，包含冲突证据、需要用户选择或补充的决策点，以及不回答会阻塞的后续动作。
+- 提问前按 Topic 检查 Decision Log；用户回答后先更新账本和拥有该事实的设计/任务文档。
+- 用户回答后，先把结论落实到对应设计或任务文档，再继续评分、生成任务或准入 `/t-run`。
+- 未得到用户回答前，不得生成“可进入下一阶段”的结论。
+
+可继续记录为 P0/P1/P2 的是已经有证据确认的问题；需要用户裁决的问题状态为 `needs_user_answer`，不参与分数扣减或 P0 计数。
+
+## Schema Checks
+
+`.state.json` 必须满足：
+
+- `feature` 存在
+- `phase` 属于 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Phases 定义的 `supported_phases`（校验前读取）
+- `phases` 包含当前任务的 active phases；不要求包含未启用阶段
+- `phases[*].status` 存在
+- `tasks[phase]` 存在
+- `tasks[phase]` 的 slot 满足 task-phase-execution 的 Slot Order
+- 每个 slot 含 `status/manifest/items`
+- 每个 item 含 `status/file/agent`
+
+缺失或非法 => `TASK_SCHEMA_INVALID`
+
+结构真相以 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 为准。
+
+## Execution Checks
+
+主流程检查：
+
+- 设计文档存在
+- `.state.json` schema 有效
+- 当前 phase 存在于 active phases，且阶段目录与状态文件一致
+- `index.md`、slot manifest、item 文件齐备
+- item 执行顺序合法：
+   - item ID 唯一
+   - item 文件路径与 state 一致
+   - manifest 按表格从上到下覆盖全部 items，且无重复 item
+- item 文件包含必填字段
+- item 文件包含 `id/title/agent` 和 `Goal/Work/Files/Validation/Handoff` 五个章节
+- 若当前阶段包含 backend/test，该 slot 符合 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 authoring/集中 runner 覆盖与 runner agent/协议引用要求
+- 若当前阶段为 backend，backend/test runner 默认使用定向命令；全量 `uv run scripts/backend-test.py --` 只有在写明无法可靠定向或门禁要求时才允许
+- 若当前阶段包含 backend/test，该 slot 至少包含一个 runner，且 runner 在 manifest 中排在其覆盖的 authoring item 之后；没有 test slot 时，阶段 index 说明原因，dev Validation 至少包含一项可执行验证
+- 仅运行现有测试、编译、类型检查或构建时，验证归 dev，不据此要求 test slot
+- 按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 核对受影响业务场景的验证入口、关键断言及承接位置；静态检查不能代替业务运行验证。
+- 所有阶段检查新增测试的可观察回归、场景测试/Demo 覆盖缺口；仅为覆盖率、技术分层或重复已有路径规划的测试记为过度拆分
+- frontend/extension/miniapp/flutter/shopify-app/shopify-extension/pi/web-demo/extension-demo/flutter-demo 的测试资产必须由合并 item 或排在其后的集中 runner 完成定向执行；按 task-phase-execution 选择，检查 Expected Test Manifest，不得默认规划全量测试
+- slot item 数量符合 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的上限，或具有用户授权证据
+- 大范围重构、旧架构替换或旧模块迁移任务包含旧代码清理清单，并按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 先删除旧实现再改写新结构
+- 检查是否存在过度拆分：同一责任闭环被拆成多个无法独立验收的 item，或多个 item 只是在技术层之间传递 handoff
+- 设计文档与任务文档一致
+- 调用当前阶段对应 agents 做专业校验
+- 主流程复核后生成最终结论
+
+### Context Budget Rules
+
+默认读取顺序：
+
+- 先读取 `.state.json`、当前 phase `index.md` 和 slot manifest。
+- 再抽取 item 关键字段，建立轻量 item 表。
+- manifest 顺序与覆盖、agent/slot 匹配、backend test authoring/集中 runner 覆盖等结构检查优先基于轻量 item 表完成。
+- 只有以下情况才读取 item 全文：
+  - 关键字段缺失或冲突，需要定位具体证据。
+  - 拆分阈值、过度拆分、职责混杂、设计一致性存在疑点。
+  - subagent finding 需要主流程复核。
+  - P0/P1 需要补齐任务文档证据。
+
+subagent 上下文必须按 agent/slot 裁剪。不得默认向每个 subagent 传入当前 phase 的全部 item 全文；应传入相关 item 路径、关键字段摘要、必要片段和顺序中相关前序 item 文件路径。
+
+## Agent Review Contract
+
+每个被调度 agent 输出至少包含：
+
+- `score`
+- `findings`
+- `fixes`
+- `summary`
+
+agent 评审边界：
+
+- 只报告会影响 `/t-run` 执行、item 可恢复性、设计一致性或验收闭环的问题。
+- P2 文风、命名、排版类建议默认不阻塞，不得升级为 P0/P1。
+- 不得因为 agent 自身偏好的实现方式不同而报告问题；必须引用任务文档或真源规范。
+- 同类问题应合并为一条 finding，并列出受影响 item，避免跨轮重复刷屏。
+
+主流程补全每条 finding：
+
+- `status`: `confirmed | disputed | assumption`
+- `task_file`
+- `source_of_truth`
+- `repo_evidence`
+- `why_blocking`
+- `fix`
+
+若 finding 需要用户裁决，`status` 必须为 `needs_user_answer`，并触发 [Clarification Gate](#clarification-gate)，不得降级为 `assumption` 后继续。
+
+## Scoring
+
+总分 100：
+
+| 维度 | 分值 | 说明 |
+|---|---:|---|
+| 状态文件结构 | 15 | `.state.json` 的 `phase/phases/tasks/slot/items` 结构完整性 |
+| 文档完整性 | 15 | `index.md`、slot manifest 和 item 文件 |
+| Item 可执行性 | 20 | item 责任闭环清楚、步骤明确、验证命令明确、失败可定位 |
+| 内容一致性 | 20 | 与设计文档、PRD、用户故事、技术预研、仓库路径和术语一致 |
+| 顺序与恢复 | 15 | manifest 顺序明确、handoff 可追溯、失败可恢复 |
+| 文档规范 | 10 | Markdown 结构和格式规范 |
+| 代码示例质量 | 5 | 示例可读、可执行、不误导 |
+
+## Severity
+
+### P0
+
+- `.state.json` 缺失或格式错误
+- 缺少核心 phase/slot/item 结构
+- 阶段目录、manifest、item 文件缺失
+- manifest 未覆盖全部 item、包含重复 item，或无法确定执行顺序
+- 当前 phase 不在 active phases 中，或阶段目录与状态文件冲突
+- backend/test 缺少 runner item、runner agent 不是 `general-purpose`、runner 未引用 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md`，或存在 authoring item 未被集中 runner 覆盖
+- backend/test runner 把全量 `uv run scripts/backend-test.py --` 当默认 validation，且未说明定向范围不足或门禁要求
+- backend/test runner 排在其覆盖的 authoring item 之前，或 backend/test 缺少 runner 导致 accept 前没有测试执行闭环
+- frontend/extension/miniapp/flutter/shopify-app/shopify-extension/pi/web-demo/extension-demo/flutter-demo 的测试资产既未在合并 item 内安排执行，也未被后续集中 runner 覆盖
+- 业务行为变更只有静态验证且无适用的运行验证/后续承接，或待验证场景被计为交付完成
+- 命令、路径、阶段链路经仓库和规范双重验证后确认会直接导致 `/t-run` 无法执行
+
+出现 `confirmed P0` 时，必须拒绝进入 `/t-run`。
+
+### P1
+
+- slot 状态与 item 聚合状态不匹配
+- 没有 test slot，且阶段 index 缺少原因或 dev Validation 没有可执行验证，导致 accept 无法核查测试风险
+- item 缺少关键章节
+- slot item 数量超过 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的上限且无用户授权证据，或 item 职责、验证、恢复边界可疑且无合理说明
+- item 职责混杂，单次 agent 调用高概率无法完成
+- item 合并多个弱相关、可独立交付、独立验证的主交付物
+- item 过度拆分：同一责任闭环被拆成多个无法独立验收的 item，多个 item 修改同一小文件集并重复相同验证命令，或执行序列只是在 DTO/domain/repository/service/route、API/store/page/error/permission 等技术层之间传递 handoff
+- HTTP/API item 覆盖超过 10 个 endpoint，或混合不同资源域、读写操作、状态操作、配置类接口，导致单次执行或验证闭环不可恢复
+- item 略大但责任闭环单一、验证定向、失败可定位、顺序清晰、handoff 可恢复时不应仅因规模、步骤数或文件数记 P1
+- web-demo / extension-demo / flutter-demo item 同时创建复用 helper 并覆盖多个完整用户故事或多个业务状态流
+- 大范围重构缺少旧代码清理清单，清单没有说明删除边界与残留搜索方式，或未按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的“先删除旧实现再改写新结构”顺序组织
+- 没有真实兼容约束（按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的兼容性来源判定：PRD、设计文档、外部 API 契约、数据保留、跨版本部署或用户显式要求均不成立）时，任务计划仍以兼容层、adapter、bridge、fallback、双路径分支或“以后再删”作为主路径
+- 后续 item 缺少 `Handoff` 追溯
+- 设计文档与任务文档严重不一致但暂不直接阻塞执行
+
+### P2
+
+- 示例可读性差
+- Markdown 结构可优化
+- 表达不够具体但不影响执行
+- item 命名可读性不足
+
+## Report Requirements
+
+报告只保留：
+
+- 总分、等级、是否可进入 `/t-run`
+- 用户澄清状态：无阻塞澄清 / 已通过 `AskUserQuestion` 解决 / 等待用户回答
+- 门禁摘要：状态文件、phase 有效性、item 顺序、manifest/items、agent 集合
+- 扣分维度摘要
+- P0/P1/P2 单行清单：`级别 | 文件 | 问题 | 修复`
+- 需用户回答的问题清单：`问题 | 证据 | 需要用户决定什么 | 阻塞的后续动作`
+- 证据路径或命令摘要；不得复制完整 agent 输出或命令日志
+
+等级建议：
+
+- `90-100`: 优秀，可进入实施
+- `75-89`: 良好；仅在无 `confirmed P0` 时可进入实施
+- `60-74`: 需改进；有 `confirmed P0` 时必须先修
+- `<60`: 不合格，建议重新规划
+
+## Hard Gates
+
+- 分项分值之和必须等于 100
+- 每个扣分项必须有文件定位
+- 每个 P0/P1 必须同时有任务文档证据和真源证据
+- `confirmed P0 > 0` 时，不得进入 `/t-run`
+- `disputed` 或 `assumption` 不得计入 P0
+- 存在 `needs_user_answer` 时，不得进入 `/t-run`，且必须先用 `AskUserQuestion` 获取答案
+- P2 不阻塞 `/t-run`

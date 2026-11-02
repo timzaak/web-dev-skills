@@ -54,7 +54,7 @@ t-decision -> t-prd / t-tech-research（无固定顺序，进设计前收敛）
 | 写项目教程 / 文档 | `/t-tools:t-doc [名称]` | 不用于 PRD 和技术设计 |
 | 审计上下文 / 结构漂移 | `/t-tools:t-dream [feature]` | 只读；报告可含 PRD 治理建议，不执行写入 |
 | 阶段收口一致性 | `/t-tools:t-dream [feature] --phase <phase>` | 检查该交付阶段实现或 Demo 与 PRD / 用户故事的一致性；阶段取值见共享阶段执行协议 |
-| Figma 还原 | `/t-tools:t-figma-assets` → `/t-tools:t-figma-impl` | 素材未就绪可先 impl，交付前补 assets 并绑定；动效精修用 `t-figma-ux` |
+| Figma 还原 | `/t-tools:t-figma-assets` → `/t-tools:t-figma-impl` | 素材未就绪可先 impl，交付前补 assets 并绑定 |
 | 为产品图标 / logo 生成提示词 | `/t-tools:t-icon-prompt [icon-name]` | 问答产出提示词卡；只出提示词不生成图片，UI 图标集请用图标库 |
 | 已有项目工作流接入 | `/t-tools:t-init [--web-demo]` | 记录真实运行入口，可选建立 Web Demo，不选择应用技术栈 |
 | 拉取现成领域角色、实践或工程模板 | `python scripts/export-template.py list`，再显式 export | 读取 `${CLAUDE_PLUGIN_ROOT}/templates/index.md`，区分通用插件与固定版本的独立领域模板；本向导只讲解 |

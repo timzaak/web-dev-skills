@@ -1,6 +1,10 @@
 # Agent Task Output Contract
 
-实现、修复、测试和验收角色统一返回 `task_completion`；设计角色使用 `${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`。
+实现、修复、测试和验收类 agent 按下述结构返回。验收类在本结构上按 `${CLAUDE_PLUGIN_ROOT}/protocols/acceptance-contract.md` 补齐专属必填字段与状态映射。设计类 agent 改用 `${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`；不得混用。
+
+## Success Envelope
+
+默认返回：
 
 ```json
 {
@@ -26,4 +30,4 @@
 
 ## Decision Gaps
 
-需要用户裁决时返回 task_completion.needs_user_answer，并将 status 标为 partial；条目结构和处理规则见 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md` 的 Agent Decision Gap。skill 解决前不得把依赖该答案的工作视为完成。slot 规划输出遵循调用方规划契约，其 needs_user_answer 条目使用同一结构。
+需要用户裁决时返回 task_completion.needs_user_answer；非验收执行将 status 标为 partial，实际验收的门禁、结论与 status 按 acceptance-contract 判定，不因返回问题而绕过必要门禁。条目结构和处理规则见 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md` 的 Agent Decision Gap。skill 解决前不得把依赖该答案的工作视为完成。slot 规划输出遵循调用方规划契约，其 needs_user_answer 条目使用同一结构。

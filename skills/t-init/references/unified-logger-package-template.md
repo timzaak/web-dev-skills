@@ -1,7 +1,7 @@
 # Playwright Unified Logger 包模板
 
-本文件包含 `packages/playwright-unified-logger/` 独立 npm 包的文件结构和 API 说明。
-这是一个通用的 Playwright E2E 测试日志库，通过 monorepo workspace 引用。
+本文件说明 `playwright-unified-logger` 独立 npm 包的文件结构和 API。
+这是一个通用的 Playwright E2E 测试日志库，源码维护在独立仓库 [timzaak/playwright-unified-logger](https://github.com/timzaak/playwright-unified-logger)，目标项目通过 `npm install playwright-unified-logger` 引用。
 
 包名：`playwright-unified-logger`
 
@@ -9,8 +9,10 @@
 
 ## 文件结构
 
+独立仓库根目录：
+
 ```
-packages/playwright-unified-logger/
+playwright-unified-logger/
 ├── package.json
 ├── tsconfig.json
 ├── src/
@@ -31,7 +33,7 @@ packages/playwright-unified-logger/
 │       └── formatters.ts           # 输出格式化函数
 ```
 
-所有源文件内容以 `packages/playwright-unified-logger/src/` 下的实际文件为准。
+所有源文件内容以独立仓库 `src/` 下的实际文件为准，本模板只保留结构索引和 API 签名。
 
 ---
 

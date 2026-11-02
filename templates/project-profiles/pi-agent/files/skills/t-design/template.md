@@ -1,0 +1,175 @@
+# [方案名称] 技术设计（主文档）
+
+**生成时间**: [自动生成时间戳]
+**状态**: Draft
+
+> 本文档是方案主文档，负责目标与范围、需求来源、跨端契约和全量汇总。后端、前端、Flutter 的深入设计在 `.ai/design/[feature]/` 下的分端文档中，由对应设计 agent 生成。
+
+## 1. 需求概述
+
+### 1.1 方案描述
+[简要描述要解决的问题和目标]
+
+### 1.2 目标
+- [目标 1]
+- [目标 2]
+
+### 1.3 范围
+
+**包含**:
+- [范围项]
+
+**不包含**:
+- [范围外项]
+
+### 1.4 已确认假设与证据限制
+- [已确认假设或不需要用户选择的证据限制；无则写“无”]
+
+> 用户裁决项不得写入本节。必须先通过 `AskUserQuestion` 解决，并写入决策账本。
+
+## 2. 需求来源
+
+### 2.1 用户故事
+- `[US-XXX-001]` [标题]，优先级 [P0/P1/P2]，来源 `docs/user-stories/...` 或 `.ai/user-stories/...`
+- 场景概述：[简要摘要]
+- 核心约束：[约束摘要]
+
+### 2.2 PRD / 其他需求文档
+- `.ai/prd/...`（PRD 草稿，如存在）
+- `docs/prd/...`（已发布 PRD 基线，如存在）
+- 业务规则：[摘要]
+- 非功能要求：[摘要]
+
+### 2.3 技术预研
+- `.ai/tech-research/...`
+- 技术目标：[摘要]
+- 选定技术路线：[摘要]
+- 业务逻辑变动边界：[涉及 / 不涉及；如不涉及，说明原因]
+
+### 2.4 决策追踪
+
+| Decision ID | 状态 | 设计落点 | 说明 |
+|---|---|---|---|
+| `DEC-[feature]-001` | Applied / Not Applicable / Superseded | [主文档或分端文档章节] | [应用方式或不适用原因] |
+
+- 决策账本：`.ai/decision-log/[feature].md`
+- 分端文档只追踪影响本端的 DEC 子集；完整 Decision Trace 以本表为准。
+
+### 2.5 设计覆盖矩阵
+
+| Requirement / Story ID | 设计落点 | 契约/组件 | 测试与验收 | 文件影响 |
+|---|---|---|---|---|
+| `[REQ/US-ID]` | [主文档或分端文档章节] | [operationId / 页面 / 模块] | [测试入口或验收路径] | [主文档 §8 行项] |
+
+## 3. 现有实现分析
+
+> 本节是跨端现状概览：现有结构、可复用点、受影响范围。各端深入的现状分析在对应分端文档 §3。
+
+### 3.1 后端
+- `backend/...` - [现状摘要；详见 `.ai/design/[feature]/backend.md` §3]
+
+### 3.2 前端
+- `frontend/src/...` - [现状摘要；详见 `.ai/design/[feature]/frontend.md` §3]
+
+### 3.3 Flutter
+- `lib/...` - [现状摘要；详见 `.ai/design/[feature]/flutter.md` §3]
+
+### 3.4 可复用点与受影响范围
+- [跨端可复用模块与受影响边界摘要]
+
+## 4. 总体方案
+
+### 4.1 总体设计与关键取舍
+- [设计思路与关键边界]
+- [跨端关键取舍；各端内部取舍见分端文档]
+
+### 4.2 交付端范围
+
+| 端 | 分端设计文档 | 状态 |
+|---|---|---|
+| backend | `.ai/design/[feature]/backend.md` | 适用 / 不适用（原因） |
+| frontend | `.ai/design/[feature]/frontend.md` | 适用 / 不适用（原因） |
+| extension | `.ai/design/[feature]/extension.md` | 适用 / 不适用（原因） |
+| flutter | `.ai/design/[feature]/flutter.md` | 适用 / 不适用（原因） |
+| pi | `.ai/design/[feature]/pi.md` | 适用 / 不适用（原因） |
+
+> 仅对"适用"的端生成分端设计文档；不适用端不创建文件。
+
+### 4.3 跨端契约（API 契约摘要）
+
+- 契约源: `.ai/design/[feature]/backend.md` §4（后端不适用时写现有 OpenAPI/SDK 或接口路径）
+- 关键接口摘要:
+
+| Operation ID | 方法 | 路径 | 用途 | 调用方 |
+|---|---|---|---|---|
+| [operationId] | [GET/POST] | `/api/...` | [用途] | [frontend/flutter/sdk] |
+
+> 本表只是导航摘要；字段、错误响应和兼容策略以契约源为准。
+
+## 5. 分端设计摘要
+
+### 5.1 后端
+- [核心结论与关键取舍，3-5 行]
+- 详见 `.ai/design/[feature]/backend.md`
+
+### 5.2 前端
+- [核心结论与关键取舍，3-5 行]
+- 详见 `.ai/design/[feature]/frontend.md`
+
+### 5.3 Flutter
+- [核心结论与关键取舍，3-5 行]
+- 详见 `.ai/design/[feature]/flutter.md`
+
+### 5.4 Chrome 扩展
+- [核心结论与关键取舍，3-5 行；不适用时说明]
+- 详见 `.ai/design/[feature]/extension.md`
+
+### 5.5 pi 扩展
+- [核心结论与关键取舍，3-5 行；不适用时说明]
+- 详见 `.ai/design/[feature]/pi.md`
+
+## 6. 测试与验收策略（跨端汇总）
+
+> 各端测试细节在分端文档；本节汇总跨端测试入口和主验收路径，供 `/t-super-run` 直接消费。按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 记录验证责任表，业务行为变更不能只填编译/类型检查；尚未执行的场景标明承接阶段。
+
+### 6.1 各端测试入口
+- 后端: [单元/场景测试入口摘要；不适用写"不适用"]
+- 前端: [测试入口与 data-testid 依赖摘要；不适用写"不适用"]
+- Flutter: [单元/widget 测试与 Patrol 摘要；不适用写"不适用"]
+- 扩展: [Vitest、构建/manifest、真实浏览器和环境模式摘要；不适用写"不适用"]
+
+### 6.2 Demo / E2E 主验收路径
+- [按交付端声明 Web Playwright 和/或 Android Flutter Patrol 主故事验收路径；无需演示时明确说明]
+
+### 6.3 回归风险点
+- [需要重点验证的跨端场景]
+
+## 7. 风险与验证动作
+
+> 本节只记录方向已经确定的风险和不需要用户选择的验证动作，汇总自各分端文档并保留跨端风险。
+> 影响范围、权限、API、数据、兼容性、验收或测试策略的用户决策，必须先通过 `AskUserQuestion` 解决并写入决策账本，不得留在本节继续推进。
+
+| 风险项 | 等级 (P0/P1/P2) | 缓解或验证动作 | 负责人 | 完成条件 |
+|---|---|---|---|---|
+| [风险描述] | [P0/P1/P2] | [已确定的缓解或验证动作] | [负责人] | [可验证完成条件] |
+| [迁移/兼容性风险] | [P0/P1/P2] | [兼容性策略] | [负责人] | [完成条件] |
+
+## 8. 文件影响范围（全量汇总）
+
+> 汇总所有适用分端文档的文件影响范围；`/t-super-run` 直接对照本表拆分任务。
+> MODIFY/DELETE 路径必须存在；CREATE 父目录与新 skill 目录例外按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Skill Deliverables 校验，并在说明中给出命名依据。
+> 设计要求用户故事演示时，Web Playwright 资产标 `web-demo`，扩展 Playwright `demo/e2e/extension/` 资产标 `extension-demo`，Patrol 资产标 `flutter-demo`；shopify 分端的资产在说明列标注归属 phase（shopify-app / shopify-extension）；skill 交付物标其服务或操作的交付端，独立于任何端时标 `跨端` 并在说明列注明 skill 根目录；无需演示时不出现对应值。
+
+| 文件 | 操作 | 说明 | 来源分端 |
+|---|---|---|---|
+| `[真实仓库路径]` | CREATE / MODIFY / DELETE | [变更摘要] | backend / frontend / extension / flutter / shopify / pi / web-demo / extension-demo / flutter-demo / 跨端 |
+
+## 9. 外部参考
+
+- 无，基于仓库现有规范与需求资料
+- [如人类明确要求补充外部依据，再记录来源标题、链接与结论摘要]
+
+## 10. 下一步
+- 检查技术设计（可选）：`/t-design-check [方案名称]`
+- 如文档较复杂，生成可视化预览：`/t-html-show .ai/design/[方案名称].md`
+- 下一步：`/t-super-run [方案名称] --phase <phase>`；复杂或高风险设计建议先运行 `/t-design-check`

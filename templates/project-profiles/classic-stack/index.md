@@ -1,8 +1,8 @@
 # 原生产领域模板
 
-保留从 main 0221a41 泛化时移除的资源：Rust 后端、React 前端、Chrome 扩展、小程序、Flutter、Shopify，以及相关角色、开发/测试/验收指南、脚本和初始化/设计模板。Web Demo/Figma 已在通用插件保留；导出的运行时使用来源版本配套实现。
+保留从 main 752e026 泛化时移除的资源：Rust 后端、React 前端、Chrome 扩展、小程序、Flutter、Shopify，以及相关角色、开发/测试/验收指南、脚本和初始化/设计模板。Web Demo/Figma 已在通用插件保留；导出的运行时使用来源版本配套实现。
 
-来源分支：`main`；固定提交：`0221a413be1e1d41ac073e5b9bf1dfa077caa41e`。来源文件清单与版本在 [template.json](template.json)，原始内容在 files/。
+来源分支：`main`；固定提交：`752e026ff9f9c75538bcb936795d028a532e0356`。来源文件清单与版本在 [template.json](template.json)，原始内容在 files/。
 
 从仓库根目录运行 `python scripts/export-template.py export classic-stack --output <仓库外的新目录>`；可先加 --dry-run。完整拉取、运行、兼容边界和重复执行规则见[模板入口](/templates/index.md)。
 
@@ -100,6 +100,8 @@
 - [protocols/flutter-demo-run-repair-contract.md](files/protocols/flutter-demo-run-repair-contract.md)
 
 ### skills
+
+- [skills/t-init/references/script-adaptation.md](files/skills/t-init/references/script-adaptation.md)
 
 - [skills/t-design/template-backend.md](files/skills/t-design/template-backend.md)
 - [skills/t-design/template-extension.md](files/skills/t-design/template-extension.md)

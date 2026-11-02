@@ -52,7 +52,7 @@ Initialization establishes Playwright and logging infrastructure; smoke success 
 
 ## Figma
 
-`t-figma-assets`, `t-figma-impl` and `t-figma-ux` retain asset processing, block-based reconstruction and motion refinement in existing project files, without selecting a production framework. Assets may be prepared later but must be bound before delivery; developers perform page acceptance. See [Figma guides](guides/figma/index.md) and the [shared contract](protocols/figma-workflow-contract.md).
+`t-figma-assets` and `t-figma-impl` retain asset processing and block-based reconstruction in existing project files, without selecting a production framework. Assets may be prepared later but must be bound before delivery; developers perform page acceptance. See [Figma guides](guides/figma/index.md) and the [shared contract](protocols/figma-workflow-contract.md).
 
 ## Quality chain and supporting commands
 
@@ -74,15 +74,16 @@ Close changes with `t-review --fix -> t-simplify -> t-push`. Repairs invalidatin
 
 ## Optional domain templates
 
-Migrated assets remain in [templates/](templates/index.md). [classic-stack](templates/project-profiles/classic-stack/index.md) preserves Rust/React, extension, miniapp, Flutter and Shopify roles, practices, scripts and scaffolds. [java-backend](templates/project-profiles/java-backend/index.md) preserves Java/Spring Boot/Maven backend content from java.
+Migrated assets remain in [templates/](templates/index.md). [classic-stack](templates/project-profiles/classic-stack/index.md) preserves Rust/React, extension, miniapp, Flutter and Shopify roles, practices, scripts and scaffolds. [java-backend](templates/project-profiles/java-backend/index.md) preserves Java/Spring Boot/Maven backend content from java. [pi-agent](templates/project-profiles/pi-agent/index.md) provides the pi branch's extension/skill/package workflows and `t-init --pi` scaffolding.
 
 ```powershell
 python scripts/export-template.py list
 python scripts/export-template.py export classic-stack --output C:/code/ai/t-tools-classic
 python scripts/export-template.py export java-backend --output C:/code/ai/t-tools-java
+python scripts/export-template.py export pi-agent --output C:/code/ai/t-tools-pi
 ```
 
-Output must be outside this repository. --dry-run previews; repeated exports preserve user edits. Export combines domain sources with the template's pinned shared runtime, producing a standalone plugin loadable with claude --plugin-dir. Select the generic plugin or one template per session; do not mix phase/state versions. Templates are inactive by default. Fetch origin main or origin java first if pinned history is unavailable.
+Output must be outside this repository. --dry-run previews; repeated exports preserve user edits. Export combines domain sources with the template's pinned shared runtime, producing a standalone plugin loadable with claude --plugin-dir. Select the generic plugin or one template per session; do not mix phase/state versions. Templates are inactive by default. Fetch origin main, origin java or origin pi according to upstream_branch if pinned history is unavailable.
 
 ## Ongoing maintenance
 
