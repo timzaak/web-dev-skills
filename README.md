@@ -69,6 +69,8 @@ t-prd-publish user-management   # 验收通过后发布正式 PRD / 用户故事
 | 新项目脚手架 | `t-init <project-name>`（Rust + React 全栈骨架；Shopify 用 `--shopify`） |
 | 维护插件与项目知识 | `t-skill`（创建/修改 skill）、`t-doc`（教程文档）、`t-dream`（上下文审计）、`t-release`（发版） |
 
+`t-review` 使用独立 verifier 小批量逐项验证候选，高风险或复杂候选单独验证；仅传相关 diff 与同一受审版本的按需补读入口。分批、证据和完整覆盖门禁见[正确性审查契约](protocols/review-correctness-contract.md#verify1-vote-3-state)。默认只报告，传 `--fix` 才在完整验证并写入报告后修复。
+
 每个命令的参数、前置条件和下一步，运行 `t-how` 交互式讲解。
 
 ## 使用规则

@@ -1,6 +1,6 @@
 ---
 name: t-review
-description: Review changed code for correctness bugs with parallel read-only finders and an independent 3-state verifier for each candidate; add specialist angles and a gap sweep for high-risk changes. Write an evidence-backed report, and apply fixes only with --fix. Quality cleanup belongs to t-simplify. Accepts a PR, branch, path, or Git revision range.
+description: Review changed code for correctness bugs with parallel read-only finders and independent 3-state verification in small batches, isolating risky or complex candidates. Add specialist angles and a gap sweep for high-risk changes. Write an evidence-backed report; apply fixes only with --fix. Quality cleanup belongs to t-simplify. Accepts a PR, branch, path, or Git revision range.
 argument-hint: "[<target>（可选：PR / 分支 / 路径 / revision range）] [--fix]"
 allowed-tools:
   - Read
@@ -14,7 +14,7 @@ allowed-tools:
 
 # 变更代码正确性审查
 
-`t-review → 正确性 finder 并行 → 每条候选独立三态验证 → 高风险时查漏并验证新增项 → 报告（--fix 时追加修复）`
+`t-review → 正确性 finder 并行 → 独立 verifier 小批量逐项三态验证（高风险/复杂候选单独验证）→ 高风险时查漏并验证新增项 → 报告（--fix 时追加修复）`
 
 运行时边界：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`（判断脚本入口或项目事实与插件默认冲突时读）
 
@@ -59,8 +59,8 @@ allowed-tools:
 ### Phase 2 — 验证与报告
 
 1. 聚合全部候选，按契约 Dedup 规则去重。
-2. 按 subagent-dispatch 协议 Read `${CLAUDE_PLUGIN_ROOT}/agents/review-verifier.md` 全文；每条去重后候选新建一个 verifier，仅注入该候选、diff、相关文件版本与约束，获得 CONFIRMED / PLAUSIBLE / REFUTED。无候选时不启动 verifier。
-3. 高风险模式按契约 Gap Sweep 节启动一个新的 `review-finder` 查漏，新增候选去重后同样逐条独立验证。保留完整 CONFIRMED 与 PLAUSIBLE 集合，按契约把报告写入 `.ai/quality/review-[YYYYMMDD-HHMMSS].md`；摘要展示与完整集合的持久化规则以共享契约为准。
+2. 按 subagent-dispatch 协议 Read `${CLAUDE_PLUGIN_ROOT}/agents/review-verifier.md` 全文；按共享正确性契约 Verify 节组织批次，为每批新建 verifier，注入该批候选和最小受审上下文，按需补齐可读的受审版本源码。按该节校验逐项三态、未验证项与 ID 覆盖，仅重试失败项；仍未完成时按 Report 写入已有结果、未验证候选与恢复入口，标明审查未完成并停止查漏、下游放行与修复。
+3. 高风险模式按契约 Gap Sweep 节启动一个新的 `review-finder` 查漏，新增候选去重后按同一 Verify 规则验证。全部候选验证完成后，保留完整 CONFIRMED 与 PLAUSIBLE 集合，按契约把报告写入 `.ai/quality/review-[YYYYMMDD-HHMMSS].md`，记录批次覆盖；摘要展示与完整集合的持久化规则以共享契约为准。
 4. 以简要总结收尾：几项确认、几项存疑、排除了多少误报；有发现时给出修复入口建议（t-super-run / 主会话修复后可重跑复核），无发现时明确"未发现正确性缺陷"。
 5. 传入 `--fix` 时继续执行 Phase 3 — 修复。
 
@@ -98,7 +98,7 @@ allowed-tools:
 - 展开质量清理分析——发现清理线索只转交 t-simplify。
 - finder 或 verifier sub agent 修改代码或文档。
 - finder 静默过滤 failure_scenario 可命名的候选（绕过验证是漏报主因）。
-- verifier 无证据 REFUTED、遗漏候选或把多条候选合并判定。
+- verifier 无证据 REFUTED、遗漏候选、把多条候选合并判定，或把未检查/缺少受审上下文的项伪装成三态结果。
 - 跳过任何审查角度，或串行分批启动本应并行的 finder。
 - 把 inline 降级审查冒充多 agent 审查写入报告。
 

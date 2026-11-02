@@ -33,7 +33,7 @@
 | Figma 素材、整页实现与人工验收 | [figma-workflow-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md) |
 | t-simplify 四角度清理审查、finding 结构与修复边界 | [simplify-cleanup-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/simplify-cleanup-contract.md) |
 | t-review / t-simplify 默认范围、显式目标解析与修复前版本核对 | [review-scope-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/review-scope-contract.md) |
-| t-review 正确性角度、高风险查漏、逐候选三态验证、报告与 `--fix` 修复边界 | [review-correctness-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/review-correctness-contract.md) |
+| t-review 正确性角度、高风险查漏、验证分批与逐项三态门禁、报告与 `--fix` 修复边界 | [review-correctness-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/review-correctness-contract.md) |
 
 ## 使用规则
 

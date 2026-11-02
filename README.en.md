@@ -69,6 +69,8 @@ Phase orders: web is `backend -> frontend -> web-demo`; extension is `extension 
 | New project scaffold | `t-init <project-name>` (Rust + React full stack; `--shopify` for Shopify) |
 | Maintain the plugin and project knowledge | `t-skill` (create/modify skills), `t-doc` (tutorials and docs), `t-dream` (context audit), `t-release` (versioning) |
 
+`t-review` uses independent verifiers to assess candidates individually in small batches, isolating risky or complex candidates. Each batch receives relevant diff excerpts and access to additional context from the same reviewed version. See the [correctness review contract](protocols/review-correctness-contract.md#verify1-vote-3-state) for batching, evidence, and complete-coverage gates. It reports by default; `--fix` applies fixes only after verification is complete and the report is written.
+
 For every command's parameters, preconditions, and next steps, run `t-how` for an interactive walkthrough.
 
 ## Usage Rules
