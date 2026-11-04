@@ -15,9 +15,15 @@ allowed-tools:
 
 先由 AI 读取 `git status --short` 和必要的 `git diff`，识别本次变更涉及的源码文件。
 
-在生成 commit message 和调用脚本前，AI 必须清理本次变更源码文件中的注释：本次 diff 新增的注释逐条对照"必须保留"类别，命中不了就删除；diff 未触及的存量注释只按禁止条款清理。判定标准以 `${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md` 为准，清理范围只限本次变更文件，不做全仓历史清理。
+在生成 commit message 和调用脚本前，AI 必须清理本次变更源码文件中的注释。先运行预筛脚本取得候选清单：
 
-清理后重新查看必要的 `git diff`，逐条确认剩余的 diff 新增注释都能指认所属的保留类别，再总结本次变更并生成简洁 commit message。commit message 必须来自 AI 对清理后实际变更的总结，不能由脚本根据目录名自动猜测。
+```bash
+uv run ${CLAUDE_PLUGIN_ROOT}/scripts/comment-audit.py
+```
+
+脚本只读不改，从本次未提交变更输出 JSON 候选：`remove-candidate`（命中禁止条款，含变更文件内 diff 未触及的存量违规，`scope=existing`）默认删除，除非能指认"必须保留"类别；`review-candidate`（注释密度超标文件的注释）与其余 diff 新增注释一样，逐条对照"必须保留"类别，命中不了就删除。判定标准以 `${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md` 为准，清理范围只限本次变更文件，不做全仓历史清理。
+
+清理后重新查看必要的 `git diff`，逐条确认剩余的 diff 新增注释都能指认所属的保留类别（含未被脚本列出的新增注释），再总结本次变更并生成简洁 commit message。commit message 必须来自 AI 对清理后实际变更的总结，不能由脚本根据目录名自动猜测。
 
 然后为本次 `/t-push` 执行生成一个新的 session id（例如 `YYYYMMDD-HHMMSS` 或短 UUID），并调用脚本：
 
