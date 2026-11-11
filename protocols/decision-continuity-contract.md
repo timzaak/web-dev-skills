@@ -107,7 +107,19 @@
 
 ## Artifact Trace
 
-PRD、Tech Research、Design 和 Task 必须包含或在其现有决策章节中提供以下追踪关系：
+### PRD 内容与追踪
+
+PRD 草稿与正式 PRD 均须把当前有效的产品决策转写为对应章节中的需求内容：范围选择写入范围界定，权限、状态和异常规则写入业务规则，用户流程写入功能需求或交互约束，成功条件写入验收目标。带产品语义的 Resolved Question 同样处理；D2 工程取舍留在所属技术产物。
+
+- PRD 应独立表达完整的当前产品要求，不能依赖读者查账本才能理解。不得以“已确认决策”或 Decision Log 章节、账本表格、问答记录、DEC/Q ID、替代历史或账本路径承载需求；必要的产品理由直接写在相关规则旁。
+- 例如，“DEC-...：用户选择仅管理员可导出”应写成业务规则“仅管理员可导出数据”，并在验收目标中覆盖其他角色被拒绝的场景。
+- PRD 的追踪关系保存在 Decision Log 的 `PRD Trace` 章节，使用下表逐项记录影响 PRD 的 Active Decision；`Artifact Location` 指向 PRD 文件及章节。PRD 更新或决策替代后同步更新映射，不在 PRD 中重复保存。
+- 更新旧 PRD 时，先将仍有效的结论融入正文、将追踪关系迁回账本，再移除决策章节和记录元数据；不得只删除章节而丢失需求。账本缺失时按初始化规则重建；已发布 PRD 不因账本已移除而要求补写追踪表或 ID。
+- 发布时先核对正文已覆盖所有有效产品结论，再按生命周期规则移除账本。下游阶段从账本读取 DEC ID，从 PRD 读取产品语义。
+
+### 追踪表
+
+Tech Research、Design 和 Task 在自身文档或现有决策章节中提供下表；PRD 使用上述账本中的 `PRD Trace`：
 
 | Decision ID | Applied / Not Applicable / Superseded | Artifact Location | Notes |
 |---|---|---|---|

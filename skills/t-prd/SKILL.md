@@ -23,7 +23,7 @@ allowed-tools:
 优先基于同一 feature 的 Decision Brief、Decision Log 和技术预研报告，结合用户补充信息创建或更新 PRD 草稿；已有相关 PRD 必须查阅，用于确定业务基线和本次变更关系。先补齐必要的 draft user story，再创建或更新一份 PRD 草稿，供人类快速审阅。`.ai/prd` 和 `.ai/user-stories` 是实现前和实现期间的临时候选需求工作区，不是长期权威源。
 
 输出文件：
-- `.ai/prd/<domain>/[feature].md` — PRD 草稿，至少包含：相关用户故事引用、范围界定、需求概述、业务规则与状态、功能需求与验收目标、API 相关约束 / 前端交互约束（各标明适用或不适用）、已确认决策及 Decision ID、参考资料
+- `.ai/prd/<domain>/[feature].md` — PRD 草稿，至少包含：相关用户故事引用、范围界定、需求概述、业务规则与状态、功能需求与验收目标、API 相关约束 / 前端交互约束（各标明适用或不适用）、参考资料
 - `.ai/user-stories/<domain>/[feature].md` — draft user story，按需新增或补齐
 - `.ai/decision-log/[feature].md` — 存在，或产生用户决策、问题状态变化或重要 AI 决策时创建或更新
 
@@ -114,7 +114,7 @@ Decision Brief 缺失时先确认当前对话是否已有明确、可追踪的�
 
 ### 5. 生成 PRD 草稿
 
-create 路径使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-prd/template.md)；draft-from-published 和 update 路径按"更新行为"逐章处理。不适用章节保留并标记"不适用"。写入后运行：
+create 路径使用 [template.md](${CLAUDE_PLUGIN_ROOT}/skills/t-prd/template.md)；draft-from-published 和 update 路径按"更新行为"逐章处理。按决策连续性协议的 Artifact Trace 将决策融入 PRD 正文，并在账本中维护 PRD Trace；已有决策章节按该协议迁移。不适用章节保留并标记"不适用"。写入后运行：
 
 ```bash
 python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py .ai/prd/<domain>/$ARGUMENTS.md
@@ -127,7 +127,7 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py .ai/prd/<domain>/
 用户基于 PRD 草稿提出修改意见时：
 - 表达方式调整 → 更新 Markdown PRD 草稿
 - 产品语义调整 → 更新 PRD 草稿，并同步必要的 draft user story
-- 与既有 Decision Brief、正式 PRD 或 user story 冲突 → 以用户最新确认意图为准；先创建新 DEC 并设置 `Supersedes`，再在草稿中记录覆盖关系，不得复用旧 DEC ID 改写历史
+- 与既有 Decision Brief、正式 PRD 或 user story 冲突 → 以用户最新确认意图为准；先在账本创建新 DEC 并设置 `Supersedes`，再更新草稿对应的产品要求和账本 PRD Trace，不得复用旧 DEC ID 改写历史
 
 ### 7. 收尾
 
@@ -150,7 +150,7 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py .ai/prd/<domain>/
 
 - 新增 PRD 草稿前应尽量具备可引用的 user story
 - `needs_user_answer=0`，且决策闭合扫描通过
-- 所有影响 PRD 的 Active Decision 均在"已确认决策"中按 Decision ID 追踪
+- 决策内容与追踪满足决策连续性协议的 Artifact Trace，PRD 正文完整承载有效产品结论
 - 进入 `/t-design` 前，PRD 草稿与已有技术预研不得存在未解释冲突
 
 ## 附加资源
