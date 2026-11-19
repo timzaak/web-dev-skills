@@ -10,7 +10,13 @@ Decision -> PRD / 技术预研 -> 设计 -> 实现 / 测试 -> 独立验收 -> �
 
 先读 [结构说明](human/structure.md)，需求表达参考 [口述模板](human/speech-template.md)。泛化边界见 [generalization.md](human/generalization.md)，从项目沉淀领域知识的后续设计见 [方案](human/generalization-plan.md)；该方案尚未实现为新命令。
 
-## 快速上手
+## 为什么是 T-Tools
+
+- **一条命令一个阶段。** 立项、需求、设计、实现、验收、发布各有明确入口，产物落盘、状态可查。
+- **中断可恢复。** 任何阶段被打断，重跑同一命令即从断点继续，不依赖会话记忆。
+- **独立验收，证据说话。** accept 由只读 subagent 按[公共验收协议](protocols/acceptance-contract.md)出结论：必要门禁必须通过，未解决的 P0/P1 阻断交付。
+- **人裁决，AI 执行。** 产品取舍由人确认——`t-prd` 写入前主动澄清缺少依据的选择；AI 负责执行、测试和证据。
+- **Web Demo 与 Figma 还原。** 用户故事演示验收与设计稿分块还原各有专用阶段和入口。
 
 命令均由用户显式触发；不知道入口时用 `/t-tools:t-how`。在已有项目根目录执行：
 
@@ -52,7 +58,7 @@ Decision -> PRD / 技术预研 -> 设计 -> 实现 / 测试 -> 独立验收 -> �
 
 ## Figma
 
-保留 `t-figma-assets`、`t-figma-impl`、`t-figma-ux`，面向目标项目现有文件完成素材处理、分块还原与动效精修；不指定生产框架。素材可延后准备，但交付前须绑定真实资产，页面由开发者验收。见 [Figma 指南](guides/figma/index.md) 和 [共享契约](protocols/figma-workflow-contract.md)。
+保留 `t-figma-assets`、`t-figma-impl`，面向目标项目现有文件完成素材处理与分块还原；不指定生产框架。素材可延后准备，但交付前须绑定真实资产，页面由开发者人工验收。见 [Figma 指南](guides/figma/index.md) 和 [共享契约](protocols/figma-workflow-contract.md)。
 
 ## 质量链与辅助入口
 
@@ -96,7 +102,7 @@ cd /your-project
 claude --plugin-dir /path/to/web-dev-skills
 ```
 
-配置 Context7 MCP 供需要依赖文档的入口使用；Figma 工作流需要官方 Figma MCP，素材转换需要 ffmpeg/ffprobe、svgo 与 kyz，具体读取 [素材指南](guides/figma/assets.md)。Web Demo 需要 Python/uv、Node 与 Playwright 浏览器。工作流按需创建 .ai/ 与 docs/，不要求预建空状态。
+配置 Context7 MCP 供需要依赖文档的入口使用；Figma 工作流需要官方 Figma MCP，素材转换需要 ffmpeg/ffprobe、svgo 与 kyz，具体读取 [素材指南](guides/figma/assets.md)。Web Demo 需要 Python/uv、Node 与 Playwright 浏览器，日志库 [`playwright-unified-logger`](https://github.com/timzaak/playwright-unified-logger) 由 `t-init --web-demo` 以 npm 包安装。工作流按需创建 .ai/ 与 docs/，不要求预建空状态。
 
 其它 AI 工具的薄路由接入见 [跨工具使用说明](human/use-in-other-agents.md)。协议入口为 [protocols/index.md](protocols/index.md)。
 
@@ -106,5 +112,7 @@ claude --plugin-dir /path/to/web-dev-skills
 - [RMQTT-Things](https://github.com/timzaak/rmqtt-things) — 物联网物模型管理平台
 - [RWiki](https://github.com/timzaak/rwiki) — 基于 RAG 的知识库问答
 - [OnceWise](https://github.com/timzaak/OnceWise) — 智能表单自动化助手
+
+Java 后端与 pi coding agent 定制见 `java`、`pi` 分支，对应领域资产在本分支以可选模板提供（见上文）。
 
 本项目迭代日志见 [linux.do](https://linux.do/t/topic/1988118/4)。

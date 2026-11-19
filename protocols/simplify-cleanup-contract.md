@@ -6,7 +6,7 @@ t-simplify 的审查角度、finding 结构、去重/跳过/修复边界和报�
 
 ## Review Angles
 
-四个角度互不重叠，每个 reviewer agent 只负责注入的一个角度。以下指引按 Claude Code 内置 `/simplify` 翻译（源版本 v2.1.232，2026-10-17 核对 npm v2.1.302 安装包，四角度、并行/inline 和 Skip Rules 核心语义无变化）。报告落盘与定向验证是插件补充；范围收集前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/review-scope-contract.md`。
+四个角度互不重叠，每个 reviewer agent 只负责注入的一个角度。以下指引按 Claude Code 内置 `/simplify` 翻译（源版本 v2.1.232，2026-10-31 核对 npm v2.1.316 安装包，四角度、并行/inline 和 Skip Rules 核心语义无变化）。报告落盘与定向验证是插件补充；范围收集前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/review-scope-contract.md`。
 
 ### Reuse（复用）
 

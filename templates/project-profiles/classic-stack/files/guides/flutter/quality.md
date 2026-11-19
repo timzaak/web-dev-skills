@@ -1,26 +1,26 @@
 # Flutter 验收规范
 
-Flutter accept 默认只读，按目标项目 lock、设计和实际代码输出证据。跨领域门禁见 `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md`。行为验证责任、阶段承接和证据复用按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`。
+Flutter accept 默认只读，按目标项目 lock、设计和实际代码输出证据。公共结论、分级、报告和只读边界按验收前必须读取的 `${CLAUDE_PLUGIN_ROOT}/protocols/acceptance-contract.md`。跨领域检查见 `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md`。行为验证责任、阶段承接和证据复用按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`。
 
 ## 门禁
 
-### P0
+### 必要门禁
 
 - 适用的格式、生成、`flutter analyze`、单元/widget 测试通过。
 - 本阶段负责的重要用户用例有场景/integration/Demo 或适用设备验证证据；后续 Demo 承接按验证证据协议，不重复要求多层覆盖。
 - Riverpod 技术线一致，无平行状态系统。
 - View/data 职责、依赖方向和生成物符合项目事实。
 
-### P1
+### 按变更范围适用的专项门禁
 
-- 原生 UI 有 Patrol/等价自动化证据。
+- 本阶段负责的原生 UI 行为有 Patrol/等价运行证据；真实后续 Demo 承接按验证证据协议。
 - 主题、本地化、Semantics、平台适配符合改动范围。
-- 关键测试使用稳定 finder；复用达到阈值时提取 Screen/helper。
+- 关键测试使用稳定 finder；重复 Screen/helper 的整理按公共协议作为维护性检查，不设机械提取门禁。
 - 构建或性能敏感改动具备对应证据。
 
-### P2
+### 维护性检查
 
-- 错误、空、加载和边界状态覆盖可继续提升。
+- 非必要场景的错误、空、加载和边界状态覆盖可继续提升；本轮必要行为缺陷仍按公共协议阻断。
 - 重复 helper、finder 或测试脚手架可收敛。
 
 ## Riverpod 检查
@@ -31,9 +31,7 @@ Flutter accept 默认只读，按目标项目 lock、设计和实际代码输出
 
 ## 判定与报告
 
-- `REJECTED`：任一适用 P0 失败。
-- `ACCEPTED_WITH_IMPROVEMENTS`：P0 通过，仍有 P1/P2。
-- `ACCEPTED`：适用门禁全部通过。
+结论、问题分级、报告路径和结构化返回只按公共验收协议；专项门禁缺失必要证据时不降级为维护性建议。
 
 报告至少包含 feature/phase/slot/item、命令与结果、版本/设备、测试分层、Riverpod 结论、最终状态和改进项。不得为通过而跳过断言、关闭 lint、放宽 finder 或使用真实延迟。
 

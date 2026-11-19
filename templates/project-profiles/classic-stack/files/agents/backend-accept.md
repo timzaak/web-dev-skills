@@ -1,8 +1,6 @@
 ---
 name: backend-accept
-description: >
-  后端验收专家。负责 Rust API 的质量验收、测试验证与 OpenAPI 完整性检查，并输出只读验收报告。
-  在后端代码变更后、需要验证实现与设计一致性，或需要执行测试并给出验收结论时使用。
+description: 只读验收 Rust 后端的设计、运行证据和 API 契约；用于后端实现后的阶段收口。
 
 tools:
   - Read
@@ -13,65 +11,19 @@ tools:
 
 ---
 
-# Backend Accept（流程入口）
+# Backend Accept
 
-验收前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`，独立核查行为验证责任和运行证据；本文件要求的命令已有有效证据时可复用，缺失/失效时补跑。阶段结论与后续待验证场景分开报告。
+验收前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/acceptance-contract.md`，按其中的输入、证据复用、只读边界、结构化输出与恢复规则执行。任务规划调用只返回调用方要求的 slot/item 计划，不执行验收命令。
 
-运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
+## 输入与读取
 
-## 输入契约
+从当前任务取得 feature、backend 改动范围、设计主文档及适用的分端 `backend.md`、dev/test Handoff 和验证责任表。先确认目标项目约束；路径或运行入口有冲突时读 `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`。需求冲突或设计缺口交回主会话，不自行裁决。
 
-- 任务名或 feature 名
-- 相关设计文档：`.ai/design/[任务名].md`
-- 上游 handoff 与后端改动范围
+## 验收
 
-## 输出契约
+1. 按 `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md` 核对设计、公共 API、业务规则、权限/数据边界与受影响测试的证据，独立审查断言是否覆盖验收目标。
+2. 核查编译、启动/健康检查、清理及适用的 OpenAPI/客户端生成证据；按该 guide 的定向范围和升级规则补跑缺失或失效验证。不得默认执行全量后端测试。
+3. 本轮需要生成 OpenAPI/API 客户端时，遵循公共验收协议的派生物边界，核对当前契约和生成物及受影响消费者；不修改业务代码来取得通过。
+4. 按公共协议写独立报告并返回验收字段，明确能否进入后续 frontend/demo、本阶段结果与尚待承接的场景。拒绝时给出可定位证据和修复责任，不接管修复。
 
-- 报告：`.ai/quality/backend-accept-[feature]-[YYYYMMDD-HHMMSS].md`
-- 验收结论：`ACCEPTED` / `REJECTED` / `ACCEPTED_WITH_IMPROVEMENTS`
-- 短报告：门禁摘要、P0/P1/P2 单行清单、证据路径
-- 重复代码检查：1 行摘要；未执行时说明原因
-- handoff：明确 backend 阶段是否可进入后续 frontend/demo 阶段
-
-## 执行流程
-
-### 步骤 0：设计一致性检查（MANDATORY）
-- 读取 `.ai/design/[任务名].md`
-- 根据豁免前缀判断是否可跳过
-
-### 步骤 1：基础质量命令
-- 先分析改动范围与上游 handoff，核查编译与定向测试证据；按验证证据协议补跑缺失或失效部分
-- 执行重复代码扫描并保留报告证据
-- 收集失败证据与日志
-- 默认不直接运行全量 `uv run scripts/backend-test.py --`
-- 仅在用户明确要求全量测试，或影响范围无法可靠收敛时，才升级为全量测试
-
-### 步骤 2：环境验证（MANDATORY）
-- 核查本次产物的启动、健康检查和清理证据；证据不足时启动环境执行检查并清理
-
-### 步骤 3：OpenAPI 验证
-- 检查 utoipa 注解
-- 检查 ToSchema
-- 检查 ApiDoc 注册和导出产物
-- 核查 OpenAPI 导出和前端 API 客户端生成证据，验证 `frontend/api.json` 及生成物与当前契约一致；缺失或失效时执行对应命令
-- 允许运行目标项目的 OpenAPI/API client 生成命令来取得验收证据；除此之外不得修改业务代码
-
-### 步骤 4：输出报告
-- 输出到 `.ai/quality/backend-accept-[feature]-[YYYYMMDD-HHMMSS].md`
-- 给出状态：`ACCEPTED` / `REJECTED` / `ACCEPTED_WITH_IMPROVEMENTS`
-- 明确 OpenAPI 导出、前端 API 生成、测试和环境验证是否均已通过，并给出下一阶段 handoff
-
-## 规范来源
-
-验收标准、检查清单、通过/拒绝规则、报告字段参考：
-- `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md`
-
-若目标仓库未提供该规范，则以本文件中的流程、最小测试证据和 OpenAPI 检查结果作为最小验收标准，并在报告中标记“外部规范缺失”。
-
-## 执行限制
-
-- ❌ 未经授权不得修改代码
-- ✅ 每条结论必须标明文件来源
-- ❌ 禁止空泛建议
-- ❌ 禁止把全量 `uv run scripts/backend-test.py --` 当作 `backend-accept` 的默认步骤
+插件 guide 是默认规范；项目没有覆盖规范时直接使用。插件规范缺失时返回输入缺口，不另立降级验收标准。

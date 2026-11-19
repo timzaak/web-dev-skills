@@ -1,6 +1,6 @@
 # Shopify 验收规范
 
-`shopify-accept` 只读验收的关注点与底线。证据要求遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`。
+`shopify-accept` 只读验收的关注点与底线。公共结论、分级、报告和结构化返回按验收前必须读取的 `${CLAUDE_PLUGIN_ROOT}/protocols/acceptance-contract.md`。证据要求遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`。
 
 ## 必查项
 
@@ -16,4 +16,4 @@
 ## 证据底线
 
 - dev/test 的验证命令证据真实存在（type-check/build/定向测试输出、冒烟观察记录）；缺环境执行的项标记未验证，不得推断通过。
-- 验收报告写入 `.ai/quality/shopify-accept-<feature>-<时间戳>.md`，结论为 `ACCEPTED / REJECTED / ACCEPTED_WITH_IMPROVEMENTS`；发现 P0/P1 缺陷时 REJECTED 并指明重开范围。
+- 报告按公共验收协议，记录当前 shopify-app/shopify-extension phase、专项门禁证据及拒绝时的修复责任范围。

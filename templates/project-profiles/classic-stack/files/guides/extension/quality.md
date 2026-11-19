@@ -1,6 +1,6 @@
 # Extension 验收检查依据
 
-按 [开发规范](${CLAUDE_PLUGIN_ROOT}/guides/extension/development.md) 检查受影响边界，命令按 [验证指南](${CLAUDE_PLUGIN_ROOT}/guides/extension/validation.md) 执行；输出、阻断条件和状态只由 [验收协议](${CLAUDE_PLUGIN_ROOT}/protocols/extension-acceptance-contract.md) 定义。
+按 [开发规范](${CLAUDE_PLUGIN_ROOT}/guides/extension/development.md) 检查受影响边界，命令按 [验证指南](${CLAUDE_PLUGIN_ROOT}/guides/extension/validation.md) 执行；公共输出、阻断条件和状态只由 [公共验收协议](${CLAUDE_PLUGIN_ROOT}/protocols/acceptance-contract.md) 定义，现场专项规则按 [扩展验收协议](${CLAUDE_PLUGIN_ROOT}/protocols/extension-acceptance-contract.md) 定义。
 
 | 检查对象 | 可复核证据 |
 |---|---|
@@ -12,6 +12,6 @@
 | content UI | 挂载和卸载、样式/portal 隔离、权限拒绝及宿主导航后行为 |
 | 回归 | 受影响单测和约定的真实浏览器路径；fakeBrowser 结果不能证明 MV3 生命周期或权限行为 |
 
-架构审查关注行为后果；不要把集中封装内部合法使用 chrome API 判为违规。重复代码检查只在项目已有工具或变更存在明显复制时执行，限定源码并排除生成目录；报告具体重复风险，不以固定百分比代替判断。
+架构审查关注行为后果；不要把集中封装内部合法使用 chrome API 判为违规。重复代码检查的触发、范围和证据遵循公共验收协议。
 
 设计前置边界读取 [core quality](${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md)。缺少插件规范时报告输入缺失，不另立降级验收清单。

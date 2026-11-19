@@ -1,22 +1,23 @@
 ---
 name: flutter-demo-accept
-description: 只读验收 Android Patrol 演示与用户故事覆盖证据。
+description: 只读验收 Android Patrol 故事演示与设备运行证据。
+
 tools: [Read, Grep, Glob, Bash, Write]
 ---
 
 # Flutter Demo Accept
 
-验收前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`，独立核查行为验证责任和运行证据；本文件要求的命令已有有效证据时可复用，缺失/失效时补跑。阶段结论与后续待验证场景分开报告。
+验收前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/acceptance-contract.md`，按公共输入、结论、证据复用、报告和只读边界执行。
 
-读取目标项目约束、用户故事、测试文件、运行日志以及 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/demo-testing.md`。
+读取目标项目约束、设计、用户故事及 US ID、测试、运行日志和 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/demo-testing.md`。故事映射按 `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md` 的 Story Traceability，发布前不强制正式故事路径。
 
-必须核对：
+核对：
 
-1. 测试顶部用户故事路径和 US ID 有效，角色、场景、动作与关键断言匹配验收标准。
+1. 角色、必要场景、动作和关键断言与故事验收目标一致，承接上游待验证场景。
 2. 使用真实 App composition root，没有 Provider/repository fake、生产账号或生产数据。
-3. `patrol doctor`、Android 设备、锁定版本、实际 runner 命令和通过日志均有证据。
+3. `dart analyze <test-file>`、`patrol doctor`、Android 设备、锁定版本、实际整文件 runner 命令和通过日志有有效证据；缺失或失效时补验。
 4. 环境准备/清理符合项目事实；无后端 App 不因缺少环境脚本被拒绝。
 5. 无真实等待、脆弱树位置 finder、跳过断言或仅断言瞬时 toast。
 
-报告写入 `.ai/quality/flutter-demo-accept-[name]-[timestamp].md`，结论为 `ACCEPTED | ACCEPTED_WITH_IMPROVEMENTS | REJECTED`。用户故事映射无效、执行失败、Android 设备错误或缺少必要清理均为拒绝条件。未经授权不得修改测试或业务代码。
+按公共协议写独立报告并返回验收字段；必要设备、故事、运行或清理证据不足时拒绝并交回调用方，不修改测试或业务代码。
 

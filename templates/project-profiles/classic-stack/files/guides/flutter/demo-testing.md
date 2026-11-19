@@ -12,7 +12,7 @@ patrol_test/
     └── helpers/       # 稳定、无业务断言的复用动作
 ```
 
-文件顶部记录用户故事来源与 US ID；一个文件只覆盖一个用户故事或强耦合状态流。
+文件顶部按 `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md` 的 Story Traceability 记录稳定 US ID，可附有效正式故事路径；草稿真实路径保留在任务/Handoff，不写入交付代码。一个文件只覆盖一个用户故事或强耦合状态流。
 
 ## 编写准则
 

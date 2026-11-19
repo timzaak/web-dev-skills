@@ -1,6 +1,10 @@
 # Agent Task Output Contract
 
-实现、修复、测试和验收角色统一返回 `task_completion`；设计角色使用 `${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`。
+实现、修复、测试和验收角色统一按下述结构返回 `task_completion`；验收角色在本结构上按 `${CLAUDE_PLUGIN_ROOT}/protocols/acceptance-contract.md` 补齐专属必填字段与状态映射。设计角色使用 `${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`；不得混用。
+
+## Success Envelope
+
+默认返回：
 
 ```json
 {

@@ -9,6 +9,7 @@
 - 检查 `.ai/user-stories` draft 与 `docs/user-stories` 已发布基线是否存在未说明冲突
 - 检查是否错误混入接口、建表、schema 等实现细节
 - 检查是否把用户决策静默写成待确认、假设、风险或模糊占位
+- 核验新增或变更的产品选择的确认依据，含确定句和遗漏项
 
 ## Scoring
 
@@ -37,11 +38,10 @@
 | 相关用户故事 | `^## 1\. 相关用户故事` | 4 |
 | 范围界定 | `^## 2\. 范围界定` | 8 |
 | 需求概述 | `^## 3\. 需求概述` | 4 |
-| 业务规则与状态 | `^## 4\. 业务规则与状态` | 2 |
+| 业务规则与状态 | `^## 4\. 业务规则与状态` | 4 |
 | 功能需求 | `^## 5\. 功能需求` | 4 |
 | API 相关约束 | `^## [0-9]+\. API 相关约束` | 4 |
 | 前端/交互约束 | `^## [0-9]+\. 前端/交互约束` | 4 |
-| 已确认决策 | `^## [0-9]+\. 已确认决策` | 2 |
 | 参考资料 | `^## [0-9]+\. 参考资料` | 6 |
 
 缺失章节扣除其对应分值；多余/无关章节不额外扣分。
@@ -72,6 +72,7 @@
 | 过去时/历史内容 | 不出现 `已废弃`、`旧系统`、`原有`、`重设计前`、`架构迁移说明` | -2 |
 | 代码文件索引 | 不出现 `相关文件索引` 章节或具体代码文件路径列表 | -3 |
 | 实施进度状态 | 不出现 `当前实现状态`、`已完成`、`未完成`、`已实现`、`未实现`、`完成比例`、`实现进度` 等易过期任务状态 | -3 |
+| 决策内容内化 | 满足决策连续性协议 Artifact Trace 的 PRD 内容边界，无账本形式的需求内容 | -3 |
 
 接口说明引用、能力边界两项为“应存在而缺失”的扣分；其余各项为“不应存在而出现”的扣分。
 
@@ -210,17 +211,18 @@ PRD Score 与 User Story Score 分别按此表评级；一致性门禁 fail 或�
 
 评分前必须按 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md` 执行：
 
-1. 读取 `.ai/decision-log/<feature>.md`（如存在）。
+1. 读取账本（如存在）和相关需求来源，按决策连续性协议的 PRD Clarification Gate 重建覆盖与确认依据；正式基线不因发布后账本已移除而重新确认。
 2. 运行 `python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py <prd-path>`。
-3. 对命中项区分 `fact_lookup`、`agent_decision`、`needs_user_answer`、`verification_action`。
+3. 对扫描和覆盖检查发现的缺口区分 `fact_lookup`、`agent_decision`、`needs_user_answer`、`verification_action`。
 4. 存在 `needs_user_answer` 时立即使用 `AskUserQuestion`；回答前不得评分或给出通过结论。
 5. 回答写入 Decision Log 后，必须先由 `/t-prd` 更新 PRD，再重新扫描和检查。
 
 PRD 完成态必须满足：
 
 - `needs_user_answer=0`。
-- “已确认决策”只包含带稳定 DEC ID 的已确认结论。
-- 影响 PRD 的 Active Decision 均有追踪，不引用 Superseded Decision。
+- PRD Clarification Gate 通过。
+- 决策结论已按决策连续性协议 Artifact Trace 融入 PRD 对应正文，追踪留在账本；不要求 PRD 包含决策章节或 DEC/Q ID。
+- 账本存在时，影响 PRD 的 Active Decision 均在其 PRD Trace 中有映射，正文不采用 Superseded Decision；发布后账本已移除时按正式产品语义核验。
 - 不含“待确认”“需确认”“待定”“TBD”“需要用户决定”“后续确认”“暂定”等未决表达。
 
 ## Output Requirements

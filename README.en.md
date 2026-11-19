@@ -10,7 +10,13 @@ Decision -> PRD / Tech Research -> Design -> Implementation / Testing -> Indepen
 
 Read the [structure overview](human/structure.en.md), [intent template](human/speech-template.en.md), [generalization rationale](human/generalization.en.md), and [proposed project knowledge workflow](human/generalization-plan.en.md). The knowledge proposal has not been implemented as a new command.
 
-## Quick start
+## Why T-Tools
+
+- **One command per stage.** Decision, requirements, design, implementation, acceptance, and release each have an explicit entry; artifacts land on disk and state is inspectable.
+- **Resumable by design.** Interrupt any stage, rerun the same command, and it continues from the checkpoint — no reliance on session memory.
+- **Independent acceptance with evidence.** Acceptance runs read-only subagents under the [acceptance contract](protocols/acceptance-contract.md): required gates must pass; unresolved P0/P1 block delivery.
+- **Humans decide, AI executes.** Product trade-offs are confirmed by humans — `t-prd` proactively clarifies choices lacking evidence before writing. AI handles execution, testing, and evidence.
+- **Web Demo and Figma reconstruction.** User-story demo acceptance and design reconstruction each get dedicated phases and entries.
 
 Users explicitly invoke commands. Use `/t-tools:t-how` for routing. From an existing project root:
 
@@ -52,7 +58,7 @@ Initialization establishes Playwright and logging infrastructure; smoke success 
 
 ## Figma
 
-`t-figma-assets`, `t-figma-impl` and `t-figma-ux` retain asset processing, block-based reconstruction and motion refinement in existing project files, without selecting a production framework. Assets may be prepared later but must be bound before delivery; developers perform page acceptance. See [Figma guides](guides/figma/index.md) and the [shared contract](protocols/figma-workflow-contract.md).
+`t-figma-assets` and `t-figma-impl` retain asset processing and block-based reconstruction in existing project files, without selecting a production framework. Assets may be prepared later but must be bound before delivery; developers perform manual page acceptance. See [Figma guides](guides/figma/index.md) and the [shared contract](protocols/figma-workflow-contract.md).
 
 ## Quality chain and supporting commands
 
@@ -96,7 +102,7 @@ cd /your-project
 claude --plugin-dir /path/to/web-dev-skills
 ```
 
-Configure Context7 MCP for entrypoints needing dependency documentation. Figma requires the official Figma MCP; asset conversion needs ffmpeg/ffprobe, svgo and kyz as described in the [asset guide](guides/figma/assets.md). Web Demo needs Python/uv, Node and Playwright browsers. Workflows create .ai/ and docs/ as needed; empty state files are not required.
+Configure Context7 MCP for entrypoints needing dependency documentation. Figma requires the official Figma MCP; asset conversion needs ffmpeg/ffprobe, svgo and kyz as described in the [asset guide](guides/figma/assets.md). Web Demo needs Python/uv, Node and Playwright browsers; the logging library [`playwright-unified-logger`](https://github.com/timzaak/playwright-unified-logger) is installed as an npm package by `t-init --web-demo`. Workflows create .ai/ and docs/ as needed; empty state files are not required.
 
 Other AI tools can use the [thin dispatcher](human/use-in-other-agents.en.md). Shared contracts are indexed in [protocols/index.md](protocols/index.md).
 
@@ -106,5 +112,7 @@ Other AI tools can use the [thin dispatcher](human/use-in-other-agents.en.md). S
 - [RMQTT-Things](https://github.com/timzaak/rmqtt-things) — IoT thing-model management
 - [RWiki](https://github.com/timzaak/rwiki) — RAG knowledge-base Q&A
 - [OnceWise](https://github.com/timzaak/OnceWise) — intelligent form automation
+
+For Java backend and pi coding agent customization, see the `java` and `pi` branches; the matching domain assets ship here as optional templates (see above).
 
 The iteration log is on [linux.do](https://linux.do/t/topic/1988118/4) (Chinese).

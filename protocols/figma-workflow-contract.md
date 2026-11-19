@@ -1,40 +1,78 @@
 # Figma UI 工程工作流契约
 
-`t-figma-assets`、`t-figma-impl`、`t-figma-ux` 与 Figma agents 的共享契约：命令入参、工作目录、资产 manifest、动效规格与验收判定。
+`t-figma-assets`、`t-figma-impl` 与 `figma-impl` agent 的共享契约：命令入参、工作目录、资产 manifest 与验收判定。
+
+## 协作范围
+
+面向人类 UI 稿完成约 30% 即介入编码、设计与实现并行演进的场景；30% 不作为自动评分或前置门禁。本轮范围以人已确认的区域为准，在 `context.md` 记录；设计未定与素材缺口交给人裁决，AI 不补全未确认设计。布局可先行、素材可延后，完成和交付结论仅覆盖本轮确认范围；后续设计继续由人发起下一轮。
 
 ## 命令
 
 ```text
 /t-tools:t-figma-assets <figma-url> <target-file> [--asset-url <figma-node-url> ...] [--video-source <node-id>=<url-or-local-path> ...]
 /t-tools:t-figma-impl <figma-url> <target-file> <preview-url>
-/t-tools:t-figma-ux <figma-url> <target-file> <preview-url>
 ```
 
 - `target-file` 必须已存在、位于目标项目内且路径不含 `..`。
 - `preview-url` 可选，仅在交付报告中回显；页面验收由开发者自行完成，入口不得启动或探测 dev server。
-- `figma-url` 必须能解析 `fileKey` 与 `nodeId`；assets/impl 指向整页或主 frame，ux 可指向整页或待精修节点。
+- `figma-url` 必须能解析 `fileKey` 与 `nodeId`，指向整页或主 frame。
 
 ## 工作目录
 
-三个命令共享 `.ai/figma/<fileKey>-<nodeId>/`：同一主稿 URL 即同一目录，由首个入口创建，无注册表、无状态文件。
+两个命令共享 `.ai/figma/<fileKey>-<nodeId>/`：同一主稿 URL 即同一目录，由首个入口创建，无注册表、无状态文件。
 
 ```text
 .ai/figma/<fileKey>-<nodeId>/
 ├── source/baseline[-<block>].png   # 主稿与各视觉块基准截图，一次写入不覆盖
-├── context.md                       # 块清单、主稿 viewport、目标栈验证命令、资产引用与 token/组件映射
-├── assets-plan.json                 # 转换声明（image 条目必填 transparent），batch 输入，成功后保留
-├── assets-manifest.json             # 资产映射，无素材时为 []
-└── motion.json                      # 动效基准，仅 t-figma-ux
+├── source/asset-<node-id>.png      # 每个 image 的独立隔离证据，保留供 verify 消费
+├── context.md                       # 块清单、布局决策与待裁决项、viewport、栈验证命令、资产与组件映射
+├── assets-plan.json                 # 转换输入（image 必填 referencePng），batch/verify 消费
+└── assets-manifest.json             # 资产映射，无素材时为 []
 ```
 
-`t-figma-impl` 可先于 assets 启动：manifest 缺失时进入资产延后模式，块清单与实现只用资产语义引用（节点、名称、预期类型）占位，不下载、不伪造正式资产；交付前 assets 必须完成，impl 做一次绑定——把语义引用替换为真实 `outputPath`/`publicUrl`/`aspectRatio` 并重跑栈验证。manifest 已存在（含 `[]`）时直接引用。发现分块或数值理解有误时，直接更新 `context.md` 对应记录再修实现。
+`t-figma-assets` 统一负责位图、SVG 和视频的发现、下载、转换、优化与 manifest 写入；`t-figma-impl` 只负责布局、组件和已就绪素材的绑定。impl 为还原采集 baseline 截图属于视觉取证，不是素材准备。
+
+impl 可先于 assets 启动，也可在素材只准备了一部分时继续：manifest 缺失、条目缺失或产物文件未就绪时，仅跳过对应素材，保留设计所需的布局空间并留空，继续其它块；不生成带空值或假路径的 `src`/`url()`，不显示替代图片、占位视频，也不临摹或内联重画缺失 SVG。缺项在 `context.md` 按块记录节点、名称、预期类型（无法确定时记待确认）和未就绪原因，不写入 manifest。manifest 存在或为 `[]` 不代表当前页面所需素材齐全。
+
+交付前 assets 必须完成，impl 重新读取 manifest，仅绑定待补素材的真实 `kind`/`outputPath`/`publicUrl`/`aspectRatio`，清除已解决的缺项并重跑栈验证与素材 verify；重复执行时复用已完成布局和有效引用，仍未就绪的素材继续留空。允许报告布局实现进度，但缺项未清零不得宣称整页完成。发现分块或数值理解有误时，按「布局决策与恢复」修正 context 再修实现。
 
 ## 还原原则
 
 - 目标项目代码、配置与 `AGENTS.md` 是当前约束；`source/` 是不可变视觉证据，MCP 返回的节点树不是 DOM。
-- 截图定结构：按视觉边界与 stacking 划分 block，记录绝对定位、裁切、重叠与合成素材，不照搬 frame/group 层次；节点树只补尺寸、颜色、变量、文本等精确数值，不用截图目测代替。
-- 优先映射项目已有组件、token、动效与响应式模式；只有视觉证据或现有代码支持时才修正 MCP 数值。
+- 截图定结构：按视觉边界与 stacking 划分 block，记录绝对定位、裁切、重叠与合成素材，不照搬 frame/group 层次；节点树补精确数值、Auto Layout、约束、文本缩放与组件属性，不用截图目测代替。
+- 优先映射项目已有组件、token、动效与响应式模式。测量宽高本身不足以证明布局意图；与视觉一致的显式布局规则应保留，缺失时按 `${CLAUDE_PLUGIN_ROOT}/guides/figma/reconstruction.md` 的「尺寸语义」重建，并记录依据。颜色、变量、字号、字重和文本内容保留精确事实，不借布局重建擅自更改。
 - 整页按块推进：单次 dispatch 只承担一个块或少量相邻小块，全部完成后交付人工验收。
+
+## 布局决策与恢复
+
+`context.md` 由 skill 维护。每块保留名称、baseline、资产条目 id、组件映射和实现进度，并区分以下信息；只记录影响实现的内容，不复述节点树：
+
+- 原始观测：相关节点 id、精确尺寸/间距、显式布局属性与对应 viewport；未提供的属性记未知，不补造。
+- 采用规则：实际采用的布局、sizing 和 token 映射，以及依据的节点属性、视觉关系、项目代码路径或用户答复。原始值与调整后的值分开记录；有证据支持的技术布局和等效 CSS 实现自主选择，无需逐项请求用户批准。
+- 待裁决项：证据冲突或多种解释会改变视觉层级、内容展示或产品行为时，记录问题、候选方案和影响块/依赖块；候选不能作为已采用规则。用户答复后记录结论及适用范围，再恢复受影响部分。
+
+项目约束、已确认设计与视觉/节点证据冲突时，列出来源交给用户裁决；插件默认布局习惯不能覆盖这些证据。skill 汇总问题并询问用户，agent 只返回问题和影响范围。等待期间可实现不依赖该决策的部分；受影响部分保持未完成，不用猜测、假值或反复重试替代裁决。
+
+重复执行先读取已有观测、采用规则、用户答复和进度；证据与范围未变时复用结论，只补未完成部分。新证据使既有结论失效时保留原记录并注明变化，重新判断或提请裁决；旧 context 缺少决策信息时先补齐受影响块再派发。待裁决项未解决不得宣称本轮实现完成；用户明确将其移出本轮范围时记录范围调整及依赖影响。
+
+### 实现 agent 输出
+
+沿用 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md` 的 `task_completion` envelope，扩展字段也放在该对象内：
+
+- `blocks_implemented`：本次完成的块名称数组；部分实现的块不计入。
+- `assets_referenced`：本次实际引用的 manifest 条目 id 数组。
+- `layout_decisions`：本次新增或修正的布局决定数组，每项包含 `block`、`rule`、`evidence`，供 skill 更新采用规则。
+- `layout_questions`：待裁决数组，每项包含 `block`、`question`、`options`、`impact`；`impact` 说明受影响部分及依赖块。无新增决定或问题时返回空数组。
+
+存在布局待裁决项、当前派发范围仅部分实现时返回 `partial`，在 `summary` 和 `next_steps` 说明进度与恢复条件；执行或栈验证失败返回 `failed`。仅有素材待补时仍可报告块实现成功，但须在 `summary` 与 `next_steps` 返回留空位置、素材缺口和待绑定事项，不能表示整页可交付。
+
+## 素材类型保真
+
+- baseline 和隔离 PNG 都是视觉证据，其格式不代表素材类型，不能作为生产素材替代品。assets 先关联节点与 MCP 返回的素材条目，再用条目报告的格式与下载文件的实际类型核对 `kind`；metadata 的名称、类型和尺寸只用于筛选，不单独证明格式。整节点 PNG 导出不代表内部 SVG 也是位图，详见素材指南的「素材识别与类型校验」。识别不明或证据冲突时列证据交给人确认，不改扩展名或伪造类型继续。
+- 已就绪素材以 manifest 条目的 `kind` 和通过脚本校验的真实产物为准；impl 对未就绪素材仅记录已知的预期类型，未知则留待 assets 确认，不默认归为 image。
+- 矢量素材按 `kind: svg` 导出、优化并保留 `.svg` 产物；不因预览工具不支持 SVG 而转成 PNG/WebP，不改扩展名伪装格式，也不把 SVG 送入位图压缩、透明修复流程。只有开发者明确要求栅格化时才走 image 流程，并记录原因。
+- impl 按目标项目已有方式引用 manifest 的 SVG（如 `<img src="/assets/logo.svg">`、CSS URL 或已配置的 SVG 组件导入）；用 `<img>` 引用 SVG 仍是矢量资源，无需强制改写成内联 SVG。不用 baseline、隔离 PNG 或 MCP 临时 URL 替换它。
+- 已就绪资产在 `context.md` 引用 manifest 条目 id，由 manifest 提供实际 `kind` 和路径。延后绑定时同时核对类型、路径与比例；预期为 svg 而产物为 image 等冲突记录为未就绪，交给 assets 修正，明确的栅格化要求除外。交付前检查目标代码实际引用与 manifest 对应，SVG 未被 PNG/WebP 或证据截图替代；素材 verify 不检查目标代码，不能代替此检查。
 
 ## 资产 plan
 
@@ -43,9 +81,19 @@
 - `kind`: `image|svg|video`；`source` 为本地原始文件路径，所有相对路径按目标项目根（执行时的工作目录）解析。
 - `origin`: `download-assets|url|local-file`，默认 `download-assets`，写入 manifest 的 `source`。
 - `publicUrl`: 页面运行时 URL，video 必填，其余可选。
-- image 必填布尔 `transparent`；可选 `alphaMask`（隔离 PNG 路径）、`unbakeColor`（背景色 hex）、`flattened` / `lossless`（默认 false）、`quality`（1–100，默认 80）、`maxWidth`（非负整数，默认 0 不缩放）。这些 image 专属字段不用于 svg/video。
+- `outputPath` 扩展名必须与处理类型一致：image 为 `.webp`、svg 为 `.svg`、video 为 `.mp4`。脚本报 `TYPE_MISMATCH` 时回到 assets 修正来源或计划，不只改文件名掩盖内容不符。SVG 来源及产物必须是合法 SVG 根元素的 XML，尺寸从根属性或 viewBox 提取。
+- image 必填非空字符串 `referencePng`：同节点 `get_screenshot(contentsOnly: true)` 的独立隔离 PNG 本地路径，包括不透明素材。可选 `flattened` / `lossless`（默认 false）、`quality`（1–100，默认 80）、`maxWidth`（非负整数，默认 0 不缩放）。这些 image 专属字段不用于 svg/video。`transparent`、`alphaMask`、`unbakeColor` 已从 plan 移除，旧字段按未知字段报错，不提供透明判定 override。
 
-batch 在转换前校验来源/mask 存在、输出不重复且默认不覆盖已有文件。透明数据由代码判定：ffprobe 确认 alpha 通道，FFmpeg 检测像素 alpha 最小值 `<255`（WebP 解码不兼容时回退 Pillow）。`transparent: true` 且源图无透明像素、未提供 mask 时，以 `ALPHA_MASK_REQUIRED` 和条目 id 阻断；检测失败不归类为缺 mask。声明 `false` 却有透明像素时报告 warning。全部转换成功后才原子写 manifest（无素材为 `[]`），stdout 返回 `manifestPath`、`total`、`warnings`；失败不写半成功 manifest。执行、warning 复核和恢复方法见 `${CLAUDE_PLUGIN_ROOT}/guides/figma/assets.md`。
+batch 在任何转换前检查全部来源和隔离证据、禁止输出覆盖输入，并默认拒绝覆盖已有输出。全部 image 先完成脚本判定，再执行转换：
+
+1. 隔离 PNG 缺失报 `REFERENCE_REQUIRED`；放入 plan 同级可清理的 `raw/` 时报 `REFERENCE_NOT_PERSISTENT`。PNG 解码失败或格式错误阻断；全透明参考报 `REFERENCE_EMPTY`。源与参考的宽高比允许最多 1 像素取整误差，否则报 `REFERENCE_BOUNDS_MISMATCH`。独立参考不能与原导出使用同一路径。
+2. `transparent` 由完整参考 alpha 最小值 `<255` 自动计算。即使源图已有 alpha，仍以参考 alpha 为准，避免不完整透明度通过；不透明参考同样强制校验。RGB PNG 的隐式 alpha 为 255。
+3. RGB 比较最长边最多 256。原图自带透明度且分辨率高于参考时，共同采样尺寸不超过参考宽高的一半，使两者都经过低通采样，避免把高清原图与近乎 1:1 的参考边缘锯齿直接比较；其它情况不放大参考。参考不透明像素的逐通道平均绝对误差超过 4 时，报 `REFERENCE_RGB_MISMATCH`。原图自带透明度时，半透明像素的直通 RGB 差异乘参考 alpha，以可见颜色贡献计算误差，避免接近透明像素的量化误差被放大；原图全不透明时保持未经加权的 RGB 检查。该误差不超过 4 时保留原 RGB。否则用 `source = alpha * reference + (1-alpha) * background` 最小二乘拟合恒定底色，拟合仅使用 `0 < alpha <240` 的像素，不使用未定义的全透明 RGB。底色各通道需在 `[-4,259]`（取整并裁到 `[0,255]`），半透明像素未经加权的拟合误差需不超过 4 且比未经加权的原误差至少改善 2；否则报 `RGB_REPAIR_UNCERTAIN` 并停止，不猜常见底色。修复使用 `true = (baked-(1-alpha)*background)/alpha`，alpha 为 0/255 单独处理。
+4. 参考 alpha 缩放后与高清 RGB 合并；原图 alpha 为 0 的位置没有有效 RGB，参考放大后若暴露这些位置，使用隔离参考颜色补齐，避免黑边。TinyPNG 压缩后，以 Pillow Lanczos 缩放到最终尺寸的完整参考 alpha 重新合并。WebP 终检逐像素要求 alpha 完全一致，否则报 `ALPHA_MISMATCH`，不以“存在一个透明像素”作为充分条件。
+
+参考采集的 fileKey/nodeId 一致性由 MCP 调用方保证；脚本检查像素、边界和颜色一致性，不能认证文件的远端来源。数值误差阈值用于识别受支持的恒定底色烘焙，不代表任意渐变底色或复杂混合模式都能自动恢复；证据不确定时必须重新导出，不能降级放行。
+
+全部转换、产物复验成功后才原子写 manifest（无素材为 `[]`），stdout 返回 `manifestPath`、`total`、`warnings`（透明问题阻断，不作为可忽略 warning；当前为空数组）。失败不写半成功 manifest，已有旧 manifest 不表示本次成功。执行与恢复见 `${CLAUDE_PLUGIN_ROOT}/guides/figma/assets.md`。
 
 ## 资产 manifest
 
@@ -60,6 +108,14 @@ batch 在转换前校验来源/mask 存在、输出不重复且默认不覆盖�
     "source": "download-assets",
     "flattened": true,
     "transparent": true,
+    "alpha": {
+      "referencePath": ".ai/figma/example-1-2/source/asset-1-5.png",
+      "referenceSha256": "<script-generated SHA-256>",
+      "mode": "unbake",
+      "unbakeColor": "1e1e1e"
+    },
+    "sha256": "<script-generated SHA-256>",
+    "planEntrySha256": "<script-generated SHA-256>",
     "outputPath": "public/assets/hero.webp",
     "publicUrl": "/assets/hero.webp",
     "width": 1920,
@@ -70,50 +126,24 @@ batch 在转换前校验来源/mask 存在、输出不重复且默认不覆盖�
 ```
 
 - `kind` 为 `image|svg|gif|video`；`source` 为 `download-assets|url|local-file`；`flattened` 标记含文字合成图，impl 作为单个媒体元素引用，不再实现其内文字。
-- `transparent` 记录 image 的透明意图；为 `true` 时，脚本已终检输出有 alpha 通道且有透明像素；`false` 不保证输出完全不透明。
+- image 的 `transparent` 是脚本计算结果，不是 AI 意图声明；`true` 表示存在透明像素，`false` 表示全不透明。`alpha` 记录参考路径、文件 SHA-256、修复方式 `reference-alpha|unbake` 与自动推导的 `unbakeColor`（未去底色时为 null）。
+- 所有条目都有最终文件 `sha256` 和 `planEntrySha256`；后者是原 plan 条目按键排序、UTF-8、无多余空格的 JSON SHA-256，用于发现输入变更。不得手写或修补这些证明字段。
 - `publicUrl` 是页面运行时 URL，视频必填；名称语义化并沿用项目命名风格，不用节点 id、hash 或 Figma 默认层名。
 - 视频必须有 MCP 返回的 URL 或 `--video-source` 来源；禁止用截图、GIF 或占位视频伪造。
 
-## 动效规格
-
-`t-figma-ux` 产出 `motion.json`：
-
-```json
-{
-  "version": 1,
-  "interactions": [
-    {
-      "id": "nav-drawer-open",
-      "trigger": "click",
-      "selector": ".nav-drawer-trigger",
-      "motion": {
-        "kind": "transition",
-        "durationMs": 240,
-        "easing": "cubic-bezier(0.42, 0, 0.58, 1)",
-        "properties": ["transform"]
-      },
-      "origin": "prototype",
-      "evidence": "design context: reaction -> SMART_ANIMATE 240ms EASE_IN_OUT",
-      "reducedMotion": "fade"
-    }
-  ]
-}
-```
-
-- `trigger` 为 `hover|focus|press|click|enter|exit|scroll|state`；`kind` 为 `transition|animation|spring`。
-- `origin` 为 `prototype|project-pattern|principle-default|user-decision`；前两者必须附 `evidence`；首屏/跨页转场、破坏性操作反馈等影响用户流程感知的缺口必须开发者裁决后标 `user-decision`，不得静默套用默认。
-- 原型数据在 MCP 窗口内提取并消费，结论记入 `evidence`，不落盘。
-- `easing` 记 CSS computed 形式，Figma 名称映射见 `${CLAUDE_PLUGIN_ROOT}/guides/figma/motion.md`；spring 无 CSS 等价，记录 `{stiffness, damping, mass}` 并依赖项目动效库。
-- 含位移或持续循环的 interaction 必须声明 `reducedMotion` 替代方式。
-
 ## 验收
 
-验收以人工为主，不派发审计 agent。impl/ux 通过栈验证和素材门禁后即交付：报告实现范围、preview URL（如提供）与 baseline 截图位置，由开发者打开页面对照 baseline 自行验收。建议检查：块齐全、无明显错位/重叠、素材加载、视频可播放、`motion.json` 声明的交互触发后有状态变化。
+素材门禁由 `python ${CLAUDE_PLUGIN_ROOT}/scripts/figma-assets.py verify <plan>` 执行（目标项目根运行，`--manifest` 可指定路径）：plan 与 manifest 必须逐项对应，映射与 plan 摘要一致、输出文件 SHA-256 一致；每个 image 的真实 WebP 格式、持久化参考 SHA-256、完整输出 alpha、透明结果和尺寸也必须通过复验；每个 SVG 重新校验 XML 根、尺寸与比例。成功 stdout 为 `{"manifestPath": "...", "total": 1, "verified": true}`，失败返回非零退出码。空 manifest 仅在 plan 也为空时通过；旧 manifest、已变更 plan 或已替换文件不能因路径存在而放行。verify 不读取 raw，便于清理后重跑；其不重新执行 RGB 拟合，通过摘要绑定已完成 batch 的产物。旧 plan/manifest 必须回到 assets 重新生成。
+
+验收以人工为主，不派发审计 agent。impl 的本轮块完成、context 素材缺项与布局待裁决项清零、通过栈验证和素材门禁后交付人工验收：报告实现范围、布局调整及依据、preview URL（如提供）与 baseline 截图位置。栈验证和素材 verify 不证明布局正确，未做页面比对时不得报告视觉验收通过。
+
+人工验收检查：主稿 viewport 下块齐全、对齐/换行/裁切/重叠符合基准；适用的已有断点及内容增长时无意外溢出或遮挡，明确的截断规则仍保留；尺寸与 token 调整未改变视觉层级；素材加载、视频可播放。只检查本轮确认范围及已有适配规则，不由单一静态稿新增产品行为。
 
 发现问题回到对应入口修复；像素级细微差异（几 px 间距、抗锯齿、字重微差）由开发者裁量，不必回炉。
 
 ## 失败规则
 
-- MCP 核心能力、ffmpeg/ffprobe 或目标栈缺失时，给出可操作提示并停止。
-- 必要素材无法下载、视频无来源、候选素材有歧义或动效缺口未经裁决时，不进入实现。
-- 栈验证未通过或素材门禁未过时不得宣称完成。
+- 当前入口需要的 MCP 核心能力或目标栈缺失时，给出可操作提示并停止；素材处理依赖缺失由 assets 处理，不阻断 impl 留空后的布局实现。
+- assets 遇到必要素材无法下载、视频无来源或候选素材有歧义时停止对应素材准备并暴露缺口；impl 将其记录为未就绪并留空，继续布局实现，交付前回到 assets 解决。
+- 布局待裁决时按「布局决策与恢复」保留现场，由 skill 询问并继续；不视为执行失败反复重试。
+- 本轮块未完成、布局待裁决项未解决、栈验证未通过或素材门禁未过时不得宣称完成。

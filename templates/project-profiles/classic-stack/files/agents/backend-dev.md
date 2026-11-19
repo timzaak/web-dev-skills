@@ -73,7 +73,7 @@ examples:
 
 规则：
 
-- Design-First 是否必需、豁免前缀、质量门禁以 `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md` 为准
+- 设计输入适用性与质量检查以 `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md` 为准
 - backend 细页入口与导航关系以 `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md` 为准
 - 后端事实、架构边界、禁止事项以 `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md` 为准
 - 测试写法与验证顺序以对应 guide 为准

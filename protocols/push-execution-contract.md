@@ -1,11 +1,19 @@
 # Push Execution Contract
 
-供 `t-push` 消费的本地 CI、提交前输入门禁及推送恢复契约；CI 区域与工程命令由 `${CLAUDE_PLUGIN_ROOT}/skills/t-push/SKILL.md` 路由，确定性操作由 `${CLAUDE_PLUGIN_ROOT}/scripts/push.py` 执行。
+供 `t-push` 消费的本地 CI、commit message 格式、提交前输入门禁及推送恢复契约；CI 区域与工程命令由 `${CLAUDE_PLUGIN_ROOT}/skills/t-push/SKILL.md` 路由，确定性操作由 `${CLAUDE_PLUGIN_ROOT}/scripts/push.py` 执行。
 
 ## 调用模式
 
 - 默认模式：`--ci-session <id> --message <text>`，对当前 diff 运行 CI，成功后提交并推送。message 由主会话依据最终 diff 生成。commit hook 改变代码时保留本地 commit 及恢复记录，停止 push，交回验证闭环。
 - `--force-checks` 忽略当前 session 的 CI 缓存。新执行用新 session，重试和中断恢复复用同一 session。
+
+## Commit Message
+
+message 由主会话依据清理后的实际 diff 总结生成，默认单行，格式为 Conventional Commits `<type>(<scope>): <description>`，type 取 feat / fix / docs / style / refactor / perf / test / chore，scope 可省略。
+
+- description 用祈使句陈述应用该提交后的效果（补全 "If applied, this commit will …" 应当成句），整行不超过 72 字符，不以句号结尾；放不下时收窄描述，不放宽长度。
+- 默认不写 body。仅当 diff 自身解释不了的动机、破坏性影响或使用方必须知道的后续动作存在时才补 body，且只写 why 和外部影响，不写 how；与 subject 空行分隔，每行不超过 72 字符。文件清单和逐条改动明细是 diff 的职责，复述进 message 只会得到一份随后必然失同步的副本。
+- 示例：diff 新增参考 PNG 透明度推导和 verify 子命令时，输出 `feat(figma-assets): derive transparency from reference PNGs`；反例是 `feat: update asset pipeline` 再用四条 bullet 复述改了哪些文件。
 
 ## 工作区指纹
 

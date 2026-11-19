@@ -1,92 +1,26 @@
-# Miniapp Agent 质量验收规范
+# Miniapp 验收依据
 
-## 1. 适用范围
+验收前读 `${CLAUDE_PLUGIN_ROOT}/protocols/acceptance-contract.md`，公共结论、分级、报告、只读边界和结构化返回只由该协议定义。设计适用性按 `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md`。
 
-适用于 `miniapp/` 代码变更的验收，包括：
-- 类型安全与构建质量
-- 页面注册与模板完整性
-- theme/token/icon 体系约束
-- 小程序技术线合规
-- 受影响业务流程在微信运行时的验证证据
+## 必要门禁
 
-## 2. 前置检查（MANDATORY）
+- 实际项目的 `typecheck`、`build:weapp` 及受影响测试通过。
+- 新页面在 `src/app.config.ts` 注册，受影响页面可达；入口符合项目模板（通常为 `src/pages/<page>/index.tsx`）。
+- token/icon 产物与受保护文件完整；theme 修改从 `tokens/*.json` 开始，运行时代码消费 `src/theme/` 产物，不把 Tailwind 当作主题真相。
+- 图标经 `src/components/AppIcon.tsx` 使用；未引入当前技术线禁用的 Web-only 依赖，如 `react-router-dom`、`next-themes`、`framer-motion`、`@radix-ui/react-*`。
+- 本阶段负责的业务场景在微信运行时有有效证据，按 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/testing.md` 核查设备/工具、关键断言和预期/实际结果；构建不代替业务运行。
 
-先完成设计一致性检查：
-- 参考 `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md`
-- 读取 `.ai/design/[任务名].md`
-- 豁免前缀：`bugfix-`、`refactor-`、`doc-`、`test-`、`style-`
+技术线约束以目标项目事实和明确设计为准，冲突交回主会话，不擅自替换技术方案。目录、组件组织或引用关系整理若无具体契约/行为影响，列维护性改进。
 
-## 3. 验收门禁
+## 命令与专项检查
 
-验证责任与证据有效性统一按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`，命令已有有效证据时可复用。
-
-### P0（必须通过）
-- `npm run typecheck` 通过
-- `npm run build:weapp` 通过
-- 新页面已在 `src/app.config.ts` 正确注册
-- token/icon 产物无阻塞缺失
-- 当前负责的必要业务场景运行验证通过；证据要求见 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/testing.md`，未验证不能计为通过
-- 关键受保护文件未被无依据破坏
-
-### P1（应通过）
-- 未把 Tailwind 当作主题真相
-- 图标统一经 `AppIcon` 使用
-- 未引入禁用的 Web-only 依赖
-- token、theme、icon 引用关系保持清晰
-
-### P2（可改进）
-- 组件拆分、目录组织、可维护性优化
-- 重复代码可控（检查结果必须写入 accept 报告）
-
-## 4. 执行步骤与命令
+从项目配置确认入口并复用有效证据；补跑时限定受影响范围：
 
 ```bash
-cd miniapp
-npm run typecheck
-npm run build:weapp
-npx jscpd src/ --reporters console
+cd miniapp && npm run typecheck
+cd miniapp && npm run build:weapp
 ```
 
-按需执行：
+仅命中相应交付面或项目门禁时执行 `build:h5`、`prepublish:check`、`starter:ci-gate -- --target taro-react-taroify-tailwind`。重复代码检查按公共协议的触发条件和范围执行，不自动安装扫描工具。
 
-```bash
-cd miniapp && npm run build:h5
-cd miniapp && npm run prepublish:check
-cd miniapp && npm run starter:ci-gate -- --target taro-react-taroify-tailwind
-```
-
-## 5. 核对重点
-
-- 页面入口文件是否位于 `src/pages/<page>/index.tsx`
-- `src/app.config.ts` 是否与页面变更一致
-- theme 修改是否从 `tokens/*.json` 开始，而不是散落到业务代码
-- 运行时代码是否消费 `src/theme/` 编译结果
-- 图标是否统一经 `src/components/AppIcon.tsx`
-- 是否误引入 `react-router-dom`、`next-themes`、`framer-motion`、`@radix-ui/react-*` 等禁用依赖
-
-## 6. 报告与判定
-
-输出文件：`.ai/quality/check-[date].md`
-
-### 状态
-- `ACCEPTED`：P0/P1 全部通过
-- `REJECTED`：任一 P0 失败
-- `ACCEPTED_WITH_IMPROVEMENTS`：P0 全通过，存在 P1 或 P2 改进项
-
-判定规则：
-- 判定优先级为 `REJECTED` > `ACCEPTED_WITH_IMPROVEMENTS` > `ACCEPTED`。
-- P1 失败不触发 `REJECTED`，但必须写入风险与修复建议。
-- 只有 P0 失败才能触发 `REJECTED`。
-
-### 报告最小字段
-- 类型检查、构建、模板门禁结果
-- 重复代码检查结果（命令、重复率/重复块数量、关键文件位置；未执行时必须说明原因）
-- 页面注册与主题/图标约束检查结果
-- 业务场景、工具/设备、预期/实际结果及证据引用；不适用或尚待承接的项目及依据
-- 风险与修复建议（P0/P1/P2）
-
-## 7. 禁止行为
-
-- 未经授权修改代码
-- 只读验收默认禁止执行会改写仓库文件的命令
-- 禁止无证据结论
+报告补充类型/构建、页面注册、主题/图标、受保护文件和业务运行证据；不适用项及后续承接均写清依据。
