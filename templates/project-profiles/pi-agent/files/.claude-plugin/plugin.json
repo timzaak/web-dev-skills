@@ -1,0 +1,19 @@
+{
+  "name": "t-tools",
+  "description": "DDD-driven development skills, sub-agents and workflow commands for Rust, React, miniapp, Flutter, Chrome Extension, Shopify App, and pi coding agent extension projects",
+  "version": "1.0.0",
+  "author": {
+    "name": "T Team"
+  },
+  "targetStack": {
+    "backend": "Rust / Axum",
+    "frontend": "React / TanStack Router & Query / Zustand / Tailwind / Radix UI",
+    "miniapp": "WeChat Mini Program / Taro / React",
+    "extension": "Chrome Extension MV3 / WXT / React / WXT storage / @webext-core/messaging",
+    "mobile": "Flutter / Riverpod / go_router / integration_test / Patrol",
+    "shopify": "Shopify App / React Router 7 / Polaris / App Bridge / Prisma / Theme App Extension / Customer Account UI Extension",
+    "pi": "pi coding agent / TypeScript extensions / typebox / Agent Skills / pi packages",
+    "testing": "cargo nextest / Vitest / Flutter Test / Web Demo (Playwright) / Extension Demo (Playwright) / Flutter Demo (Android Patrol)"
+  },
+  "requiredMcpServers": ["context7", "figma"]
+}

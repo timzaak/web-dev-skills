@@ -87,7 +87,7 @@ Web Demo and Figma remain bundled. URLs, identities, modules and verification co
 
 First demonstrate value locally. Extract reusable content while preserving supported versions, prerequisites, counterexamples and project-specific differences. Portable packs are inactive candidates by default; a new project compares its own facts and team preferences, then adopts, adapts or rejects them.
 
-[Existing classic-stack and Java templates](/templates/index.md) now preserve prior domain experience and export matching standalone runtimes. These explicitly selected historical sources do not implement automatic project knowledge extraction or publication. Maintain them separately from the generic runtime using the [merge guide](/human/merge-main.en.md).
+[Existing classic-stack, Java and pi templates](/templates/index.md) now preserve prior domain experience and export matching standalone runtimes. These explicitly selected historical sources do not implement automatic project knowledge extraction or publication. Maintain them separately from the generic runtime using the [merge guide](/human/merge-main.en.md).
 
 The first implementation should support the project-local loop only. A global marketplace, automatic recommendation scoring and automatic upstream publication are outside this proposal's first delivery.
 

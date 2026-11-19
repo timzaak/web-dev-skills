@@ -9,7 +9,7 @@ allowed-tools: [Read, Glob, Grep, Bash, Write, Agent]
 
 ## 范围与目标
 
-按文件路径、目标项目实际角色目录或 `all` 解析 `demo/e2e/**/*.e2e.ts`；留空等同 `all`。批量排除 fixture/helper/template 与 `verification/`。显式初始化 verification 文件提示使用初始化验证入口，不作为故事验收。没有匹配故事文件时报告无可验收目标，不返回通过。
+按文件路径、目标项目实际角色目录或 `all` 解析 `demo/e2e/**/*.e2e.ts`；留空等同 `all`。批量排除 fixture/helper/template 与 `verification/`，项目的独立运行模式和目录边界以真实 fixture 与任务为准，不按固定生产领域目录推断范围。显式初始化 verification 文件提示使用初始化验证入口，不作为故事验收。没有匹配故事文件时报告无可验收目标，不返回通过。
 
 ## 编排
 

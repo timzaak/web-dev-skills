@@ -2,11 +2,12 @@
 
 本指南用于把 origin/main 的持续更新合入 general，同时保持通用工作流与可选领域模板的边界。它不授权自动提交、推送或覆盖用户改动；开始合并前读取本文件及仓库 AGENTS.md。
 
-## 1. 三个需要维护的版本
+## 1. 需要独立维护的版本
 
 - general 主目录：通用编排、状态、恢复与验收；Web Demo/Figma 保留。
 - classic-stack 模板：从 main 迁移的生产领域内容，清单与来源见 templates/project-profiles/classic-stack/template.json。
 - java-backend 模板：从 java 分支提取的 Java 后端和配套适配，清单与来源见 templates/project-profiles/java-backend/template.json。
+- pi-agent 模板：从 pi 分支提取的 extension/skill/package 工作流及初始化、提交与发布适配，清单与来源见 templates/project-profiles/pi-agent/template.json。
 
 模板 files/ 保存领域源文件；共享运行时从各自 upstream_revision 的 Git 历史取出。每份模板有独立兼容基线，main 合并成功不等于模板已升级。修改模板内容与推进 upstream_revision 应在同一轮验收，不把来源分支名当作浮动运行版本。
 
@@ -22,7 +23,9 @@ git log --oneline --left-right general...origin/main
 git diff --name-status general...origin/main
 ```
 
-必须在 general，且本轮改动已有独立提交或明确备份后才开始 merge。工作区有未提交内容时先整理，不执行 reset --hard、clean 或自动 stash 来替用户处理。记录合并前 HEAD 和两个模板的 upstream_revision，作为冲突判断与验证依据。
+必须在 general，且本轮改动已有独立提交或明确备份后才开始 merge。工作区有未提交内容时先整理，不执行 reset --hard、clean 或自动 stash 来替用户处理。记录合并前 HEAD 和各模板的 upstream_revision，作为冲突判断与验证依据。
+
+用户明确要求合入本地 main 上尚未推送的提交时，本轮比较、merge 与 classic-stack 来源基线使用已记录的本地 main 完整提交；不要改用落后的 origin/main，也不为此自动推送 main。默认持续同步仍使用 origin/main。
 
 按本次 diff 读取变动的 skill 及其 protocol/guide/agent/script 和下游消费者。检查是否新增了此前没有的语言、平台、phase 或项目运行时目录。
 
@@ -31,9 +34,10 @@ git diff --name-status general...origin/main
 | main 的变化 | general 的处理 |
 | --- | --- |
 | 通用阶段编排、状态、恢复、输出、评分、调度 | 合入主目录的共享契约，检查全部消费者；保留领域解耦 |
-| Web Demo、Figma、logger package | 合入保留能力，并检查是否夹带生产技术栈默认值 |
+| Web Demo、Figma、logger 集成 | 合入保留能力，不夹带生产栈默认值；logger 使用独立 npm 包，不恢复源码 |
 | 后端/前端/移动端/扩展等专用角色与指南 | 更新 classic-stack/files 中的同名来源路径，主目录继续移除 |
 | Java 后端资源 | 通过 java 模板单独更新，不让它覆盖 classic-stack 的 Rust 资源 |
+| pi 角色、指南、初始化资产与相关脚本/协议适配 | 通过 pi-agent 模板单独更新，通用主目录不新增 pi phase、host 依赖或 `t-init --pi` 默认入口 |
 | 混合通用与领域内容的 skill/protocol/script | 按规则拆分：通用部分合主目录，领域部分由模板保留；不能整文件任选 ours/theirs |
 | 新框架、新平台或新领域文件 | 先分类，再补充对应模板 source_paths；不能因为它是新增文件就默认注册到主链路 |
 | README、安装说明、插件元数据 | 保持 general 公开入口正确，领域能力在模板目录宣传；不恢复默认 targetStack |
@@ -76,6 +80,8 @@ python -c "from pathlib import Path; import subprocess; p='agents/backend-dev.md
 
 Java 模板使用 git fetch origin java 和 origin/java 同样处理。它可以晚于 main 更新，保持原固定提交仍可导出；不需要为了合并 main 而 git merge origin/java。若希望把 Java 实现移植到更新的 main 基线，必须完整处理 Java 的脚本/协议适配并单独验证，不把两个版本的状态协议拼接。
 
+pi 模板使用 git fetch origin pi 和 origin/pi 独立维护。新增或更新时同时检查专用角色、guides/pi、设计/初始化模板、Node 资产、pi 项目识别、push/release 与测试消费者；保留来源提交配套的完整契约。不将 pi 分支直接 merge 成通用主目录的默认能力，也不让 classic-stack 的 main 基线替代 pi 的固定提交。
+
 ## 6. 验证与收口
 
 通用主目录：
@@ -86,7 +92,7 @@ python -X utf8 scripts/check-markdown-links.py
 git diff --check
 ```
 
-检查主目录未重新出现默认领域 guides、专用 agent、框架固定命令或不适用的 phase。对 changed skill 走读正常路径、缺输入、下游门禁、失败恢复与重复执行；check 仍可选，accept 不被替代。logger package 有改动时在 package 内运行对应 npm 脚本。
+检查主目录未重新出现默认领域 guides、专用 agent、框架固定命令或不适用的 phase。对 changed skill 走读正常路径、缺输入、下游门禁、失败恢复与重复执行；check 仍可选，accept 不被替代。logger 依赖或 Demo 集成有改动时在对应项目/导出运行时执行实际 npm 检查，不恢复独立仓库的源码。
 
 对每份本轮受影响模板，导出到仓库外的新临时目录：
 
@@ -97,6 +103,8 @@ python -X utf8 -m unittest discover -s C:/temp/t-tools-classic-merge-check/scrip
 ```
 
 Java 模板替换为 java-backend 并使用另一个新目录。导出目录非空且已有改动时换新目录，不为通过验证而删除用户内容。模板固定提交缺失时先 fetch 对应分支；来源分支历史重写且无法取得提交时停止，恢复来源或明确升级基线，不能静默改取最新版。
+
+pi 模板替换为 pi-agent，检查导出后 `t-init --pi` 入口及所需资产可用，再执行对应 Python 回归。改到 Node 初始化资产时，使用符合其 engines 的独立 Node 环境，显式启用 `T_TOOLS_PI_INIT_INTEGRATION=1` 运行 `scripts.tests.test_init_pi_templates`，核对真实安装、类型、加载和打包证据；加载诊断不等于模型/会话行为验证。固定来源资产未改且已有有效验证证据时可复用，不重复安装无关依赖。
 
 链接检查报告必须核对死链接/不可达数量，脚本退出码本身不代表没有问题。模板原有的已知基线问题要记录来源、影响与后续处理；不能归咎于本次合并后直接忽略新失败。若本轮只改通用内容且模板来源/导出器均未变，不重复运行无关领域测试。
 

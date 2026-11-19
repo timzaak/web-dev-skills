@@ -58,7 +58,7 @@
 
 ## Reference Rules
 
-代码注释只保留稳定追溯信息，工作流文档保存本轮真实来源；具体规则统一见下节。其他临时路径注释约束按 `${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md`。
+代码注释只保留稳定追溯信息，工作流文档保存本轮真实来源；具体规则统一见下节。其他工程注释要求按目标项目已确认规范执行。
 
 ## Story Traceability
 

@@ -1,0 +1,21 @@
+{
+  "name": "{{PACKAGE_NAME}}",
+  "version": "0.1.0",
+  "type": "module",
+  "keywords": ["pi-package"],
+  "engines": { "node": ">=22.19.0" },
+  "files": ["extensions"],
+  "pi": { "extensions": ["./extensions/index.ts"] },
+  "scripts": {
+    "pi": "pi",
+    "type-check": "tsc --noEmit",
+    "smoke:pi": "node scripts/pi-smoke.mjs"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "devDependencies": {
+    "@types/node": "{{NODE_TYPES_VERSION}}",
+    "typescript": "{{TYPESCRIPT_VERSION}}"
+  }
+}

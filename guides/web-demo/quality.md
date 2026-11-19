@@ -1,6 +1,6 @@
 # Web Demo 验收依据
 
-验收前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/acceptance-contract.md`；公共分级、结论、报告和结构化返回以该协议为准。本页只定义 Web 页面 Demo 的检查对象。
+验收前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/acceptance-contract.md`；公共分级、结论、报告和结构化返回以该协议为准。本页只定义目标项目 Web 页面 Demo 的检查对象。
 
 ## 故事与必要场景
 
@@ -10,7 +10,7 @@
 
 ## 编译与整文件运行
 
-从目标项目 `demo/package.json` 和 `scripts/index.md` 确认真正入口；优先类型检查，只有存在 build 脚本且适用时才使用 build。
+从目标项目 `demo/package.json` 和 `scripts/index.md` 确认真正入口；优先类型检查，只有存在 build 脚本且适用时才使用 build。不要求项目中不存在的固定脚本。
 
 缺失或失效证据时，使用项目 runner 补跑相关整文件，例如：
 
@@ -18,15 +18,15 @@
 uv run scripts/web-demo-test-runner.py "<test-file>" --mode fast --log-level mini
 ```
 
-执行与环境恢复规则读 `${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md` 及项目 `scripts/index.md`；按项目真实环境模式执行，不能照抄不适用的启停命令。
+环境按 `${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md` 使用项目本地 hooks；fixture 或外部管理时保留 `--no-auto-env`，不回退到插件预设应用环境。
 
 核对退出码、实际用例、失败/超时/跳过、日志与加载产物；必要场景跳过或零用例不能算通过。定向 grep 通过不能替代整文件终验。有效整文件证据可复用，不重复启动环境。
 
 ## 隔离、数据与断言
 
-- 核查环境校验 fixture 和清理函数或项目等价封装的实际效果；清理覆盖本轮创建的数据和环境。
-- 使用统一日志 fixture（如 `demoLogger`），测试不绕过 fixture 手工初始化或 finalize logger；不靠文件中出现特定 logger 字符串证明接入。
-- 业务数据使用项目声明的种子数据或用户端 UI 路径，不使用绕过业务路径的测试数据 helper；数据准备的角色入口与设计声明一致，不绕到未授权的管理入口。
+- 核查 `verifyTestEnvironment()` 和清理函数或项目等价封装的实际效果；清理覆盖本轮创建的数据和环境。
+- 使用统一 `demoLogger` fixture，测试不绕过 fixture 手工初始化或 finalize logger；不靠文件中出现特定 logger 字符串证明接入。
+- 业务数据准备遵循项目已确认入口与当前故事角色，不直接写库或绕过业务路径；数据隔离和清理只覆盖本次可追踪的测试数据。
 - 主断言验证持久业务/页面状态、URL、列表/详情数据或稳定错误区域。toast、Snackbar 等瞬时提示只能作辅助，不能作为唯一或主要结果。
 - 等待条件必须对应可观察状态，检查固定延迟及超时是否掩盖竞态；网络等待先注册 Promise 再触发。
 - 选择器和 POM 变更分别按 `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/selector-strategy.md`、`${CLAUDE_PLUGIN_ROOT}/guides/web-demo/pom-guide.md` 检查；重复代码按公共协议限定范围。

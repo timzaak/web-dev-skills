@@ -10,13 +10,7 @@ Decision -> PRD / 技术预研 -> 设计 -> 实现 / 测试 -> 独立验收 -> �
 
 先读 [结构说明](human/structure.md)，需求表达参考 [口述模板](human/speech-template.md)。泛化边界见 [generalization.md](human/generalization.md)，从项目沉淀领域知识的后续设计见 [方案](human/generalization-plan.md)；该方案尚未实现为新命令。
 
-## 为什么是 T-Tools
-
-- **一条命令一个阶段。** 立项、需求、设计、实现、验收、发布各有明确入口，产物落盘、状态可查。
-- **中断可恢复。** 任何阶段被打断，重跑同一命令即从断点继续，不依赖会话记忆。
-- **独立验收，证据说话。** accept 由只读 subagent 按[公共验收协议](protocols/acceptance-contract.md)出结论：必要门禁必须通过，未解决的 P0/P1 阻断交付。
-- **人裁决，AI 执行。** 产品取舍由人确认——`t-prd` 写入前主动澄清缺少依据的选择；AI 负责执行、测试和证据。
-- **Web Demo 与 Figma 还原。** 用户故事演示验收与设计稿分块还原各有专用阶段和入口。
+## 快速上手
 
 命令均由用户显式触发；不知道入口时用 `/t-tools:t-how`。在已有项目根目录执行：
 
@@ -58,7 +52,7 @@ Decision -> PRD / 技术预研 -> 设计 -> 实现 / 测试 -> 独立验收 -> �
 
 ## Figma
 
-保留 `t-figma-assets`、`t-figma-impl`，面向目标项目现有文件完成素材处理与分块还原；不指定生产框架。素材可延后准备，但交付前须绑定真实资产，页面由开发者人工验收。见 [Figma 指南](guides/figma/index.md) 和 [共享契约](protocols/figma-workflow-contract.md)。
+保留 `t-figma-assets`、`t-figma-impl`，面向目标项目现有文件完成素材处理与分块还原；不指定生产框架。素材可延后准备，但交付前须绑定真实资产，页面由开发者验收。见 [Figma 指南](guides/figma/index.md) 和 [共享契约](protocols/figma-workflow-contract.md)。
 
 ## 质量链与辅助入口
 
@@ -80,15 +74,16 @@ Decision -> PRD / 技术预研 -> 设计 -> 实现 / 测试 -> 独立验收 -> �
 
 ## 可选领域模板
 
-已移出的领域资产保留在 [templates/](templates/index.md)：[classic-stack](templates/project-profiles/classic-stack/index.md) 提供原 Rust/React、扩展、小程序、Flutter 与 Shopify 角色、实践、脚本和工程模板；[java-backend](templates/project-profiles/java-backend/index.md) 提供 java 分支的 Java/Spring Boot/Maven 后端内容。
+已移出的领域资产保留在 [templates/](templates/index.md)：[classic-stack](templates/project-profiles/classic-stack/index.md) 提供原 Rust/React、扩展、小程序、Flutter 与 Shopify 角色、实践、脚本和工程模板；[java-backend](templates/project-profiles/java-backend/index.md) 提供 java 分支的 Java/Spring Boot/Maven 后端内容；[pi-agent](templates/project-profiles/pi-agent/index.md) 提供 `pi` 分支的 extension/skill/package 工作流和 `t-init --pi` 初始化。
 
 ```powershell
 python scripts/export-template.py list
 python scripts/export-template.py export classic-stack --output C:/code/ai/t-tools-classic
 python scripts/export-template.py export java-backend --output C:/code/ai/t-tools-java
+python scripts/export-template.py export pi-agent --output C:/code/ai/t-tools-pi
 ```
 
-导出目录位于本仓库之外；--dry-run 只预览，重复执行不覆盖用户修改。导出会从模板固定提交取得配套共享运行时，再加入模板领域文件，得到可由 claude --plugin-dir 加载的独立插件。同一会话只选择通用插件或一份模板，不混用不同版本的 phase/state。模板默认不加载，不改变通用主链路；缺少来源提交时先 git fetch origin main 或 git fetch origin java。
+导出目录位于本仓库之外；--dry-run 只预览，重复执行不覆盖用户修改。导出会从模板固定提交取得配套共享运行时，再加入模板领域文件，得到可由 claude --plugin-dir 加载的独立插件。同一会话只选择通用插件或一份模板，不混用不同版本的 phase/state。模板默认不加载，不改变通用主链路；缺少来源提交时先 按模板 upstream_branch 执行 git fetch origin main、git fetch origin java 或 git fetch origin pi。
 
 ## 持续维护
 
@@ -112,7 +107,5 @@ claude --plugin-dir /path/to/web-dev-skills
 - [RMQTT-Things](https://github.com/timzaak/rmqtt-things) — 物联网物模型管理平台
 - [RWiki](https://github.com/timzaak/rwiki) — 基于 RAG 的知识库问答
 - [OnceWise](https://github.com/timzaak/OnceWise) — 智能表单自动化助手
-
-Java 后端与 pi coding agent 定制见 `java`、`pi` 分支，对应领域资产在本分支以可选模板提供（见上文）。
 
 本项目迭代日志见 [linux.do](https://linux.do/t/topic/1988118/4)。

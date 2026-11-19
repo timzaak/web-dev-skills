@@ -1,0 +1,174 @@
+# Design Check Rubric
+
+## Scoring
+
+设计产物是"主文档 + 分端文档"结构：`.ai/design/<feature>.md`（主文档）加设计状态协议声明的适用分端文档；pi 交付使用 `pi.md`。评分先按维度打分，再按适用维度归一化。
+
+| 维度 | 分值 | 说明 |
+|---|---:|---|
+| 需求追溯性 | 20 | 与用户故事、PRD 或技术预研的目标、边界、术语一致 |
+| 现有实现分析准确性 | 15 | 使用真实路径，复用点与受影响范围明确（主文档概览 + 各分端文档现状分析） |
+| 后端设计完整性 | 25 | `backend.md`：接口清单、字段、错误响应、权限、路径规范、数据模型、迁移策略、领域逻辑 |
+| 前端设计完整性 | 15 | `frontend.md`：页面/组件、线框说明、状态与数据流、关键状态、契约依赖 |
+| 扩展设计完整性 | 15 | `extension.md`：入口、权限依据、消息/存储、生命周期、拒绝/恢复路径和真实浏览器验证 |
+| Flutter 设计完整性 | 15 | `flutter.md`：分层架构、状态管理、页面与导航、可测试性 |
+| pi 设计完整性 | 15 | `pi.md`：资源发现、工具/事件契约、生命周期与状态恢复、模式与权限、运行时证据 |
+| 测试与验收策略 | 10 | 各端测试入口和主验收路径明确 |
+| 决策闭合与跨端一致性 | 10 | `needs_user_answer=0`，决策追踪和覆盖矩阵完整，契约消费一致，主文档 §8 全量汇总 |
+
+归一化规则：
+
+- 分端维度（后端/前端/扩展/Flutter/pi）仅对适用端计分；不适用的维度记"不适用"，不参与计分。
+- 基础维度（需求追溯、现有实现分析、测试与验收、决策闭合与跨端一致性）始终计分。
+- 总分 = Σ适用维度得分 ÷ Σ适用维度满分 × 100，四舍五入取整；报告中必须列出参与计分的维度。
+
+## Clarification Gate
+
+设计生成或设计检查过程中，凡问题会影响目标范围、业务规则、权限/安全边界、API 契约、数据模型、迁移/兼容性、验收标准或测试策略，且无法从 PRD、用户故事、技术预研、仓库事实或用户已给上下文裁决时，必须停止并使用 `AskUserQuestion` 向用户提问。
+
+要求：
+
+- 不得把这类问题仅写入 P0/P1/P2、风险表、待确认事项或假设后继续推进。
+- 问题必须给出证据、具体决策点和被阻塞的后续动作。
+- 用户回答后，先更新 Decision Log 和设计文档，再运行决策闭合扫描；通过后才能继续评分。
+- 未得到用户回答前，不得给出“通过设计验收”或“可进入后续拆解”的结论。
+
+已由证据确认的问题继续按 P0/P1/P2 记录；必须由用户裁决的问题状态为 `needs_user_answer`，不参与 P0 计数。
+
+评分前，将 `check-design.py --json` 返回的 `design_documents` 逐项作为路径参数，传给 `python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py`，覆盖主文档和全部适用分端文档，不扫描不适用文档。
+
+扫描命中项必须按 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md` 分类。设计完成态必须满足 `needs_user_answer=0`，且主文档 Decision Trace 覆盖所有影响设计的 Active Decision。
+
+## Severity Rules
+
+### P0
+
+- 主文档不存在，或适用端的分端文档不存在
+- 扩展适用但入口、权限依据、消息/存储边界或关键恢复路径缺失，无法形成可执行方案
+- pi 适用但工具/事件的执行与阻断契约、关键生命周期/状态恢复或权限边界缺失，无法形成可执行方案
+- 涉及后端接口但 `backend.md` 缺少 API 设计，或涉及数据库变更但缺少数据库设计
+- 涉及前端但 `frontend.md` 缺少页面/交互说明；涉及 Flutter 但 `flutter.md` 缺少页面/分层说明（适用端）
+- `frontend.md` / `extension.md` / `flutter.md` / `pi.md` 的 API 依赖与契约源（`backend.md` 或现有接口）冲突
+- 主文档 §8 文件影响范围未全量汇总适用端的文件影响表
+- 主文档缺少设计覆盖矩阵，或 P0 requirement/story 没有设计、测试和文件影响落点
+- 业务功能设计目标与 PRD/用户故事明显冲突
+- 纯技术方案设计目标与引用的技术预研明显冲突
+- 使用不存在的路径作为现状依据，或 MODIFY/DELETE 路径不存在；CREATE 路径不满足 task-phase-execution 的 Skill Deliverables 路径规则或没有命名依据
+
+### P1
+
+- API 路径、权限模型、关键字段命名与仓库规范严重不一致
+- 数据库字段类型、约束或迁移策略不明确
+- 数据库设计明显过度
+- 前端/Flutter 的用户体验流或页面描述过于抽象，缺少入口、操作路径、系统反馈或错误状态
+- Flutter 分层或状态管理偏离 Riverpod 技术线（`${CLAUDE_PLUGIN_ROOT}/guides/flutter/constitution.md`），或明显过度分层
+- 前端违反状态分工：服务端数据进入 Zustand（应由 TanStack Query 独占管理），或缓存/刷新策略缺失
+- `frontend.md` / `extension.md` / `flutter.md` / `pi.md` 单列或复制 API 契约字段表，破坏契约单一来源
+- 主文档承载 API 字段表、数据库表结构或页面线框等分端细节，而非摘要与链接
+- 测试策略缺少实际入口；业务行为变更缺少 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 要求的场景、关键断言或承接位置
+- 分端文档缺少本端 Decision Trace 子集，或与主文档 Decision Trace 矛盾
+- pi 的运行模式守卫、工具截断/文件队列、清单发现或必要运行时冒烟计划不符合 pi 专项检查，且影响本轮交付
+
+### P2
+
+- 可复用点说明不够聚焦
+- 风险或验证动作缺少负责人、完成条件
+- 示例与字段表轻微重复，可压缩
+
+## Detailed Checks
+
+需求追溯：
+
+- 业务功能设计应引用用户故事或 PRD，并保持目标、业务边界、术语一致
+- 纯技术方案设计可只引用 `.ai/tech-research/<feature>.md`，但必须明确声明不涉及业务逻辑、产品规则、用户可见流程或验收目标变动
+- 如果设计包含业务逻辑、产品规则、用户可见流程或验收目标变动，不能仅依赖技术预研，必须回到 PRD/用户故事链路
+- 技术预研作为唯一来源时，检查设计是否承接技术目标、依赖决策、影响范围、风险和显式假设
+
+后端（`backend.md`）：
+
+- API 至少包含方法、路径、用途、权限/身份、调用方；关键接口包含请求字段、响应字段、错误响应或状态码
+- 路径参数占位符使用 camelCase
+- 明确新增 DTO 与复用 DTO 的边界，及 OpenAPI/SDK 关系与兼容策略
+- 数据库涉及时给出表/字段变更清单，关键表说明字段、类型、主键、唯一约束、必要索引、外键、时间字段
+- 说明迁移策略和兼容性影响；默认保持简洁，不预埋不必要复杂审计方案
+- 领域逻辑覆盖核心规则、输入校验、事务边界与幂等
+
+前端（`frontend.md`）：
+
+- 用户可见交互以用户体验描述为主：入口、操作路径、系统反馈、默认值、错误状态与恢复齐全，未陷入技术实现细节
+- 给出页面/路由/组件清单与层级边界，不规定具体 props/state 细节
+- 状态分工遵循 TanStack Query（服务端数据）/ Zustand（客户端 UI 状态）约定，含缓存失效与刷新策略，服务端数据不复制进 store
+- 关键状态覆盖加载、空态、错误、提交中、权限受限
+- 说明与现有前端模式的承接关系；`data-testid` 影响已声明（如涉及 Demo/E2E）
+- API 依赖只引用契约源，不复制契约字段表
+
+扩展（`extension.md`）：
+
+- 按 `${CLAUDE_PLUGIN_ROOT}/skills/t-design/template-extension.md` 检查入口、权限差异、接收端校验、存储迁移及敏感数据访问、worker 恢复与 UI 清理
+- 测试策略明确单测和真实浏览器证据边界、fixture 环境及运行命令；不得假设普通 Web fixture 能加载扩展
+- 关键权限、消息或恢复方案未确定时不能通过
+
+Flutter（`flutter.md`）：
+
+- 用户可见交互以用户体验描述为主：入口、操作路径、系统反馈、默认值、错误状态与恢复齐全，未陷入技术实现细节
+- UI 层（view + view model）与 data 层（repository + service）职责边界与数据流向明确；domain 层仅在确有必要时引入
+- 状态管理遵循 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/constitution.md` 的 Provider 选择规则，类型与状态用途一致，保留/释放、失效刷新及订阅范围明确
+- 页面与导航承接（go_router 或项目现有方案）明确，页面关键状态齐全
+- 按 `${CLAUDE_PLUGIN_ROOT}/skills/t-design/template-flutter.md` 检查目标平台及受影响的权限、生命周期、状态恢复和离线路径，符合 Flutter 开发规范
+- 依赖注入与可测试边界明确；验证入口、关键断言、环境及阶段承接符合验证证据协议，Demo 平台范围与资产归属符合 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/demo-testing.md`
+- API 依赖只引用契约源，不复制契约字段表
+
+pi（`pi.md`）：
+
+- 按 `${CLAUDE_PLUGIN_ROOT}/skills/t-design/template-pi.md` 检查适用的 extension、skill、prompt、theme、清单与依赖；纯资源包不强求工具或 Node 工程，首次交付不要求已有项目标记，范围按 `${CLAUDE_PLUGIN_ROOT}/protocols/pi-project-contract.md`。
+- 工具的 schema、错误/截断、并发与文件写入队列明确；事件钩子的阻断/转换语义与循环守卫明确；必要权限门有失败关闭和拒绝路径。
+- 工厂不启动后台资源，`session_shutdown` 幂等清理；状态从活动分支重建，跨会话替换不复用旧 ctx；UI 具备模式守卫。
+- API 依赖引用唯一契约源；host 依赖归属、资源发现与过滤、兼容版本明确。缺加载环境或 provider 时给出承接阶段，不将计划或 fake 测试记为运行时证据。
+- 按 `${CLAUDE_PLUGIN_ROOT}/guides/pi/testing.md` 区分定向纯逻辑测试、真实加载/行为冒烟及 skill 行为验证；必要命令和关键断言可执行，不为纯文本交付强制 TS 门禁。
+
+跨端一致性：
+
+- 主文档 §4.3 契约源声明明确，摘要与 `backend.md` 一致
+- `frontend.md` / `extension.md` / `flutter.md` / `pi.md` 的 API 依赖表与契约源不冲突
+- 主文档 §6 测试汇总覆盖全部适用端的测试入口与 Demo 主路径
+- 主文档设计覆盖矩阵逐项连接 Requirement/Story、设计落点、契约或组件、测试验收和文件影响；不得复制需求正文
+
+文档结构：
+
+- 主文档 §8 文件影响范围必须存在，表格包含 `文件 | 操作 | 说明` 三列（可含来源分端列），操作列使用 CREATE/MODIFY/DELETE，来源分端取值限于 backend/frontend/extension/flutter/shopify/pi/web-demo/extension-demo/flutter-demo/跨端（Demo 演示资产按交付端标 web-demo/extension-demo/flutter-demo；shopify 资产在说明列标注归属 phase），且全量覆盖各分端文档的文件影响表
+- backend 详细设计包含必要的数据结构、公开签名、错误类型或算法骨架
+- frontend 详细设计包含页面状态转换、关键事件/副作用和公开 hook/schema/query/store 边界
+- Flutter 详细设计包含适用的状态转换、用户事件/副作用、查询刷新/失效入口和 provider/repository/service/路由边界
+- 风险与验证动作只记录方向已经确定的风险和不需要用户选择的验证动作，包含风险项、等级、缓解或验证动作、负责人、完成条件
+- 完整 Decision Trace 在主文档 §2.4；分端文档只追踪影响本端的 DEC 子集
+- 现状依据及 MODIFY/DELETE 路径必须存在；CREATE 父目录与新 skill 目录例外按 `${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md` 的 Skill Deliverables 校验，并给出命名依据
+
+## Report Requirements
+
+报告必须包含：
+
+- 总分、等级、是否通过设计验收，及参与计分的维度清单
+- 用户澄清状态：无阻塞澄清 / 已通过 `AskUserQuestion` 解决 / 等待用户回答
+- 每个维度得分与证据（定位到主文档或具体分端文档）
+- P0/P1/P2 问题列表
+- 需用户回答的问题清单：`问题 | 证据 | 需要用户决定什么 | 阻塞的后续动作`
+- 明确修复步骤
+
+等级建议：
+
+- `90-100`: 优秀，可进入后续拆解
+- `75-89`: 良好，建议先修 P1
+- `60-74`: 需改进，必须修 P0
+- `<60`: 不合格，建议重写关键章节
+
+## Pass Gate
+
+只在以下条件全部满足时报告 `PASS`：
+
+- 总分至少 90。
+- P0 为 0。
+- `needs_user_answer=0`。
+- 决策闭合扫描和 `check-design.py` 均通过。
+- `.ai/design/<feature>/.state.json` 不存在（兼容旧产物）或状态为 `complete`。
+
+总分达到 75、P0 为 0 且不存在用户阻塞问题时可报告 `CONDITIONAL PASS`，但必须列出 P1 修复项；其他情况报告 `FAIL`。检查是否可选不改变上述结论语义。

@@ -101,6 +101,8 @@
 
 ### skills
 
+- [skills/t-init/references/script-adaptation.md](files/skills/t-init/references/script-adaptation.md)
+
 - [skills/t-design/template-backend.md](files/skills/t-design/template-backend.md)
 - [skills/t-design/template-extension.md](files/skills/t-design/template-extension.md)
 - [skills/t-design/template-flutter.md](files/skills/t-design/template-flutter.md)

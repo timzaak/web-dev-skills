@@ -1,32 +1,19 @@
 # 质量总规范（Core）
 
-## 目标
+本文件定义跨领域质量原则；验收前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/acceptance-contract.md`，公共分级、结论、报告、只读边界和结果消费仅由该协议维护。
 
-本文件定义跨领域质量总原则与门禁框架；accept 的结论、分级、报告与只读边界只由 `${CLAUDE_PLUGIN_ROOT}/protocols/acceptance-contract.md` 定义，验收前读取。本页不定义第二套验收判定。
+## 设计与追踪
 
-工程门禁来自目标项目已确认规则与真实配置。
+- 需求来源、草稿与正式基线关系按 `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`，不以已发布事实静默覆盖本轮候选变更。
+- 主链入口已要求设计/任务时沿用门禁；独立验收既有实现可使用明确需求、任务说明和已有设计，不强制补插件工作流文件。
+- 不按 bugfix/refactor 命名前缀豁免。缺失影响业务规则、公共契约或验收目标的决策时交回调用方。
 
-## 1. 设计与追踪
+## 门禁与证据
 
-默认要求：
+工程门禁来自目标项目已确认规则与真实配置；Web Demo 细则见 `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/quality.md`，不引入默认生产技术栈。
 
-- 需求来源可追溯到 `docs/`、任务说明或明确的设计输入。
-- 重要实现应能说明与设计或需求的对应关系。
-- 主链入口已经要求设计/任务时沿用其门禁，检查主文档及当前分端设计。独立验收既有项目可使用明确的需求、任务说明和已有设计，不强制补插件工作流文件。
-- 不按 `bugfix-`、`refactor-` 等命名前缀自动豁免；按实际影响判断所需设计。缺失影响业务规则、公共契约或验收目标的决策时交回调用方，不能以“修复/重构”名称跳过。
+行为验证责任、后续承接、最终交付和证据复用按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`。必要门禁未完成时不能用评分或维护性建议代替证据；accept 独立收口，不自行修复实现或降低标准。
 
-验收前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`，统一判断业务验证责任、阶段放行、最终交付及证据复用；下文和领域指南中的执行命令按该协议取得或复核证据。
+## 执行边界
 
-## 2. 验收与证据
-
-公共验收协议统一处理必要门禁未完成、问题分级、阶段放行与拒绝恢复。每条问题须有来源、实际影响和可执行建议；维护性建议不代替缺陷证据。报告放 `.ai/quality/`，路径和字段不在各领域重复定义。
-
-## 3. 领域细则入口
-
-- Web Demo 验收细则：`${CLAUDE_PLUGIN_ROOT}/guides/web-demo/quality.md`
-
-## 4. 执行约束
-
-- 需求语义冲突按 `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md` 裁决草稿与正式来源关系；无法确认时交回调用方，不静默以已发布基线覆盖本轮候选变更
-- 共享执行/输出契约以 `protocols/` 为准；工程实践以适用的领域 guide 和项目约束为准
-- 未经授权不得修改与当前任务无关的文件
+共享执行/输出契约以 protocols 为准，工程实践以项目约束和已确认适用规则为准。未经授权不得修改与当前任务无关的文件。
