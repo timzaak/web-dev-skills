@@ -2,7 +2,7 @@
   "schema_version": 1,
   "id": "classic-stack",
   "description": "Optional Rust/React, extension, miniapp, Flutter and Shopify workflow template",
-  "upstream_revision": "cbdef25dbb99eedcd6051d505dc1f4c664dd5b67",
+  "upstream_revision": "1729240dcf84a1768f52bbfb97bf4e95f8a3aba0",
   "source_paths": [
     "agents/backend-accept.md",
     "agents/backend-consistency.md",

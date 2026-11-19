@@ -2,7 +2,7 @@
 
 保留从 main 泛化时移除的资源：Rust 后端、React 前端、Chrome 扩展、小程序、Flutter、Shopify，以及相关角色、开发/测试/验收指南、脚本和初始化/设计模板。Web Demo/Figma 已在通用插件保留；导出的运行时使用来源版本配套实现。
 
-来源分支：`main`；固定提交：`cbdef25dbb99eedcd6051d505dc1f4c664dd5b67`。来源文件清单与版本在 [template.json](template.json)，原始内容在 files/。
+来源分支：`main`；固定提交：`1729240dcf84a1768f52bbfb97bf4e95f8a3aba0`。来源文件清单与版本在 [template.json](template.json)，原始内容在 files/。
 
 从仓库根目录运行 `python scripts/export-template.py export classic-stack --output <仓库外的新目录>`；可先加 --dry-run。完整拉取、运行、兼容边界和重复执行规则见[模板入口](/templates/index.md)。
 
