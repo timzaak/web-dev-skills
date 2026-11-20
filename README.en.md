@@ -80,7 +80,7 @@ Close changes with `t-review --fix -> t-simplify -> t-push`. Repairs invalidatin
 
 ## Optional domain templates
 
-Migrated assets remain in [templates/](templates/index.md). [classic-stack](templates/project-profiles/classic-stack/index.md) preserves Rust/React, extension, miniapp, Flutter and Shopify roles, practices, scripts and scaffolds. [java-backend](templates/project-profiles/java-backend/index.md) preserves Java/Spring Boot/Maven backend content from java. [pi-agent](templates/project-profiles/pi-agent/index.md) provides the pi branch's extension/skill/package workflows and `t-init --pi` scaffolding.
+Migrated assets remain in [templates/](templates/index.md). [classic-stack](templates/project-profiles/classic-stack/index.md) preserves Rust/React, extension, miniapp, Flutter and Shopify roles, practices, scripts and scaffolds. [java-backend](templates/project-profiles/java-backend/index.md) preserves Java/Spring Boot/Maven backend content from java. [pi-agent](templates/project-profiles/pi-agent/index.md) provides the pi branch's extension/skill/package workflows and `t-init`'s pi development infrastructure scenario.
 
 ```powershell
 python scripts/export-template.py list

@@ -11,7 +11,7 @@ Vitest 只覆盖不依赖 pi 进程的纯逻辑；扩展能否被 pi 正确加�
 
 ## 运行时冒烟（证据）
 
-- 初始化的无 provider 加载诊断可用项目 `npm run smoke:pi`（由 `t-init --pi` 补齐），它使用真实资源加载器和隔离配置；只证明资源发现与加载，不能作为下述工具行为、生命周期或 UI 验证的通过证据。
+- 初始化的无 provider 加载诊断可用项目 `npm run smoke:pi`（由 `t-init` 的 pi 开发设施场景补齐），它使用真实资源加载器和隔离配置；只证明资源发现与加载，不能作为下述工具行为、生命周期或 UI 验证的通过证据。
 - 加载诊断：`pi -e ./extensions/<name>.ts --mode json -p "<最小触发提示>"`，或在 TUI 启动后查看启动诊断。扩展加载错误、skill 告警、工具注册失败必须为零。没有 provider 鉴权时只能验证加载与注册，证据中标注“未验证模型调用”。
 - 工具行为：用 `--mode json` 的事件流核对 `tool_execution_start` / `tool_execution_end` 中的工具名、参数与结果，或在 TUI 用 `/reload` 后直接触发；截断、`isError`、`terminate` 行为以事件流为证据。
 - 命令与 UI：`/<command>` 在 TUI 验证；RPC 模式下的 UI 行为按 pi 文档的 RPC Extension UI 核对；不在 print 模式下验证 UI。

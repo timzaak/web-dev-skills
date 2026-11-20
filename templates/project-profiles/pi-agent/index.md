@@ -1,10 +1,10 @@
 # pi coding agent 模板
 
-从 `pi` 分支固定提交 `4951ba13e05033e6a5b89506121e848fa9d8fa65` 提取 extension、skill、prompt/theme 与 package 开发/测试/验收、`t-init --pi` 初始化和对应调用方。来源清单见 [template.json](template.json)。
+从 `pi` 分支固定提交 `042925a3b552d53664edeee84997792b2d9b4f72`（合并 origin/main `2df2b74`，t-init 采用场景识别并保留 pi 开发设施场景）提取 extension、skill、prompt/theme 与 package 开发/测试/验收、pi 场景初始化和对应调用方。来源清单见 [template.json](template.json)。
 
 导出包含该提交的完整配套运行时，沿用来源分支的 phase/state 和依赖约定；不能与 general 的 implementation 状态混用，也不自动启用到通用主链路。SDK 嵌入应用与 fork pi 内核不在此模板初始化范围。
 
-从仓库根目录执行 `python scripts/export-template.py export pi-agent --output <仓库外的新目录>`，可加 `--dry-run`。随后在项目中使用 `claude --plugin-dir <导出目录>`，再显式调用 `/t-tools:t-init --pi <project-name>` 或 `--pi .`。兼容和恢复规则见[模板入口](/templates/index.md)。
+从仓库根目录执行 `python scripts/export-template.py export pi-agent --output <仓库外的新目录>`，可加 `--dry-run`。随后在项目中使用 `claude --plugin-dir <导出目录>`，再调用 `/t-tools:t-init` 并在对话中说明 pi 开发设施场景与目标目录（新包名或当前项目）。兼容和恢复规则见[模板入口](/templates/index.md)。
 
 固定提交缺失时先 `git fetch origin pi`；导出不访问网络，不修改目标业务项目，也不把来源解析到浮动分支。
 

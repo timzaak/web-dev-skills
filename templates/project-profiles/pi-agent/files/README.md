@@ -62,13 +62,17 @@ t-prd-publish user-management   # 验收通过后发布正式 PRD / 用户故事
 | 产品立项、PRD、技术预研 | `t-decision` / `t-prd` / `t-tech-research`，收口用 `t-prd-publish` |
 | 设计、实现与验收 | `t-design`，然后 `t-super-run <feature> --phase <phase>` |
 | 用户故事 Demo 与验收 | `t-web-demo-*` / `t-extension-demo-*` / `t-flutter-demo-*` 及对应 `*-accept` |
-| Chrome 扩展项目 | 先按[扩展初始化指南](guides/extension/initialization.md)建 WXT 工程，再 `--phase extension`；真实加载演示用 `t-init --extension-demo` |
-| Shopify App 项目 | `t-init --shopify <project-name>` 建工程，规范见 [Shopify 开发指南](guides/shopify/development.md)；`shopify app deploy` 在 `t-push` 后由用户手动执行 |
-| pi coding agent 二次开发 | 新工程用 `t-init --pi <project-name>`，已有工程用 `t-init --pi .` 增量补齐开发设施；再 `t-design` 后 `--phase pi`，支持首次交付、无清单约定目录包及项目级 `.pi/` 资源；识别与提交/发布门禁见 [pi 项目协议](protocols/pi-project-contract.md)，纯 skill 文本不强制类型检查；规范见 [pi 开发规范](guides/pi/development.md)，运行时冒烟证据见 [pi 测试指南](guides/pi/testing.md)；`npm publish` / `pi install` 在 `t-release` 后由用户手动执行 |
+| Chrome 扩展项目 | 先按[扩展初始化指南](guides/extension/initialization.md)建 WXT 工程，再 `--phase extension`；真实加载演示用 `t-init`（扩展 Demo 设施场景） |
+| Shopify App 项目 | `t-init` 创建 Shopify 工程，规范见 [Shopify 开发指南](guides/shopify/development.md)；`shopify app deploy` 在 `t-push` 后由用户手动执行 |
+| pi coding agent 二次开发 | 新工程经 `t-init` 的 pi 开发设施场景建包，已有工程在对话中说明目标目录增量补齐；再 `t-design` 后 `--phase pi`，支持标题交付、无清单约定目录包及项目级 `.pi/` 资源；识别与提交/发布门槛见 [pi 项目协议](protocols/pi-project-contract.md)，纯 skill 文本不强制类型检查；规范见 [pi 开发规范](guides/pi/development.md)，运行时冒烟证据见 [pi 测试指南](guides/pi/testing.md)；`npm publish` / `pi install` 在 `t-release` 后由用户手动执行 |
 | Figma 还原 | `t-figma-assets` -> `t-figma-impl`：人类设计稿完成约 30% 即可介入编码；非规范稿按证据重建布局，歧义由人裁决，AI 分块实现并交付人工验收，见[还原指南](guides/figma/reconstruction.md)与[素材处理指南](guides/figma/assets.md) |
 | 提交与质量收口 | `t-review`（只报告正确性缺陷）-> `t-simplify`（四角度清理）-> `t-push`（[push 执行协议](protocols/push-execution-contract.md)）；review / simplify 不能替代 accept |
-| 新项目脚手架 | `t-init <project-name>`（Rust + React 全栈骨架；Shopify 用 `--shopify`，pi 用 `--pi`） |
+| 依赖 CVE 扫描 | `t-security-deps`（容器化 Trivy 扫描 Node/Rust/Java 等依赖清单，输出修复方案报告；只报告不升级，升级后重跑复核） |
+| 新项目脚手架 | `t-init`（对话中说明场景与项目名；Rust + React 全栈骨架，支持 Shopify、扩展 Demo 设施与 pi 开发设施场景） |
+| pi coding agent 二次开发 | 新工程经 `t-init` 的 pi 开发设施场景建包，已有工程在对话中说明目标目录增量补齐；再 `t-design` 后 `--phase pi`，支持标题交付、无清单约定目录包及项目级 `.pi/` 资源；识别与提交/发布门槛见 [pi 项目协议](protocols/pi-project-contract.md)，纯 skill 文本不强制类型检查；规范见 [pi 开发规范](guides/pi/development.md)，运行时冒烟证据见 [pi 测试指南](guides/pi/testing.md)；`npm publish` / `pi install` 在 `t-release` 后由用户手动执行 |
 | 维护插件与项目知识 | `t-skill`（创建/修改 skill）、`t-doc`（教程文档）、`t-dream`（上下文审计）、`t-release`（发版） |
+
+`t-review` 使用独立 verifier 小批量逐项验证候选，高风险或复杂候选单独验证；仅传相关 diff 与同一受审版本的按需补读入口。分批、证据和完整覆盖门禁见[正确性审查契约](protocols/review-correctness-contract.md#verify1-vote-3-state)。默认只报告，传 `--fix` 才在完整验证并写入报告后修复。
 
 每个命令的参数、前置条件和下一步，运行 `t-how` 交互式讲解。
 
@@ -85,6 +89,8 @@ t-prd-publish user-management   # 验收通过后发布正式 PRD / 用户故事
 - [OnceWise](https://github.com/timzaak/OnceWise) — 智能表单自动化助手，一键告别重复填写
 
 > Java 后端支持见 `java` 分支。
+>
+> pi coding agent 二次开发支持见 `pi` 分支。
 >
 > `general` 分支是[泛化方案](human/generalization.md)的落地：移除生产技术栈预设，改用通用 project 角色适配任意技术栈，移出的领域资产转为可选导出模板。
 

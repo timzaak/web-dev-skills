@@ -1,6 +1,6 @@
 # pi 初始化流程
 
-仅在 `t-init --pi <project-name|.>` 时读取并执行。输出为 pi extension/package 或项目级 `.pi/` 资源的开发基础设施；后续功能走设计和 `pi` phase，本流程不实现产品功能、不创建阶段状态，也不产出功能验收结论。
+仅在 t-init 识别为「pi 开发设施」场景时读取并执行（t-init 无命令参数，场景由用户请求与工作区状态识别；目标为用户指定的目录或当前目录）。输出为 pi extension/package 或项目级 `.pi/` 资源的开发基础设施；后续功能走设计和 `pi` phase，本流程不实现产品功能、不创建阶段状态，也不产出功能验收结论。
 
 执行前读 `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`、`${CLAUDE_PLUGIN_ROOT}/protocols/pi-project-contract.md` 和 `${CLAUDE_PLUGIN_ROOT}/guides/pi/development.md`。生成文件时再读 [pi 模板与产物规则](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/pi-template.md)；不读取全栈、Shopify 或 Web Demo 模板。
 

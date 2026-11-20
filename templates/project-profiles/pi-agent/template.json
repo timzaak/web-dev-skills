@@ -3,7 +3,7 @@
   "id": "pi-agent",
   "description": "Optional pi coding agent extension, skill and package workflows with initialization and matching runtime",
   "upstream_branch": "pi",
-  "upstream_revision": "4951ba13e05033e6a5b89506121e848fa9d8fa65",
+  "upstream_revision": "042925a3b552d53664edeee84997792b2d9b4f72",
   "source_paths": [
     ".claude-plugin/plugin.json",
     "README.en.md",

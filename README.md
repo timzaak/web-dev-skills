@@ -74,7 +74,7 @@ Decision -> PRD / 技术预研 -> 设计 -> 实现 / 测试 -> 独立验收 -> �
 
 ## 可选领域模板
 
-已移出的领域资产保留在 [templates/](templates/index.md)：[classic-stack](templates/project-profiles/classic-stack/index.md) 提供原 Rust/React、扩展、小程序、Flutter 与 Shopify 角色、实践、脚本和工程模板；[java-backend](templates/project-profiles/java-backend/index.md) 提供 java 分支的 Java/Spring Boot/Maven 后端内容；[pi-agent](templates/project-profiles/pi-agent/index.md) 提供 `pi` 分支的 extension/skill/package 工作流和 `t-init --pi` 初始化。
+已移出的领域资产保留在 [templates/](templates/index.md)：[classic-stack](templates/project-profiles/classic-stack/index.md) 提供原 Rust/React、扩展、小程序、Flutter 与 Shopify 角色、实践、脚本和工程模板；[java-backend](templates/project-profiles/java-backend/index.md) 提供 java 分支的 Java/Spring Boot/Maven 后端内容；[pi-agent](templates/project-profiles/pi-agent/index.md) 提供 `pi` 分支的 extension/skill/package 工作流和 `t-init` 的 pi 开发设施场景初始化。
 
 ```powershell
 python scripts/export-template.py list
