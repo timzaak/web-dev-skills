@@ -33,7 +33,7 @@ Decision -> PRD / 技术预研 -> 设计 -> 实现 / 测试 -> 独立验收 -> �
 
 `t-super-run <feature> --phase <phase>` 每次只执行显式指定的一个阶段：主会话按 dev/test 角色完成工作，独立只读 accept 收口。中断后用同一命令从磁盘恢复；需要先审阅 item 计划时用 `t-task -> t-run`，两套状态独立。
 
-项目 AGENTS.md、代码、配置和已确认文档决定工程规则。`t-init` 仅接入已有项目、建立真实运行说明，不生成应用骨架。项目 CI 由 `scripts/ci.py` 调用真实检查；缺失或失败时 push 停止。
+项目 AGENTS.md、代码、配置和已确认文档决定工程规则。`t-init` 接入已有项目、建立真实运行说明和项目路由层，不生成应用骨架。路由层把薄 dispatcher（`.agents/skills/t-tool/`、`.claude/skills/t-tool/`）和指南索引（`.agents/guides/index.md`）写进项目，只引用 t-tools 单一事实源不复制正文；未装插件的会话经 `/t-tool <skill-name>` 执行同一工作流，跨工具接入见 [use-in-other-agents](human/use-in-other-agents.md)。项目 CI 由 `scripts/ci.py` 调用真实检查；缺失或失败时 push 停止。
 
 旧领域命令和 phase 已移除，不做静默映射或旧状态自动迁移。已有项目保留原产物，按当前设计重新规划、核对证据后再执行。
 

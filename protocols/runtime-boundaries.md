@@ -11,7 +11,9 @@
 | 目标项目 `docs/` | 已发布的长期产品、设计和使用事实 |
 | 目标项目 `.ai/` | 当前工作流的草稿、状态、质量报告、预览产物，以及 Figma 工作目录和原始证据 |
 | 目标项目 `scripts/` | 环境、测试和 Demo 的本地执行入口 |
-| 目标项目 skill 目录（`.claude/skills/`、`.agents/skills/` 等按项目运行时） | 项目级 AI 能力资产，由 `t-skill --project` 和 skill 交付 task 写入 |
+| 目标项目 skill 目录（`.claude/skills/`、`.agents/skills/` 等按项目运行时） | 项目级 AI 能力资产，由 `t-skill --project`、skill 交付 task 和 `t-init` 路由层写入 |
+| 目标项目 `.agents/guides/index.md` | `t-init` 写入的指南路由索引，只引用单一事实源不复制正文 |
+| 目标项目 `.agents/t-tools-source.json` | 本机 t-tools 源路径记录，gitignore，不提交 |
 | `${CLAUDE_PLUGIN_ROOT}/protocols/` | 跨 skill 和 agent 的共享契约 |
 | `${CLAUDE_PLUGIN_ROOT}/guides/` | 通用工程指南，以及保留的 Web Demo / Figma 实践 |
 | `${CLAUDE_PLUGIN_ROOT}/skills/` | 阶段入口和编排逻辑 |
@@ -27,6 +29,7 @@
 - 长期项目事实从目标项目代码、配置和 `docs/` 读取；`.ai/` 中的内容视为当前流程产物，只有通过相应发布阶段写入 `docs/` 后才成为长期文档。
 - 跨阶段的结构化字段、状态、报告格式、评分规则和命令契约以 `${CLAUDE_PLUGIN_ROOT}/protocols/` 为准。
 - 项目工程规则来自目标项目已确认文档；插件仅提供通用流程、Web Demo 与 Figma 指南，不推断默认技术栈。
+- 项目路由层（dispatcher 与指南索引）只引用单一事实源，不复制插件正文；源解析顺序与幂等规则见 `${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/routing-template.md`，源工作树验证由 `${CLAUDE_PLUGIN_ROOT}/scripts/resolve-ttools-source.py` 提供。
 - 不同来源冲突时不得静默覆盖；应报告冲突、涉及的来源以及继续执行需要采用的规则。
 
 PRD、用户故事和技术预研的正式来源与候选来源边界见 `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`。跨阶段已确认决策、已解决问题和延期问题写入目标项目 `.ai/decision-log/`，结构与门禁见 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`。

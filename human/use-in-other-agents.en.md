@@ -73,6 +73,10 @@ See [Install Context7](#install-context7) below. Context7 is a `requiredMcpServe
 
 Running `/t-tool` with no argument lists every sub-skill under the repo's `skills/`.
 
+## Project-Level Routing Layer
+
+Beyond the global dispatcher, running `/t-tools:t-init` in a session with the plugin installed writes the same thin routing into the target project: `.agents/skills/t-tool/SKILL.md` and `.claude/skills/t-tool/SKILL.md` (identical copies covering the project-level `.agents/skills/` convention used by Codex/ZCode/Cline and Claude Code's `.claude/skills/`), plus a guide index `.agents/guides/index.md` that routes to the source repo's `guides/` by project facts without copying content. Committed files contain no machine-specific absolute paths; the source root resolves in the order `${CLAUDE_PLUGIN_ROOT}` → `T_TOOLS_ROOT` environment variable → `.agents/t-tools-source.json` in the project root (gitignored, recorded per machine by t-init). Without the global dispatcher, the project routing layer lets any contributor run `/t-tool <skill-name>` in any tool that supports project-level skill directories. Artifact and idempotency rules live in t-init's routing template.
+
 ## Working Directory Convention
 
 The dispatcher skill does not change the plugin's runtime conventions for target projects. Start Codex / ZCode in the **target project root**, and ensure these directories exist:

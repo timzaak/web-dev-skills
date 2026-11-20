@@ -39,7 +39,7 @@ The current phases are generic `implementation` and optional `web-demo`. The [ph
 
 `t-super-run <feature> --phase <phase>` executes only the requested phase: the main session performs dev/test work and an independent read-only accept agent closes it. Resume the same command from persisted state. Use `t-task -> t-run` when a separate item plan needs review; its state is independent.
 
-Project AGENTS.md, code, configuration and confirmed documentation define engineering rules. t-init connects an existing project and documents actual entrypoints; it does not scaffold an application. Project CI lives in scripts/ci.py and invokes real checks. Missing or failing CI blocks push.
+Project AGENTS.md, code, configuration and confirmed documentation define engineering rules. t-init connects an existing project, documents actual entrypoints and installs a project routing layer; it does not scaffold an application. The routing layer writes a thin dispatcher (`.agents/skills/t-tool/`, `.claude/skills/t-tool/`) and a guide index (`.agents/guides/index.md`) into the project that reference the single t-tools source without copying content; sessions without the plugin run the same workflows via `/t-tool <skill-name>`, see [use-in-other-agents](human/use-in-other-agents.en.md). Project CI lives in scripts/ci.py and invokes real checks. Missing or failing CI blocks push.
 
 Previous domain commands and phases have been removed. They are not silently mapped and old state is not automatically migrated. Preserve old artifacts, replan from the current design and verify existing evidence before execution.
 

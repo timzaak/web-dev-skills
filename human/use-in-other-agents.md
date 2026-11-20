@@ -73,6 +73,10 @@ Claude Code 里的 `/t-tools:t-<skill>` 在 Codex / ZCode 里对应 `/t-tool <sk
 
 不带参数运行 `/t-tool` 会列出本仓库 `skills/` 下所有可用子 skill。
 
+## 项目级路由层
+
+全局 dispatcher 之外，在装了本插件的会话里运行 `/t-tools:t-init` 会把同样的薄路由落进目标项目：`.agents/skills/t-tool/SKILL.md` 与 `.claude/skills/t-tool/SKILL.md`（两份同内容，覆盖 Codex/ZCode/Cline 等项目级 `.agents/skills/` 约定和 Claude Code 的 `.claude/skills/`），以及指南索引 `.agents/guides/index.md`（按项目事实路由到源仓库 `guides/`，不复制正文）。提交进仓库的文件不含本机绝对路径；源根按 `${CLAUDE_PLUGIN_ROOT}` → `T_TOOLS_ROOT` 环境变量 → 项目根 `.agents/t-tools-source.json`（gitignore，t-init 按机器记录）的顺序解析。没有全局 dispatcher 时，项目路由层让任何贡献者在任何支持项目级 skill 目录的工具里都能直接 `/t-tool <skill-name>`。产物与幂等规则见 t-init 的路由模板。
+
 ## 工作目录约定
 
 dispatcher skill 不改变本插件对目标项目的运行时约定。在**目标项目根目录**下启动 Codex / ZCode,确保以下目录存在:
