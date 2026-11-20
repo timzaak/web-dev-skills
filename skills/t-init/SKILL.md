@@ -1,7 +1,6 @@
 ---
 name: t-init
-description: Initialize a new Rust + React full-stack project; use --extension-demo to add Playwright integration-test infrastructure to an existing WXT extension; use --shopify to create a Shopify React Router app project (or retrofit an existing one) with the same demo/scripts infrastructure. Does not implement feature stories or perform their acceptance.
-argument-hint: "<project-name> | --extension-demo [--extension-dir <path>] | --shopify <project-name>"
+description: Initialize project engineering with no command parameters. Recognizes the scenario from the user's request and workspace state: create a Rust + React full-stack project, add Playwright integration-test infrastructure to an existing WXT extension, or create (or retrofit) a Shopify React Router app with the same demo/scripts infrastructure; asks the user when the scenario or required facts are unclear. Does not implement feature stories or perform their acceptance.
 allowed-tools:
   - AskUserQuestion
   - Read
@@ -17,42 +16,46 @@ allowed-tools:
 
 # 项目初始化
 
-初始化全栈项目骨架、为已有 WXT 扩展补齐 extension-demo 基础设施，或初始化 Shopify App 工程。先按参数选择模式；三个模式不串行执行。
+初始化全栈项目骨架、为已有 WXT 扩展补齐 extension-demo 基础设施，或初始化 Shopify App 工程。先识别场景；一次只执行一个场景，不串行。
 
-## 模式路由
+## 场景识别
 
-| 参数 | 目标与执行入口 |
-| --- | --- |
-| `<project-name>` | 创建 Rust + React + Web Demo 全栈工程，执行下文流程 |
-| `--extension-demo [--extension-dir <path>]` | 在当前目标项目根目录增量初始化扩展 Demo，仅读取并执行 [extension-demo 初始化流程](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/extension-demo-init.md)，完成后返回 |
-| `--shopify <project-name>` | 创建 Shopify App 工程（Shopify 官方 React Router 模板）或为已有 Shopify 工程增量补齐 demo/scripts 设施，仅读取并执行 [Shopify 初始化流程](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/shopify-init.md)，完成后返回，不执行下文全栈生成步骤 |
+不依赖命令参数：从用户当前请求和工作区状态识别场景，必要事实缺失时用 AskUserQuestion 询问。
 
-拒绝混用项目名和 `--extension-demo`、混用 `--shopify` 与 `--extension-demo`、单独使用 `--extension-dir`、`--shopify` 缺少项目名或未知参数，并给出以上用法。扩展模式不创建新的 WXT 工程、Shopify 模式不执行全栈生成步骤。
+| 场景 | 触发信号 | 执行入口 |
+| --- | --- | --- |
+| 全栈工程 | 用户要新建项目（"搭建项目""新建项目""项目初始化"），通常带项目名 | 创建 Rust + React + Web Demo 全栈工程，执行下文流程 |
+| 扩展 Demo 设施 | 用户要为已有扩展搭建集成测试设施；工作区检测到 WXT 工程标记且诉求与之相符 | 在当前目标项目根目录增量初始化扩展 Demo，仅读取并执行 [extension-demo 初始化流程](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/extension-demo-init.md)，完成后返回 |
+| Shopify 工程 | 用户要创建 / 改造 Shopify App 工程；工作区存在 `shopify.app.toml` 且诉求与之相符 | 创建 Shopify App 工程（Shopify 官方 React Router 模板）或为已有 Shopify 工程增量补齐 demo/scripts 设施，仅读取并执行 [Shopify 初始化流程](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/shopify-init.md)，完成后返回，不执行下文全栈生成步骤 |
+
+识别规则：
+- 用户在本次请求或对话中已给出的信息（项目名、目标目录、场景意图）直接作为事实采用。
+- 场景不明确或多个场景同时命中：用 AskUserQuestion 让用户选择，不按猜测推进。
+- 请求的项目类型不在上表（如 Flutter、CLI 工具）：如实说明当前支持的三个场景，不虚构脚手架；后续做法由用户裁决。
+- 场景边界：扩展场景不创建新的 WXT 工程，Shopify 场景不执行全栈生成步骤；诉求跨场景时先让用户确认本次执行哪一个。
 
 ## 适用范围
 
 仅在以下场景使用：
-- 用户明确执行 `/t-init <project-name>`
-- 用户明确执行 `/t-init --extension-demo` 或要求为已有扩展搭建集成测试基础设施
-- 用户明确执行 `/t-init --shopify <project-name>` 或要求创建 / 改造 Shopify App 工程
-- 用户要求创建新项目、初始化全栈项目骨架
-- 用户提到 "搭建项目""新建项目""项目初始化"
+- 用户要求创建新项目、初始化全栈项目骨架，或提到 "搭建项目""新建项目""项目初始化"
+- 用户要求为已有扩展搭建集成测试基础设施
+- 用户要求创建 / 改造 Shopify App 工程
 
 不要用于：
-- Chrome 扩展生产工程初始化：按 [extension 初始化指南](${CLAUDE_PLUGIN_ROOT}/guides/extension/initialization.md) 搭建 WXT 工程；工程就绪后可用扩展模式补齐 Demo
+- Chrome 扩展生产工程初始化：按 [extension 初始化指南](${CLAUDE_PLUGIN_ROOT}/guides/extension/initialization.md) 搭建 WXT 工程；工程就绪后可进入扩展 Demo 设施场景补齐 Demo
 - 已有项目的业务增量开发（扩展 Demo / Shopify 设施增量初始化除外）
 - 代码修改或重构
 - 单纯的前端或后端初始化（如果明确只做一侧，提示用户本 skill 生成完整全栈）
 
-## 参数
+## 事实收集
 
-以下参数与流程仅适用于全栈模式。
+各场景执行前收集必要事实；缺失时用 AskUserQuestion 询问，不自行编造。
 
-- `$ARGUMENTS` = 项目名称（必须）
-- 仅允许英文、数字、连字符、下划线；拒绝 `..`、`/`、`\`；长度 1-50 字符
+- 项目名称（全栈、Shopify 新建工程）：从用户请求取得，未给出时询问。仅允许英文、数字、连字符、下划线；拒绝 `..`、`/`、`\`；长度 1-50 字符。不合法时向用户说明规则并重新询问，例如：`请提供合法的项目名称，如 my-project`
+- 扩展目录（扩展 Demo 设施）：按 [extension-demo 初始化流程](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/extension-demo-init.md) 第 1 节检测；单候选取用，多候选让用户选择
+- Shopify 已有工程目录：优先采用用户指明的目录，其次按 `shopify.app.toml` 检测
 
-如果参数不合法，终止并提示：
-`请提供合法的项目名称。例如：/t-init my-project`
+以下流程仅适用于全栈场景。
 
 ## 占位符
 
@@ -64,9 +67,9 @@ allowed-tools:
 
 ## 生成流程
 
-### Step 1: 验证参数（主 Agent）
+### Step 1: 确认事实与目录状态（主 Agent）
 
-- 校验 `$ARGUMENTS` 非空且合法
+- 确认场景已识别、项目名称已收集且合法；缺失或非法时回到「事实收集」询问
 - 检查目标目录是否已存在同名目录；已存在且非空时询问用户是否覆盖
 - 按各 references 模板和「输出文件清单」创建目录结构
 
@@ -168,7 +171,7 @@ allowed-tools:
 
 ## 失败处理
 
-- 参数缺失或非法：终止并给出 `/t-init <project-name>` 示例
+- 必要事实缺失或非法：向用户询问补齐；项目名非法时说明命名规则并给出示例
 - 目标目录已存在且非空：询问是否覆盖
 - Context7 查询失败：降级到 WebSearch，最终降级到已有知识
 - cargo/npm 不可用：生成文件但跳过验证，提示用户手动检查

@@ -1,6 +1,6 @@
 # Shopify App 开发规范
 
-`shopify-app` 与 `shopify-extension` 两个 phase 共用本规范。目标项目由 `/t-init --shopify` 基于 Shopify 官方 React Router 模板创建；真实目录、脚本名和模板版本以目标项目现状为准，本规范约束结构语义与跨项目稳定的行为。
+`shopify-app` 与 `shopify-extension` 两个 phase 共用本规范。目标项目由 `/t-init`（Shopify 场景）基于 Shopify 官方 React Router 模板创建；真实目录、脚本名和模板版本以目标项目现状为准，本规范约束结构语义与跨项目稳定的行为。
 
 ## 工程结构语义
 

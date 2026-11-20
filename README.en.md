@@ -62,11 +62,11 @@ Phase orders: web is `backend -> frontend -> web-demo`; extension is `extension 
 | Product decision, PRD, tech research | `t-decision` / `t-prd` / `t-tech-research`; close out with `t-prd-publish` |
 | Design, implementation, acceptance | `t-design`, then `t-super-run <feature> --phase <phase>` |
 | User-story demos and acceptance | `t-web-demo-*` / `t-extension-demo-*` / `t-flutter-demo-*` plus the matching `*-accept` |
-| Chrome extension projects | Set up a WXT project per the [extension initialization guide](guides/extension/initialization.md), then `--phase extension`; loaded-extension demos via `t-init --extension-demo` |
-| Shopify app projects | `t-init --shopify <project-name>`; see the [Shopify development guide](guides/shopify/development.md). `shopify app deploy` runs manually by the user after `t-push` |
+| Chrome extension projects | Set up a WXT project per the [extension initialization guide](guides/extension/initialization.md), then `--phase extension`; loaded-extension demos via `t-init` (extension demo infrastructure scenario) |
+| Shopify app projects | `t-init` to create the Shopify project; see the [Shopify development guide](guides/shopify/development.md). `shopify app deploy` runs manually by the user after `t-push` |
 | Figma reconstruction | `t-figma-assets` -> `t-figma-impl`: start coding when the human-authored design is about 30% complete; reconstruct irregular layouts from evidence, let humans resolve ambiguities, and implement block by block for manual acceptance; see the [reconstruction guide](guides/figma/reconstruction.md) and [asset processing guide](guides/figma/assets.md) |
 | Commit and quality close-out | `t-review` (reports correctness bugs only) -> `t-simplify` (four-angle cleanup) -> `t-push` ([push execution contract](protocols/push-execution-contract.md)); review / simplify do not replace accept |
-| New project scaffold | `t-init <project-name>` (Rust + React full stack; `--shopify` for Shopify) |
+| New project scaffold | `t-init` (state the scenario and project name in conversation; Rust + React full stack, plus Shopify and extension demo infrastructure scenarios) |
 | Maintain the plugin and project knowledge | `t-skill` (create/modify skills), `t-doc` (tutorials and docs), `t-dream` (context audit), `t-release` (versioning) |
 
 `t-review` uses independent verifiers to assess candidates individually in small batches, isolating risky or complex candidates. Each batch receives relevant diff excerpts and access to additional context from the same reviewed version. See the [correctness review contract](protocols/review-correctness-contract.md#verify1-vote-3-state) for batching, evidence, and complete-coverage gates. It reports by default; `--fix` applies fixes only after verification is complete and the report is written.
