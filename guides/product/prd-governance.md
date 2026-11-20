@@ -30,6 +30,7 @@
 3. **拟定新权威 PRD 要点**
    - 每份新 PRD 使用紧凑结构：标题、状态、创建时间、优先级、权威范围；相关用户故事表（只列 ID、标题、影响说明）；范围界定（包含/不包含）；当前业务规则和状态；API/前端用户可见约束；验收目标；参考资料。
    - 正文以当前规则为主线；如需说明历史，仅保留一句旧术语的非权威状态。
+   - 对已有实现支撑的关键规则，建议在治理执行时按 `${CLAUDE_PLUGIN_ROOT}/protocols/doc-anchor-contract.md` 回填 `t-anchor` 锚点（哈希由脚本 `print` 子命令生成），供后续 `t-dream` 机械校验漂移。
 
 4. **旧 PRD 处置建议**
    - 默认建议移动到 `docs/prd/archive/...`，并在文件顶部标注“不再作为权威需求源”。
@@ -45,6 +46,7 @@
    - 运行项目已有 Markdown 链接检查脚本，例如 `python scripts/check-markdown-links.py`。
    - 检查所有 `docs/prd/**/*.md` 都出现在 `docs/prd/00-index.md`，除非明确是 archive 且索引策略排除。
    - 运行 grep 确认旧 PRD 路径、删除文件和过期当前规则没有死引用。
+   - 回填过锚点时运行锚点校验脚本，例如 `python scripts/check-doc-anchors.py verify docs/prd/**/*.md --project-root .`，全部 `ok` 或 `moved` 才算通过。
 
 ## PRD 合并判定
 

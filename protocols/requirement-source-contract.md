@@ -54,7 +54,7 @@
 - `/t-prd-check` 只写质量报告，不写 `docs/prd` 或 `docs/user-stories`。
 - `/t-design`、`/t-super-run` 和 Demo 阶段可以读取 draft sources，不得把 draft user story 发布到 `docs/user-stories`。
 - `/t-prd-publish` 是把仍然成立的 PRD 草稿和 draft user stories 合并进 `docs/` 的标准入口。
-- `t-dream` 只读审计 PRD 和用户故事；治理建议只写入质量报告，它必须区分 draft sources 与 published sources，不执行任何写入。
+- `t-dream` 只读审计 PRD 和用户故事；治理建议只写入质量报告，它必须区分 draft sources 与 published sources，不执行任何写入。`t-dream` 可为已发布文档输出建议 `t-anchor` 锚点行（见 `${CLAUDE_PLUGIN_ROOT}/protocols/doc-anchor-contract.md`），同样只作为报告建议，不执行写入。
 
 ## Reference Rules
 
