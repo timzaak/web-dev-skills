@@ -15,7 +15,7 @@ allowed-tools:
 
 运行时边界：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`（判断产物写入位置或脚本入口与插件默认冲突时读）
 需求来源边界：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`（区分草稿与已发布需求来源或处理两者冲突时读）
-决策连续性和用户决策暴露：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`（提问、更新决策账本或处理决策暴露门禁时读）
+决策连续性和用户决策暴露：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`（提问、更新决策账本、内化 PRD 内容或处理决策暴露门禁时读）
 
 若草稿、正式 PRD、用户故事或规范之间冲突，以明确澄清为继续条件：停止、说明冲突并等待决策。
 
@@ -34,7 +34,7 @@ allowed-tools:
 - 核心动作是先做发布总结并获用户确认，再修正增补现有正式文档；以差异归纳和事实合并为主，只把仍然成立、且属于长期产品语义的内容写入 `docs/prd`。
 - 正式 PRD 内容聚焦产品语义；端点明细、schema、建表、代码类型和实施进度状态留在设计、任务或实现证据中。
 - 发布范围限定为正式 PRD、正式用户故事、PRD 索引、草稿清理和决策账本内化移除；不修改交付代码。故事追溯按 `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md` 的 Story Traceability。
-- 仍然有效的 D0/D1 决策必须内化为正式 PRD 的产品事实（业务规则、范围、边界表述），不照搬账本表格、不携带 DEC/Q ID；D2 决策留在设计与任务产物，不进正式 PRD。
+- 决策内容的内化和旧决策章节迁移按决策连续性协议的 Artifact Trace 执行；发布前利用账本 PRD Trace 核对正文覆盖，发布后核验正式 PRD 可独立表达产品要求。
 
 ## Input Contract
 

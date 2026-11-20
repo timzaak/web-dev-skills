@@ -23,6 +23,9 @@ Test: would a senior engineer say this is overcomplicated? If yes, simplify.
 Touch only what you must. Clean up only your own mess.
 Don't "improve" adjacent code, comments, or formatting.
 Don't refactor what isn't broken. Match existing style.
+Comments: only where code can't say it — why, not what.
+Match the file's comment density. Don't narrate changes;
+that belongs in the commit message.
 
 ## Rule 4 — Surface conflicts, don't average them
 If two patterns contradict, pick one (more recent / more tested).

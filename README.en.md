@@ -62,13 +62,16 @@ Phase orders: web is `backend -> frontend -> web-demo`; extension is `extension 
 | Product decision, PRD, tech research | `t-decision` / `t-prd` / `t-tech-research`; close out with `t-prd-publish` |
 | Design, implementation, acceptance | `t-design`, then `t-super-run <feature> --phase <phase>` |
 | User-story demos and acceptance | `t-web-demo-*` / `t-extension-demo-*` / `t-flutter-demo-*` plus the matching `*-accept` |
-| Chrome extension projects | Set up a WXT project per the [extension initialization guide](guides/extension/initialization.md), then `--phase extension`; loaded-extension demos via `t-init --extension-demo` |
-| Shopify app projects | `t-init --shopify <project-name>`; see the [Shopify development guide](guides/shopify/development.md). `shopify app deploy` runs manually by the user after `t-push` |
-| pi coding agent extension development | Start with `t-init --pi <project-name>` or retrofit the current project with `t-init --pi .`; then `t-design` and `--phase pi`; supports first delivery, conventional packages without a manifest, and project-local `.pi/` resources. See the [pi project contract](protocols/pi-project-contract.md) for recognition and push/release gates; skill-only text changes do not require type checking. See the [pi development guide](guides/pi/development.md) and the [pi testing guide](guides/pi/testing.md) for runtime smoke evidence. `npm publish` / `pi install` run manually by the user after `t-release` |
+| Chrome extension projects | Set up a WXT project per the [extension initialization guide](guides/extension/initialization.md), then `--phase extension`; loaded-extension demos via `t-init` (extension demo infrastructure scenario) |
+| Shopify app projects | `t-init` to create the Shopify project; see the [Shopify development guide](guides/shopify/development.md). `shopify app deploy` runs manually by the user after `t-push` |
+| pi coding agent secondary development | New package via `t-init` (pi development infrastructure scenario); for an existing project state the target directory in conversation for incremental setup; then `t-design` followed by `--phase pi`, supporting titled deliveries, manifest-free directory packages and project-level `.pi/` resources; identification and commit/release gates in the [pi project contract](protocols/pi-project-contract.md); pure skill text skips type checks; see the [pi development guide](guides/pi/development.md) and runtime smoke evidence in the [pi testing guide](guides/pi/testing.md); `npm publish` / `pi install` run manually by the user after `t-release` |
 | Figma reconstruction | `t-figma-assets` -> `t-figma-impl`: start coding when the human-authored design is about 30% complete; reconstruct irregular layouts from evidence, let humans resolve ambiguities, and implement block by block for manual acceptance; see the [reconstruction guide](guides/figma/reconstruction.md) and [asset processing guide](guides/figma/assets.md) |
 | Commit and quality close-out | `t-review` (reports correctness bugs only) -> `t-simplify` (four-angle cleanup) -> `t-push` ([push execution contract](protocols/push-execution-contract.md)); review / simplify do not replace accept |
-| New project scaffold | `t-init <project-name>` (Rust + React full stack; `--shopify` for Shopify, `--pi` for pi) |
+| Dependency CVE scan | `t-security-deps` (containerized Trivy over Node/Rust/Java manifests; evidence-backed report with an upgrade plan; reports only, rerun to verify after upgrading) |
+| New project scaffold | `t-init` (state the scenario and project name in conversation; Rust + React full stack, plus Shopify, extension demo infrastructure and pi development infrastructure scenarios) |
 | Maintain the plugin and project knowledge | `t-skill` (create/modify skills), `t-doc` (tutorials and docs), `t-dream` (context audit), `t-release` (versioning) |
+
+`t-review` uses independent verifiers to assess candidates individually in small batches, isolating risky or complex candidates. Each batch receives relevant diff excerpts and access to additional context from the same reviewed version. See the [correctness review contract](protocols/review-correctness-contract.md#verify1-vote-3-state) for batching, evidence, and complete-coverage gates. It reports by default; `--fix` applies fixes only after verification is complete and the report is written.
 
 For every command's parameters, preconditions, and next steps, run `t-how` for an interactive walkthrough.
 
@@ -85,6 +88,8 @@ For every command's parameters, preconditions, and next steps, run `t-how` for a
 - [OnceWise](https://github.com/timzaak/OnceWise) — An intelligent form-automation assistant that ends repetitive form filling
 
 > For Java backend support, see the `java` branch.
+>
+> For pi coding agent customization support, see the `pi` branch.
 >
 > The `general` branch implements the [generalization plan](human/generalization.en.md): production tech-stack presets are removed in favor of generic project roles that fit any stack, and the extracted domain assets live on as optional exportable templates.
 

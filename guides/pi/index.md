@@ -4,7 +4,7 @@ pi coding agent 二次开发规范入口，覆盖 TypeScript extension、随包�
 
 | 你要确认的问题 | 对应规范 |
 | --- | --- |
-| 新建 pi extension 包或为当前项目补齐开发设施 | [t-init --pi 初始化流程](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/pi-init.md)；入口为 `/t-init --pi <project-name>` 或 `/t-init --pi .` |
+| 新建 pi extension 包或为当前项目补齐开发设施 | [pi 初始化流程](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/pi-init.md)；入口为 `/t-init`（pi 开发设施场景，对话中说明目标目录） |
 | 项目识别、首次交付、pi phase 适用性、push/release 门禁选择 | [pi-project-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/pi-project-contract.md) |
 | 包布局与清单、扩展工厂与生命周期、工具/命令/事件/状态/UI 规则、provider 与 MCP、权限、打包分发 | [development.md](${CLAUDE_PLUGIN_ROOT}/guides/pi/development.md) |
 | Vitest 边界、运行时冒烟证据与 `/reload` 开发循环 | [testing.md](${CLAUDE_PLUGIN_ROOT}/guides/pi/testing.md) |

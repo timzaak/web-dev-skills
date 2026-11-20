@@ -24,7 +24,7 @@
 
 ## 上下文与修复边界
 
-- 收集后把同一份 diff、相关文件版本与项目约束交给所有 reviewer / finder / verifier；可给出获取命令，但命令必须定位已解析的提交与路径，不能让不同 agent 各自重选基准。修复前保持范围只读。
+- 收集后所有 reviewer / finder / verifier 使用同一已解析范围、diff 来源、相关文件版本与项目约束，不能各自重选基准。reviewer / finder 获取该范围的完整 diff；verifier 按 `${CLAUDE_PLUGIN_ROOT}/protocols/review-correctness-contract.md` 的 Verify 节获取批次相关片段及按需补读入口。可提供获取命令时，命令必须定位已解析的提交与路径，并符合 agent 的实际工具能力。修复前保持范围只读。
 - 读取适用于变更路径的 `AGENTS.md`、`CLAUDE.md` / `CLAUDE.local.md`；按运行时边界处理约束冲突，不把托管 Code Review 服务的 `REVIEW.md` 自动当作本地审查契约。
 - PR、其他分支或历史区间可以只读审查。应用修复前核对本地分支、文件内容与受审版本；不匹配时只报告并将修复记为 pending / 跳过，不能自动 checkout、覆盖工作区或把旧行号套到当前文件。
 - 修复只撤销本次操作自己的改动，保留用户原有修改；重跑重新收集当前范围，不把旧报告的“干净”结论直接套到新代码。恢复同一报告时先核对范围及已经记录的修复结果。

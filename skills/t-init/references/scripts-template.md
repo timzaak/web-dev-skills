@@ -1,6 +1,6 @@
 # Scripts 模板
 
-全栈 Step 6、extension-demo 或 Shopify 模式适配本地脚本后，按下述结构生成目标项目 `scripts/index.md`；测试说明只在该文件维护，AGENTS.md 只提供读取入口。脚本复制与改写规则见 [脚本复制与适配规则](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/script-adaptation.md)。
+全栈 Step 6、extension-demo 或 Shopify 场景适配本地脚本后，按下述结构生成目标项目 `scripts/index.md`；测试说明只在该文件维护，AGENTS.md 只提供读取入口。脚本复制与改写规则见 [脚本复制与适配规则](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/script-adaptation.md)。
 
 生成时读取 [测试命令契约](${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md) 和 [Demo 执行契约](${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md)；包含后端测试时再读 [后端执行契约](${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md)。核对项目实际脚本、package.json 和测试配置。只列已启用的测试层，用真实路径替换示例参数；未配置的测试标明缺口，不虚构命令。
 

@@ -103,7 +103,7 @@ docs/tutorials/
 
 ## 写作要求
 
-写作前读取 [references/writing-style.md](${CLAUDE_PLUGIN_ROOT}/skills/t-doc/references/writing-style.md)。每章写完后也按里面的自检清单检查一遍。
+写作前读取 [references/writing-style.md](${CLAUDE_PLUGIN_ROOT}/skills/t-doc/references/writing-style.md)。每章写完后按其中的修订流程和自检清单检查；文件读取、事实保护、修订边界及覆盖范围报告也以该参考为准。
 
 核心要求：
 
