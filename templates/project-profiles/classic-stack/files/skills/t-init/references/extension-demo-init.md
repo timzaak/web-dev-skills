@@ -1,11 +1,11 @@
 # extension-demo 初始化流程
 
-仅在 `t-init --extension-demo [--extension-dir <path>]` 时读取。输入为已有 WXT 工程、实际构建入口、可观察的现有扩展行为及当前 Demo 配置；输出为项目 `demo/` 内的扩展测试基础设施和 `scripts/index.md`。不要求先生成 PRD，也不创建功能阶段状态或用户故事验收结论。
+仅在扩展 Demo 设施场景（由 `t-init` 场景识别进入）时读取。输入为已有 WXT 工程、实际构建入口、可观察的现有扩展行为及当前 Demo 配置；输出为项目 `demo/` 内的扩展测试基础设施和 `scripts/index.md`。不要求先生成 PRD，也不创建功能阶段状态或用户故事验收结论。
 
 ## 1. 确认项目事实
 
 - 当前目录必须是目标项目根目录。先读项目 `AGENTS.md`、`scripts/index.md`、package.json、锁文件、WXT 配置与现有 Demo 配置。
-- 指定 `--extension-dir` 时将路径相对项目根目录解析，必须存在且位于目标项目内；允许 `.`。未指定时检查根目录与 `extension/` 的 WXT 工程标记（package.json 的 WXT 依赖/脚本及实际入口）；只有一个候选时采用，多个候选让用户选择，不按目录名猜测。
+- 用户指定扩展目录时将路径相对项目根目录解析，必须存在且位于目标项目内；允许 `.`。未指定时检查根目录与 `extension/` 的 WXT 工程标记（package.json 的 WXT 依赖/脚本及实际入口）；只有一个候选时采用，多个候选让用户选择，不按目录名猜测。
 - 没有 WXT 工程时停止，指向 [扩展初始化指南](${CLAUDE_PLUGIN_ROOT}/guides/extension/initialization.md)，不要生成空 Demo 假装成功。
 - 从 scripts 与配置取得构建命令、工作目录、Chrome MV3 产物目录、已有 popup/options/content script/background 入口，以及最小可观察加载结果。默认产物目录只能作为候选；不要把 `.output/chrome-mv3-dev` 热更新产物作为正式验证输入。
 - 按 [扩展演示指南](${CLAUDE_PLUGIN_ROOT}/guides/extension/demo-testing.md) 确认宿主/stub 或真实后端依赖；无法从现有代码和配置确定的测试账号、宿主站点或环境选择由用户裁决。信息未确认前不写入假设配置。
@@ -45,6 +45,6 @@
 
 ## 失败与重入
 
-- 参数、工程识别或环境信息缺失：主 Agent 报告缺口；用户补齐后从事实检查恢复。
+- 必要事实、工程识别或环境信息缺失：主 Agent 报告缺口；用户补齐后从事实检查恢复。
 - 生成或测试失败：保留已生成文件和失败日志，主 Agent 继续协调 `extension-demo-dev` 修复基础设施；生产缺陷交回 extension 阶段，不为了跑通而增添生产权限、后台入口或测试专用业务分支。
 - 重复调用：先复用已有 fixture、依赖和 smoke，只补缺失项；配置或扩展有变化时重新构建和定向验证，不重建工程、不清空历史 run，不重复插入索引或 AGENTS 说明。

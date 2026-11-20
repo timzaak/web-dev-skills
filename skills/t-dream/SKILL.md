@@ -16,6 +16,7 @@ allowed-tools:
 运行时边界：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`（写报告或调用目标项目脚本前读）
 需求来源边界：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`（区分草稿与已发布需求来源时读）
 候选问题结构、评分权重、报告结构和模式写入边界：`${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md`（构造 subagent 输出、计算评分或写报告前读）
+锚点语法、校验状态与脚本契约：`${CLAUDE_PLUGIN_ROOT}/protocols/doc-anchor-contract.md`（校验或建议 `t-anchor` 锚点时读）
 
 ## 目标
 - 识别 PRD、用户故事、设计、任务、Demo 注释、实现事实和项目结构中偏离当前可信上下文的问题，并给出收敛建议。
@@ -121,6 +122,7 @@ allowed-tools:
 - 收集设计、任务、README、AGENTS/CLAUDE、ADR 或架构说明路径。
 - 提取模块名、角色名、故事引用、测试引用和关键词。
 - 提取目录结构摘要：PRD 分组、项目实现、Demo 与测试模块、`.ai/design` 与 `.ai/task` 对应关系。
+- 对检查范围内的已发布文档（`docs/prd/**`、`docs/user-stories/**`）运行锚点校验，按 `${CLAUDE_PLUGIN_ROOT}/protocols/doc-anchor-contract.md` 的脚本契约执行（目标项目 `scripts/check-doc-anchors.py` 优先，插件脚本回退），把各锚点状态注入上下文包；脚本缺失或执行失败时记录原因，不阻塞。
 - 写明本次检查模式、排除项和无法定位的输入。
 - 将上下文包传给所有参与的 subagent。
 
@@ -155,6 +157,7 @@ allowed-tools:
 并行发现结束后，必须进行验证步骤。验证可由主线程完成，也可额外启动一个 `general_agent` 作为"候选问题验证"维度。
 
 验证动作：
+- 脚本校验为 `drifted` / `missing-file` 的锚点直接作为已验证问题进入，`验证方式: 脚本`，不再重复读取核验；`ok` 锚点支撑的声明免于重复抽样。状态语义按 `${CLAUDE_PLUGIN_ROOT}/protocols/doc-anchor-contract.md`。
 - 重新读取关键文件片段，确认描述声明和实现事实是否真实存在。
 - 过滤没有文件定位、证据不足、只属于风格偏好的候选问题。
 - 校准严重级别和置信度。
@@ -185,12 +188,14 @@ allowed-tools:
 - 任一 subagent 调用失败：记录对应维度为 P1，继续合并其他维度。
 - subagent 输出结构不合格：主线程补充最小必要复核，并将该维度标记 P1。
 - 候选问题验证未执行：不得生成 ACCEPTABLE / PASS 类结论，只能输出阻塞报告。
+- 锚点校验脚本缺失或执行失败：不阻塞检查，报告注明"锚点校验未执行"及原因。
 - 深度检查 agent 失败：标记 P1，记录失败模块和错误摘要。
 - 报告写入失败：停止并提示检查 `.ai/quality/` 权限。
 
 ## 质量门禁
 - 只读检查；除写入质量报告外，不修改目标项目代码或文档。
 - 所有差异项必须可定位到文件或 PRD 条目；所有统计项必须有数据来源。
+- 锚点验证结论只能来自脚本输出，不得由 subagent 或主线程手工推断哈希或状态。
 - 每个参与评分的维度必须有对应 subagent 输出；未执行时必须说明原因。
 - 最终 P0/P1 问题必须经过验证步骤，且置信度不低于 80。
 - 评分公式必须可复算，分项分值之和必须等于总分。

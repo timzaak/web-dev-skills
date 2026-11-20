@@ -1,14 +1,14 @@
 # 脚本复制与适配规则
 
-t-init 三个模式（全栈、Shopify、extension-demo）把插件脚本复制进目标项目时，本文件是唯一适配规则。插件 `${CLAUDE_PLUGIN_ROOT}/scripts/` 提取自源全栈工程，内置了该工程的事实（后端二进制名、配置环境变量、容器名、端口、健康端点）。直接原样复制的脚本在目标项目中不可运行或行为错误；复制只是起点，交付前必须完成本文件的改写清单和交付验证。
+t-init 三个场景（全栈、Shopify、extension-demo）把插件脚本复制进目标项目时，本文件是唯一适配规则。插件 `${CLAUDE_PLUGIN_ROOT}/scripts/` 提取自源全栈工程，内置了该工程的事实（后端二进制名、配置环境变量、容器名、端口、健康端点）。直接原样复制的脚本在目标项目中不可运行或行为错误；复制只是起点，交付前必须完成本文件的改写清单和交付验证。
 
 ## 适配输入
 
 适配依据是目标工程的实际事实，不假设插件脚本中的默认值已经正确：
 
-- 全栈模式：Step 3 ~ 5 生成的 `backend/`、`frontend/`、`demo/` 产物 — workspace 成员与二进制名、启动命令、配置文件与注入方式（`--config` 参数或环境变量）、端口、健康端点、前端 dev 命令。
-- Shopify 模式：CLI 工程事实（npm scripts、`shopify.app.toml`）与 [Shopify 本地环境与商家会话](${CLAUDE_PLUGIN_ROOT}/guides/shopify/environment.md)。
-- extension-demo 模式：现有工程的构建入口与环境配置。
+- 全栈场景：Step 3 ~ 5 生成的 `backend/`、`frontend/`、`demo/` 产物 — workspace 成员与二进制名、启动命令、配置文件与注入方式（`--config` 参数或环境变量）、端口、健康端点、前端 dev 命令。
+- Shopify 场景：CLI 工程事实（npm scripts、`shopify.app.toml`）与 [Shopify 本地环境与商家会话](${CLAUDE_PLUGIN_ROOT}/guides/shopify/environment.md)。
+- extension-demo 场景：现有工程的构建入口与环境配置。
 
 ## 改写清单
 
@@ -31,4 +31,4 @@ t-init 三个模式（全栈、Shopify、extension-demo）把插件脚本复制�
 
 ## 增量场景
 
-已存在同名脚本先按各模式的增量规则比较。内容仍是插件原样拷贝（未适配）时，按本文件补做适配并报告改写项；已有自定义实现保留，只在接口不兼容时报告差异。
+已存在同名脚本先按各场景的增量规则比较。内容仍是插件原样拷贝（未适配）时，按本文件补做适配并报告改写项；已有自定义实现保留，只在接口不兼容时报告差异。

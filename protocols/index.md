@@ -23,6 +23,7 @@
 | HTML Preview 通用契约 | [html-show-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md) |
 | PRD HTML Preview PRD 专用契约 | [prd-preview-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md) |
 | t-dream 候选问题、提取类别、评分和报告契约 | [dream-report-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/dream-report-contract.md) |
+| 已发布需求文档 `t-anchor` 锚点语法、哈希规范化、校验状态与脚本契约 | [doc-anchor-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/doc-anchor-contract.md) |
 | 任务检查评分与阻塞规则 | [task-check-rubric.md](${CLAUDE_PLUGIN_ROOT}/protocols/task-check-rubric.md) |
 | Demo 共享 Result 输出结构 | [demo-result-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/demo-result-contract.md) |
 | Demo 诊断报告结构与分类映射 | [diagnostic-report-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-contract.md) |
