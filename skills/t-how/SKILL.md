@@ -55,6 +55,7 @@ t-decision -> t-prd / t-tech-research（无固定顺序，进设计前收敛）
 | Extension Demo / E2E | `/t-tools:t-extension-demo-run <file>` 或 `/t-tools:t-extension-demo-run-all` | 之后 `/t-tools:t-extension-demo-accept <file\|all>` |
 | Flutter Demo | `/t-tools:t-flutter-demo-run <file> --device <id>` 或 `/t-tools:t-flutter-demo-run-all` | 之后 `/t-tools:t-flutter-demo-accept <domain\|all>` |
 | 提交推送 | `/t-tools:t-review`、`/t-tools:t-simplify`，再 `/t-tools:t-push` | review 只报告，发现缺陷先修复；push 会清理注释并跑受影响 CI |
+| 扫描依赖 CVE | `/t-tools:t-security-deps [<target>]` | 容器化 Trivy 扫描 Node/Rust/Java 等依赖漏洞并出修复方案报告；只报告不升级，升级后重跑复核 |
 | 发版 | `/t-tools:t-release [版本号]` | semver 不带 `v`，git tag 带 `v` |
 | 给插件新增或修改 skill | `/t-tools:t-skill [名称或能力描述]` | 只操作插件仓库自身，不用于目标项目业务开发 |
 | 在目标项目内创建或更新 skill | `/t-tools:t-skill --project [名称或能力描述]` | 按项目运行时落位 `.claude/skills/` 或 `.agents/skills/`；feature 中已规划的 skill 交付物走 `t-super-run` 对应 phase |
