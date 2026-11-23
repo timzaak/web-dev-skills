@@ -110,9 +110,6 @@ allowed-tools:
 - `demo-stop.py`
 - `web-demo-test-runner.py`
 - `web-demo-run-all.py`
-- `cleanup-demo.py`
-- `cleanup-test-logs.py`
-- `web-demo-failure-summary.py`
 - `lib/*.py`
 
 插件脚本提取自源全栈工程，内置该工程的二进制名、配置环境变量、容器名和端口，原样交付不可运行。复制后必须读取 [references/scripts-setup.md](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/scripts-setup.md)，以本次生成的 `backend/`、`frontend/`、`demo/` 实际事实为输入逐项改写，执行其中的交付验证（环境可执行时运行一次 `demo-start.py` → `demo-stop.py` 循环；不可执行时在收尾输出标注未验证），并按同文件第 2 节生成目标项目 `scripts/index.md`（作为测试运行说明的唯一维护位置）。

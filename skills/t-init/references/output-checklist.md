@@ -37,9 +37,6 @@
 - [ ] `scripts/web-demo-run-all.py`
 - [ ] `scripts/demo-start.py`
 - [ ] `scripts/demo-stop.py`
-- [ ] `scripts/cleanup-demo.py`
-- [ ] `scripts/cleanup-test-logs.py`
-- [ ] `scripts/web-demo-failure-summary.py`
 - [ ] `scripts/lib/*.py`
 - [ ] `README.md`
 - [ ] `.gitignore`（忽略根目录 `log/`）

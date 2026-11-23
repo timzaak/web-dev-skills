@@ -21,7 +21,7 @@
 | `demo-start.py`、`demo-stop.py`、`lib/demo_env.py`（全栈） | 后端启动命令与工作目录（以生成的 workspace 成员为准，不用源项目二进制名）；配置注入方式与生成的入口一致，删除与目标工程无关的源项目环境变量和密钥；后端/前端端口、容器名、镜像、数据库名使用项目语义，避免与其他初始化项目冲突；健康端点与生成路由一致；`demo-stop.py` 的停止识别（端口、进程路径）与实际启动方式一致；日志文件名与实际写入路径一致；help 文案中的项目名 |
 | `demo-start.py`、`demo-stop.py`（Shopify 版） | 生成全新实现，不复制默认 Web 逻辑：不引入 Docker 数据库/Redis，不启动任何后端进程。`demo-start.py` 启动项目 `shopify app dev`（复用工程 npm script），等待输出就绪并把预览 URL 写入日志与 `log/`（隧道域名按域名特征识别，不硬编码）；`scripts/index.md` 登记了自动化 Chrome 附加会话时，按开发规范一并启动专用实例。`demo-stop.py` 结束 dev 进程树和本脚本启动的 Chrome；残留 node 进程按开发规范的模块匹配方式定位，不盲目结束全部 node 进程 |
 | `test-start.py`、`test-stop.py`（全栈） | 测试容器名、端口映射、数据库名使用项目语义 |
-| runner 族：`web-demo-test-runner.py`、`web-demo-run-all.py`、`web-demo-failure-summary.py`、`cleanup-demo.py`、`cleanup-test-logs.py` | 默认无需改写。项目不保留默认 Web 环境时（Shopify、独立扩展），把 `lib/demo_env.py` 的自动环境路径改写为显式不适用（提示使用 `--no-auto-env`），删除指向不存在服务的启动逻辑 |
+| runner 族：`web-demo-test-runner.py`、`web-demo-run-all.py` | 默认无需改写。项目不保留默认 Web 环境时（Shopify、独立扩展），把 `lib/demo_env.py` 的自动环境路径改写为显式不适用（提示使用 `--no-auto-env`），删除指向不存在服务的启动逻辑 |
 
 不可变契约以 `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md` 的 Script Entry Rules 为准：脚本文件名、主要 CLI 参数、输出 JSON 和日志契约保持稳定；运行入口为 `uv run scripts/<name>.py`。
 
