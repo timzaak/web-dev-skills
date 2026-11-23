@@ -13,6 +13,8 @@ uv run scripts/web-demo-test-runner.py demo/e2e/<测试文件>.e2e.ts --log-leve
 - 无明显服务错误但断言失败：按下方分类排查选择器、Page Object、等待与数据隔离。
 - 每次只做最小修复，不要同时改等待、选择器、业务断言三类逻辑。
 
+维护目标：小改动（选择器或文案级修复）5 分钟内完成，中等改动（Page Object 或表单流同步）15 分钟内完成；大改动拆分为前端变更、Demo 修复、回归验证三个明确步骤。
+
 ## 2. 选择器修复
 
 适用：`selector not found`、`timeout waiting for selector`、前端重构后 `demo/e2e/selectors.ts` 与实际页面不一致。

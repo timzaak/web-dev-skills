@@ -29,7 +29,7 @@ Future<void> pumpPage(WidgetTester tester, {List<Override> overrides = const []}
 ```
 
 - `pump()` 推进帧；只在确实会稳定时使用 `pumpAndSettle()`；无限动画使用定长 `pump` 或针对性同步条件；禁止 `sleep` / `Future.delayed` 真实等待。
-- Riverpod provider 测试先读 `pubspec.lock`：Riverpod 3 用 `ProviderContainer.test()`（自动释放）；Riverpod 2 用 `ProviderContainer()` + `addTearDown(container.dispose)`；通过 `container.read(xxxProvider.notifier)` 驱动 Notifier，不直接构造脱离 provider 生命周期的 Notifier。
+- Riverpod provider 测试先读 `pubspec.lock`：Riverpod 3 用 `ProviderContainer.test()`（自动释放）；Riverpod 2 用 `ProviderContainer()` + `addTearDown(container.dispose)`；override API 必须匹配 lock 版本；通过 `container.read(xxxProvider.notifier)` 驱动 Notifier，不直接构造脱离 provider 生命周期的 Notifier。
 
 ```dart
 test('search returns users', () async {

@@ -31,7 +31,7 @@ flutter test test/<affected-path>
 | 自定义交互/关键页面 | `meetsGuideline` 测试，按需 TalkBack/VoiceOver |
 | 滚动、动画、首屏、大列表 | profile mode + DevTools/时间线或 integration performance test |
 
-失败处理：先重跑最小失败文件再跑受影响集合，不默认升级全量；不跳过断言、关闭 lint、添加真实延迟或手改生成物；integration 超时先排查无限动画和同步条件；设备型测试记录设备、OS、Flutter 与依赖锁定版本；任一适用的 MANDATORY 门禁未过不得标记完成。
+失败处理：先重跑最小失败文件再跑受影响集合，不默认升级全量；不跳过断言、关闭 lint、放宽 finder、添加真实延迟或手改生成物；integration 超时先排查无限动画和同步条件；设备型测试记录设备、OS、Flutter 与依赖锁定版本；任一适用的 MANDATORY 门禁未过不得标记完成。
 
 ## 2. 只读验收规范（flutter-accept）
 

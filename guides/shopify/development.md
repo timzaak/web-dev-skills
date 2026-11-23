@@ -42,7 +42,7 @@
 
 - 数据模型用 Prisma：schema 变更走 `prisma migrate dev` 生成迁移；部署侧按模板的数据库方案执行迁移（模板默认 SQLite + docker 迁移），不在业务代码里做运行时建表。
 - 业务数据存储位置由设计声明；应用数据库与 Shopify 侧（customer tag、metafield、metaobject）的读写边界必须可追溯到需求，不因模板存在 Prisma 就决定业务数据归属。
-- 开发：`shopify app dev` 连接真实店铺的 dev 版本（Cloudflare 隧道），admin 页、扩展、proxy 均可即时预览；新增扩展用 `shopify app generate extension` 生成骨架放入 `extensions/`。
+- 开发：`shopify app dev` 连接真实店铺的 dev 版本（Cloudflare 隧道），admin 页、扩展、proxy 均可即时预览，扩展与配置变更由 CLI 推送；新增扩展用 `shopify app generate extension` 生成骨架放入 `extensions/`。
 - **部署时机**：`/t-push` 只负责 git 提交推送；`shopify app deploy`（及数据库迁移）是 push 之后由用户显式执行的独立动作，不并入任何 skill 自动触发。
 - 分发方式为 custom distribution（面向自家店铺）时无 App Store 审核与计费集成；不要为上架流程预留代码路径。
 - scopes 在 `shopify.app.toml` 声明并保持最小集合；新增 scope 需要重新授权，视为影响店铺的变更，在设计文档记录理由。

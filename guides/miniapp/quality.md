@@ -7,7 +7,7 @@
 1. **类型检查（MANDATORY）**：`cd miniapp && npm run typecheck` —— 0 errors，token/icon 编译链未报错；失败立即修复重跑（最多重试 3 次，仍失败不得标记完成）。
 2. **WeChat 构建验证（MANDATORY）**：`cd miniapp && npm run build:weapp` —— 构建成功，页面注册、主题产物、图标 manifest 无阻塞错误（最多重试 3 次）。
 3. **H5 预览验证（按需）**：改动跨端共享布局/样式或需核验 H5 预览时运行 `cd miniapp && npm run build:h5`。
-4. **模板门禁（按需但推荐）**：变更 token、icon、模板契约或基础设施文件时运行：
+4. **模板门禁（按需但推荐）**：变更 token、icon、模板契约或基础设施文件，或需要确认 starter 仍满足发布要求时运行：
 
 ```bash
 cd miniapp && npm run prepublish:check
@@ -15,6 +15,8 @@ cd miniapp && npm run starter:ci-gate -- --target taro-react-taroify-tailwind
 ```
 
 5. **业务行为验证（行为变更时必须）**：按 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/testing.md` 执行受影响场景；开发者工具、真机或人工结果缺失时报告未验证及恢复步骤（环境不可用不属于不适用，构建成功不代替业务结果）。
+
+任务完成定义：`typecheck` 与 `build:weapp` 通过、适用的业务行为验证有有效证据、改动涉及的按需验证已执行或明确说明为什么跳过；任一强制验证失败时不得标记完成，必须修复并重新验证，并在完成报告中记录失败与修复过程。
 
 常见阻塞点：新页面在 `src/pages/**` 未注册到 `src/app.config.ts`；token 修改后 `design:build` 产物漂移；业务代码绕过 `AppIcon` 直接引图标库；引入 Web-only 依赖（`react-router-dom`、`Next.js`、`next-themes`、`framer-motion`、`@radix-ui/react-*`）。
 
