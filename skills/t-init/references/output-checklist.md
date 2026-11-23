@@ -37,7 +37,6 @@
 - [ ] `scripts/web-demo-run-all.py`
 - [ ] `scripts/demo-start.py`
 - [ ] `scripts/demo-stop.py`
-- [ ] `scripts/debug-test.py`
 - [ ] `scripts/cleanup-demo.py`
 - [ ] `scripts/cleanup-test-logs.py`
 - [ ] `scripts/web-demo-failure-summary.py`

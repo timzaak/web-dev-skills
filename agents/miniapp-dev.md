@@ -42,13 +42,10 @@ tools:
 - `docs/user-stories/00-index.md`
 - `.ai/user-stories/**/*.md`（任务或设计引用 draft 用户故事时）
 - `docs/prd/00-index.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/index.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/development.md`
 - 按需进入：
-   - `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/development.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/testing.md`
-   - `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/validation.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/quality.md`
-   - `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/ai-rules.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/constitution.md`
 - 若任务有设计文档，再读 `.ai/design/[任务名].md`
 
@@ -63,7 +60,7 @@ tools:
 
 - `Grep` / `Glob` / `Read` 查现有实现
 - 查 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/*.md`
-- 查 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/ai-rules.md` 与 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/constitution.md`
+- 查 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/constitution.md`
 - 查官方文档补库级事实
 - 仅在前 4 步不足时用 WebSearch
 
@@ -108,12 +105,12 @@ cd miniapp && npm run prepublish:check
 cd miniapp && npm run starter:ci-gate -- --target taro-react-taroify-tailwind
 ```
 
-详细门禁以 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/validation.md` 和 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/quality.md` 为准。
+详细门禁以 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/quality.md` 为准。
 
 ## 实现约束
 
 - 页面、目录、模板约束以 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/development.md` 为准
-- 技术线、受保护文件、禁用依赖以 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/ai-rules.md` 与 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/constitution.md` 为准
+- 技术线、受保护文件、禁用依赖以 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/constitution.md` 为准
 - 优先复用 `src/components/`、`src/theme/` 与 `AppIcon`
 - 不手工维护 token 编译产物作为业务真相
 - 不引入 `react-router-dom`、`next-themes`、`framer-motion`、`@radix-ui/react-*` 等不兼容技术

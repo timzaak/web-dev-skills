@@ -12,7 +12,7 @@
 
 - 完整用户故事主路径优先用 Demo / E2E 覆盖。
 - 业务数据优先通过 UI 创建或通过 Demo seed 预置，不在测试文件里走业务旁路。
-- 路由和身份以目标项目设计与实现为准；Shopify 页面从 `shopify.md` 获取交付面，不套用默认 Web 登录路径。
+- 路由和身份以目标项目设计与实现为准；Shopify 页面从 `shopify.md` 与 [Shopify 验证与验收规范](${CLAUDE_PLUGIN_ROOT}/guides/shopify/quality.md) 获取交付面，不套用默认 Web 登录路径。
 - 选择器优先 `data-testid`、语义 role、稳定文本，不依赖脆弱 CSS。
 - `sonner`、toast、Snackbar 等自动消失提示只能作为辅助反馈断言，不得作为主判断条件或唯一验收依据。
 - 关键验收断言必须落在可稳定观察的结果上，例如持久业务状态、列表/详情数据、页面状态、URL、禁用态或不会自动消失的错误区域。
@@ -33,12 +33,12 @@ demo/e2e/
 
 ## 标准命令
 
-下列示例用于默认 Web 环境。Shopify 的单文件、批量、重试与恢复读取 `${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md` 的 Shopify Demo 运行模式，runner 保留 `--no-auto-env`，不执行默认 Web 启停/调试脚本。
+下列示例用于默认 Web 环境。Shopify 的单文件、批量、重试与恢复读取 `${CLAUDE_PLUGIN_ROOT}/protocols/demo-run-repair-contract.md` 的 Shopify Demo 运行模式，runner 保留 `--no-auto-env`，不执行默认 Web 启停脚本。
 
 ```powershell
-uv run scripts/web-demo-test-runner.py demo/e2e/[test-file].ts
+uv run scripts/web-demo-test-runner.py demo/e2e/[test-file].e2e.ts
+uv run scripts/web-demo-test-runner.py demo/e2e/[test-file].e2e.ts --log-level verbose
 uv run scripts/web-demo-run-all.py discover   # 批量入口由 /t-tools:t-web-demo-run-all 主会话驱动；脚本只辅助发现、进度写盘和汇总
-uv run scripts/debug-test.py demo/e2e/[test-file].ts
 uv run scripts/demo-stop.py
 ```
 
@@ -52,7 +52,7 @@ uv run scripts/demo-stop.py
 
 ## 参考
 
-- POM：[`pom-guide.md`](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/pom-guide.md)
-- 选择器策略：[`selector-strategy.md`](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/selector-strategy.md)
-- 维护指南：[`test-maintenance.md`](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/test-maintenance.md)
-- 调试指南：[`diagnose-guide.md`](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/diagnose-guide.md)
+- 选择器与 POM：[`authoring.md`](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/authoring.md)
+- 维护与修复：[`maintenance.md`](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/maintenance.md)
+- 失败诊断：[`diagnose-guide.md`](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/diagnose-guide.md)
+- 验收门禁：[`quality.md`](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/quality.md)

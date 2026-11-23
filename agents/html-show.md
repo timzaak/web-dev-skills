@@ -59,7 +59,7 @@ agent 自动推断：
 
 执行前读取：
 - `${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md`
-- `${CLAUDE_PLUGIN_ROOT}/templates/preview-template.html`
+- `${CLAUDE_PLUGIN_ROOT}/skills/t-html-show/references/preview-template.html`
 - 源 Markdown 文档
 
 PRD 文档额外读取：
@@ -85,7 +85,7 @@ PRD 文档额外读取：
 - Decision / Tech Research / Design / Task / Generic Preview 必须至少有一个真正主视觉：Mermaid、flow/state graph、DAG、swimlane、pipeline、timeline、matrix、heatmap、hub map、inline SVG 或同等第三方图形。`insight`、`signal`、`.card`、普通段落不算主视觉。
 - `.card` 只用于局部说明；连续 3 个以上 card 必须改成图、矩阵、时间线、泳道或 pipeline。
 - 第三方图形：普通流程/状态/DAG 默认用 Mermaid；数据图用 ECharts；复杂网络用 Cytoscape.js；D3 只作例外。必须声明依赖和运行方式；Mermaid 图必须带 `.mermaid-fallback`。
-- 使用 `${CLAUDE_PLUGIN_ROOT}/templates/preview-template.html` 的 CSS/layout 框架创建或更新 Preview。
+- 使用 `${CLAUDE_PLUGIN_ROOT}/skills/t-html-show/references/preview-template.html` 的 CSS/layout 框架创建或更新 Preview。
 - 按文档类型裁剪模板 section：模板是组件库，不是必须完整保留的页面结构。
 - 首屏必须包含来源路径、主视觉区域（`data-doc-section="PrimaryVisual"`）和注意项区域（`data-doc-section="Attention"`）；首屏主信息按文档类型分治：Decision/Tech Research 给结论，Task 给 Current+Blocking+Next，PRD 给完整性要点（不全用结论先行）。
 - 首屏一眼可读（status at a glance）：结论先行型（decision/tech-research/design/generic）的 hero 结论标题压成单个从句（建议 ≤ 40 汉字），不滚动即可抓到 #1 事实；task 用 `data-sa="current|blocking|next"` 三锚点替代单一结论，且三锚点不得折叠进 `<details>`。
@@ -171,5 +171,5 @@ PRD 文档额外传入 `--type prd`。
 
 - `${CLAUDE_PLUGIN_ROOT}/protocols/html-show-contract.md`
 - `${CLAUDE_PLUGIN_ROOT}/protocols/prd-preview-contract.md`（PRD 模式）
-- `${CLAUDE_PLUGIN_ROOT}/templates/preview-template.html`
+- `${CLAUDE_PLUGIN_ROOT}/skills/t-html-show/references/preview-template.html`
 - `${CLAUDE_PLUGIN_ROOT}/scripts/check-html-show.py`

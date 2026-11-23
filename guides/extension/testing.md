@@ -1,10 +1,10 @@
-# Chrome 扩展测试指南
+# Chrome 扩展测试与用户故事演示指南
 
 真实浏览器/场景验证优先覆盖扩展加载、跨上下文通信和用户路径；仅在这些路径难稳定覆盖重要业务规则或异常边界时新增 Vitest，并说明可观察回归及覆盖缺口。允许不新增局部测试，受影响的现有测试仍需定向验证。先确认项目现有 scripts、fixtures 与依赖版本，再选择受影响范围。
 
-需要用户当前标签页、登录态或已安装扩展的现场验证时，先读 [用户 Chrome 调试](${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md)，采用 Chrome DevTools MCP；本页的临时 profile 负责独立回归，两种证据不得互相冒充。extension-test 仍负责 Vitest，现场采集由开发角色或主会话完成。
+需要用户当前标签页、登录态或已安装扩展的现场验证时，先读 [用户 Chrome 调试](${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md)，采用 Chrome DevTools MCP；本页的临时 profile 负责独立回归，两种证据不得互相冒充。`extension-test` 仍负责 Vitest，现场采集由开发角色或主会话完成。
 
-## Vitest
+## Vitest（`extension` 阶段）
 
 - WXT 内置 `WxtVitest`，从 `wxt/testing/vitest-plugin` 导入；它接入 WXT Vite 配置、别名和 browser 的 fakeBrowser 实现，无需另找 `wxt-vitest` 包。
 - 使用 `wxt/testing/fake-browser` 的 fakeBrowser，beforeEach 调 reset；统一使用 WXT browser 导入。直接调用 chrome 的封装需项目共享 helper，不假设 browser mock 会覆盖所有 chrome API。
@@ -15,9 +15,19 @@
 
 配置或 API 不确定时查 [WXT Unit Testing](https://wxt.dev/guide/essentials/unit-testing.html)。
 
-## Playwright 扩展 fixture
+## Playwright 扩展用户故事演示（`extension-demo` 阶段）
 
-由 extension-demo-dev 维护 `demo/e2e/extension/` 中的扩展专用 fixture 和用例；先读 [扩展演示指南](${CLAUDE_PLUGIN_ROOT}/guides/extension/demo-testing.md)，再复用 [Web Demo 规范](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/index.md) 的日志、选择器与报告约定。
+`extension` 阶段负责 WXT 实现、Vitest 与技术验收；`extension-demo` 阶段负责真实加载扩展后的完整用户路径及独立验收。普通 Web 页面故事仍归 `web-demo`。
+
+### 输入与资产
+
+- 已有 WXT 工程缺少 Demo 基础设施时，执行 `/t-tools:t-init`（扩展 Demo 设施场景），见 [初始化流程](${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/extension-demo-init.md)。初始化只验证基础设施与选定入口的实际加载，不替代本阶段的用户故事交付与验收。
+- 从设计主文档及 `extension.md` 确认用户故事、扩展入口、宿主站点、权限、消息/存储、生命周期、后端依赖与环境模式。未规划用户故事演示时不启用本阶段。
+- 测试资产置于目标项目 `demo/e2e/extension/`，按实际故事分组；fixture、helper 和用例由 `extension-demo-dev` 维护。任务或报告保留 draft 或 published 故事的真实来源路径，不把草稿写成已发布事实；代码注释遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md`，不引用临时工作流路径。
+- 每个用例覆盖可观察的完整路径：加载构建产物、触发 popup/options/content script/background 的实际交互、验证持久结果或明确错误态。按故事风险覆盖权限拒绝、消息失败、状态恢复等分支；不得用 Vitest mock 结果代替浏览器证据。
+- 复用 [Web Demo 测试指南](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/e2e-testing.md) 与 [选择器与 POM 规范](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/authoring.md) 的日志、选择器与报告约定。
+
+### Playwright 扩展 fixture
 
 - 用 Playwright 自带 Chromium：`chromium.launchPersistentContext('', { channel: 'chromium', args: [...] })`，args 包含 `--disable-extensions-except=<构建绝对路径>`、`--load-extension=<同一路径>`。支持 headless；不要换成品牌 Chrome/Edge 后假设侧载参数仍可用。
 - 测试前 build；fixture 确认 manifest 存在，每个测试使用独立临时 profile，结束时关闭 context。宿主页面从项目 fixture 启动的本地站点或明确测试站点加载，不依赖个人浏览器配置。
@@ -29,14 +39,15 @@
 
 加载和生命周期行为查 [Playwright Chrome Extensions](https://playwright.dev/docs/chrome-extensions)。
 
-## Demo 执行与恢复
+### 执行、恢复与验收
 
-扩展独立测试在 fixture 管理宿主/stub 和 profile 的前提下，通过现有 runner 的 `--no-auto-env` 运行，避免启动默认 Web 后端/frontend。例如：
+- 从目标项目实际脚本确认构建命令及产物目录。扩展实现变化后先重新构建，再用新的 persistent context 运行；不能沿用旧加载产物。
+- fixture 自行管理宿主/stub 和 profile 时，通过 runner 的 `--no-auto-env` 运行，避免启动默认 Web 后端/frontend：
 
 ```bash
 uv run scripts/web-demo-test-runner.py demo/e2e/extension/settings.e2e.ts --no-auto-env --run-id <唯一ID>
 ```
 
-混合项目依赖真实 Web 后端时按设计保留默认环境管理；不要仅因有扩展目录就跳过环境。是否使用 `--no-auto-env` 写入任务 Validation，定向、整文件终验和批次恢复均保留该选择。
-
-修复闭环与隔离按 [Demo repair contract](${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md)；extension-demo 的测试编写/定向执行合并或拆分由 [task phase contract](${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md) 决定。
+- 混合项目依赖真实 Web 后端时按设计保留默认环境管理；不要仅因有扩展目录就跳过环境。是否使用 `--no-auto-env` 写入任务 Validation，首次、定向、整文件终验和批次恢复均保留该选择。
+- 单文件诊断修复遵循 [Demo 运行修复契约](${CLAUDE_PLUGIN_ROOT}/protocols/demo-run-repair-contract.md)，其中扩展用例由 `extension-demo-diagnose` 诊断，测试/数据问题交 `extension-demo-dev`，扩展实现问题交 `extension-dev`；extension-demo 的测试编写/定向执行合并或拆分由 [task phase contract](${CLAUDE_PLUGIN_ROOT}/protocols/task-phase-execution.md) 决定。
+- `extension-demo-accept` 只读验收故事映射、实际构建、浏览器执行日志、fixture 隔离、关键断言及必要清理；报告、结论及必要现场证据遵循 [扩展验收契约](${CLAUDE_PLUGIN_ROOT}/protocols/extension-acceptance-contract.md) 与 [现场指南](${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md)；独立 fixture 的通过结果不能替代必要现场证据。

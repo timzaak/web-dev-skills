@@ -16,7 +16,7 @@ examples:
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 决策连续性统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`
-返回结构统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`
+返回结构统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-contract.md`
 
 ## 职责
 
@@ -59,4 +59,4 @@ examples:
 
 ## 返回结构
 
-严格使用 `${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`。后端必须返回完整 `contract_summary`；不返回 `contract_dependencies` 内容。
+严格使用 `${CLAUDE_PLUGIN_ROOT}/protocols/design-contract.md`。后端必须返回完整 `contract_summary`；不返回 `contract_dependencies` 内容。

@@ -24,12 +24,10 @@ tools:
 - `docs/user-stories/00-index.md`
 - `.ai/user-stories/**/*.md`（任务或设计引用 draft 用户故事时）
 - `${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/index.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/development.md`
 - 按需进入：
    - `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/testing.md`
-   - `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/validation.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/quality.md`
-   - `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/ai-rules.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/constitution.md`
 - 若任务有设计文档，再读 `.ai/design/[任务名].md`
 
@@ -78,7 +76,7 @@ cd miniapp && npm run starter:ci-gate -- --target taro-react-taroify-tailwind
 ## 编写约束
 
 - 验证规则以 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/testing.md` 为准
-- 模板与技术线约束以 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/ai-rules.md` 和 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/constitution.md` 为准
+- 模板与技术线约束以 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/constitution.md` 为准
 - 优先用现有脚本验证，不凭空创建第二套构建门禁
 - 不把 Web 前端 Vitest 规则机械迁移到 miniapp
 

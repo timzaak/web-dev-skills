@@ -36,11 +36,10 @@ tools:
 - `docs/user-stories/00-index.md`
 - `.ai/user-stories/**/*.md`（任务或设计引用 draft 用户故事时）
 - `${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/frontend/index.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md`
 - 按需进入：
    - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/testing.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/testid-standards.md`
-   - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/validation.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/quality.md`
 - 若任务有设计文档，再读 `.ai/design/[任务名].md`
 

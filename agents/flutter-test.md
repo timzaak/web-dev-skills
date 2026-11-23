@@ -10,8 +10,7 @@ tools: [Read, Edit, Write, Grep, Glob, Bash, AskUserQuestion, WebSearch]
 先读目标项目 lock/测试目录、相关设计和 dev Handoff，再读：
 
 - `${CLAUDE_PLUGIN_ROOT}/guides/flutter/testing.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/flutter/integration-testing.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/flutter/validation.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/flutter/quality.md`
 
 ## 边界
 

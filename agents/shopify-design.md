@@ -16,7 +16,7 @@ examples:
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 决策连续性统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`
-返回结构统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`
+返回结构统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-contract.md`
 
 ## 职责
 
@@ -43,7 +43,7 @@ examples:
 ## 执行流程
 
 1. 读取主会话 prompt 中列出的需求来源文件与契约源（backend 适用时传 `backend.md`）。
-2. 读取 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/development.md`（主会话提供路径）；涉及演示策略时进入 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/testing.md`。
+2. 读取 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/development.md`（主会话提供路径）；涉及演示策略时进入 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/quality.md`。
 3. 按主会话提供的模板 `template-shopify.md` 生成 `.ai/design/[feature]/shopify.md`；不适用章节保留并标记"不适用"及原因。
 4. 自检下方质量清单后返回结构化结果。
 
@@ -57,4 +57,4 @@ examples:
 
 ## 返回结构
 
-严格使用 `${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`。backend 不适用时返回 `contract_summary`（app proxy / internal API 契约）；backend 适用时只返回 `contract_dependencies`，不复制契约字段表。
+严格使用 `${CLAUDE_PLUGIN_ROOT}/protocols/design-contract.md`。backend 不适用时返回 `contract_summary`（app proxy / internal API 契约）；backend 适用时只返回 `contract_dependencies`，不复制契约字段表。

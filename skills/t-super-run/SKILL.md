@@ -29,7 +29,7 @@ allowed-tools:
 把任务规划与阶段执行合并为一个可恢复闭环。只做 `phase -> task` 目标级规划，由当前主会话直接完成实现、测试和修复；验收按共享协议派发对应只读 accept subagent，除此之外不调用 subagent。每次调用只执行 `--phase` 显式指定的一个 phase；该 phase 完成后停止并报告剩余未完成 phase，不自动进入下一个 phase。
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
-设计生成状态统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-state-contract.md`
+设计生成状态统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-contract.md`
 
 需求与决策边界统一参考：
 

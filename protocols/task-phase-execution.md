@@ -47,7 +47,7 @@
 设计文件影响表包含 skill 交付物（`.claude/skills/`、`.agents/skills/`、`skills/` 下的 SKILL.md 及其 references/scripts）时：
 
 - 规划规则：skill 交付 task 归属最相关的实现 phase——skill 服务或操作的交付端优先；独立于任何端时由规划阶段指定一个最相关 phase 并在计划中说明理由。不新增 phase，也不为 skill 生成 Demo 阶段。
-- agent 上下文：该 dev task 的 agent 必须注入 `${CLAUDE_PLUGIN_ROOT}/guides/core/skill-authoring.md` 与 `${CLAUDE_PLUGIN_ROOT}/guides/core/skill-testing.md`，写作与行为验证遵循两份准则；其余实现规则按所属 phase 的角色规范执行。
+- agent 上下文：该 dev task 的 agent 必须注入 `${CLAUDE_PLUGIN_ROOT}/guides/core/skill-authoring.md`，写作与行为验证遵循该指南；其余实现规则按所属 phase 的角色规范执行。
 - Validation：以行为测试为证据——前向用例加触发边界抽测，深度按风险裁剪；不得以编译、类型检查或 lint 门禁替代。证据记录遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`。
 
 ## Role Mapping
@@ -233,7 +233,7 @@ backend/test、frontend/test、extension/test、miniapp/test、flutter/test、sh
 - flutter/test：单元/widget 测试资产完成后执行相关定向 `flutter test`；按改动范围执行 integration_test、Patrol、analyze 或构建门禁。
 - shopify-app/test、shopify-extension/test：Vitest 测试资产（loader/action 纯逻辑、app proxy 验签函数、扩展辅助模块）完成后执行项目实际 Vitest 定向命令；店面与 admin 用户故事用例归 web-demo/dev。
 - web-demo/dev：Playwright Demo、fixture、Page Object 完成后执行相关 `web-demo-test-runner.py [test-file] --grep [pattern]` 或少量相关文件。
-- extension-demo/dev：扩展 Playwright Demo、fixture、helper 完成后执行相关 `web-demo-test-runner.py demo/e2e/extension/[test-file] [--no-auto-env] --grep [pattern]`；环境参数按 `${CLAUDE_PLUGIN_ROOT}/guides/extension/demo-testing.md` 选择。
+- extension-demo/dev：扩展 Playwright Demo、fixture、helper 完成后执行相关 `web-demo-test-runner.py demo/e2e/extension/[test-file] [--no-auto-env] --grep [pattern]`；环境参数按 `${CLAUDE_PLUGIN_ROOT}/guides/extension/testing.md` 选择。
 - flutter-demo/dev：Patrol 测试、screen/helper 完成后按文件执行相关 `flutter-demo-test-runner.py [test-file] --device [android-id]`；不规划不存在的标题 grep。
 
 ## Backend Test Item Types

@@ -49,11 +49,8 @@ tools:
 - `docs/user-stories/00-index.md`
 - `.ai/user-stories/**/*.md`（任务或设计引用 draft 用户故事时）
 - `docs/prd/00-index.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/shopify/index.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/shopify/development.md`
 - 按需进入：
-   - `${CLAUDE_PLUGIN_ROOT}/guides/shopify/development.md`
-   - `${CLAUDE_PLUGIN_ROOT}/guides/shopify/testing.md`
-   - `${CLAUDE_PLUGIN_ROOT}/guides/shopify/validation.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/shopify/quality.md`
 - 若任务有设计文档，再读 `.ai/design/[任务名]/shopify.md`（如存在分端设计，优先读取）和 `.ai/design/[任务名].md`
 
@@ -89,7 +86,7 @@ tools:
 
 ### 完成前验证
 
-执行 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/validation.md` 的类型检查、应用构建和适用的扩展构建/lint；受影响测试按 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/testing.md` 定向运行。证据不足或环境受阻时报告缺口，不以应用构建替代扩展或运行验证。
+按 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/quality.md` 执行类型检查、应用构建、适用的扩展构建/lint 与受影响测试定向运行。证据不足或环境受阻时报告缺口，不以应用构建替代扩展或运行验证。
 
 ## 实现约束
 

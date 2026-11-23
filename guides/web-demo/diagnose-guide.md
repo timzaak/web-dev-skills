@@ -117,7 +117,6 @@
 
 ## Related Documentation
 
-- 诊断协议：[diagnostic-report-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-contract.md)
-- Demo E2E Testing Guide：`e2e-testing.md`
+- 诊断协议（含报告骨架）：[diagnostic-report-contract.md](${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-contract.md)
+- Demo E2E Testing Guide：[`e2e-testing.md`](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/e2e-testing.md)
 - Environment and Testing Guide：`${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md`
-- Diagnostic Report Template：[diagnose-report-template.md](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/templates/diagnose-report-template.md)

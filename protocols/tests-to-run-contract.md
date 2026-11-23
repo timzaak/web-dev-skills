@@ -16,14 +16,14 @@
 - `extension`: 在实际扩展目录运行项目定向测试（默认 `cd extension && npm run test:run -- [pattern]`）；类型/配置变更可给项目等价类型检查（`compile` 或 `type-check`）和 `build`，说明与变更的关系。
 - `miniapp`: `cd miniapp && npm run typecheck` 或 `cd miniapp && npm run build:weapp`
 - `flutter`: `cd <flutter-dir> && flutter test [定向路径]`，按需使用 `flutter analyze`、`flutter test integration_test/... -d <device-id>` 或 `patrol test --target ...`
-- `shopify`: 项目根运行 `npm run test -- [pattern]`（项目已配置 Vitest 时）或项目实际定向测试脚本；类型/构建命令按 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/validation.md` 选择，扩展变更必须覆盖扩展构建。shopify-app 与 shopify-extension 共用该层。
+- `shopify`: 项目根运行 `npm run test -- [pattern]`（项目已配置 Vitest 时）或项目实际定向测试脚本；类型/构建命令按 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/quality.md` 选择，扩展变更必须覆盖扩展构建。shopify-app 与 shopify-extension 共用该层。
 - `web-demo`: `uv run scripts/web-demo-test-runner.py "[测试文件]" --run-id [RUN_ID] --grep "[测试标题]"`
 - `extension-demo`: `uv run scripts/web-demo-test-runner.py "demo/e2e/extension/[测试文件]" --run-id [RUN_ID] [--no-auto-env] --grep "[测试标题]"`
 - `flutter-demo`: `uv run scripts/flutter-demo-test-runner.py "[测试文件]" --run-id [RUN_ID] --device [ANDROID_DEVICE_ID]`
 
-扩展独立 Demo 使用 fixture 管理环境时，extension-demo 命令保留 `--no-auto-env`；环境选择按 `${CLAUDE_PLUGIN_ROOT}/guides/extension/demo-testing.md`。
+扩展独立 Demo 使用 fixture 管理环境时，extension-demo 命令保留 `--no-auto-env`；环境选择按 `${CLAUDE_PLUGIN_ROOT}/guides/extension/testing.md`。
 
-Shopify 的 web-demo 补测命令必须保留 `--no-auto-env`；环境、数据隔离及恢复按 `${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md` 的 Shopify Demo 运行模式。
+Shopify 的 web-demo 补测命令必须保留 `--no-auto-env`；环境、数据隔离及恢复按 `${CLAUDE_PLUGIN_ROOT}/protocols/demo-run-repair-contract.md` 的 Shopify Demo 运行模式。
 
 ## Rules
 

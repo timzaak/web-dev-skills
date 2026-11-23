@@ -27,7 +27,7 @@
 - 扩展验收细则：`${CLAUDE_PLUGIN_ROOT}/guides/extension/quality.md`
 - Shopify 验收细则：`${CLAUDE_PLUGIN_ROOT}/guides/shopify/quality.md`
 - Web Demo 验收细则：`${CLAUDE_PLUGIN_ROOT}/guides/web-demo/quality.md`
-- 扩展 Demo 验收细则：`${CLAUDE_PLUGIN_ROOT}/protocols/extension-demo-acceptance-contract.md`
+- 扩展 Demo 验收细则：`${CLAUDE_PLUGIN_ROOT}/protocols/extension-acceptance-contract.md`
 - Flutter Demo 验收细则：`${CLAUDE_PLUGIN_ROOT}/guides/flutter/demo-testing.md`
 
 ## 4. 执行约束

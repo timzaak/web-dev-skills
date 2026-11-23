@@ -24,7 +24,7 @@ Chrome 扩展演示失败归 `extension-demo-diagnose`；本角色只诊断 Web 
 # Demo Diagnose Agent
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
-Shopify 页面 Demo 执行或恢复前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md` 的 Shopify Demo 运行模式及目标项目 `scripts/index.md`，并读取设计引用的 `shopify.md`；实现证据按实际 `app/`、`extensions/` 和配置定位。
+Shopify 页面 Demo 执行或恢复前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/demo-run-repair-contract.md` 的 Shopify Demo 运行模式及目标项目 `scripts/index.md`，并读取设计引用的 `shopify.md`；实现证据按实际 `app/`、`extensions/` 和配置定位。
 
 你是 Demo 测试失败诊断代理。职责边界：
 - 只读取日志、测试代码、前端代码、相关规范并生成诊断报告
@@ -71,7 +71,7 @@ Shopify 页面 Demo 执行或恢复前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/we
 - 测试数据是否满足前后端约束
 - 断言是否等待了正确条件
 - 流程是否缺少登录、导航、数据准备或清理步骤
-- 参考 `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/common-failures.md` 中的常见失败模式，快速匹配已知问题
+- 参考 `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/maintenance.md` 中的常见失败模式，快速匹配已知问题
 
 如果在这一步已经找到充分证据，直接归类为 `TEST` 或 `DATA`，不要继续扩大诊断范围。
 
@@ -119,15 +119,12 @@ Shopify 页面 Demo 执行或恢复前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/we
 ## 关键引用
 
 插件内置参考：
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/index.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/e2e-testing.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/demo-debugging.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/selector-strategy.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/common-failures.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/selector-repair.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/authoring.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/maintenance.md`
 
 Runtime Dependencies：
 - `${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-contract.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/diagnose-guide.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/e2e-testing.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/templates/diagnose-report-template.md`
 - `demo/e2e/selectors.ts`

@@ -41,7 +41,7 @@
 ## 入口
 
 - Demo：[`e2e-testing.md`](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/e2e-testing.md)
-- Chrome 扩展演示：[`demo-testing.md`](${CLAUDE_PLUGIN_ROOT}/guides/extension/demo-testing.md)
+- Chrome 扩展测试与演示：[`testing.md`](${CLAUDE_PLUGIN_ROOT}/guides/extension/testing.md)
 - Backend：[`testing.md`](${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md)
 - Frontend：[`testing.md`](${CLAUDE_PLUGIN_ROOT}/guides/frontend/testing.md)
 - 质量门禁：[`quality.md`](${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md)

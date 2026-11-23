@@ -65,7 +65,7 @@ python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py ".ai/design/<feat
 - 数据库字段类型、约束或迁移策略不明确
 - 数据库设计明显过度
 - 前端/Flutter 的用户体验流或页面描述过于抽象，缺少入口、操作路径、系统反馈或错误状态
-- Flutter 分层或状态管理偏离 Riverpod 技术线（`${CLAUDE_PLUGIN_ROOT}/guides/flutter/constitution.md`），或明显过度分层
+- Flutter 分层或状态管理偏离 Riverpod 技术线（`${CLAUDE_PLUGIN_ROOT}/guides/flutter/development.md`），或明显过度分层
 - 前端违反状态分工：服务端数据进入 Zustand（应由 TanStack Query 独占管理），或缓存/刷新策略缺失
 - `frontend.md` / `extension.md` / `flutter.md` 单列或复制 API 契约字段表，破坏契约单一来源
 - 主文档承载 API 字段表、数据库表结构或页面线框等分端细节，而非摘要与链接
@@ -115,7 +115,7 @@ Flutter（`flutter.md`）：
 
 - 用户可见交互以用户体验描述为主：入口、操作路径、系统反馈、默认值、错误状态与恢复齐全，未陷入技术实现细节
 - UI 层（view + view model）与 data 层（repository + service）职责边界与数据流向明确；domain 层仅在确有必要时引入
-- 状态管理遵循 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/constitution.md` 的 Provider 选择规则，类型与状态用途一致，保留/释放、失效刷新及订阅范围明确
+- 状态管理遵循 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/development.md` 的 Provider 选择规则，类型与状态用途一致，保留/释放、失效刷新及订阅范围明确
 - 页面与导航承接（go_router 或项目现有方案）明确，页面关键状态齐全
 - 按 `${CLAUDE_PLUGIN_ROOT}/skills/t-design/template-flutter.md` 检查目标平台及受影响的权限、生命周期、状态恢复和离线路径，符合 Flutter 开发规范
 - 依赖注入与可测试边界明确；验证入口、关键断言、环境及阶段承接符合验证证据协议，Demo 平台范围与资产归属符合 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/demo-testing.md`

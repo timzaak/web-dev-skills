@@ -23,7 +23,7 @@ examples:
 ## 执行流程
 
 1. 读取需求、Active Decision 和契约源，核对目标项目的依赖版本、WXT 配置、受影响入口、消息/存储封装及测试；只设计本次变更。
-2. 读取 `${CLAUDE_PLUGIN_ROOT}/guides/extension/development.md` 和 `${CLAUDE_PLUGIN_ROOT}/skills/t-design/template-extension.md`。有可见 UI 时读 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/ui-decisions.md`；规划验证时读 `${CLAUDE_PLUGIN_ROOT}/guides/extension/testing.md` 和 `${CLAUDE_PLUGIN_ROOT}/guides/extension/validation.md`。需要 Demo 或用户当前 Chrome 现场证据时，分别读 `${CLAUDE_PLUGIN_ROOT}/guides/extension/demo-testing.md` 或 `${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md`。
+2. 读取 `${CLAUDE_PLUGIN_ROOT}/guides/extension/development.md` 和 `${CLAUDE_PLUGIN_ROOT}/skills/t-design/template-extension.md`。有可见 UI 时读 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md`；规划单测、Demo 与验收时读 `${CLAUDE_PLUGIN_ROOT}/guides/extension/testing.md` 和 `${CLAUDE_PLUGIN_ROOT}/guides/extension/quality.md`；需要用户当前 Chrome 现场证据时再读 `${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md`。
 3. 按模板写入本端设计；不适用章节说明原因。核对需求/DEC 落点、文件路径及验证计划后，按输出协议返回。
 
 ## 自检
@@ -35,6 +35,6 @@ examples:
 
 ## 返回与失败处理
 
-按 `${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md` 返回；无后端 API 依赖时 `contract_dependencies` 为空。
+按 `${CLAUDE_PLUGIN_ROOT}/protocols/design-contract.md` 返回；无后端 API 依赖时 `contract_dependencies` 为空。
 
 输入缺失或决策冲突时按 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md` 返回 `partial` 和 `needs_user_answer`；读写失败返回 `failed`。重新调度时依据最新输入修正本端中间文档。

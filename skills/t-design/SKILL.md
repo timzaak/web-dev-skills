@@ -19,8 +19,8 @@ allowed-tools:
 需求来源边界：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`（区分草稿与已发布需求来源、处理两者并存裁决时读）
 决策连续性和用户决策暴露：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`（提问、更新决策账本或处理决策暴露门禁时读）
 子 agent 调用：`${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md`（调度设计 agent 前 read 其对应角色规范）
-设计 agent 输出：`${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`（解析 subagent 返回前读）
-设计生成状态：`${CLAUDE_PLUGIN_ROOT}/protocols/design-state-contract.md`（写入或校验 `.state.json` 时读）
+设计 agent 输出：`${CLAUDE_PLUGIN_ROOT}/protocols/design-contract.md`（解析 subagent 返回前读）
+设计生成状态：`${CLAUDE_PLUGIN_ROOT}/protocols/design-contract.md`（写入或校验 `.state.json` 时读）
 
 设计生成应保持简单、当前必需、可追溯；如果需求、spec、代码或本 skill 冲突，停止并说明冲突。
 
@@ -64,14 +64,13 @@ allowed-tools:
 可选输入：
 - `${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md` — 环境与测试指南
 - `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md` — 后端开发规范
-- `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md` — 前端开发规范
-- `${CLAUDE_PLUGIN_ROOT}/guides/frontend/ui-decisions.md` — 前端 UI 组件选型、交互状态与无障碍底线（frontend/extension 涉及用户可见 UI 时）
+- `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md` — 前端开发规范，含 UI 组件选型、交互状态与无障碍底线（frontend/extension 涉及用户可见 UI 时）
 - `${CLAUDE_PLUGIN_ROOT}/guides/extension/development.md` — Chrome 扩展设计时读取
-- `${CLAUDE_PLUGIN_ROOT}/guides/extension/demo-testing.md` — 设计包含 Chrome 扩展用户故事演示时读取
+- `${CLAUDE_PLUGIN_ROOT}/guides/extension/testing.md` — 设计包含 Chrome 扩展用户故事演示时读取
 - `${CLAUDE_PLUGIN_ROOT}/guides/flutter/development.md` — Flutter 开发规范（目标项目启用 Flutter 时）
 - `${CLAUDE_PLUGIN_ROOT}/guides/flutter/demo-testing.md` — Android Patrol 用户故事演示规范（设计要求 Flutter Demo 时）
 - `${CLAUDE_PLUGIN_ROOT}/guides/shopify/development.md` — Shopify App 开发规范（目标项目为 Shopify App 时）
-- `${CLAUDE_PLUGIN_ROOT}/guides/shopify/testing.md` — Shopify 测试边界（Shopify 设计涉及测试或用户故事演示时）
+- `${CLAUDE_PLUGIN_ROOT}/guides/shopify/quality.md` — Shopify 测试边界（Shopify 设计涉及测试或用户故事演示时）
 - `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md` — 质量规范
 
 ## Output Contract
@@ -92,7 +91,7 @@ allowed-tools:
 - `.ai/design/$ARGUMENTS/extension.md` — 扩展分端设计（适用时），包含入口、消息/存储、权限、生命周期与浏览器验证策略
 - `.ai/design/$ARGUMENTS/flutter.md` — Flutter 分端设计（适用时），包含分层架构、状态管理、页面与导航、可测试性、测试与 Patrol Demo 策略
 - `.ai/design/$ARGUMENTS/shopify.md` — Shopify 分端设计（适用时），覆盖 `shopify-app` 与 `shopify-extension` 两个 phase 的交付面（应用本体、admin 嵌入页、app proxy、theme app extension、customer account UI extension）；backend 端不适用时本文档的 app proxy / internal API 契约是唯一契约源
-- `.ai/design/$ARGUMENTS/.state.json` — 设计生成状态；结构见 `${CLAUDE_PLUGIN_ROOT}/protocols/design-state-contract.md`，只有 `complete` 可被下游消费
+- `.ai/design/$ARGUMENTS/.state.json` — 设计生成状态；结构见 `${CLAUDE_PLUGIN_ROOT}/protocols/design-contract.md`，只有 `complete` 可被下游消费
 - `.ai/decision-log/$ARGUMENTS.md` — 复用上游决策；仅在产生用户决策、问题状态变化或重要 AI 决策时更新
 
 ## 核心约束
@@ -177,7 +176,7 @@ D2 工程取舍由设计阶段明确选择并写入 Design；符合 Decision Con
 
 每次调度前必须：
 - 按 subagent-dispatch 协议 Read 对应 `agents/<role>.md` 全文并注入为子 agent prompt 的角色指令段
-- 在 prompt 中提供最小上下文：方案名、design_stack 与输出路径、需求来源文件路径清单与关键摘要、Decision Log 路径及影响本端的 Active Decision 摘要、现有实现分析结论（本端相关部分）、契约源（backend 适用时传 `.ai/design/$ARGUMENTS/backend.md` 路径及 `design_result.contract_summary`；否则传现有接口清单）、分端模板路径与对应 guide 路径、`${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`
+- 在 prompt 中提供最小上下文：方案名、design_stack 与输出路径、需求来源文件路径清单与关键摘要、Decision Log 路径及影响本端的 Active Decision 摘要、现有实现分析结论（本端相关部分）、契约源（backend 适用时传 `.ai/design/$ARGUMENTS/backend.md` 路径及 `design_result.contract_summary`；否则传现有接口清单）、分端模板路径与对应 guide 路径、`${CLAUDE_PLUGIN_ROOT}/protocols/design-contract.md`
 - 不复制 guide、protocol 或 agent 文档中的长篇规则
 
 处理子 agent 返回：

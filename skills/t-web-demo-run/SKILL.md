@@ -21,7 +21,7 @@ allowed-tools:
 # 单文件 Demo 测试运行与修复
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
-单文件运行与修复闭环（整文件 → 拆用例 → 诊断 → 分发修复 → 补测 → 整文件终验，含环境重建、run ID 和结果字段规则）统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md`
+单文件运行与修复闭环（整文件 → 拆用例 → 诊断 → 分发修复 → 补测 → 整文件终验，含环境重建、run ID 和结果字段规则）统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/demo-run-repair-contract.md`
 
 ## 使用方式
 
@@ -33,7 +33,7 @@ allowed-tools:
 
 - 首次运行或恢复前，按共享修复协议确认环境模式；Shopify 项目读取其 Shopify Demo 运行模式。
 - 校验参数：测试文件必须存在且扩展名为 `.e2e.ts`；单次执行只处理一个测试文件。
-- 按 `web-demo-run-repair-contract.md` 的单文件执行顺序处理整文件运行、失败用例修复、补测和整文件终验。
+- 按 `demo-run-repair-contract.md` 的单文件执行顺序处理整文件运行、失败用例修复、补测和整文件终验。
 - 用 Task 记录当前失败用例和尝试轮次，供中断后继续。
 - 最后一行仅输出该协议定义的 `Result: {...}`。
 

@@ -47,7 +47,7 @@ t-decision -> t-prd / t-tech-research（无固定顺序，进设计前收敛）
 | 技术设计 | `/t-tools:t-design <feature>` | 主文档 + 分端设计，后端契约先行 |
 | 实现 + 测试 | `/t-tools:t-super-run <feature> --phase <phase>` | 合并任务规划与执行；`--phase` 必填，每次只执行一个 phase |
 | Chrome 扩展开发 | `/t-tools:t-design <feature>`，再 `t-super-run --phase extension` | 先按 [extension 初始化指南](${CLAUDE_PLUGIN_ROOT}/guides/extension/initialization.md) 建 WXT 工程；用户故事演示用 extension-demo |
-| Shopify App 开发 | `/t-tools:t-design <feature>`，再 `t-super-run --phase shopify-app` / `--phase shopify-extension` | 先 `/t-tools:t-init` 创建 Shopify 工程；规范见 [Shopify 开发指南](${CLAUDE_PLUGIN_ROOT}/guides/shopify/index.md)；店面、admin 或顾客账户用户故事演示用 web-demo |
+| Shopify App 开发 | `/t-tools:t-design <feature>`，再 `t-super-run --phase shopify-app` / `--phase shopify-extension` | 先 `/t-tools:t-init` 创建 Shopify 工程；规范见 [Shopify 开发指南](${CLAUDE_PLUGIN_ROOT}/guides/shopify/development.md)；店面、admin 或顾客账户用户故事演示用 web-demo |
 | Shopify 项目脚手架 | `/t-tools:t-init`（Shopify 场景） | Shopify 官方 React Router 模板 + demo/scripts 设施；已有 Shopify 工程可增量补齐 |
 | 部署 Shopify 应用 | push 之后手动执行 `shopify app deploy` | 部署不并入 `t-push`；时机与迁移注意事项见 [Shopify 开发指南](${CLAUDE_PLUGIN_ROOT}/guides/shopify/development.md) |
 | 扩展 Demo 基础设施初始化 | `/t-tools:t-init`（扩展 Demo 设施场景） | 为已有 WXT 工程增量生成 Playwright fixture、真实加载 smoke 与运行说明；不代替故事验收 |

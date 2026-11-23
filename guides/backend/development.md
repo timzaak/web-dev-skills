@@ -17,9 +17,7 @@ Backend 主规范。它定义插件级稳定约束；目标项目的真实架构
 
 相关入口：
 - 测试规则：`./testing.md`
-- backend 规范入口：`./index.md`
-- 完成前验证：`${CLAUDE_PLUGIN_ROOT}/guides/backend/validation.md`
-- 完整验收：`${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md`
+- 完成前验证与完整验收：`${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md`
 
 ## 2. 当前架构事实
 
@@ -113,4 +111,4 @@ cargo fmt --all
 - 新增场景测试资产及集中执行属于 backend/test；其他相关验证由 backend-dev 定向执行，backend-accept 核查证据。
 - OpenAPI 导出与前端 API 生成验收属于 backend-accept。
 
-如需更完整门禁、环境启动和 OpenAPI 一致性检查，按 `${CLAUDE_PLUGIN_ROOT}/guides/backend/validation.md` 与 `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md` 执行。
+如需更完整门禁、环境启动和 OpenAPI 一致性检查，按 `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md` 执行。

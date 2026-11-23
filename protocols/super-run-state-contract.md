@@ -46,7 +46,7 @@ super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相
           "status": "completed",
           "agent_spec": "${CLAUDE_PLUGIN_ROOT}/agents/backend-dev.md",
           "references": [
-            "${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md"
+            "${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md"
           ],
           "evidence": ["backend/src/..."]
         },
@@ -148,7 +148,7 @@ python "${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py" ".ai/design/<feature>.md"
 | 条件 | 必需资源 |
 | --- | --- |
 | web-demo/dev | `${CLAUDE_PLUGIN_ROOT}/agents/web-demo-diagnose.md` |
-| extension-demo/dev | `${CLAUDE_PLUGIN_ROOT}/agents/extension-demo-diagnose.md`、`${CLAUDE_PLUGIN_ROOT}/guides/extension/demo-testing.md` |
+| extension-demo/dev | `${CLAUDE_PLUGIN_ROOT}/agents/extension-demo-diagnose.md`、`${CLAUDE_PLUGIN_ROOT}/guides/extension/testing.md` |
 | flutter-demo/dev | `${CLAUDE_PLUGIN_ROOT}/agents/flutter-demo-diagnose.md` |
 | extension/dev 或 extension/test 涉及用户当前浏览器现场 | `${CLAUDE_PLUGIN_ROOT}/guides/extension/live-browser.md`；现场证据与工具边界按 `${CLAUDE_PLUGIN_ROOT}/protocols/extension-acceptance-contract.md` 执行 |
 
