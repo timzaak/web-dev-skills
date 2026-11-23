@@ -6,7 +6,6 @@ from pathlib import Path
 
 from lib import docker
 from lib.proc import kill_process_by_port, kill_processes_by_path
-# Removed state file dependencies: terminate_from_state, wait_process_exit, load_state
 from lib.paths import LOG_DIR, REPO_ROOT
 
 

@@ -26,15 +26,6 @@ class TimingEntry:
     parent: str | None = None
 
 
-@dataclass
-class ProgressState:
-    """State for progress tracking."""
-    total: int
-    current: int
-    start_time: float
-    name: str
-
-
 class Logger:
     """Logger with timing and progress tracking capabilities."""
 
@@ -154,7 +145,7 @@ class Logger:
                 self._timings.append(entry)
 
             if self._level >= LogLevel.VERBOSE and not self._profile:
-                # Only show completion in VERBOSE mode (DEBUG shows via timed)
+                # Profile mode reports every step in print_summary() instead.
                 self.info(f"  {name} - done")
 
     def print_summary(self) -> None:
