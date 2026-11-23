@@ -9,12 +9,11 @@ import subprocess
 import sys
 import time
 from dataclasses import dataclass, field
-from pathlib import Path
 
 from . import docker
 from .cli import require_executable
 from .net import wait_for_http_ok, wait_for_tcp, wait_for_tcp_with_compile_awareness
-from .paths import LOG_DIR, REPO_ROOT, SCRIPTS_DIR, ensure_dir
+from .paths import LOG_DIR, REPO_ROOT, SCRIPTS_DIR
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -319,82 +318,6 @@ def start_environment(
 
     # Skip environment state file saving - it may be inaccurate
     logger.info("Demo Environment started")
-    return True
-
-
-def stop_environment() -> bool:
-    """优雅停止 Demo 环境。
-
-    Returns:
-        停止成功返回 True，否则返回 False
-    """
-    print("Stopping Demo environment...")
-
-    # Skip environment state file clearing - it may be inaccurate
-
-    # 停止后端进程 - use port instead of state file
-    print("  Stopping backend...")
-    # Kill processes by port 8080
-    try:
-        if sys.platform == "win32":
-            # Windows
-            result = subprocess.run(
-                ["powershell", "-NoProfile", "-Command",
-                 f"Get-NetTCPConnection -LocalPort {BACKEND_PORT} -State Listen -ErrorAction SilentlyContinue | "
-                 "Select-Object -ExpandProperty OwningProcess | ForEach-Object { taskkill /PID $_ /F /T }"],
-                capture_output=True,
-                check=False,
-                timeout=5,
-            )
-        else:
-            # Unix-like
-            for cmd in [["lsof", "-ti", f":{BACKEND_PORT}"], ["fuser", "-k", f"{BACKEND_PORT}/tcp"]]:
-                try:
-                    subprocess.run(cmd, capture_output=True, check=False)
-                    break
-                except FileNotFoundError:
-                    continue
-    except Exception:
-        pass  # Ignore errors, best-effort cleanup
-
-    # 停止前端进程 - use demo ports instead of state file
-    print("  Stopping frontend...")
-    for port in [3000, 3001, 3002, 3003]:
-        try:
-            if sys.platform == "win32":
-                result = subprocess.run(
-                    ["powershell", "-NoProfile", "-Command",
-                     f"Get-NetTCPConnection -LocalPort {port} -State Listen -ErrorAction SilentlyContinue | "
-                     "Select-Object -ExpandProperty OwningProcess | ForEach-Object { taskkill /PID $_ /F /T }"],
-                    capture_output=True,
-                    check=False,
-                    timeout=5,
-                )
-            else:
-                for cmd in [["lsof", "-ti", f":{port}"], ["fuser", "-k", f"{port}/tcp"]]:
-                    try:
-                        subprocess.run(cmd, capture_output=True, check=False)
-                        break
-                    except FileNotFoundError:
-                        continue
-        except Exception:
-            pass  # Ignore errors, best-effort cleanup
-
-    # 停止 Docker 容器
-    print("  Stopping containers...")
-    if docker.container_exists(REDIS_CONTAINER):
-        docker.stop_container(REDIS_CONTAINER)
-    if docker.container_exists(POSTGRES_CONTAINER):
-        docker.stop_container(POSTGRES_CONTAINER)
-
-    time.sleep(1.0)
-
-    if docker.container_exists(REDIS_CONTAINER):
-        docker.rm_force_container(REDIS_CONTAINER)
-    if docker.container_exists(POSTGRES_CONTAINER):
-        docker.rm_force_container(POSTGRES_CONTAINER)
-
-    print("Demo environment stopped")
     return True
 
 

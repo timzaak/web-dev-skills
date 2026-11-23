@@ -1,56 +1,8 @@
 import os
-import signal
 import subprocess
-import sys
-import time
 from pathlib import Path
 from typing import Mapping
 
-
-def is_running(pid: int) -> bool:
-    if pid <= 0:
-        return False
-    if os.name == "nt":
-        # Use PowerShell Get-Process to avoid localization issues with tasklist
-        result = subprocess.run(
-            ["powershell", "-NoProfile", "-Command", f"Get-Process -Id {pid} -ErrorAction SilentlyContinue"],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            check=False,
-        )
-        if result.returncode == 0:
-            # Get-Process returns process info if found, empty if not found
-            return bool(result.stdout.strip())
-        # Fall back to os.kill probe if PowerShell fails
-    try:
-        os.kill(pid, 0)
-        return True
-    except OSError:
-        return False
-
-
-def wait_process_exit(pid: int, timeout_seconds: float = 3.0) -> bool:
-    """Wait for a process to fully exit.
-
-    Args:
-        pid: Process ID
-        timeout_seconds: Maximum time to wait
-
-    Returns:
-        True if process has exited, False if timeout
-    """
-    if pid <= 0:
-        return True
-
-    deadline = time.time() + timeout_seconds
-    while time.time() < deadline:
-        if not is_running(pid):
-            return True
-        time.sleep(0.1)
-
-    return False
 
 
 def spawn_background(
