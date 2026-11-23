@@ -28,7 +28,7 @@
 
 - Skill 负责决定下一步、选择 agent、传递必要上下文并汇总结果；不要在 skill 和 agent 中重复实现同一判断逻辑。
 - Dev agent 可以实现；test agent 专注测试；accept agent 默认只读验收并输出可复核证据。
-- Agent 输入、输出或评分被多个入口使用时，抽取为 `protocols/` 契约，不在各调用方分别描述。
+- Agent 输入、输出或评分的契约按上文规则放入 `protocols/`，不在各调用方分别描述。
 - `t-prd-check`、`t-design-check`、`t-task-check` 是可选质量检查。可以在高风险或 AI 输出不稳定时推荐，但不得悄悄变成主链路的强制前置条件。
 - Accept 是实现后的验收收口。增加前置检查不能替代或弱化 accept 的职责。
 - 纯技术且不改变业务逻辑、产品规则、用户流程或验收目标的方案，才可以绕过 PRD 直接从技术预研进入设计。

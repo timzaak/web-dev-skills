@@ -1,6 +1,6 @@
 # Web Demo 验收依据
 
-验收前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/acceptance-contract.md`；公共分级、结论、报告和结构化返回以该协议为准。本页只定义 Web 页面 Demo 的检查对象，扩展故事使用 extension-demo 协议。
+验收前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/acceptance-contract.md`；公共分级、结论、报告和结构化返回以该协议为准。本页只定义 Web 页面 Demo 的检查对象，扩展故事使用 `${CLAUDE_PLUGIN_ROOT}/protocols/extension-acceptance-contract.md` §2 的扩展用户故事 Demo 验收规则。
 
 ## 故事与必要场景
 

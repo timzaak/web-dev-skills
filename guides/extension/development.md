@@ -54,7 +54,7 @@
 - 扩展更新、禁用或卸载后，既有页面中的 content script 可能失去扩展上下文。用 WXT `ContentScriptContext` 管理监听/定时器，额外资源通过 `ctx.onInvalidated` 清理；明确未完成操作如何取消及用户如何恢复，不循环重试已失效的扩展 API。
 - 通用 Query/Zod/Tailwind 模式仅在采用相应库时读 [frontend patterns](${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md)；交互 UI 的选择器读 [testid 规范](${CLAUDE_PLUGIN_ROOT}/guides/frontend/testid-standards.md)。
 
-修改代码时遵循 [注释契约](${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md)；完成前按 [validation.md](${CLAUDE_PLUGIN_ROOT}/guides/extension/quality.md) 验证。
+修改代码时遵循 [注释契约](${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md)；完成前按 [quality.md](${CLAUDE_PLUGIN_ROOT}/guides/extension/quality.md) 验证。
 
 库级事实变更时按受影响边界核对官方依据（2026-09-25 核对设计相关原则；具体 API 以项目锁定版本为准）：
 

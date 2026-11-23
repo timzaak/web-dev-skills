@@ -17,7 +17,7 @@ allowed-tools:
 运行时边界：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`（判断产物写入位置或脚本入口与插件默认冲突时读）
 需求来源边界：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`（区分草稿与已发布需求来源或处理两者冲突时读）
 决策连续性和用户决策暴露：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`（提问、更新决策账本或处理决策暴露门禁时读）
-设计生成状态：`${CLAUDE_PLUGIN_ROOT}/protocols/design-contract.md`（校验设计 .state.json 时读）
+设计生成状态：`${CLAUDE_PLUGIN_ROOT}/protocols/design-contract.md` 的 Design State 节（校验设计 .state.json 时读）
 评分维度、Clarification Gate、严重级别、报告结构与 Pass Gate：`${CLAUDE_PLUGIN_ROOT}/protocols/design-check-rubric.md`（评分或生成分级结论前读）
 
 本检查为可选，不作为 `/t-super-run` 的硬性前置；质量结论只约束本次检查报告，是否跳过修复继续 `/t-super-run` 由用户按风险决定。

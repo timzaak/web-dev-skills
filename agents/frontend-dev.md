@@ -159,6 +159,6 @@ frontend-dev 的推荐扩展字段：
 
 - 不把 agent 文档当作架构规范第二真相
 - 不引用不存在的文档段落或伪造行号
-- 不绕过 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md` 的导航关系
+- 不绕过 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md` 定义的规范与入口路由
 - 不在没有证据时凭印象重写项目模式
 - 不在完成报告中忽略失败的类型检查、构建或必要测试

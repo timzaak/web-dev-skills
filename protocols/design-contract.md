@@ -1,6 +1,6 @@
 # Design Contract
 
-`backend-design`、`frontend-design`、`extension-design`、`flutter-design`、`shopify-design` 严格返回下述结构。实现、测试和验收类 agent 改用 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`。
+`backend-design`、`frontend-design`、`extension-design`、`flutter-design`、`shopify-design` 严格返回下述设计输出结构（Envelope 至 Self Check）；设计生成状态（Design State）由 `/t-design` 主会话写入，`/t-super-run`、`/t-task` 和 `/t-design-check` 读取。实现、测试和验收类 agent 改用 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`。
 
 ## Envelope
 
@@ -42,7 +42,7 @@
 
 ## Status Rules
 
-`extension-design` 的 `doc_path` 为 `.ai/design/[feature]/extension.md`，`change_scope.extension=true`、`change_scope.frontend=false`；Web 与扩展分别返回各自结果。`shopify-design` 的 `doc_path` 为 `.ai/design/[feature]/shopify.md`，`change_scope.shopify=true`。change_scope 字段集合沿用 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`，本协议只定义设计专有字段。
+`extension-design` 的 `doc_path` 为 `.ai/design/[feature]/extension.md`，`change_scope.extension=true`、`change_scope.frontend=false`；Web 与扩展分别返回各自结果。`shopify-design` 的 `doc_path` 为 `.ai/design/[feature]/shopify.md`，`change_scope.shopify=true`。change_scope 字段集合沿用 `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`，设计输出部分只定义设计专有字段。
 
 - `task_completion.status=success`：文档已完整写入，`needs_user_answer` 为空，`self_check` 全部通过。
 - `task_completion.status=partial`：只保留可诊断的中间文档；修复后重新调度或终止本轮。
@@ -116,7 +116,7 @@ Shopify feature 不涉及接口新增、修改或消费时（如纯展示 block�
 
 ## Design State（`.ai/design/<feature>/.state.json`）
 
-写入 `.ai/design/<feature>/.state.json`：
+`/t-design` 主会话写入 `.ai/design/<feature>/.state.json`（设计 subagent 不写该文件）：
 
 ```json
 {
@@ -128,6 +128,6 @@ Shopify feature 不涉及接口新增、修改或消费时（如纯展示 block�
 ```
 
 - 适用端取值为 `backend` / `frontend` / `extension` / `flutter` / `shopify`；各端使用独立完成/失败记录，`extension` 与 `frontend` 不能合并状态。`shopify` 端由 `shopify.md` 分端文档承载（`shopify-app` 与 `shopify-extension` 两个 phase 共用同一分端设计，不拆两份状态）。
-- 调度前写 `in_progress`；每个端成功后更新 `completed_stacks`；无法恢复时写 `failed` 和 `failed_stack`。
+- 调度前写 `in_progress`；每个端 `task_completion.status=success` 后记入 `completed_stacks`；无法恢复时写 `failed` 和 `failed_stack`。
 - 主文档、分端文档、决策闭合扫描和结构校验全部通过后写 `complete`。
 - `/t-super-run`、`/t-task` 和 `/t-design-check` 遇到非 `complete` 状态或状态文件缺失时停止，提示运行 `/t-design <feature>` 生成完整设计状态。

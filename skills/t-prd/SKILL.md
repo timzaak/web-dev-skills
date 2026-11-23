@@ -76,7 +76,7 @@ allowed-tools:
 - `.ai/user-stories/**/*.md` — draft 用户故事文档
 
 写作规范（生成相应内容时读取）：
-- `${CLAUDE_PLUGIN_ROOT}/guides/product/prd.md` — 产品规范入口
+- `${CLAUDE_PLUGIN_ROOT}/guides/product/prd.md` — PRD 编写规范
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/user-story.md` — 用户故事规范
 
 Decision Brief 缺失时先确认当前对话是否已有明确、可追踪的产品决策；若缺少会改变目标、范围或成功标准的裁决，提示先运行 `/t-decision [feature]`。技术预研缺失时，仅当技术未知会改变产品范围、业务规则、用户流程或验收目标，才提示先运行 `/t-tech-research [feature]`；否则继续创建草稿。独立需求文档、PRD、user story 或其索引缺失是正常的新建路径，不得据此要求用户提供文档；若已有相关 PRD，则必须读取。其他缺口按 Decision Exposure Gate 分类：可查事实由 skill 调查；需要用户裁决的信息必须提问；只有不需要用户选择的证据限制可以写入文档。

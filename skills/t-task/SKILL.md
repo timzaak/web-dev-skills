@@ -18,7 +18,7 @@ allowed-tools:
 运行时边界：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`（判断产物写入位置或项目事实与插件默认冲突时读）
 需求来源边界：`${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`（区分草稿与已发布需求来源时读）
 决策连续性和用户决策暴露：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`（提问、更新决策账本或处理决策暴露门禁时读）
-设计生成状态：`${CLAUDE_PLUGIN_ROOT}/protocols/design-contract.md`（校验设计 `.state.json` 时读）
+设计生成状态：`${CLAUDE_PLUGIN_ROOT}/protocols/design-contract.md` 的 Design State 节（校验设计 `.state.json` 时读）
 
 任务拆分必须服务于边界清楚、验证闭环明确的执行；如果设计文档、guide 或 protocol 冲突，停止并说明冲突。
 
