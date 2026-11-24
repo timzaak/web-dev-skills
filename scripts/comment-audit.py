@@ -20,6 +20,7 @@ SLASH_LINE_EXTS = {
 }
 HASH_LINE_EXTS = {".py", ".pyi", ".sh", ".bash", ".zsh", ".graphql", ".gql", ".rb", ".toml", ".yaml", ".yml"}
 BLOCK_EXTS = {".css", ".scss", ".less"}
+JS_EXTS = {".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"}
 SOURCE_EXTS = SLASH_LINE_EXTS | HASH_LINE_EXTS | BLOCK_EXTS
 MIN_DENSITY_COMMENTS = 3
 
@@ -32,7 +33,7 @@ NARRATION = re.compile(
     r"|新增|改为|改用|原先|原来的|重构后|本次(?:变更|修改|新增)|不再使用|暂时|临时)",
     re.IGNORECASE,
 )
-BANNER = re.compile(r"(?:[-=]{4,}|#{4,}|~{3,})")
+BANNER = re.compile(r"(?:^[-=]{3,}|[-=]{3,}$|[-=]{4,}|#{4,}|~{3,})")
 KEEP_LICENSE = re.compile(r"\b(?:copyright|spdx|@?license)\b", re.IGNORECASE)
 KEEP_LINT = re.compile(
     r"(?:eslint-disable|stylelint-disable|@ts-ignore|@ts-expect-error|prettier-ignore"
@@ -100,6 +101,11 @@ def comment_kind(ext: str, line: str) -> str | None:
             return "doc"
         if stripped.startswith("//"):
             return "line"
+        if ext in JS_EXTS:
+            if stripped.startswith(("/**", "*")):
+                return None if stripped in {"/**", "*", "*/"} else "doc"
+            if stripped.startswith("/*"):
+                return "block"
     elif ext in HASH_LINE_EXTS:
         if stripped.startswith("#"):
             return "line"

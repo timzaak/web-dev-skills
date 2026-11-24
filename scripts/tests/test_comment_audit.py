@@ -133,6 +133,36 @@ class CommentAuditTests(unittest.TestCase):
         self.assertEqual(len(staged), 1)
         self.assertEqual(self.findings(report, file="docs/notes.md"), [])
 
+    def test_three_dash_banner_and_javadoc_are_screened(self) -> None:
+        self.write("src/client.ts", "\n".join([
+            "// --- Organizations ---",
+            "// Strict equality (===) is required for ids",
+            "export const org = 1;",
+            "/** Request body for creating an organization. */",
+            "export interface CreateOrg {",
+            "  /**",
+            "   * ownerId is required.",
+            "   * Previously optional.",
+            "   */",
+            "  ownerId: string;",
+            "}",
+            "",
+        ]))
+        report = self.run_audit()
+
+        # The contract's own banner example uses three dashes; a `===` inside prose is not a banner.
+        removals = {
+            (f["line"], f["signals"][0])
+            for f in self.findings(report, file="src/client.ts", category="remove-candidate")
+        }
+        self.assertEqual(removals, {(1, "section-banner"), (8, "change-narration")})
+
+        # Structural JSDoc lines carry nothing to audit; content lines are public API docs.
+        docs = sorted(f["line"] for f in self.findings(report, file="src/client.ts", category="doc-comment"))
+        self.assertEqual(docs, [4, 7])
+        density = next(d for d in report["density"] if d["file"] == "src/client.ts")
+        self.assertEqual(density["added_comments"], 5)
+
 
 if __name__ == "__main__":
     unittest.main()
