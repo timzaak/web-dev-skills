@@ -63,8 +63,6 @@ def _resolve_repo_root() -> Path:
 REPO_ROOT = _resolve_repo_root()
 SCRIPTS_DIR = Path(__file__).resolve().parents[1]  # scripts/ directory (sibling of lib/)
 LOG_DIR = REPO_ROOT / "log"
-RUNTIME_DIR = LOG_DIR / "runtime"
-TEST_CONFIG_DIR = RUNTIME_DIR / "test-config"
 
 
 def ensure_dir(path: Path) -> Path:

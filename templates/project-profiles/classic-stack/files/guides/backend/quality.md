@@ -1,8 +1,32 @@
-# Backend 验收依据
+# Backend 验证与验收规范
 
-公共结论、分级、报告、只读边界和结构化输出只由 `${CLAUDE_PLUGIN_ROOT}/protocols/acceptance-contract.md` 定义；验收前读取。设计适用性按 `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md`，架构与实现检查按 `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md`。本页只补充后端领域门禁。
+完成任务前必须取得第 1 节的适用验证证据。公共结论、分级、报告、只读边界和结构化输出只由 `${CLAUDE_PLUGIN_ROOT}/protocols/acceptance-contract.md` 定义；`backend-accept` 验收前读取。设计适用性按 `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md`，架构与实现检查按 `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md`。本页只补充后端领域门禁。
 
-## 必要门禁
+## 1. 完成前验证清单
+
+命令中的 package 名称与工作目录以目标项目 `backend/Cargo.toml` 和现有脚本为准：
+
+1. **编译验证（MANDATORY）**：`cd backend && cargo check --package <api-package>` —— 0 errors；警告可以接受，但必须记录。失败时立即修复并重跑，最多重试 3 次，仍失败不得标记任务完成。`<api-package>` 取目标仓库实际对外 API crate/package 名称。
+2. **代码质量收口（推荐）**：`/t-tools:t-review`，然后执行 `cd backend && cargo clippy --fix --allow-dirty --allow-staged --all-targets --all-features` 与 `cd backend && cargo fmt --all`。
+3. **格式化检查（可选但推荐）**：`cd backend && cargo fmt --check`；格式不正确时运行 `cd backend && cargo fmt`。
+4. **受影响单元测试（新增或改动 `#[cfg(test)]` 单元测试时 MANDATORY）**：`uv run scripts/backend-test.py -- -E 'package(<core-package>) and test(<pattern>)'`，收敛到本次相关的最小范围，不要默认全量。`<core-package>` 必须是 `backend/<dir>/Cargo.toml` 中 `[package] name` 的实际值。禁止用裸 `cargo test` 或 `cargo nextest run` 替代统一入口，否则会缺失测试环境与 DDL guard。
+
+职责：新增场景测试资产及集中执行属于 backend/test；没有该 slot 时，backend-dev 定向运行受影响的现有测试，backend-accept 核查证据。OpenAPI 导出与前端 API 生成验收属于 backend-accept。
+
+任务完成定义：编译 0 errors、代码格式正确（或已格式化）、核心功能测试通过（如有相关测试）。任一验证失败时不得标记任务完成，必须修复并重新验证，并在完成报告中记录修复过程。
+
+常见编译错误排查要点：
+
+- **Import 错误**：正确导入 `axum::extract::{Path, State, Extension}` 等所需类型。
+- **Handler 签名**：带齐 `State`、`Path` 等所需提取器，参考现有 handler 的写法。
+- **UUID 生成**：使用 `Uuid::now_v7()`，不用 `Uuid::new_v4()`。
+- **闭包类型**：`.map_err()` 需要闭包，不能直接传值。
+- **Trait 导入**：确保 repository trait 已导入。
+- **错误处理**：用 `?` 传播错误，不在业务路径上叠加 `unwrap()`。
+
+## 2. 只读验收依据（backend-accept）
+
+### 必要门禁
 
 按变更和依赖范围确定适用项：
 
@@ -15,7 +39,7 @@
 
 纯文档或无运行影响的机械变更按公共协议记录适用性，不要求重跑无关门禁；必要运行证据仍须有效，不能因只改少量文件跳过。
 
-## 命令与执行范围
+### 命令与执行范围
 
 从目标项目配置确认 package、脚本和工作目录，已有有效证据时不重复执行。补验示例：
 
@@ -28,7 +52,7 @@ uv run scripts/backend-test.py -- <targeted filter>
 
 环境启停、健康检查和清理使用目标项目真实入口，不用固定睡眠代替就绪探测。重复代码检查按公共协议限定范围和触发条件，不扫描无关代码或自动安装工具。
 
-## OpenAPI 与客户端
+### OpenAPI 与客户端
 
 按实际框架及注册位置检查；使用 utoipa 时核对：
 

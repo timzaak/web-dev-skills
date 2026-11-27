@@ -16,7 +16,7 @@ examples:
 
 运行时边界统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`
 决策连续性统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md`
-返回结构统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`
+返回结构统一参考：`${CLAUDE_PLUGIN_ROOT}/protocols/design-contract.md`
 
 ## 职责
 
@@ -44,7 +44,7 @@ examples:
 ## 执行流程
 
 1. 读取主会话 prompt 中列出的需求来源文件和 API 契约源（`backend.md` 或现有接口清单）。
-2. 读取 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md`（路径由主会话提供；涉及 Demo/E2E 时按指引进入 testid 规范）。组件选型、交互状态与视觉决策遵循 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/ui-decisions.md`。
+2. 读取 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md`（含架构事实、组件选型、交互状态与视觉决策；涉及 Demo/E2E 时按指引进入 testid 规范）。
 3. 按主会话提供的模板结构生成 `.ai/design/[feature]/frontend.md`；不适用的章节保留并标记"不适用"及原因。
 4. 自检下方质量清单后返回结构化结果。
 
@@ -61,4 +61,4 @@ examples:
 
 ## 返回结构
 
-严格使用 `${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`。前端必须返回可与后端逐字段比对的 `contract_dependencies`；不返回 `contract_summary` 内容。
+严格使用 `${CLAUDE_PLUGIN_ROOT}/protocols/design-contract.md`。前端必须返回可与后端逐字段比对的 `contract_dependencies`；不返回 `contract_summary` 内容。

@@ -76,7 +76,7 @@ allowed-tools:
 - `.ai/user-stories/**/*.md` — draft 用户故事文档
 
 写作规范（生成相应内容时读取）：
-- `${CLAUDE_PLUGIN_ROOT}/guides/product/index.md` — 产品规范入口
+- `${CLAUDE_PLUGIN_ROOT}/guides/product/prd.md` — PRD 编写规范
 - `${CLAUDE_PLUGIN_ROOT}/guides/product/user-story.md` — 用户故事规范
 
 Decision Brief 缺失时先确认当前对话是否已有明确、可追踪的产品决策；若缺少会改变目标、范围或成功标准的裁决，提示先运行 `/t-decision [feature]`。技术预研缺失时，仅当技术未知会改变产品范围、业务规则、用户流程或验收目标，才提示先运行 `/t-tech-research [feature]`；否则继续创建草稿。独立需求文档、PRD、user story 或其索引缺失是正常的新建路径，不得据此要求用户提供文档；若已有相关 PRD，则必须读取。其他缺口按 Decision Exposure Gate 分类：可查事实由 skill 调查；需要用户裁决的信息必须提问；只有不需要用户选择的证据限制可以写入文档。
@@ -101,7 +101,7 @@ Decision Brief 缺失时先确认当前对话是否已有明确、可追踪的�
 
 ### 4. 检查、补齐并关联 user story
 
-读取 `${CLAUDE_PLUGIN_ROOT}/guides/product/index.md` 和 `user-story.md`；`docs/user-stories/00-index.md`、`_README.md`、`_roles.md` 存在时再读取。搜索与当前 feature、角色或领域相关的已有 `docs/user-stories/`、`.ai/user-stories/` 文件；已有 PRD 已在步骤 1 查阅。相关 user story 不存在时继续生成本轮 user story 与 PRD 草稿。
+读取 `${CLAUDE_PLUGIN_ROOT}/guides/product/prd.md` 和 `user-story.md`；`docs/user-stories/00-index.md`、`_README.md`、`_roles.md` 存在时再读取。搜索与当前 feature、角色或领域相关的已有 `docs/user-stories/`、`.ai/user-stories/` 文件；已有 PRD 已在步骤 1 查阅。相关 user story 不存在时继续生成本轮 user story 与 PRD 草稿。
 
 执行：
 - 已存在足够覆盖的 user story → 直接引用，不重复创建

@@ -34,17 +34,16 @@ tools:
 
 - `docs/user-stories/00-index.md`
 - `.ai/user-stories/**/*.md`（任务或设计引用 draft 用户故事时）
-- `${CLAUDE_PLUGIN_ROOT}/guides/shopify/index.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/shopify/development.md`
 - 按需进入：
-   - `${CLAUDE_PLUGIN_ROOT}/guides/shopify/testing.md`
-   - `${CLAUDE_PLUGIN_ROOT}/guides/shopify/validation.md`
+   - `${CLAUDE_PLUGIN_ROOT}/guides/shopify/quality.md`
 - 若任务有设计文档，再读 `.ai/design/[任务名].md` 与 `.ai/design/[任务名]/shopify.md`
 
-规则：`${CLAUDE_PLUGIN_ROOT}/guides/shopify/testing.md` 是测试 how-to 主入口；agent 文档只负责"何时写、写到哪、门禁是什么"。
+规则：`${CLAUDE_PLUGIN_ROOT}/guides/shopify/quality.md` 是测试 how-to 主入口；agent 文档只负责"何时写、写到哪、门禁是什么"。
 
 ## 测试边界
 
-是否写 Vitest、写什么、不写什么，统一按 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/testing.md` 的分层原则与 Vitest 边界执行；动手前先确认目标不是应交给 Demo 或 accept 的场景，优先沿用项目现有测试 setup 与 helpers。
+是否写 Vitest、写什么、不写什么，统一按 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/quality.md` 的分层原则与 Vitest 边界执行；动手前先确认目标不是应交给 Demo 或 accept 的场景，优先沿用项目现有测试 setup 与 helpers。
 
 ## 必做门禁
 
@@ -87,4 +86,4 @@ npm run lint
 
 ## 禁止事项
 
-- 不在 agent 文档里重复 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/testing.md` 的内容
+- 不在 agent 文档里重复 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/quality.md` 的内容

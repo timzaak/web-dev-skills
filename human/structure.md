@@ -20,7 +20,7 @@ T-Tools 把工程工作流与项目领域分开：插件负责如何可靠推进
 
 ## 真源与门禁
 
-当前实现以目标项目代码和配置为准，工程约束来自 AGENTS.md 与已确认项目文档。插件共享结构在 [protocols/index.md](/protocols/index.md)，边界在 [runtime-boundaries.md](/protocols/runtime-boundaries.md)。项目命令必须真实存在，缺失或失败不能回退其它技术栈。
+当前实现以目标项目代码和配置为准，工程约束来自 AGENTS.md 与已确认项目文档。插件共享结构在 `protocols/`（由各 skill 按需引用），边界在 [runtime-boundaries.md](/protocols/runtime-boundaries.md)。项目命令必须真实存在，缺失或失败不能回退其它技术栈。
 
 前置质量检查可选；实现后的独立 accept 必须有可复核证据。后续修改使证据失效时重新打开受影响工作及验收。质量收口遵循 review --fix -> simplify -> push，发布由 release 协议入口约束。
 
@@ -28,4 +28,4 @@ T-Tools 把工程工作流与项目领域分开：插件负责如何可靠推进
 
 插件不再内置生产领域 guides、专用实现角色或应用脚手架。项目内知识从实际实现和验证产生，新的偏好需要人选择，未确认不能升级为正式规则。详见 [泛化原则](/human/generalization.md) 与[后续方案](/human/generalization-plan.md)。
 
-skill 交付适用 [skill 创作指南](/guides/core/skill-authoring.md) 与[行为验证指南](/guides/core/skill-testing.md)。Web Demo 与 Figma 按各自索引加载，不默认载入全部指南。
+skill 交付适用 [skill 创作指南](/guides/core/skill-authoring.md)，含测试与迭代。Web Demo 与 Figma 按各自指南入口加载，不默认载入全部指南。

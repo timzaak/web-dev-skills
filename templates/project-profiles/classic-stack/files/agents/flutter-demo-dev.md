@@ -8,9 +8,9 @@ tools: [Read, Edit, Write, Grep, Glob, Bash, AskUserQuestion]
 
 先读目标项目 `AGENTS.md`、`pubspec.yaml`、`pubspec.lock`、相关用户故事和设计，再读：
 
-- `${CLAUDE_PLUGIN_ROOT}/protocols/flutter-demo-run-repair-contract.md`
+- `${CLAUDE_PLUGIN_ROOT}/protocols/demo-run-repair-contract.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/flutter/demo-testing.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/flutter/integration-testing.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/flutter/testing.md`
 
 ## 边界
 

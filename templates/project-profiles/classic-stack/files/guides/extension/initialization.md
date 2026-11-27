@@ -56,7 +56,7 @@ npm run build
 
 已有受影响测试或本次新增高价值用例时，再执行对应的定向测试命令；没有测试管线不要求 `test:run`。按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md` 记录真实加载、模板交互和构建结果，必要运行结果尚未取得时初始化保持未完成。
 
-构建后核对 `.output/chrome-mv3/manifest.json`：模板入口存在，权限未增加。后续功能变更的门禁按 [validation.md](${CLAUDE_PLUGIN_ROOT}/guides/extension/validation.md)，允许使用项目等价脚本。
+构建后核对 `.output/chrome-mv3/manifest.json`：模板入口存在，权限未增加。后续功能变更的门禁按 [quality.md](${CLAUDE_PLUGIN_ROOT}/guides/extension/quality.md)，允许使用项目等价脚本。
 
 检查失败时修复对应配置并重跑，不重新生成工程。全部通过后完成初始化；需求来源齐备后进入 `/t-tools:t-design <feature>`，缺失时先补齐 PRD / 用户故事，纯技术方案按 [需求来源协议](${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md) 使用技术预研。
 

@@ -104,23 +104,6 @@ def ensure_tag_available(version: str, tags: list[str]) -> None:
         raise RuntimeError(f"Remote tag conflict: {', '.join(unique)} already exists.")
 
 
-def read_current_cargo_version(path: Path) -> str | None:
-    text = path.read_text(encoding="utf-8")
-    in_workspace_package = False
-    for line in text.splitlines():
-        stripped = line.strip()
-        if stripped == "[workspace.package]":
-            in_workspace_package = True
-            continue
-        if in_workspace_package and stripped.startswith("["):
-            return None
-        if in_workspace_package:
-            match = re.match(r'\s*version\s*=\s*"([^"]+)"', line)
-            if match:
-                return match.group(1)
-    return None
-
-
 def update_cargo_version(path: Path, version: str) -> FileChange | None:
     if not path.is_file():
         return None

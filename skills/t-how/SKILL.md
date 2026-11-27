@@ -48,6 +48,7 @@ t-decision -> t-prd / t-tech-research（无固定顺序，进设计前收敛）
 | 实现 + 测试 | `/t-tools:t-super-run <feature> --phase <phase>` | 合并任务规划与执行；`--phase` 必填，每次只执行一个 phase |
 | Web Demo / E2E | `/t-tools:t-web-demo-run <file>` 或 `/t-tools:t-web-demo-run-all` | 之后 `/t-tools:t-web-demo-accept <role>` |
 | 提交推送 | `/t-tools:t-review`、`/t-tools:t-simplify`，再 `/t-tools:t-push` | review 只报告，发现缺陷先修复；push 运行项目实际 CI |
+| 扫描依赖 CVE | `/t-tools:t-security-deps [<target>]` | 容器化 Trivy 扫描依赖清单并出修复方案报告；只报告不升级，升级后重跑复核 |
 | 发版 | `/t-tools:t-release [版本号]` | semver 不带 `v`，git tag 带 `v` |
 | 给插件新增或修改 skill | `/t-tools:t-skill [名称或能力描述]` | 只操作插件仓库自身，不用于目标项目业务开发 |
 | 在目标项目内创建或更新 skill | `/t-tools:t-skill --project [名称或能力描述]` | 按项目运行时落位 `.claude/skills/` 或 `.agents/skills/`；feature 中已规划的 skill 交付物走 `t-super-run` 对应 phase |

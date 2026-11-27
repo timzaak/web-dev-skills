@@ -142,4 +142,37 @@
 
 - `${CLAUDE_PLUGIN_ROOT}/agents/web-demo-diagnose.md` 必须引用本协议
 - `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/diagnose-guide.md` 只描述流程、证据优先级和产出时机
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/templates/diagnose-report-template.md` 只是便捷骨架，不得与本协议冲突
+
+## 报告骨架
+
+```md
+# [<PROBLEM_CODE>/<SEVERITY>] <TEST_NAME> - <一句话根因>
+
+- `runtime`: `web`
+- `problem_code`: `<PROBLEM_CODE>`
+- `severity`: `<P0|P1|P2>`
+- `recommended_agent`: `<AGENT>`
+- `confidence`: `<high|medium|low>`
+
+## 失败事实: <动作/页面/接口> -> <可见失败>
+- 错误信息 / 发生位置（文件、行号、用例）/ 关键日志 / 失败请求摘要（如适用）
+
+## 归因结论: <PROBLEM_CODE> -> <RECOMMENDED_AGENT>
+- 主分类、严重级别、推荐处理方、结论强度与分类说明
+
+## 证据链: <最强证据来源>
+- 直接原因 / 间接原因 / 证据摘要与代码或日志片段
+
+## 修复入口: <最小修改点>
+- 推荐方案与最小修改步骤（最多 2 个方案并标明推荐）
+
+## 影响文件: <核心文件摘要>
+| 类型 | 文件路径 | 行号 | 角色 |
+|---|---|---|---|
+
+## API复现: <METHOD PATH STATUS/ERROR>  <!-- 仅 API 类问题保留，否则删除整节 -->
+- `requestId` / `status/error` / `original_url` / `normalized_url` / 可执行 `curl`
+
+## 验证闭环: 重跑 <TEST_CASE>
+- 最小回归命令与环境健康检查命令（如适用）
+```

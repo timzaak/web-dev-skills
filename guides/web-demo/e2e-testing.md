@@ -34,12 +34,10 @@ demo/e2e/
 
 项目环境 hook 或外部/fixture 模式按共享修复契约；后者命令追加 --no-auto-env。启停与清理只调用项目声明的真实入口。
 
-
 ```powershell
-uv run scripts/web-demo-test-runner.py demo/e2e/[test-file].ts
+uv run scripts/web-demo-test-runner.py demo/e2e/[test-file].e2e.ts
+uv run scripts/web-demo-test-runner.py demo/e2e/[test-file].e2e.ts --log-level verbose
 uv run scripts/web-demo-run-all.py discover   # 批量入口由 /t-tools:t-web-demo-run-all 主会话驱动；脚本只辅助发现、进度写盘和汇总
-uv run scripts/debug-test.py demo/e2e/[test-file].ts
-
 ```
 
 ## 自检
@@ -52,7 +50,7 @@ uv run scripts/debug-test.py demo/e2e/[test-file].ts
 
 ## 参考
 
-- POM：[`pom-guide.md`](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/pom-guide.md)
-- 选择器策略：[`selector-strategy.md`](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/selector-strategy.md)
-- 维护指南：[`test-maintenance.md`](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/test-maintenance.md)
-- 调试指南：[`diagnose-guide.md`](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/diagnose-guide.md)
+- 选择器与 POM：[`authoring.md`](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/authoring.md)
+- 维护与修复：[`maintenance.md`](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/maintenance.md)
+- 失败诊断：[`diagnose-guide.md`](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/diagnose-guide.md)
+- 验收门禁：[`quality.md`](${CLAUDE_PLUGIN_ROOT}/guides/web-demo/quality.md)

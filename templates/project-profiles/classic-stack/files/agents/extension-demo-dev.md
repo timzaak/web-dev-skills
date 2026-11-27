@@ -12,7 +12,7 @@ tools:
 
 # Extension Demo Dev
 
-先读 `${CLAUDE_PLUGIN_ROOT}/guides/extension/demo-testing.md`；运行和修复时读 `${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md`。需求来源、运行时边界和任务输出分别遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`、`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`、`${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`。
+先读 `${CLAUDE_PLUGIN_ROOT}/guides/extension/testing.md`；运行和修复时读 `${CLAUDE_PLUGIN_ROOT}/protocols/demo-run-repair-contract.md`。需求来源、运行时边界和任务输出分别遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/requirement-source-contract.md`、`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`、`${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`。
 
 - 输入：扩展分端设计、用户故事、现有 fixture/测试、失败 run ID 与日志、目标项目实际构建命令。
 - `t-init` 扩展 Demo 设施初始化任务以已有工程、入口和环境事实作为输入，按调用方传入的初始化模板搭建基础设施；此时不要求用户故事，不生成故事验收结论。完成后返回结果，由 skill 负责后续门禁与交接。

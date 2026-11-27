@@ -15,12 +15,9 @@ Miniapp 主规范。它定义插件级稳定约束；目标项目的真实目录
 - 详细测试与验收清单
 
 相关入口：
-- miniapp 规范入口：`${CLAUDE_PLUGIN_ROOT}/guides/miniapp/index.md`
 - 测试规则：`${CLAUDE_PLUGIN_ROOT}/guides/miniapp/testing.md`
-- 完成前验证：`${CLAUDE_PLUGIN_ROOT}/guides/miniapp/validation.md`
-- 验收与模板门禁：`${CLAUDE_PLUGIN_ROOT}/guides/miniapp/quality.md`
-- 技术宪法：`${CLAUDE_PLUGIN_ROOT}/guides/miniapp/constitution.md`
-- 执行约束：`${CLAUDE_PLUGIN_ROOT}/guides/miniapp/ai-rules.md`
+- 完成前验证、验收与模板门禁：`${CLAUDE_PLUGIN_ROOT}/guides/miniapp/quality.md`
+- 技术宪法与执行约束：`${CLAUDE_PLUGIN_ROOT}/guides/miniapp/constitution.md`
 
 ## 2. 当前技术基线
 
@@ -99,4 +96,4 @@ npm run typecheck
 npm run build:weapp
 ```
 
-如需更完整的 H5 预览、模板门禁或发布前检查，按 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/testing.md`、`${CLAUDE_PLUGIN_ROOT}/guides/miniapp/validation.md` 和 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/quality.md` 执行。
+如需更完整的 H5 预览、模板门禁或发布前检查，按 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/testing.md` 和 `${CLAUDE_PLUGIN_ROOT}/guides/miniapp/quality.md` 执行。

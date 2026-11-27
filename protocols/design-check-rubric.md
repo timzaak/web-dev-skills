@@ -25,7 +25,7 @@
 - 关键模块有责任边界、实现入口、异常路径和兼容策略；公共契约唯一，生产者与消费者一致。
 - 决策追踪覆盖全部 Active Decision；主文档覆盖矩阵关联需求、设计、测试与全量文件影响。
 - 实际命令与验收场景按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`，静态检查不代替必要行为验证。
-- 全部实际文档通过 check-decision-closure.py 与 check-design.py，状态符合 `${CLAUDE_PLUGIN_ROOT}/protocols/design-state-contract.md`。
+- 全部实际文档通过 check-decision-closure.py 与 check-design.py，状态符合 `${CLAUDE_PLUGIN_ROOT}/protocols/design-contract.md`。
 
 ## Severity Rules
 

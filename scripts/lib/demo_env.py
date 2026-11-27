@@ -44,10 +44,3 @@ def start_environment(logger, timeout: int = 60) -> bool:
     for error in status.errors:
         logger.error(error)
     return status.healthy
-
-
-def stop_environment() -> bool:
-    ok, detail = run_hook("demo-stop.py", 30)
-    if not ok:
-        print(detail, file=sys.stderr)
-    return ok

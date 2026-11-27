@@ -1,28 +1,18 @@
 # Demo Run Repair Contract
 
-本协议是 `t-web-demo-run`、`t-web-demo-run-all` 共享的单文件 Playwright Demo E2E 运行、诊断、修复和回归契约。批次发现、断点和汇总由批次 skill 自行编排。
+本协议是 `t-web-demo-run`、`t-web-demo-run-all` 共享的单文件 Playwright Demo E2E 运行、诊断、修复、回归与机器可解析 Result 输出契约。批次发现、断点和汇总由批次 skill 自行编排。
 
-共享结果字段以 `${CLAUDE_PLUGIN_ROOT}/protocols/demo-result-contract.md` 为准；本协议只补充 Playwright runner 的映射和修复行为。
+## 1. 共享 Result 输出契约
 
-## Runner 输出适配
+Web Demo runner以最后一行 `Result: {json}` 交付机器可解析结果。
 
-`${CLAUDE_PLUGIN_ROOT}/scripts/web-demo-test-runner.py` 最后一行输出：
+- 必填字段：`success`, `fixed`, `logs`, `exitCode`, `testFile`, `runId`, `duration`, `error`。`success` 与 `fixed` 使用字符串 `"true" | "false"` 保持现有调用兼容；编排层统一映射 `exitCode/testFile/runId` 为 `exit_code/test_file/run_id`。
+- 可追加 `grep/mode`。runner 返回的 `logs` 相对于 `demo/`，写入 skill 结果或批次 entry 前必须规范化为仓库相对路径 `demo/<logs>`。
+- 若 runner 非零退出且没有合法的 `Result` 行，视为本次 Demo 验证失败，保留退出码和输出尾部作为 `error`。
 
-```text
-Result: {"success":"true|false","fixed":"false","logs":"...","exitCode":0,"testFile":"...","runId":"...","duration":1.2,"error":""}
-```
+## 2. Playwright Demo（Web）
 
-编排层解析后统一映射为：
-
-- `exitCode` -> `exit_code`
-- `testFile` -> `test_file`
-- `runId` -> `run_id`
-- runner 返回的 `logs` 相对于 `demo/`；写入 skill 结果或批次 entry 前必须规范化为仓库相对路径 `demo/<logs>`
-- `success` 仍按字符串 `"true" | "false"` 解析
-
-若 runner 非零退出且没有合法的 `Result` 行，视为本次 Demo 验证失败，保留退出码和输出尾部作为 `error`。
-
-## 单文件执行顺序
+### 单文件执行顺序
 
 首次执行及恢复先读 scripts/index.md、任务 Validation 和 fixture，确认项目 URL、身份入口、环境管理与清理方式。项目本地 hook 管理环境，或使用 --no-auto-env 由 fixture/外部环境管理；模式必须持久化，scan/continue 不得静默改用其他环境。
 
@@ -34,7 +24,7 @@ Result: {"success":"true|false","fixed":"false","logs":"...","exitCode":0,"testF
 
 单文件最多进行 6 轮“诊断 -> 修复 -> 补测 -> 定向验证”。每轮只处理当前仍失败的用例，已通过用例不重复修复。整文件终验失败时，将新失败用例并入下一轮。
 
-## 诊断、修复与补测
+### 诊断、修复与补测
 
 - 诊断使用 web-demo-diagnose，输入 testFile、实际失败的 runId 和 testCaseTitle。
 - recommended_agent 为 web-demo-dev（测试资产）、project-dev（生产实现）或 manual（环境/权限）。
@@ -43,7 +33,7 @@ Result: {"success":"true|false","fixed":"false","logs":"...","exitCode":0,"testF
 - 补测命令必须符合 `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`，并按 implementation -> web-demo 串行。与当前定向 Demo 验证完全相同的命令去重，不重复执行。
 - 缺少 `tests_to_run` 时记录 P1 契约缺失，并按实际 `change_scope` 执行至少一条最小补测。补测失败记录风险，但继续 Demo 验证和后续尝试。
 
-## 项目环境与数据隔离
+### 项目环境与数据隔离
 
 - 自动环境模式只调用目标项目 scripts/demo-health.py、demo-start.py；退出码 0 为健康/成功。缺少 hook 时停止，不提供插件应用环境回退。启停和健康检查在项目根执行，hook 自行定义真实服务和依赖。
 - fixture 或外部管理模式每次 runner 都保留 --no-auto-env；仍须按项目说明确认 URL、身份与服务就绪。缺失时报告受阻，不拿 smoke 代替故事验证。
@@ -51,13 +41,11 @@ Result: {"success":"true|false","fixed":"false","logs":"...","exitCode":0,"testF
 - 数据隔离由项目 fixture/清理入口负责，只清理本次可追踪的测试数据。批次文件间核查清理；失败时 block 保留断点，恢复先处理遗留数据。不能通过删除全库或未知服务重建隔离。
 - 环境刷新不得删除 demo/test-results/runs/<run-id>/ 历史证据；每次验证使用新的 run ID。
 
-## 日志与 Run ID
+### 日志、Run ID 与编排结果
 
 - 每次执行必须使用唯一 run ID，至少包含批次 ID、文件全路径的稳定 slug 或短哈希、轮次和用例序号。不得只使用文件 `stem`。
 - runner 只可覆盖当前同名 run ID 的目录，不得清空整个 `test-results/runs/`。
 - 编排层始终向诊断 agent 传入实际产生失败的 run ID，不得传入后续 `--list-tests` 的 run ID。
-
-## 最终结果
 
 单文件编排结果统一包含：
 

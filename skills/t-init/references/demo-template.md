@@ -17,7 +17,7 @@
 }
 ```
 
-依赖由当前项目锁文件与兼容版本确定：@playwright/test、typescript、ESLint 及适用 TypeScript parser、playwright-unified-logger。不在模板固定版本；生成时写入真实依赖并安装锁定。日志 fixture 的导入/API 按 `${CLAUDE_PLUGIN_ROOT}/skills/t-init/references/unified-logger-package-template.md` 与包实际导出。
+依赖由当前项目锁文件与兼容版本确定：@playwright/test、typescript、ESLint 及适用 TypeScript parser、playwright-unified-logger。不在模板固定版本；生成时写入真实依赖并安装锁定。日志 fixture 的导入/API 以 `playwright-unified-logger` 包实际导出为准。
 
 ## demo/playwright.config.ts
 

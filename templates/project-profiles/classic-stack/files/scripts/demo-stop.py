@@ -6,7 +6,6 @@ from pathlib import Path
 
 from lib import docker
 from lib.proc import kill_process_by_port, kill_processes_by_path
-# Removed state file dependencies: terminate_from_state, wait_process_exit, load_state
 from lib.paths import LOG_DIR, REPO_ROOT
 
 
@@ -24,8 +23,6 @@ DEMO_LOG_FILES = [
     LOG_DIR / "frontend-demo.log.out",
     LOG_DIR / "frontend-demo.log.err",
 ]
-# Skip all runtime files - they may be inaccurate
-DEMO_RUNTIME_FILES: list[Path] = []
 
 # Verbose mode flag (set by main())
 verbose = False
@@ -53,20 +50,15 @@ def _delete_with_retry(path: Path) -> bool:
     return not path.exists()
 
 
-def cleanup_demo_files() -> tuple[list[Path], list[Path]]:
-    """Delete demo runtime/log files and return (failed_runtime, failed_logs)."""
-    failed_runtime: list[Path] = []
+def cleanup_demo_files() -> list[Path]:
+    """Delete demo log files and return the ones that could not be deleted."""
     failed_logs: list[Path] = []
-
-    for path in DEMO_RUNTIME_FILES:
-        if not _delete_with_retry(path):
-            failed_runtime.append(path)
 
     for path in DEMO_LOG_FILES:
         if not _delete_with_retry(path):
             failed_logs.append(path)
 
-    return failed_runtime, failed_logs
+    return failed_logs
 
 
 def main() -> int:
@@ -109,7 +101,7 @@ def main() -> int:
             docker.rm_force_container(container)
 
     # Step 4: Cleanup log files (optional, non-fatal)
-    failed_logs = cleanup_demo_files()[1]
+    failed_logs = cleanup_demo_files()
     if failed_logs and should_print(quiet):
         for failed in failed_logs:
             print(f"WARN: Failed to delete log file (can be cleaned later): {failed}")

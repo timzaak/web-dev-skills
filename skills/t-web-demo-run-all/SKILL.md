@@ -16,13 +16,13 @@ allowed-tools:
 # 批量运行 Demo 测试（主会话逐文件驱动）
 
 运行时边界：`${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`（判断脚本入口或项目事实与插件默认冲突时读）
-单文件运行与修复闭环：`${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md`（处理任一失败文件前读）
+单文件运行与修复闭环：`${CLAUDE_PLUGIN_ROOT}/protocols/demo-run-repair-contract.md`（处理任一失败文件前读）
 
 ## 目标
 
 - 自动发现除 `live/`、`fixtures/`、`templates/`、`verification/` 和文件名含 `test-` 之外的全部 Demo 测试（发现规则脚本内固化，不在 skill 层重写）。
 - **由当前主会话逐个文件驱动**，每一步都是可观察、可中断的短 Bash / Agent 调用。
-- 单文件失败时按 `web-demo-run-repair-contract.md` 的修复闭环处理，每文件最多 6 次尝试。
+- 单文件失败时按 `demo-run-repair-contract.md` 的修复闭环处理，每文件最多 6 次尝试。
 - 文件之间按共享协议的环境模式隔离数据，避免前一文件产生的业务数据影响后续测试。
 - 每文件达到上限仍失败则标记 `FAILED` 并继续下一个文件，不阻塞整批。
 - 持续写盘批次状态，支持 `continue` 从未完成文件的断点恢复；产出 Markdown + JSON 汇总报告。
@@ -33,7 +33,7 @@ allowed-tools:
 
 扫描模式（`scan`）：先纯 Bash 预跑全部文件**不修复**，按归一化错误指纹聚类失败，再对每个 unique cluster 只修一次（用 representative 文件），最后回扫所有受影响文件。
 
-**何时用扫描模式**：失败密集且疑似共享根因（如一批文件都挂在同一个失效 selector 或同一个后端接口变更上）。先用 `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/batch-token-profiling.md` 的决策树判断；孤立失败为主或文件数少（< 5）时用默认模式，扫描模式的聚类开销不划算。不确定时先跑默认模式一次，再用该指南读画像决定。
+**何时用扫描模式**：失败密集且疑似共享根因（如一批文件都挂在同一个失效 selector 或同一个后端接口变更上）。先用 `${CLAUDE_PLUGIN_ROOT}/skills/t-web-demo-run-all/references/batch-token-profiling.md` 的决策树判断；孤立失败为主或文件数少（< 5）时用默认模式，扫描模式的聚类开销不划算。不确定时先跑默认模式一次，再用该指南读画像决定。
 
 ## 执行流程（默认逐文件模式）
 
@@ -70,7 +70,7 @@ uv run scripts/web-demo-test-runner.py "<rel_path>" --run-id "<batch_run_id>-<fi
 
 #### B4. 整文件失败 → 执行共享修复闭环
 
-按 `web-demo-run-repair-contract.md` 的单文件执行顺序和修复行为处理当前失败用例，最多 6 轮。终验通过才记 `status=passed, fixed=true`；达到上限仍失败时记 `status=failed, fixed=false`，保留最后失败证据并继续批次。
+按 `demo-run-repair-contract.md` 的单文件执行顺序和修复行为处理当前失败用例，最多 6 轮。终验通过才记 `status=passed, fixed=true`；达到上限仍失败时记 `status=failed, fixed=false`，保留最后失败证据并继续批次。
 
 #### B5. 持久化 + 文件间数据隔离
 
@@ -157,7 +157,7 @@ uv run scripts/web-demo-run-all.py cluster --json <json_report>
 对 `clusters[]` 按受影响文件数降序逐个处理：
 
 1. **选 representative**：取该 cluster 的 `affected_files[0]` 与 `affected_cases[0]`。
-2. **修复闭环**：按 `web-demo-run-repair-contract.md` 对 representative 执行完整单文件闭环（最多 6 轮，超限标该 cluster 失败并继续下一个 cluster）。
+2. **修复闭环**：按 `demo-run-repair-contract.md` 对 representative 执行完整单文件闭环（最多 6 轮，超限标该 cluster 失败并继续下一个 cluster）。
 3. **回扫受影响文件**：representative 修复后，对该 cluster 所有 `affected_files` 重跑 fast 模式（复用 S2 的 runner + `scan --file` 登记，run_id 用 `<scan_run_id>-<file_key>-verify`）。全部通过则这些文件标 `passed, fixed=true`；仍有失败则该文件存在独立根因，回退默认模式对该文件单独走修复闭环。回扫同样遵守文件间数据隔离。
 
 ### S5. 收尾
@@ -172,7 +172,7 @@ uv run scripts/web-demo-run-all.py cluster --json <json_report>
 - 不允许并行执行多个测试文件，不允许使用 slow/headed 模式。
 - 所有 `Agent` 调用必须先按 `subagent-dispatch.md` 注入角色规范。
 - 必须以 `finalize` 收尾产出报告；不得由主会话覆盖整份 JSON。
-- 单文件修复闭环以 `web-demo-run-repair-contract.md` 为唯一契约源，本 skill 只编排批次状态、文件间隔离和汇总。
+- 单文件修复闭环以 `demo-run-repair-contract.md` 为唯一契约源，本 skill 只编排批次状态、文件间隔离和汇总。
 
 ## 失败处理
 

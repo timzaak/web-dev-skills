@@ -25,8 +25,8 @@ examples:
 ## 执行流程
 
 1. 读取需求来源、Active Decision、`backend.md` 或现有接口源，核对项目 `pubspec.yaml`、`pubspec.lock`、受影响代码和测试配置。事实或约束冲突时读 `${CLAUDE_PLUGIN_ROOT}/protocols/runtime-boundaries.md`。
-2. 读取 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/development.md` 和 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/constitution.md`，确定架构、状态与平台方案。
-3. 规划验证时读 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/testing.md`、`${CLAUDE_PLUGIN_ROOT}/guides/flutter/validation.md` 和 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`。涉及集成/原生 UI 时读 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/integration-testing.md`；需要 Demo 时读 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/demo-testing.md`，首次接入再读 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/patrol-initialization.md`。
+2. 读取 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/development.md`，确定架构、Riverpod 状态线与平台方案。
+3. 规划验证时读 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/testing.md`（含集成与 Patrol 基础）、`${CLAUDE_PLUGIN_ROOT}/guides/flutter/quality.md` 和 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`；需要 Demo 或首次接入 Patrol 时读 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/demo-testing.md`。
 4. 按 `${CLAUDE_PLUGIN_ROOT}/skills/t-design/template-flutter.md` 写入设计并自检；不适用章节保留原因，无后端依赖不编造接口。
 
 ## 质量清单
@@ -38,6 +38,6 @@ examples:
 
 ## 返回与恢复
 
-按 `${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md` 返回；`contract_dependencies` 声明 API 消费关系，无依赖时为空，`contract_summary` 为空。
+按 `${CLAUDE_PLUGIN_ROOT}/protocols/design-contract.md` 返回；`contract_dependencies` 声明 API 消费关系，无依赖时为空，`contract_summary` 为空。
 
 阻塞设计的缺口按 `${CLAUDE_PLUGIN_ROOT}/protocols/decision-continuity-contract.md` 返回 `needs_user_answer` 和 `partial`，由主会话裁决；读写失败返回 `failed`。重新调度时依据最新输入修正本端中间文档。

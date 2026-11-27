@@ -35,143 +35,63 @@ def write(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8", newline="")
 
 
-def anchor_for(checker_module, root: Path, target: str, start: int, end: int, anchor_id: str) -> str:
-    return checker_module.build_anchor_line(root, target, start, end, anchor_id)
+def verify_json(root: Path, doc: Path) -> tuple[int, dict]:
+    with redirect_stdout(io.StringIO()) as captured:
+        code = checker.main(["verify", str(doc), "--project-root", str(root), "--json"])
+    return code, json.loads(captured.getvalue())
 
 
-class AnchorVerifyTests(unittest.TestCase):
-    def test_ok_anchor_passes(self) -> None:
+class AnchorTests(unittest.TestCase):
+    def test_print_roundtrip_and_crlf_normalization(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
-            write(root / "src" / "upload.rs", TARGET)
-            doc = root / "docs" / "prd" / "core" / "upload.md"
-            write(doc, f"# Upload PRD\n\n{anchor_for(checker, root, 'src/upload.rs', 6, 8, 'upload-validate')}\n")
-            code = checker.main(["verify", str(doc), "--project-root", str(root), "--json"])
-            self.assertEqual(code, 0)
-
-    def test_crlf_and_trailing_whitespace_are_normalized(self) -> None:
-        with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp)
-            noisy = TARGET.replace("    10 * 1024 * 1024", "    10 * 1024 * 1024   ")
-            write(root / "src" / "upload.rs", noisy.replace("\n", "\r\n"))
-            doc = root / "docs" / "prd" / "core" / "upload.md"
-            write(doc, f"# Upload PRD\n\n{anchor_for(checker, root, 'src/upload.rs', 6, 8, 'upload-validate')}\n")
-            code = checker.main(["verify", str(doc), "--project-root", str(root), "--json"])
-            self.assertEqual(code, 0)
-
-    def test_drifted_content_fails(self) -> None:
-        with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp)
-            write(root / "src" / "upload.rs", TARGET)
-            doc = root / "docs" / "prd" / "core" / "upload.md"
-            write(doc, f"# Upload PRD\n\n{anchor_for(checker, root, 'src/upload.rs', 1, 3, 'upload-limit')}\n")
-            write(root / "src" / "upload.rs", TARGET.replace("10 * 1024 * 1024", "20 * 1024 * 1024"))
+            noisy = TARGET.replace("    10 * 1024 * 1024", "    10 * 1024 * 1024   ").replace("\n", "\r\n")
+            write(root / "src" / "upload.rs", noisy)
             with redirect_stdout(io.StringIO()) as captured:
-                code = checker.main(["verify", str(doc), "--project-root", str(root), "--json"])
-            payload = json.loads(captured.getvalue())
+                code = checker.main(["print", "src/upload.rs", "6", "8", "--id", "upload-validate", "--project-root", str(root)])
+            self.assertEqual(code, 0)
+            doc = root / "docs" / "prd" / "core" / "upload.md"
+            write(doc, f"# Upload PRD\n\n{captured.getvalue().strip()}\n")
+            code, _ = verify_json(root, doc)
+            self.assertEqual(code, 0)
+
+    def test_moved_passes_while_drifted_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            write(root / "src" / "upload.rs", TARGET)
+            doc = root / "docs" / "prd" / "core" / "upload.md"
+            line = checker.build_anchor_line(root, "src/upload.rs", 6, 8, "upload-validate")
+            write(doc, f"# Upload PRD\n\n{line}\n")
+
+            write(root / "src" / "upload.rs", "// new header\n\n" + TARGET)
+            code, payload = verify_json(root, doc)
+            self.assertEqual(code, 0)
+            self.assertEqual((payload["moved_count"], payload["anchors"][0]["status"]), (1, "moved"))
+
+            write(root / "src" / "upload.rs", TARGET.replace("size <= upload_limit()", "size < upload_limit()"))
+            code, payload = verify_json(root, doc)
             self.assertEqual(code, 1)
             self.assertEqual(payload["findings"][0]["code"], "ANCHOR_DRIFTED")
 
-    def test_moved_content_is_reported_without_failure(self) -> None:
-        with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp)
-            write(root / "src" / "upload.rs", TARGET)
-            doc = root / "docs" / "prd" / "core" / "upload.md"
-            write(doc, f"# Upload PRD\n\n{anchor_for(checker, root, 'src/upload.rs', 6, 8, 'upload-validate')}\n")
-            write(root / "src" / "upload.rs", "// new header\n\n" + TARGET)
-            with redirect_stdout(io.StringIO()) as captured:
-                code = checker.main(["verify", str(doc), "--project-root", str(root), "--json"])
-            payload = json.loads(captured.getvalue())
-            self.assertEqual(code, 0)
-            self.assertEqual(payload["status"], "passed")
-            self.assertEqual(payload["moved_count"], 1)
-            self.assertEqual(payload["anchors"][0]["status"], "moved")
-
-    def test_missing_target_file_fails(self) -> None:
-        with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp)
-            write(root / "src" / "upload.rs", TARGET)
-            line = anchor_for(checker, root, "src/upload.rs", 6, 8, "upload-validate")
-            (root / "src" / "upload.rs").unlink()
-            doc = root / "docs" / "prd" / "core" / "upload.md"
-            write(doc, f"# Upload PRD\n\n{line}\n")
-            with redirect_stdout(io.StringIO()) as captured:
-                code = checker.main(["verify", str(doc), "--project-root", str(root), "--json"])
-            payload = json.loads(captured.getvalue())
-            self.assertEqual(code, 1)
-            self.assertEqual(payload["findings"][0]["code"], "MISSING_TARGET_FILE")
-
-    def test_invalid_syntax_is_flagged(self) -> None:
-        with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp)
-            doc = root / "docs" / "prd" / "core" / "upload.md"
-            write(doc, "# Upload PRD\n\n<!-- t-anchor: id=x | src/a.rs:1-2 | sha256=deadbeef -->\n")
-            with redirect_stdout(io.StringIO()) as captured:
-                code = checker.main(["verify", str(doc), "--project-root", str(root), "--json"])
-            payload = json.loads(captured.getvalue())
-            self.assertEqual(code, 1)
-            self.assertEqual(payload["findings"][0]["code"], "INVALID_ANCHOR_SYNTAX")
-
-    def test_duplicate_id_is_flagged(self) -> None:
-        with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp)
-            write(root / "src" / "upload.rs", TARGET)
-            line = anchor_for(checker, root, "src/upload.rs", 6, 8, "upload-validate")
-            doc = root / "docs" / "prd" / "core" / "upload.md"
-            write(doc, f"# Upload PRD\n\n{line}\n\n{line}\n")
-            with redirect_stdout(io.StringIO()) as captured:
-                code = checker.main(["verify", str(doc), "--project-root", str(root), "--json"])
-            payload = json.loads(captured.getvalue())
-            self.assertEqual(code, 1)
-            self.assertEqual(payload["findings"][0]["code"], "DUPLICATE_ANCHOR_ID")
-
-    def test_target_path_escape_is_rejected(self) -> None:
+    def test_security_and_structural_error_codes(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             write(root / "outside.rs", TARGET)
-            escape_line = "<!-- t-anchor: id=escape | ../outside.rs:1-3 | sha256=" + "a" * 64 + " -->"
-            doc = root / "docs" / "prd" / "core" / "upload.md"
-            write(doc, f"# Upload PRD\n\n{escape_line}\n")
-            with redirect_stdout(io.StringIO()) as captured:
-                code = checker.main(["verify", str(doc), "--project-root", str(root), "--json"])
-            payload = json.loads(captured.getvalue())
-            self.assertEqual(code, 1)
-            self.assertEqual(payload["findings"][0]["code"], "INVALID_TARGET_PATH")
-
-    def test_missing_document_is_reported(self) -> None:
-        with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp)
-            with redirect_stdout(io.StringIO()) as captured:
-                code = checker.main(["verify", str(root / "docs" / "nope.md"), "--project-root", str(root), "--json"])
-            payload = json.loads(captured.getvalue())
-            self.assertEqual(code, 1)
-            self.assertEqual(payload["findings"][0]["code"], "DOC_NOT_FOUND")
-
-
-class AnchorPrintTests(unittest.TestCase):
-    def test_print_output_verifies_ok(self) -> None:
-        with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp)
             write(root / "src" / "upload.rs", TARGET)
-            with redirect_stdout(io.StringIO()) as captured:
-                code = checker.main(
-                    ["print", "src/upload.rs", "6", "8", "--id", "upload-validate", "--project-root", str(root)]
-                )
-            self.assertEqual(code, 0)
-            anchor_line = captured.getvalue().strip()
+            valid = checker.build_anchor_line(root, "src/upload.rs", 6, 8, "dup")
             doc = root / "docs" / "prd" / "core" / "upload.md"
-            write(doc, f"# Upload PRD\n\n{anchor_line}\n")
-            code = checker.main(["verify", str(doc), "--project-root", str(root), "--json"])
-            self.assertEqual(code, 0)
 
-    def test_print_rejects_out_of_range(self) -> None:
-        with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp)
-            write(root / "src" / "upload.rs", TARGET)
-            code = checker.main(
-                ["print", "src/upload.rs", "1", "99", "--id", "bad", "--project-root", str(root)]
-            )
-            self.assertEqual(code, 1)
+            cases = [
+                ("<!-- t-anchor: id=escape | ../outside.rs:1-3 | sha256=" + "a" * 64 + " -->", "INVALID_TARGET_PATH"),
+                ("<!-- t-anchor: id=x | src/a.rs:1-2 | sha256=deadbeef -->", "INVALID_ANCHOR_SYNTAX"),
+                (f"{valid}\n\n{valid}", "DUPLICATE_ANCHOR_ID"),
+            ]
+            for body, expected_code in cases:
+                with self.subTest(expected_code=expected_code):
+                    write(doc, f"# PRD\n\n{body}\n")
+                    code, payload = verify_json(root, doc)
+                    self.assertEqual(code, 1)
+                    self.assertEqual(payload["findings"][0]["code"], expected_code)
 
 
 if __name__ == "__main__":

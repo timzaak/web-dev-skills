@@ -59,14 +59,9 @@ web-demo-dev 至少返回：
 详细规范以下列文件为准，主文档只保留入口和门禁：
 
 插件内置参考：
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/index.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/selector-strategy.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/pom-guide.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/test-maintenance.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/common-failures.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/selector-repair.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/pom-update.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/frontend-sync-checklist.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/e2e-testing.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/authoring.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/maintenance.md`
 
 Runtime Dependencies：
 - `demo/e2e/selectors.ts`
@@ -74,7 +69,7 @@ Runtime Dependencies：
 ## 工作流程
 
 - 从测试路径或任务上下文推断用户故事文件，并验证存在；用户故事路径可以是 `.ai/user-stories/...` draft 或 `docs/user-stories/...` 已发布文档。
-- 先读取 `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/index.md`，再进入对应细页。
+- 先读取 `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/e2e-testing.md`，编写时按需读 `authoring.md`，维护修复时读 `maintenance.md`。
 - 读取 `demo/e2e/selectors.ts`，再对照前端 `data-testid` 实现校准关键选择器。
 - 确定输出文件路径：
    - 按目标项目 `demo/e2e/` 的真实角色或业务分组目录落位
@@ -130,13 +125,7 @@ uv run ${CLAUDE_PLUGIN_ROOT}/scripts/web-demo-test-runner.py "[测试文件]" --
 
 - `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`
 - `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/index.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/selector-strategy.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/pom-guide.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/test-maintenance.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/common-failures.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/selector-repair.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/pom-update.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/frontend-sync-checklist.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/e2e-testing.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/authoring.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/maintenance.md`
 - `demo/e2e/selectors.ts`

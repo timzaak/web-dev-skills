@@ -36,7 +36,7 @@
 
 契约源声明：[backend.md 适用时声明引用，删除下方清单职责；backend 不适用时本节是唯一契约源]
 
-是否允许无契约及主文档同步要求，按 `${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md` 的 Shopify 契约规则；适用时填写下表，不适用时删除空表并声明原因。
+是否允许无契约及主文档同步要求，按 `${CLAUDE_PLUGIN_ROOT}/protocols/design-contract.md` 的 Shopify 契约规则；适用时填写下表，不适用时删除空表并声明原因。
 
 | Operation ID | 方法 | 路径 | 请求字段 | 响应字段 | 错误行为 | 调用方 |
 |---|---|---|---|---|---|---|

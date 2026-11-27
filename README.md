@@ -48,15 +48,15 @@ Decision -> PRD / 技术预研 -> 设计 -> 实现 / 测试 -> 独立验收 -> �
 /t-tools:t-web-demo-accept <role>
 ```
 
-初始化仅建立独立 Playwright 与日志通路，smoke 不代表真实故事已验收。URL、身份、数据隔离和清理由项目定义；自动环境管理需要项目本地 `scripts/demo-start.py`、`demo-health.py`、`demo-stop.py`（退出码 0 为成功）。fixture/外部管理环境时 runner 使用 `--no-auto-env`，不存在插件应用环境回退。细则见 [Web Demo 指南](guides/web-demo/index.md) 与 [修复契约](protocols/web-demo-run-repair-contract.md)。
+初始化仅建立独立 Playwright 与日志通路，smoke 不代表真实故事已验收。URL、身份、数据隔离和清理由项目定义；自动环境管理需要项目本地 `scripts/demo-start.py`、`demo-health.py`、`demo-stop.py`（退出码 0 为成功）。fixture/外部管理环境时 runner 使用 `--no-auto-env`，不存在插件应用环境回退。细则见 [Web Demo 指南](guides/web-demo/e2e-testing.md) 与 [修复契约](protocols/demo-run-repair-contract.md)。
 
 ## Figma
 
-保留 `t-figma-assets`、`t-figma-impl`，面向目标项目现有文件完成素材处理与分块还原；不指定生产框架。素材可延后准备，但交付前须绑定真实资产，页面由开发者验收。见 [Figma 指南](guides/figma/index.md) 和 [共享契约](protocols/figma-workflow-contract.md)。
+保留 `t-figma-assets`、`t-figma-impl`，面向目标项目现有文件完成素材处理与分块还原；不指定生产框架。素材可延后准备，但交付前须绑定真实资产，页面由开发者验收。见[还原指南](guides/figma/reconstruction.md)、[素材指南](guides/figma/assets.md) 和 [共享契约](protocols/figma-workflow-contract.md)。
 
 ## 质量链与辅助入口
 
-提交前按 `t-review --fix -> t-simplify -> t-push` 收口；修复使证据失效时补跑回归和独立验收。review 默认只报告，存在未修复正确性问题不得 push；push 运行项目 CI 并支持远端失败恢复，见 [提交协议](protocols/push-execution-contract.md)。发布由 `scripts/release.py` 和 t-release 约束，语义版本不带 v，git tag 带 v。
+提交前按 `t-review --fix -> t-simplify -> t-push` 收口；修复使证据失效时补跑回归和独立验收。review 默认只报告，存在未修复正确性问题不得 push；push 运行项目 CI 并支持远端失败恢复，见 [t-push](skills/t-push/SKILL.md)。发布由 `scripts/release.py` 和 t-release 约束，语义版本不带 v，git tag 带 v。
 
 | 目标 | 入口 |
 | --- | --- |
@@ -66,6 +66,7 @@ Decision -> PRD / 技术预研 -> 设计 -> 实现 / 测试 -> 独立验收 -> �
 | 设计与可选检查 | [t-design](skills/t-design/SKILL.md)、[t-design-check](skills/t-design-check/SKILL.md)、[t-prd-check](skills/t-prd-check/SKILL.md) |
 | 计划与执行 | [t-super-run](skills/t-super-run/SKILL.md)、[t-task](skills/t-task/SKILL.md)、[t-run](skills/t-run/SKILL.md)、[t-task-check](skills/t-task-check/SKILL.md) |
 | 正确性、清理与提交 | [t-review](skills/t-review/SKILL.md)、[t-simplify](skills/t-simplify/SKILL.md)、[t-push](skills/t-push/SKILL.md) |
+| 依赖 CVE 扫描 | [t-security-deps](skills/t-security-deps/SKILL.md)，只读扫描并给出修复方案 |
 | 上下文与实现一致性 | [t-dream](skills/t-dream/SKILL.md) |
 | skill 创作 | [t-skill](skills/t-skill/SKILL.md)，项目内使用 --project |
 | 文档与预览 | [t-doc](skills/t-doc/SKILL.md)、[t-html-show](skills/t-html-show/SKILL.md) |
@@ -99,7 +100,7 @@ claude --plugin-dir /path/to/web-dev-skills
 
 配置 Context7 MCP 供需要依赖文档的入口使用；Figma 工作流需要官方 Figma MCP，素材转换需要 ffmpeg/ffprobe、svgo 与 kyz，具体读取 [素材指南](guides/figma/assets.md)。Web Demo 需要 Python/uv、Node 与 Playwright 浏览器，日志库 [`playwright-unified-logger`](https://github.com/timzaak/playwright-unified-logger) 由 `t-init --web-demo` 以 npm 包安装。工作流按需创建 .ai/ 与 docs/，不要求预建空状态。
 
-其它 AI 工具的薄路由接入见 [跨工具使用说明](human/use-in-other-agents.md)。协议入口为 [protocols/index.md](protocols/index.md)。
+其它 AI 工具的薄路由接入见 [跨工具使用说明](human/use-in-other-agents.md)。共享契约在 `protocols/`，由各 skill 按需引用。
 
 ## 使用本插件的项目
 

@@ -24,7 +24,7 @@
 
 ## Skill Deliverables
 
-设计涉及项目级 skill 时归 implementation，不新增 phase 或 Demo；dev 加载 `${CLAUDE_PLUGIN_ROOT}/guides/core/skill-authoring.md` 和 `${CLAUDE_PLUGIN_ROOT}/guides/core/skill-testing.md`。Validation 必须包含与风险相称的前向行为用例和触发边界检查，证据遵循验证协议。
+设计涉及项目级 skill 时归 implementation，不新增 phase 或 Demo；dev 加载 `${CLAUDE_PLUGIN_ROOT}/guides/core/skill-authoring.md`，写作与行为验证遵循该指南。Validation 必须包含与风险相称的前向行为用例和触发边界检查，证据遵循验证协议。
 
 ## Role Mapping
 

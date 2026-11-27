@@ -30,11 +30,8 @@ class ProjectEnvironmentTests(unittest.TestCase):
     def test_real_project_hooks_run_from_project_root_and_health_is_required(self):
         self.hook("demo-start.py", "from pathlib import Path\nPath('started').write_text('yes')\n")
         self.hook("demo-health.py", "from pathlib import Path\nraise SystemExit(0 if Path('started').is_file() else 1)\n")
-        self.hook("demo-stop.py", "from pathlib import Path\nPath('started').unlink(missing_ok=True)\n")
         self.assertFalse(demo_env.check_environment_health().healthy)
         self.assertTrue(demo_env.start_environment(Mock()))
-        self.assertTrue(demo_env.stop_environment())
-        self.assertFalse(demo_env.check_environment_health().healthy)
 
     def test_failed_start_and_unhealthy_after_start_are_failures(self):
         self.hook("demo-start.py", "raise SystemExit(4)\n")

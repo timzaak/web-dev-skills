@@ -69,7 +69,7 @@ tools:
 - 测试数据是否满足前后端约束
 - 断言是否等待了正确条件
 - 流程是否缺少登录、导航、数据准备或清理步骤
-- 参考 `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/common-failures.md` 中的常见失败模式，快速匹配已知问题
+- 参考 `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/maintenance.md` 中的常见失败模式，快速匹配已知问题
 
 如果在这一步已经找到充分证据，直接归类为 `TEST` 或 `DATA`，不要继续扩大诊断范围。
 
@@ -117,15 +117,12 @@ tools:
 ## 关键引用
 
 插件内置参考：
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/index.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/e2e-testing.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/demo-debugging.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/selector-strategy.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/common-failures.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/selector-repair.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/authoring.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/maintenance.md`
 
 Runtime Dependencies：
 - `${CLAUDE_PLUGIN_ROOT}/protocols/diagnostic-report-contract.md`
 - `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/diagnose-guide.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/e2e-testing.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/templates/diagnose-report-template.md`
 - `demo/e2e/selectors.ts`

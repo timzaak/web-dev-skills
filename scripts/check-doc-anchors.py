@@ -17,8 +17,6 @@ ANCHOR_LINE = re.compile(
     r"\s*\|\s*(?P<path>[^\s|]+):(?P<start>\d+)-(?P<end>\d+)"
     r"\s*\|\s*sha256=(?P<digest>[0-9a-f]{64})\s*-->$"
 )
-STRONG_STATUSES = ("ok", "moved", "drifted", "missing-file")
-
 
 @dataclass(frozen=True)
 class Finding:

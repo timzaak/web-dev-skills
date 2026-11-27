@@ -52,6 +52,5 @@ npm run starter:ci-gate -- --target taro-react-taroify-tailwind
 ## 6. 相关入口
 
 - 开发主规范：`${CLAUDE_PLUGIN_ROOT}/guides/miniapp/development.md`
-- 完成前门禁：`${CLAUDE_PLUGIN_ROOT}/guides/miniapp/validation.md`
-- 验收细则：`${CLAUDE_PLUGIN_ROOT}/guides/miniapp/quality.md`
+- 完成前门禁与验收细则：`${CLAUDE_PLUGIN_ROOT}/guides/miniapp/quality.md`
 - 技术宪法：`${CLAUDE_PLUGIN_ROOT}/guides/miniapp/constitution.md`

@@ -54,15 +54,15 @@ Previous domain commands and phases have been removed. They are not silently map
 /t-tools:t-web-demo-accept <role>
 ```
 
-Initialization establishes Playwright and logging infrastructure; smoke success does not accept real stories. The project defines URLs, identities, isolation and cleanup. Automatic environment management requires local scripts/demo-start.py, demo-health.py and demo-stop.py, with exit code 0 indicating success. Fixture/external management uses --no-auto-env. No application environment falls back to the plugin. See [Web Demo guides](guides/web-demo/index.md) and the [repair contract](protocols/web-demo-run-repair-contract.md).
+Initialization establishes Playwright and logging infrastructure; smoke success does not accept real stories. The project defines URLs, identities, isolation and cleanup. Automatic environment management requires local scripts/demo-start.py, demo-health.py and demo-stop.py, with exit code 0 indicating success. Fixture/external management uses --no-auto-env. No application environment falls back to the plugin. See the [Web Demo guide](guides/web-demo/e2e-testing.md) and the [repair contract](protocols/demo-run-repair-contract.md).
 
 ## Figma
 
-`t-figma-assets` and `t-figma-impl` retain asset processing and block-based reconstruction in existing project files, without selecting a production framework. Assets may be prepared later but must be bound before delivery; developers perform page acceptance. See [Figma guides](guides/figma/index.md) and the [shared contract](protocols/figma-workflow-contract.md).
+`t-figma-assets` and `t-figma-impl` retain asset processing and block-based reconstruction in existing project files, without selecting a production framework. Assets may be prepared later but must be bound before delivery; developers perform page acceptance. See the [reconstruction guide](guides/figma/reconstruction.md), [asset guide](guides/figma/assets.md) and the [shared contract](protocols/figma-workflow-contract.md).
 
 ## Quality chain and supporting commands
 
-Close changes with `t-review --fix -> t-simplify -> t-push`. Repairs invalidating evidence require regression checks and independent acceptance. Review reports by default; unresolved correctness findings block push. Push uses project CI and preserves recovery after remote failures; see the [push contract](protocols/push-execution-contract.md). scripts/release.py and t-release govern publishing: semantic versions omit v, Git tags include v.
+Close changes with `t-review --fix -> t-simplify -> t-push`. Repairs invalidating evidence require regression checks and independent acceptance. Review reports by default; unresolved correctness findings block push. Push uses project CI and preserves recovery after remote failures; see the [push workflow](skills/t-push/SKILL.md). scripts/release.py and t-release govern publishing: semantic versions omit v, Git tags include v.
 
 | Goal | Entry |
 | --- | --- |
@@ -72,6 +72,7 @@ Close changes with `t-review --fix -> t-simplify -> t-push`. Repairs invalidatin
 | Design and optional checks | [t-design](skills/t-design/SKILL.md), [t-design-check](skills/t-design-check/SKILL.md), [t-prd-check](skills/t-prd-check/SKILL.md) |
 | Planning and execution | [t-super-run](skills/t-super-run/SKILL.md), [t-task](skills/t-task/SKILL.md), [t-run](skills/t-run/SKILL.md), [t-task-check](skills/t-task-check/SKILL.md) |
 | Review, cleanup and push | [t-review](skills/t-review/SKILL.md), [t-simplify](skills/t-simplify/SKILL.md), [t-push](skills/t-push/SKILL.md) |
+| Dependency CVE scan | [t-security-deps](skills/t-security-deps/SKILL.md), read-only scan with a remediation plan |
 | Context and consistency | [t-dream](skills/t-dream/SKILL.md) |
 | Skill authoring | [t-skill](skills/t-skill/SKILL.md), --project for target-project skills |
 | Documents and previews | [t-doc](skills/t-doc/SKILL.md), [t-html-show](skills/t-html-show/SKILL.md) |
@@ -105,7 +106,7 @@ claude --plugin-dir /path/to/web-dev-skills
 
 Configure Context7 MCP for entrypoints needing dependency documentation. Figma requires the official Figma MCP; asset conversion needs ffmpeg/ffprobe, svgo and kyz as described in the [asset guide](guides/figma/assets.md). Web Demo needs Python/uv, Node and Playwright browsers; the logging library [`playwright-unified-logger`](https://github.com/timzaak/playwright-unified-logger) is installed as an npm package by `t-init --web-demo`. Workflows create .ai/ and docs/ as needed; empty state files are not required.
 
-Other AI tools can use the [thin dispatcher](human/use-in-other-agents.en.md). Shared contracts are indexed in [protocols/index.md](protocols/index.md).
+Other AI tools can use the [thin dispatcher](human/use-in-other-agents.en.md). Shared contracts live in `protocols/` and are referenced by each skill.
 
 ## Projects using T-Tools
 

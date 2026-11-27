@@ -101,7 +101,7 @@ Protected-file candidates:
 - Do not break `config/index.js`, `src/app.config.ts`, `style-dictionary.config.mjs`, `scripts/build-icons.mjs`, or `template.config.json`.
 - New pages must be created under `src/pages/<name>/index.tsx` and registered in `src/app.config.ts`.
 - Prefer `Taroify` primitives before inventing new core controls.
-- Do not introduce `react-router-dom`, `next-themes`, `framer-motion`, `shadcn/ui`, `@radix-ui/react-*`, or browser-only React libraries.
+- Do not introduce `react-router-dom`, `Next.js`, `next-themes`, `framer-motion`, `shadcn/ui`, `@radix-ui/react-*`, or browser-only React libraries.
 - Theme edits must start from `tokens/*.json`.
 - Icons must use `AppIcon`.
 

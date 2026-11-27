@@ -25,32 +25,16 @@ examples:
 ## 执行流程
 
 - 做 Design-First 检查（如适用）
-- 读取 `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md`
+- 读取 `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md`
 - 按现有仓库模式实现或修复后端代码
-- 按 `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md` 导航到对应测试/验证页，只补通过价值门槛的最小必要测试
+- 按 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md` 只补通过价值门槛的最小必要测试
 - 运行最小必要编译/测试验证
 - 以结构化输出汇报结果
 
 ## 工作模式
 
-### 模式 1: Implementation Mode（默认）
-
-完整实现或修复后端生产代码，并补通过价值门槛的最小必要 Domain/Application 单元测试。若改动没有高价值单元测试点，允许不新增单元测试并说明原因。
-
-### 模式 2: Calibration Mode（代码校准）
-
-**触发条件**: prompt 中包含 "模式: CALIBRATION" 或 "CALIBRATION"
-
-**任务**: 检查代码示例质量，返回修正建议，不修改文件
-
-**不执行**:
-- 不修改任何文件
-- 不编写测试
-- 不运行编译检查
-
-**输出格式**: 结构化 JSON 报告（见下方"结构化输出规范"）
-
-**详细规范**: `${CLAUDE_PLUGIN_ROOT}/guides/backend/calibration-mode.md`
+- **Implementation Mode（默认）**：完整实现或修复后端生产代码，并补通过价值门槛的最小必要 Domain/Application 单元测试。若改动没有高价值单元测试点，允许不新增单元测试并说明原因。
+- **Calibration Mode（代码校准）**：prompt 中包含 `"模式: CALIBRATION"` 或 `CALIBRATION` 时，仅对照架构与质量规范评审代码示例并返回结构化 `calibration_report`（`original_code_issues`、`corrected_code`、`rationale`），不修改文件、不编写测试、不运行编译检查。
 
 ---
 
@@ -62,19 +46,14 @@ examples:
 - `.ai/design/[任务名]/backend.md`（如存在分端设计，优先读取）
 - `.ai/design/[任务名].md`（如适用）
 - `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md`
 - 按需进入：
-   - `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md`
-   - `${CLAUDE_PLUGIN_ROOT}/guides/backend/tdd-workflow.md`（仅在 testing.md 已确认局部测试有增量价值后读取）
    - `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`
-   - `${CLAUDE_PLUGIN_ROOT}/guides/backend/validation.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md`
-   - `${CLAUDE_PLUGIN_ROOT}/guides/backend/calibration-mode.md`
 
 规则：
 
 - 设计输入适用性与质量检查以 `${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md` 为准
-- backend 细页入口与导航关系以 `${CLAUDE_PLUGIN_ROOT}/guides/backend/index.md` 为准
 - 后端事实、架构边界、禁止事项以 `${CLAUDE_PLUGIN_ROOT}/guides/backend/development.md` 为准
 - 测试写法与验证顺序以对应 guide 为准
 - 代码注释规范（禁止引用 `.ai/design`/`.ai/task`、低价值注释定义与保留标准）以 `${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md` 为准
@@ -100,9 +79,7 @@ examples:
 - 修改 `backend/**/tests/scenarios/**` 或任何 `*_scenarios.rs`，除非用户明确授权修测试。
 - 修改场景测试断言、状态码预期、权限预期或业务规则预期。
 
-测试选择先读 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`；确需局部测试时再读 `${CLAUDE_PLUGIN_ROOT}/guides/backend/tdd-workflow.md` 的断言与 TDD 指引。
-
-测试价值门槛统一参考 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`；不得新增构造函数赋值、DTO/derive、getter/setter、常量或机械字段映射测试。
+测试选择、断言、按需 TDD 与价值门槛统一参考 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md`；不得新增构造函数赋值、DTO/derive、getter/setter、常量或机械字段映射测试。
 
 ## 验证步骤
 
@@ -132,7 +109,7 @@ uv run scripts/backend-test.py -- -E 'package(<crate>) and test(<pattern>)'
 
 完整测试命令形态与 filter 写法以 `${CLAUDE_PLUGIN_ROOT}/protocols/backend-test-execution.md` 和 `${CLAUDE_PLUGIN_ROOT}/guides/backend/testing.md` 为准。
 
-更完整的验证顺序参考 `${CLAUDE_PLUGIN_ROOT}/guides/backend/validation.md`
+更完整的验证顺序参考 `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md`
 
 ## Completion Gate
 
@@ -144,8 +121,7 @@ uv run scripts/backend-test.py -- -E 'package(<crate>) and test(<pattern>)'
 - 本次新增/改动的单元测试已用 `uv run scripts/backend-test.py` 跑通，或未涉及单元测试并已说明原因
 - 没有忽略关键失败项
 
-完整门禁列表以 `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md` 和
-`${CLAUDE_PLUGIN_ROOT}/guides/backend/validation.md` 为准。
+完整门禁列表以 `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md` 为准。
 
 ## 结构化输出规范
 
@@ -158,7 +134,3 @@ uv run scripts/backend-test.py -- -E 'package(<crate>) and test(<pattern>)'
 
 - `${CLAUDE_PLUGIN_ROOT}/protocols/agent-task-output-contract.md`
 - `${CLAUDE_PLUGIN_ROOT}/protocols/tests-to-run-contract.md`
-
-### 校准模式输出
-
-详细输出格式见 `${CLAUDE_PLUGIN_ROOT}/guides/backend/calibration-mode.md`。

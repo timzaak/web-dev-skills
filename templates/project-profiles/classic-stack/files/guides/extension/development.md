@@ -52,9 +52,9 @@
 - 注入 React UI 默认使用 WXT shadow-root UI，样式和 portal container 指向 shadow root 内容器。卸载时清理 React root、事件、watch 和 observer，避免重复注入；确需 iframe 或宿主内联布局时由设计说明取舍。
 - 宿主为 SPA 时，区分首次注入匹配范围和页面内导航后的功能启用条件；按需用 `wxt:locationchange` 重判并挂载/卸载，不能假设路径变化会重新注入 content script。
 - 扩展更新、禁用或卸载后，既有页面中的 content script 可能失去扩展上下文。用 WXT `ContentScriptContext` 管理监听/定时器，额外资源通过 `ctx.onInvalidated` 清理；明确未完成操作如何取消及用户如何恢复，不循环重试已失效的扩展 API。
-- 通用 Query/Zod/Tailwind 模式仅在采用相应库时读 [frontend patterns](${CLAUDE_PLUGIN_ROOT}/guides/frontend/patterns.md)；交互 UI 的选择器读 [testid 规范](${CLAUDE_PLUGIN_ROOT}/guides/frontend/testid-standards.md)。
+- 通用 Query/Zod/Tailwind 模式仅在采用相应库时读 [frontend patterns](${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md)；交互 UI 的选择器读 [testid 规范](${CLAUDE_PLUGIN_ROOT}/guides/frontend/testid-standards.md)。
 
-修改代码时遵循 [注释契约](${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md)；完成前按 [validation.md](${CLAUDE_PLUGIN_ROOT}/guides/extension/validation.md) 验证。
+修改代码时遵循 [注释契约](${CLAUDE_PLUGIN_ROOT}/protocols/code-comment-contract.md)；完成前按 [quality.md](${CLAUDE_PLUGIN_ROOT}/guides/extension/quality.md) 验证。
 
 库级事实变更时按受影响边界核对官方依据（2026-09-25 核对设计相关原则；具体 API 以项目锁定版本为准）：
 

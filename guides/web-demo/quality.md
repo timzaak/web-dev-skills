@@ -18,7 +18,7 @@
 uv run scripts/web-demo-test-runner.py "<test-file>" --mode fast --log-level mini
 ```
 
-环境按 `${CLAUDE_PLUGIN_ROOT}/protocols/web-demo-run-repair-contract.md` 使用项目本地 hooks；fixture 或外部管理时保留 `--no-auto-env`，不回退到插件预设应用环境。
+环境按 `${CLAUDE_PLUGIN_ROOT}/protocols/demo-run-repair-contract.md` 使用项目本地 hooks；fixture 或外部管理时保留 `--no-auto-env`，不回退到插件预设应用环境。
 
 核对退出码、实际用例、失败/超时/跳过、日志与加载产物；必要场景跳过或零用例不能算通过。定向 grep 通过不能替代整文件终验。有效整文件证据可复用，不重复启动环境。
 
@@ -29,6 +29,6 @@ uv run scripts/web-demo-test-runner.py "<test-file>" --mode fast --log-level min
 - 业务数据准备遵循项目已确认入口与当前故事角色，不直接写库或绕过业务路径；数据隔离和清理只覆盖本次可追踪的测试数据。
 - 主断言验证持久业务/页面状态、URL、列表/详情数据或稳定错误区域。toast、Snackbar 等瞬时提示只能作辅助，不能作为唯一或主要结果。
 - 等待条件必须对应可观察状态，检查固定延迟及超时是否掩盖竞态；网络等待先注册 Promise 再触发。
-- 选择器和 POM 变更分别按 `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/selector-strategy.md`、`${CLAUDE_PLUGIN_ROOT}/guides/web-demo/pom-guide.md` 检查；重复代码按公共协议限定范围。
+- 选择器和 POM 变更按 `${CLAUDE_PLUGIN_ROOT}/guides/web-demo/authoring.md` 检查；重复代码按公共协议限定范围。
 
 必要故事映射、类型检查、整文件执行、隔离/清理、日志和关键断言均为门禁，缺失或失败不能以代码质量分数抵消。

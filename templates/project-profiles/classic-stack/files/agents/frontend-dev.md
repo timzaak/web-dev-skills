@@ -55,19 +55,15 @@ tools:
 - `docs/user-stories/00-index.md`
 - `.ai/user-stories/**/*.md`（任务或设计引用 draft 用户故事时）
 - `docs/prd/00-index.md`
-- `${CLAUDE_PLUGIN_ROOT}/guides/frontend/index.md`
+- `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md`
 - 按需进入：
-   - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md`
-   - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/patterns.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/testing.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/testid-standards.md`
-   - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/validation.md`
    - `${CLAUDE_PLUGIN_ROOT}/guides/frontend/quality.md`
 - 若任务有设计文档，再读 `.ai/design/[任务名]/frontend.md`（如存在分端设计，优先读取）和 `.ai/design/[任务名].md`
 
 规则：
-- `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md` 是 frontend 事实型主规范
-- `${CLAUDE_PLUGIN_ROOT}/guides/frontend/patterns.md` 是项目批准的常用实现模式
+- `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md` 是 frontend 事实型主规范，也是项目批准的常用实现模式
 - agent 文档只定义执行顺序、门禁、输出契约，不重新定义架构真相
 
 ## 项目内查找优先级
@@ -124,12 +120,11 @@ cd frontend && npm run test:run -- [pattern]
 cd frontend && npm run lint
 ```
 
-详细门禁以 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/validation.md` 和 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/quality.md` 为准。
+详细门禁以 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/quality.md` 为准。
 
 ## 实现约束
 
-- 路由、目录、生成代码和项目约定以 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md` 为准
-- Query、Form、API、Tailwind 常用模式以 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/patterns.md` 为准
+- 路由、目录、生成代码、项目约定以及 Query、Form、API、Tailwind 常用模式以 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md` 为准
 - 优先复用目标项目已有 UI 组件、hooks 和生成的 API 客户端目录
 - 不手工维护 API 生成物中的业务逻辑
 - 不硬编码 API 路径
@@ -164,6 +159,6 @@ frontend-dev 的推荐扩展字段：
 
 - 不把 agent 文档当作架构规范第二真相
 - 不引用不存在的文档段落或伪造行号
-- 不绕过 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/index.md` 的导航关系
+- 不绕过 `${CLAUDE_PLUGIN_ROOT}/guides/frontend/development.md` 定义的规范与入口路由
 - 不在没有证据时凭印象重写项目模式
 - 不在完成报告中忽略失败的类型检查、构建或必要测试

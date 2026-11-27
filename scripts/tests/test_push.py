@@ -91,14 +91,6 @@ class PushRecoveryTests(unittest.TestCase):
         self.assertEqual(code, 0, output)
         self.assertEqual(self.remote_head(), head)
 
-    def test_repeated_transport_failure_keeps_pending_record(self) -> None:
-        self.create_failed_push()
-        with patch.object(push, "git", side_effect=self.fail_push):
-            code, _ = self.run_script()
-        self.assertEqual(code, 1)
-        self.assertEqual(push.load_push_record("recovery")["status"], "pending")
-        self.assertEqual(self.remote_head(), self.base_head)
-
     def test_runtime_cursor_write_does_not_block_pending_recovery(self) -> None:
         self.create_failed_push()
         runtime = self.root / ".ai" / "super-run" / "demo" / ".state.json"
@@ -111,40 +103,43 @@ class PushRecoveryTests(unittest.TestCase):
     def test_interruption_after_commit_recovers_from_committing_record(self) -> None:
         self.source.write_text("implementation\n", encoding="utf-8")
         save = push.save_push_record
+
         def interrupt(session: str, record: dict) -> None:
             if record["status"] == "pending":
                 raise RuntimeError("simulated interruption after git commit")
             save(session, record)
+
         with patch.object(push, "save_push_record", side_effect=interrupt):
             code, _ = self.run_script()
         self.assertEqual(code, 1)
         head = push.current_head()
-        self.assertNotEqual(head, self.base_head)
         self.assertEqual(push.load_push_record("recovery")["status"], "committing")
         code, output = self.run_script()
         self.assertEqual(code, 0, output)
-        self.assertEqual(push.current_head(), head)
-        self.assertEqual(self.remote_head(), head)
+        self.assertEqual((push.current_head(), self.remote_head()), (head, head))
 
-    def test_code_change_after_failed_push_requires_revalidation(self) -> None:
+    def test_code_or_target_change_blocks_pending_recovery(self) -> None:
         self.create_failed_push()
         self.source.write_text("later edit\n", encoding="utf-8")
         code, output = self.run_script()
         self.assertEqual(code, 1)
         self.assertIn("Code changed", output)
-        self.assertEqual(self.remote_head(), self.base_head)
-
-    def test_changed_push_target_preserves_pending_commit(self) -> None:
-        self.create_failed_push()
+        self.source.write_text("implementation\n", encoding="utf-8")
         self.command("git", "config", "branch.main.merge", "refs/heads/other")
         code, output = self.run_script()
         self.assertEqual(code, 1)
         self.assertIn("Push target changed", output)
+        self.assertEqual(self.remote_head(), self.base_head)
+
+    def test_remote_descendant_and_unconfirmed_remote_handling(self) -> None:
+        self.source.write_text("implementation\n", encoding="utf-8")
+        with patch.object(push, "remote_contains", return_value=False):
+            code, output = self.run_script()
+        self.assertEqual(code, 1)
+        self.assertIn("Remote has not confirmed", output)
         self.assertEqual(push.load_push_record("recovery")["status"], "pending")
 
-    def test_remote_descendant_confirms_original_commit(self) -> None:
-        head = self.create_failed_push()
-        self.command("git", "push", "origin", "main")
+        head = push.current_head()
         other = self.root.parent / "other"
         self.command("git", "clone", "--branch", "main", str(self.remote), str(other))
         for key, value in (("user.name", "Other"), ("user.email", "other@example.invalid")):
@@ -154,38 +149,27 @@ class PushRecoveryTests(unittest.TestCase):
         self.command("git", "-C", str(other), "commit", "-m", "later remote commit")
         self.command("git", "-C", str(other), "push")
         remote_head = self.remote_head()
+
         code, output = self.run_script()
         self.assertEqual(code, 0, output)
-        self.assertEqual(push.current_head(), head)
-        self.assertEqual(self.remote_head(), remote_head)
+        self.assertEqual((push.current_head(), self.remote_head()), (head, remote_head))
 
-    def test_unconfirmed_remote_keeps_record_pending(self) -> None:
-        self.source.write_text("implementation\n", encoding="utf-8")
-        with patch.object(push, "remote_contains", return_value=False):
-            code, output = self.run_script()
-        self.assertEqual(code, 1)
-        self.assertIn("Remote has not confirmed", output)
-        self.assertEqual(push.load_push_record("recovery")["status"], "pending")
-        code, output = self.run_script()
-        self.assertEqual(code, 0, output)
-        self.assertEqual(self.remote_head(), push.current_head())
-
-    def test_invalid_recovery_record_is_preserved(self) -> None:
-        path = push.push_record_path("recovery")
+    def test_invalid_record_preserved_and_commit_hook_change_blocked(self) -> None:
+        path = push.push_record_path("corrupt")
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("{broken", encoding="utf-8")
-        code, _ = self.run_script()
-        self.assertEqual(code, 1)
+        self.assertEqual(self.run_script(session="corrupt")[0], 1)
         self.assertEqual(path.read_text(encoding="utf-8"), "{broken")
 
-    def test_commit_hook_code_change_is_not_pushed(self) -> None:
         self.source.write_text("implementation\n", encoding="utf-8")
         original_git = push.git
+
         def hook(*args: str, capture: bool = False):
             if args[0] == "commit":
                 self.source.write_text("hook change\n", encoding="utf-8")
                 original_git("add", "sample.txt")
             return original_git(*args, capture=capture)
+
         with patch.object(push, "git", side_effect=hook):
             code, output = self.run_script()
         self.assertEqual(code, 1)

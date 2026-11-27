@@ -17,9 +17,7 @@ Backend 主规范。它定义插件级稳定约束；目标项目的真实架构
 
 相关入口：
 - 测试规则：`./testing.md`
-- backend 规范入口：`./index.md`
-- 完成前验证：`${CLAUDE_PLUGIN_ROOT}/guides/backend/validation.md`
-- 完整验收：`${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md`
+- 完成前验证与完整验收：`${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md`
 
 ## 2. 当前架构事实
 
@@ -44,7 +42,7 @@ Backend 主规范。它定义插件级稳定约束；目标项目的真实架构
 
 ### 3.1 异步与 trait
 
-- 所有 I/O 必须使用 `async/await`。
+- 所有 I/O 必须使用 `async/await`；异步路径不使用阻塞调用（如 `std::thread::sleep`）。
 - 默认不要重新引入 `async-trait`；优先沿用仓库现有的原生 async trait 写法。
 - trait 设计优先服从当前 crate 边界和测试替身需求，不为套模板而新增抽象层。
 
@@ -56,7 +54,7 @@ Backend 主规范。它定义插件级稳定约束；目标项目的真实架构
 - 新增 `domain-core/` 领域错误时，不要继续扩大对 HTTP 类型的依赖；HTTP 状态码和响应 body 优先在 `api/` 层处理。
 - 新增 `api/` handler 时，不再新增 `(StatusCode, String)`、裸 `StatusCode` 错误或手写 `{"error": "..."}` 风格。
 - 新增业务 ID 必须沿用目标项目已有 ID 策略；没有明确策略时，先在设计文档中定下来，不在实现中临时混用。
-- 不使用 `unwrap()` 处理业务路径和 I/O 错误。
+- 不使用 `unwrap()` 或 `expect()` 处理业务路径和 I/O 错误。
 
 ### 3.3 HTTP 与 OpenAPI
 
@@ -113,4 +111,4 @@ cargo fmt --all
 - 新增场景测试资产及集中执行属于 backend/test；其他相关验证由 backend-dev 定向执行，backend-accept 核查证据。
 - OpenAPI 导出与前端 API 生成验收属于 backend-accept。
 
-如需更完整门禁、环境启动和 OpenAPI 一致性检查，按 `${CLAUDE_PLUGIN_ROOT}/guides/backend/validation.md` 与 `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md` 执行。
+如需更完整门禁、环境启动和 OpenAPI 一致性检查，按 `${CLAUDE_PLUGIN_ROOT}/guides/backend/quality.md` 执行。

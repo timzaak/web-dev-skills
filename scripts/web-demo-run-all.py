@@ -11,6 +11,9 @@ from the main session (short, observable Bash/Agent calls with file-backed
 checkpoints) replaces the old blocking nested-CLI workflow
 subprocess loop, which froze the parent session for up to hours.
 
+Batch state transitions and persistence are shared with
+`flutter-demo-run-all.py` through `lib/batch_state.py`.
+
 Subcommands:
   discover [continue] [--filter-file F] [--report-prefix P]
       Enumerate non-live demo test files. In fresh mode, write the initial
@@ -48,6 +51,22 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 
+from lib.batch_state import (
+    QUALITY_DIR,
+    BatchError,
+    complete,
+    discovered_files,
+    display_now,
+    ensure_quality_dir,
+    latest_report,
+    load_report,
+    record_result,
+    resolve_report_path,
+    save_report,
+    start_file,
+    tally,
+    total_duration,
+)
 from lib.paths import REPO_ROOT
 
 # Configure UTF-8 encoding for Windows console
@@ -56,7 +75,6 @@ if sys.platform == "win32":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
-QUALITY_DIR = REPO_ROOT / ".ai" / "quality"
 E2E_DIR = REPO_ROOT / "demo" / "e2e"
 EXCLUDED_DIR_NAMES = {"fixtures", "templates", "verification", "live"}
 
@@ -72,10 +90,6 @@ class RunEntry:
     summary: dict[str, object]
     error: str = ""
     fixed: bool = False
-
-
-def now_display() -> str:
-    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 def parse_boolish(value: object) -> bool:
@@ -117,45 +131,8 @@ def discover_test_files(*, filter_file: Path | None = None) -> list[Path]:
     ]
 
 
-def load_json_report(path: Path) -> dict[str, object]:
-    return json.loads(path.read_text(encoding="utf-8"))
-
-
-def write_json_report(path: Path, payload: dict[str, object]) -> None:
-    payload["updated_at"] = now_display()
-    temp_path = path.with_name(f".{path.name}.tmp")
-    temp_path.write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
-    temp_path.replace(path)
-
-
-def resolve_report_path(path: Path) -> Path:
-    return path if path.is_absolute() else REPO_ROOT / path
-
-
-def find_latest_json_report(report_prefix: str) -> Path | None:
-    candidates = sorted(
-        QUALITY_DIR.glob(f"{report_prefix}-*.json"),
-        key=lambda path: path.stat().st_mtime,
-        reverse=True,
-    )
-    return candidates[0] if candidates else None
-
-
-def payload_entry_paths(payload: dict[str, object]) -> list[str]:
-    files = payload.get("discovered_files")
-    if not isinstance(files, list) or not files:
-        raise ValueError("Latest batch report does not contain discovered_files")
-    normalized = [str(item) for item in files]
-    if any(not item for item in normalized):
-        raise ValueError("Latest batch report contains an invalid discovered_files entry")
-    return normalized
-
-
 def determine_resume_index(payload: dict[str, object]) -> int:
-    discovered_files = payload_entry_paths(payload)
+    discovered = discovered_files(payload)
     entries = payload.get("entries")
     if not isinstance(entries, list):
         raise ValueError("Latest batch report does not contain entries")
@@ -172,14 +149,14 @@ def determine_resume_index(payload: dict[str, object]) -> int:
             raise ValueError("Latest batch report contains an entry without test_file")
         completed_files.append(test_file)
 
-    expected_prefix = discovered_files[:len(completed_files)]
+    expected_prefix = discovered[:len(completed_files)]
     if completed_files != expected_prefix:
         raise ValueError("Latest batch entries are not a completed prefix of discovered_files")
 
     current_file = payload.get("current_file")
     if isinstance(current_file, str) and current_file:
         try:
-            resume_index = discovered_files.index(current_file)
+            resume_index = discovered.index(current_file)
         except ValueError as exc:
             raise ValueError(f"current_file not found in discovered_files: {current_file}") from exc
         if resume_index != len(entries):
@@ -202,8 +179,8 @@ def build_fresh_payload(
     md_report_path: Path,
 ) -> dict[str, object]:
     return {
-        "generated_at": now_display(),
-        "updated_at": now_display(),
+        "generated_at": display_now(),
+        "updated_at": display_now(),
         "report_prefix": report_prefix,
         "batch_status": "running",
         "invocation": "fresh",
@@ -217,7 +194,7 @@ def build_fresh_payload(
         "entries": [],
         "json_report": json_report_path.relative_to(REPO_ROOT).as_posix(),
         "markdown_report": md_report_path.relative_to(REPO_ROOT).as_posix(),
-        "started_at": now_display(),
+        "started_at": display_now(),
     }
 
 
@@ -225,15 +202,15 @@ def restore_payload_for_continue(
     *,
     report_prefix: str,
 ) -> tuple[dict[str, object], Path, Path, list[Path], int]:
-    json_report_path = find_latest_json_report(report_prefix)
+    json_report_path = latest_report(report_prefix)
     if json_report_path is None:
         raise ValueError(f"No previous {report_prefix} JSON report found")
 
-    payload = load_json_report(json_report_path)
-    discovered_files = payload_entry_paths(payload)
+    payload = load_report(json_report_path)
+    discovered = discovered_files(payload)
     resume_index = determine_resume_index(payload)
 
-    if resume_index >= len(discovered_files):
+    if resume_index >= len(discovered):
         raise ValueError("Latest batch has nothing left to continue")
 
     md_value = payload.get("markdown_report")
@@ -242,7 +219,7 @@ def restore_payload_for_continue(
     else:
         md_report_path = REPO_ROOT / md_value.replace("/", "\\")
 
-    test_files = [REPO_ROOT / rel_path.replace("/", "\\") for rel_path in discovered_files]
+    test_files = [REPO_ROOT / rel_path.replace("/", "\\") for rel_path in discovered]
     missing = [path.relative_to(REPO_ROOT).as_posix() for path in test_files if not path.exists()]
     if missing:
         raise ValueError(f"Cannot continue because test files no longer exist: {', '.join(missing)}")
@@ -255,14 +232,9 @@ def restore_payload_for_continue(
     payload["batch_status"] = "running"
     payload["invocation"] = "continue"
     payload["current_index"] = resume_index
-    payload["current_file"] = discovered_files[resume_index]
-    payload["total_files"] = len(discovered_files)
-    payload["passed_files"] = sum(
-        1 for entry in payload["entries"] if isinstance(entry, dict) and str(entry.get("status", "")) == "passed"
-    )
-    payload["failed_files"] = sum(
-        1 for entry in payload["entries"] if isinstance(entry, dict) and str(entry.get("status", "")) == "failed"
-    )
+    payload["current_file"] = discovered[resume_index]
+    payload["total_files"] = len(discovered)
+    payload["passed_files"], payload["failed_files"] = tally(entries)
     return payload, json_report_path, md_report_path, test_files, resume_index
 
 
@@ -350,10 +322,6 @@ def build_markdown_report(
     return "\n".join(lines) + "\n"
 
 
-def ensure_quality_dir() -> None:
-    QUALITY_DIR.mkdir(parents=True, exist_ok=True)
-
-
 def print_json_stdout(payload: dict[str, object]) -> None:
     """Print a single JSON line on stdout for the skill to parse."""
     print(json.dumps(payload, ensure_ascii=False))
@@ -384,7 +352,7 @@ def cmd_discover(args: argparse.Namespace) -> int:
         except ValueError as exc:
             print(f"ERROR: {exc}")
             return 1
-        write_json_report(json_report_path, payload)
+        save_report(json_report_path, payload)
         batch_run_id = Path(str(json_report_path.stem)).name
         resumed_from = test_files[resume_index].relative_to(REPO_ROOT).as_posix()
     else:
@@ -397,7 +365,7 @@ def cmd_discover(args: argparse.Namespace) -> int:
             json_report_path=json_report_path,
             md_report_path=md_report_path,
         )
-        write_json_report(json_report_path, payload)
+        save_report(json_report_path, payload)
         batch_run_id = f"run-all-{timestamp}"
         resume_index = 0
         resumed_from = ""
@@ -419,22 +387,10 @@ def cmd_discover(args: argparse.Namespace) -> int:
 def cmd_checkpoint(args: argparse.Namespace) -> int:
     report_path = resolve_report_path(args.json)
     try:
-        payload = load_json_report(report_path)
-        discovered_files = payload_entry_paths(payload)
-        entries = payload.get("entries")
-        if payload.get("batch_status") != "running":
-            raise ValueError("Batch is not running")
-        if not isinstance(entries, list):
-            raise ValueError("Batch report does not contain entries")
-        if args.index != len(entries):
-            raise ValueError("Checkpoint index must equal the completed entry count")
-        if args.index < 0 or args.index >= len(discovered_files):
-            raise ValueError("Checkpoint index is out of range")
-        payload["current_index"] = args.index
-        payload["current_file"] = discovered_files[args.index]
-        payload.pop("last_error", None)
-        write_json_report(report_path, payload)
-    except (FileNotFoundError, json.JSONDecodeError, ValueError) as exc:
+        payload = load_report(report_path)
+        start_file(payload, args.index)
+        save_report(report_path, payload)
+    except BatchError as exc:
         print(f"ERROR: {exc}")
         return 1
     return 0
@@ -443,46 +399,22 @@ def cmd_checkpoint(args: argparse.Namespace) -> int:
 def cmd_record(args: argparse.Namespace) -> int:
     report_path = resolve_report_path(args.json)
     try:
-        payload = load_json_report(report_path)
-        discovered_files = payload_entry_paths(payload)
-        entries = payload.get("entries")
-        if payload.get("batch_status") != "running":
-            raise ValueError("Batch is not running")
-        if not isinstance(entries, list):
-            raise ValueError("Batch report does not contain entries")
-        index = len(entries)
-        if index >= len(discovered_files):
-            raise ValueError("Batch already contains all file results")
-        expected_file = discovered_files[index]
-        if payload.get("current_file") != expected_file:
-            raise ValueError("Current file does not match the next unfinished file")
-        if args.fixed and args.status != "passed":
-            raise ValueError("Only a passed result can be marked fixed")
-
-        entries.append({
-            "test_file": expected_file,
-            "status": args.status,
-            "exit_code": args.exit_code,
-            "duration": args.duration,
-            "run_id": args.run_id,
-            "logs": args.logs,
-            "error": args.error if args.status == "failed" else "",
-            "fixed": args.fixed,
-        })
-        payload["current_index"] = index + 1
-        payload["current_file"] = ""
-        payload["passed_files"] = sum(
-            1 for entry in entries if isinstance(entry, dict) and entry.get("status") == "passed"
+        payload = load_report(report_path)
+        record_result(
+            payload,
+            status=args.status,
+            exit_code=args.exit_code,
+            duration=args.duration,
+            run_id=args.run_id,
+            logs=args.logs,
+            error=args.error,
+            fixed=args.fixed,
         )
-        payload["failed_files"] = len(entries) - int(payload["passed_files"])
-        payload["total_duration"] = round(sum(
-            float(entry.get("duration", 0.0) or 0.0)
-            for entry in entries
-            if isinstance(entry, dict)
-        ), 3)
-        payload.pop("last_error", None)
-        write_json_report(report_path, payload)
-    except (FileNotFoundError, json.JSONDecodeError, ValueError) as exc:
+        entries = payload["entries"]
+        payload["passed_files"], payload["failed_files"] = tally(entries)
+        payload["total_duration"] = total_duration(entries)
+        save_report(report_path, payload)
+    except BatchError as exc:
         print(f"ERROR: {exc}")
         return 1
     return 0
@@ -491,12 +423,12 @@ def cmd_record(args: argparse.Namespace) -> int:
 def cmd_block(args: argparse.Namespace) -> int:
     report_path = resolve_report_path(args.json)
     try:
-        payload = load_json_report(report_path)
+        payload = load_report(report_path)
         if payload.get("batch_status") != "running" or not payload.get("current_file"):
-            raise ValueError("Batch has no active file checkpoint")
+            raise BatchError("Batch has no active file checkpoint")
         payload["last_error"] = args.error
-        write_json_report(report_path, payload)
-    except (FileNotFoundError, json.JSONDecodeError, ValueError) as exc:
+        save_report(report_path, payload)
+    except BatchError as exc:
         print(f"ERROR: {exc}")
         return 1
     return 0
@@ -532,15 +464,15 @@ def _has_scan_results(payload: dict[str, object]) -> bool:
 def cmd_scan(args: argparse.Namespace) -> int:
     report_path = resolve_report_path(args.json)
     try:
-        payload = load_json_report(report_path)
-    except (FileNotFoundError, json.JSONDecodeError) as exc:
+        payload = load_report(report_path)
+    except BatchError as exc:
         print(f"ERROR: {exc}")
         return 1
 
     # Record mode: a specific file was supplied.
     if args.file:
         try:
-            discovered_files = payload_entry_paths(payload)
+            discovered = discovered_files(payload)
             results = payload.get("scan_results")
             if not isinstance(results, list) or not results:
                 raise ValueError("scan_results is empty; run `scan` without --file first")
@@ -558,7 +490,7 @@ def cmd_scan(args: argparse.Namespace) -> int:
             target["duration"] = args.duration
             target["run_id"] = args.run_id
             target["logs"] = args.logs
-            write_json_report(report_path, payload)
+            save_report(report_path, payload)
         except ValueError as exc:
             print(f"ERROR: {exc}")
             return 1
@@ -574,8 +506,8 @@ def cmd_scan(args: argparse.Namespace) -> int:
 
     # Init mode: (re)build scan_results[] for every discovered file.
     try:
-        discovered_files = payload_entry_paths(payload)
-    except ValueError as exc:
+        discovered = discovered_files(payload)
+    except BatchError as exc:
         print(f"ERROR: {exc}")
         return 1
 
@@ -595,14 +527,14 @@ def cmd_scan(args: argparse.Namespace) -> int:
 
     scan_run_id = args.scan_run_id or f"run-all-scan-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
     payload["scan_run_id"] = scan_run_id
-    payload["scan_results"] = [build_scan_entry(file_path) for file_path in discovered_files]
-    write_json_report(report_path, payload)
+    payload["scan_results"] = [build_scan_entry(file_path) for file_path in discovered]
+    save_report(report_path, payload)
     print_json_stdout({
         "scan_run_id": scan_run_id,
         "already_initialized": False,
-        "total": len(discovered_files),
-        "pending": len(discovered_files),
-        "files": discovered_files,
+        "total": len(discovered),
+        "pending": len(discovered),
+        "files": discovered,
     })
     return 0
 
@@ -756,8 +688,8 @@ def build_clusters(
 def cmd_cluster(args: argparse.Namespace) -> int:
     report_path = resolve_report_path(args.json)
     try:
-        payload = load_json_report(report_path)
-    except (FileNotFoundError, json.JSONDecodeError) as exc:
+        payload = load_report(report_path)
+    except BatchError as exc:
         print(f"ERROR: {exc}")
         return 1
 
@@ -792,7 +724,6 @@ def cmd_cluster(args: argparse.Namespace) -> int:
         "unclusterable": unclusterable,
     })
     return 0
-    return 0
 
 
 # --------------------------------------------------------------------------- #
@@ -805,22 +736,20 @@ def cmd_finalize(args: argparse.Namespace) -> int:
         print(f"ERROR: batch JSON not found: {json_report_path}")
         return 1
 
-    payload = load_json_report(json_report_path)
-    raw_entries = payload.get("entries")
-    if not isinstance(raw_entries, list):
-        print("ERROR: batch JSON does not contain entries")
-        return 1
-
     try:
-        discovered_files = payload_entry_paths(payload)
-    except ValueError as exc:
+        payload = load_report(json_report_path)
+        raw_entries = payload.get("entries")
+        if not isinstance(raw_entries, list):
+            raise BatchError("batch JSON does not contain entries")
+        discovered = discovered_files(payload)
+    except BatchError as exc:
         print(f"ERROR: {exc}")
         return 1
 
-    if len(raw_entries) != len(discovered_files):
+    if len(raw_entries) != len(discovered):
         print(
             "ERROR: batch is incomplete: "
-            f"expected {len(discovered_files)} entries, found {len(raw_entries)}"
+            f"expected {len(discovered)} entries, found {len(raw_entries)}"
         )
         return 1
 
@@ -829,7 +758,7 @@ def cmd_finalize(args: argparse.Namespace) -> int:
         if not isinstance(entry, dict):
             print(f"ERROR: entry {index} is not an object")
             return 1
-        expected_file = discovered_files[index]
+        expected_file = discovered[index]
         actual_file = str(entry.get("test_file", ""))
         if actual_file != expected_file:
             print(
@@ -859,9 +788,7 @@ def cmd_finalize(args: argparse.Namespace) -> int:
             )
         )
 
-    total_duration = float(payload.get("total_duration", 0.0) or 0.0)
-    passed_count = sum(1 for entry in entries if entry.status == "passed")
-    failed_count = len(entries) - passed_count
+    total_duration_value = float(payload.get("total_duration", 0.0) or 0.0)
 
     md_value = payload.get("markdown_report")
     if isinstance(md_value, str) and md_value:
@@ -869,24 +796,19 @@ def cmd_finalize(args: argparse.Namespace) -> int:
     else:
         md_report_path = json_report_path.with_suffix(".md")
 
-    generated_at = now_display()
-    json_payload = {
-        **payload,
-        "generated_at": payload.get("generated_at", generated_at),
-        "batch_status": "completed",
-        "total_duration": total_duration,
-        "total_files": len(discovered_files),
-        "passed_files": passed_count,
-        "failed_files": failed_count,
-        "current_index": len(entries),
-        "current_file": "",
-        "entries": [asdict(entry) for entry in entries],
-    }
-    write_json_report(json_report_path, json_payload)
+    generated_at = display_now()
+    payload["generated_at"] = payload.get("generated_at", generated_at)
+    payload["total_duration"] = total_duration_value
+    payload["entries"] = [asdict(entry) for entry in entries]
+    complete(payload)
+    payload["total_files"] = len(discovered)
+    passed_count = int(payload["passed_files"])
+    failed_count = int(payload["failed_files"])
+    save_report(json_report_path, payload)
     md_report_path.write_text(
         build_markdown_report(
             generated_at=generated_at,
-            total_duration=total_duration,
+            total_duration=total_duration_value,
             entries=entries,
             json_report_path=json_report_path,
         ),

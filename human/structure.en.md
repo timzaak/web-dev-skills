@@ -20,7 +20,7 @@ Default t-super-run combines goal-level planning and execution: the main session
 
 ## Sources and gates
 
-Project code/configuration establish implementation facts; AGENTS.md and confirmed project documents establish engineering constraints. Shared structures are in the [protocol index](/protocols/index.md), with [runtime boundaries](/protocols/runtime-boundaries.md). Commands must exist; missing/failing commands cannot fall back to another stack.
+Project code/configuration establish implementation facts; AGENTS.md and confirmed project documents establish engineering constraints. Shared structures live in `protocols/` and are referenced by each skill, with [runtime boundaries](/protocols/runtime-boundaries.md). Commands must exist; missing/failing commands cannot fall back to another stack.
 
 Prechecks remain optional; post-implementation acceptance requires reviewable evidence. Later changes reopen affected work and acceptance when evidence is invalid. The quality chain is review --fix -> simplify -> push, followed by the explicit release entry.
 
@@ -28,4 +28,4 @@ Prechecks remain optional; post-implementation acceptance requires reviewable ev
 
 The plugin no longer bundles production-domain guides, implementation roles or application scaffolds. Knowledge comes from actual implementation and verification. New preferences require human selection before becoming formal rules. See the [generalization rationale](/human/generalization.en.md) and [proposal](/human/generalization-plan.en.md).
 
-Skill deliverables use the [authoring guide](/guides/core/skill-authoring.md) and [behavioral testing guide](/guides/core/skill-testing.md). Load Web Demo/Figma resources through their respective indexes rather than loading every guide.
+Skill deliverables use the [authoring guide](/guides/core/skill-authoring.md), including its testing and iteration rules. Load Web Demo/Figma resources through their respective guide entries rather than loading every guide.

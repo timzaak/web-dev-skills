@@ -31,5 +31,5 @@ tools:
 ## 执行
 
 1. 需要用户浏览器现场时，读 `${CLAUDE_PLUGIN_ROOT}/protocols/extension-acceptance-contract.md` 核对现场证据及工具边界。
-2. 按 `${CLAUDE_PLUGIN_ROOT}/guides/extension/quality.md` 审查受影响边界，按 `${CLAUDE_PLUGIN_ROOT}/guides/extension/validation.md` 收集实际命令、生产 manifest 和回归证据。
+2. 按 `${CLAUDE_PLUGIN_ROOT}/guides/extension/quality.md` 审查受影响边界，并收集实际命令、生产 manifest 和回归证据。
 3. 按验收协议写报告并返回结构化判定；不修改源码或测试。规范缺失或必要验证无法完成时报告未完成，不自行降低标准。

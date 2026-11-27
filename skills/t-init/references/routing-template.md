@@ -79,10 +79,10 @@ t-init 重跑只更新上方生成块；项目专属指南在本节维护。
 
 | 指南域 | 入口 | 适用条件（项目事实） | 何时读取 |
 | --- | --- | --- | --- |
-| core | `<SOURCE_ROOT>/guides/core/index.md` | 恒选 | 开发、测试与验收前读质量与环境分层 |
-| product | `<SOURCE_ROOT>/guides/product/index.md` | 存在 `docs/prd/`、`docs/user-stories/` 或 `.ai/prd/` | 写 PRD 或用户故事前 |
-| web-demo | `<SOURCE_ROOT>/guides/web-demo/index.md` | 存在 `demo/` 或 Playwright 配置/依赖 | demo 测试维护、失败修复前 |
-| figma | `<SOURCE_ROOT>/guides/figma/index.md` | 存在 Figma 工作流痕迹或用户明确说明 | Figma 资产下载、重建前 |
+| core | `<SOURCE_ROOT>/guides/core/quality.md`、`<SOURCE_ROOT>/guides/core/environment-and-testing-guide.md` | 恒选 | 开发、测试与验收前读质量与环境分层 |
+| product | `<SOURCE_ROOT>/guides/product/prd.md` | 存在 `docs/prd/`、`docs/user-stories/` 或 `.ai/prd/` | 写 PRD 或用户故事前 |
+| web-demo | `<SOURCE_ROOT>/guides/web-demo/e2e-testing.md` | 存在 `demo/` 或 Playwright 配置/依赖 | demo 测试维护、失败修复前 |
+| figma | `<SOURCE_ROOT>/guides/figma/assets.md`、`<SOURCE_ROOT>/guides/figma/reconstruction.md` | 存在 Figma 工作流痕迹或用户明确说明 | Figma 资产下载、重建前 |
 
 项目事实不足以判定某域适用时，该行列出并标注待确认，不默认勾选也不静默省略。源中不存在的指南文件不得生成条目。
 

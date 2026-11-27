@@ -46,7 +46,8 @@ super-run 状态与 `${CLAUDE_PLUGIN_ROOT}/protocols/task-state-contract.md` 相
           "status": "completed",
           "agent_spec": "${CLAUDE_PLUGIN_ROOT}/agents/project-dev.md",
           "references": [
-            "${CLAUDE_PLUGIN_ROOT}/guides/core/index.md"
+            "${CLAUDE_PLUGIN_ROOT}/guides/core/quality.md",
+            "${CLAUDE_PLUGIN_ROOT}/guides/core/environment-and-testing-guide.md"
           ],
           "evidence": ["src/..."]
         },

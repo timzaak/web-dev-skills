@@ -28,8 +28,8 @@ allowed-tools:
 
 1. 读取目标项目 AGENTS.md、相关代码、配置、项目规范与已有验证入口；只分析当前范围。项目事实或需求冲突先解决，不套用插件技术栈。
 2. 按真实责任边界确定模块 ID 与设计路径，在主文档 §4.2 声明；小项目可用 `main` 路径在主文档内设计。跨模块契约在 §4.3 指明唯一来源；生产者先设计，消费者只引用，不复制定义。需要新模块或新目录时给出命名依据。
-3. 写状态前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/design-state-contract.md`；首次写 in_progress。已有文件先检查用户授权，保留用户修改；恢复时重读来源，只重做失效模块，不能覆盖原状态后当新任务执行。
-4. 对独立模块读取 `${CLAUDE_PLUGIN_ROOT}/agents/project-design.md`，按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 注入角色并调度，传入需求/决策、模块相关事实、契约源、输出路径和 `${CLAUDE_PLUGIN_ROOT}/protocols/design-agent-output-contract.md`。小项目主会话按同一角色约束完成主文档。partial/failed 或 needs_user_answer 未清空时不进入合并，无法恢复时写 failed。
+3. 写状态前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/design-contract.md` 的 Design State 节；首次写 in_progress。已有文件先检查用户授权，保留用户修改；恢复时重读来源，只重做失效模块，不能覆盖原状态后当新任务执行。
+4. 对独立模块读取 `${CLAUDE_PLUGIN_ROOT}/agents/project-design.md`，按 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md` 注入角色并调度，传入需求/决策、模块相关事实、契约源、输出路径和 `${CLAUDE_PLUGIN_ROOT}/protocols/design-contract.md`。小项目主会话按同一角色约束完成主文档。partial/failed 或 needs_user_answer 未清空时不进入合并，无法恢复时写 failed。
 5. 使用 `${CLAUDE_PLUGIN_ROOT}/skills/t-design/template.md` 合并主文档，覆盖完整 Decision Trace、需求覆盖矩阵、模块导航、契约摘要、测试与文件影响。模块文件必须有 `## 8. 文件影响范围`，主文档逐行汇总。测试责任按 `${CLAUDE_PLUGIN_ROOT}/protocols/verification-evidence-contract.md`，命令来自项目实际入口。
 6. 对全部实际设计文件运行 `python ${CLAUDE_PLUGIN_ROOT}/scripts/check-decision-closure.py <实际文档路径列表>`，处理命中项；再运行 `python ${CLAUDE_PLUGIN_ROOT}/scripts/check-design.py .ai/design/<feature>.md`。全部通过且适用模块均成功，才写 complete。高风险设计额外用无原会话背景的只读角色检查实现入口、契约源、失败路径与测试证据。
 

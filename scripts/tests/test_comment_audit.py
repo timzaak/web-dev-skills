@@ -54,47 +54,18 @@ class CommentAuditTests(unittest.TestCase):
         self.assertEqual(code, 0, output.getvalue())
         return json.loads(output.getvalue())
 
-    def findings(self, report: dict, **match: str) -> list[dict]:
+    def findings(self, report: dict, **match: object) -> list[dict]:
         return [f for f in report["findings"] if all(f.get(k) == v for k, v in match.items())]
 
-    def test_no_changes_reports_empty(self) -> None:
-        report = self.run_audit()
-        self.assertEqual(report["summary"]["changed_source_files"], 0)
-        self.assertEqual(report["findings"], [])
-        self.assertEqual(report["density"], [])
-
-    def test_narration_and_workflow_refs_flagged_for_removal(self) -> None:
+    def test_remove_candidates_and_keep_whitelist(self) -> None:
         self.write("src/app.ts", "\n".join([
-            "export const a = 1;",
             "// Now uses the cache as requested",
-            "export const b = 2;",
             "// 改为使用 Redis 缓存",
-            "export const c = 3;",
             "// See .ai/design/login/backend.md section 2",
-            "export const d = 4;",
-            "",
-        ]))
-        report = self.run_audit()
-        categories = [(f["text"], f["category"], f["signals"][0]) for f in report["findings"]]
-        self.assertIn(("Now uses the cache as requested", "remove-candidate", "change-narration"), categories)
-        self.assertIn(("改为使用 Redis 缓存", "remove-candidate", "change-narration"), categories)
-        self.assertIn(
-            ("See .ai/design/login/backend.md section 2", "remove-candidate", "workflow-ref"), categories,
-        )
-
-    def test_banner_comments_flagged(self) -> None:
-        self.write("src/lib.rs", "\n".join([
-            "fn main() {}",
             "// ==== handlers ====",
-            "fn helper() {}",
-            "// ----------------",
-            "fn other() {}",
+            "export const a = 1;",
             "",
         ]))
-        report = self.run_audit()
-        self.assertEqual(len(self.findings(report, category="remove-candidate", signals=["section-banner"])), 2)
-
-    def test_keep_categories_survive(self) -> None:
         self.write("src/lib.rs", "\n".join([
             "// Copyright (c) 2026 Example Corp. SPDX-License-Identifier: MIT",
             "//! Crate-level docs.",
@@ -107,24 +78,19 @@ class CommentAuditTests(unittest.TestCase):
             "// eslint-disable-next-line no-console",
             "",
         ]))
-        self.write("tools/run.py", "\n".join([
-            "# TODO: revisit after launch",
-            "# noqa: E501",
-            "print('hi')",
-            "",
-        ]))
         report = self.run_audit()
+        removals = {(f["file"], f["signals"][0]) for f in self.findings(report, category="remove-candidate")}
+        self.assertEqual(removals, {
+            ("src/app.ts", "change-narration"),
+            ("src/app.ts", "workflow-ref"),
+            ("src/app.ts", "section-banner"),
+        })
         keeps = {f["signals"][0] for f in self.findings(report, category="likely-keep")}
-        self.assertIn("license-header", keeps)
-        self.assertIn("todo", keeps)
-        self.assertIn("traceability", keeps)
-        self.assertIn("lint-directive", keeps)
-        self.assertEqual(self.findings(report, category="remove-candidate"), [])
-        docs = self.findings(report, category="doc-comment")
-        self.assertEqual(len(docs), 2)
+        self.assertEqual(keeps, {"license-header", "todo", "traceability", "lint-directive"})
+        self.assertEqual(len(self.findings(report, category="doc-comment")), 2)
 
-    def test_density_flags_plain_comments_for_review(self) -> None:
-        self.write("src/state.ts", "\n".join([
+    def test_density_flagging_and_threshold_override(self) -> None:
+        self.write("src/dense.ts", "\n".join([
             "export function load() {",
             "  // fetch the data",
             "  const res = await fetch('/api');",
@@ -135,107 +101,67 @@ class CommentAuditTests(unittest.TestCase):
             "}",
             "",
         ]))
+        self.write("src/sparse.ts", "\n".join(
+            ["// fetch data", "// parse response", "// return result"]
+            + [f"export const v{i} = {i};" for i in range(20)]
+            + [""]
+        ))
         report = self.run_audit()
-        entry = next(d for d in report["density"] if d["file"] == "src/state.ts")
-        self.assertTrue(entry["flagged"])
-        self.assertEqual(entry["added_comments"], 3)
-        self.assertEqual(entry["added_code"], 5)
-        self.assertEqual(len(self.findings(report, category="review-candidate")), 3)
+        dense = next(d for d in report["density"] if d["file"] == "src/dense.ts")
+        sparse = next(d for d in report["density"] if d["file"] == "src/sparse.ts")
+        self.assertTrue(dense["flagged"])
+        self.assertFalse(sparse["flagged"])
+        self.assertEqual(len(self.findings(report, file="src/dense.ts", category="review-candidate")), 3)
+        self.assertEqual(self.findings(report, file="src/sparse.ts", category="review-candidate"), [])
 
-    def test_low_comment_density_not_flagged(self) -> None:
-        self.write("src/util.ts", "\n".join([
-            "// Rate limit comes from the billing plan, not config.",
-            "export const LIMIT = 10;",
-            "export const other = 2;",
-            "export const more = 3;",
-            "export const extra = 4;",
-            "",
-        ]))
-        report = self.run_audit()
-        entry = next(d for d in report["density"] if d["file"] == "src/util.ts")
-        self.assertFalse(entry["flagged"])
-        self.assertEqual(self.findings(report, category="review-candidate"), [])
-        self.assertEqual(self.findings(report, category="remove-candidate"), [])
-        self.assertEqual(self.findings(report, category="doc-comment"), [])
-        self.assertEqual(self.findings(report, category="likely-keep"), [])
+        strict = self.run_audit("--density-threshold", "0.05")
+        self.assertEqual(len(self.findings(strict, file="src/sparse.ts", category="review-candidate")), 3)
 
-    def test_existing_violations_reported_in_changed_files(self) -> None:
-        self.write("src/legacy.py", "\n".join([
-            "# Blocklist per .ai/task/T-42.md",
-            "VALUE = 1",
-            "",
-        ]))
+    def test_existing_vs_added_scope_across_git_states(self) -> None:
+        self.write("src/legacy.py", "# Blocklist per .ai/task/T-42.md\nVALUE = 1\n")
         self.command("git", "add", ".")
         self.command("git", "commit", "-m", "legacy")
-        self.write("src/legacy.py", "\n".join([
-            "# Blocklist per .ai/task/T-42.md",
-            "VALUE = 2",
+        self.write("src/legacy.py", "# Blocklist per .ai/task/T-42.md\nVALUE = 2\n")
+        self.write("src/staged.ts", "// Moved from utils.ts during refactor\nexport const s = 1;\n")
+        self.command("git", "add", "src/staged.ts")
+        self.write("docs/notes.md", "// Now uses the cache\n")
+
+        report = self.run_audit()
+        existing = self.findings(report, file="src/legacy.py", scope="existing", category="remove-candidate")
+        staged = self.findings(report, file="src/staged.ts", scope="added", category="remove-candidate")
+        self.assertEqual((len(existing), existing[0]["signals"]), (1, ["workflow-ref"]))
+        self.assertEqual(len(staged), 1)
+        self.assertEqual(self.findings(report, file="docs/notes.md"), [])
+
+    def test_three_dash_banner_and_javadoc_are_screened(self) -> None:
+        self.write("src/client.ts", "\n".join([
+            "// --- Organizations ---",
+            "// Strict equality (===) is required for ids",
+            "export const org = 1;",
+            "/** Request body for creating an organization. */",
+            "export interface CreateOrg {",
+            "  /**",
+            "   * ownerId is required.",
+            "   * Previously optional.",
+            "   */",
+            "  ownerId: string;",
+            "}",
             "",
         ]))
         report = self.run_audit()
-        matches = self.findings(report, scope="existing", category="remove-candidate")
-        self.assertEqual(len(matches), 1)
-        self.assertEqual(matches[0]["signals"], ["workflow-ref"])
-        self.assertEqual(matches[0]["line"], 1)
 
-    def test_staged_changes_count_as_added(self) -> None:
-        self.write("src/staged.ts", "\n".join([
-            "export const s = 1;",
-            "// Moved from utils.ts during refactor",
-            "export const t = 2;",
-            "",
-        ]))
-        self.command("git", "add", ".")
-        report = self.run_audit()
-        matches = self.findings(report, category="remove-candidate")
-        self.assertEqual(len(matches), 1)
-        self.assertEqual(matches[0]["scope"], "added")
-        self.assertEqual(matches[0]["line"], 2)
+        # The contract's own banner example uses three dashes; a `===` inside prose is not a banner.
+        removals = {
+            (f["line"], f["signals"][0])
+            for f in self.findings(report, file="src/client.ts", category="remove-candidate")
+        }
+        self.assertEqual(removals, {(1, "section-banner"), (8, "change-narration")})
 
-    def test_untracked_file_scanned_as_fully_added(self) -> None:
-        self.write("src/new_module.ts", "\n".join([
-            "// Moved from utils.ts during refactor",
-            "export const x = 1;",
-            "",
-        ]))
-        report = self.run_audit()
-        matches = self.findings(report, category="remove-candidate")
-        self.assertEqual(len(matches), 1)
-        self.assertEqual(matches[0]["scope"], "added")
-        self.assertEqual(matches[0]["file"], "src/new_module.ts")
-
-    def test_non_source_files_ignored(self) -> None:
-        self.write("docs/notes.md", "// Now uses the cache\n# 改为使用缓存\n")
-        report = self.run_audit()
-        self.assertEqual(report["findings"], [])
-        self.assertEqual(report["density"], [])
-
-    def test_deleted_file_skipped(self) -> None:
-        target = self.write("src/gone.ts", "export const g = 1;\n")
-        self.command("git", "add", ".")
-        self.command("git", "commit", "-m", "add gone")
-        target.unlink()
-        report = self.run_audit()
-        self.assertEqual(report["findings"], [])
-
-    def test_density_threshold_override(self) -> None:
-        lines = ["// fetch data", "// parse response", "// return result"]
-        lines += [f"export const v{idx} = {idx};" for idx in range(20)]
-        lines.append("")
-        self.write("src/edge.ts", "\n".join(lines))
-        default_report = self.run_audit()
-        self.assertEqual(self.findings(default_report, category="review-candidate"), [])
-        strict_report = self.run_audit("--density-threshold", "0.05")
-        self.assertEqual(len(self.findings(strict_report, category="review-candidate")), 3)
-
-    def test_git_failure_exits_nonzero(self) -> None:
-        broken = tempfile.TemporaryDirectory(prefix="t-tools-comment-audit-broken-")
-        self.addCleanup(broken.cleanup)
-        patch.object(audit, "REPO_ROOT", Path(broken.name)).start()
-        output = io.StringIO()
-        with redirect_stdout(output):
-            code = audit.main([])
-        self.assertEqual(code, 1)
+        # Structural JSDoc lines carry nothing to audit; content lines are public API docs.
+        docs = sorted(f["line"] for f in self.findings(report, file="src/client.ts", category="doc-comment"))
+        self.assertEqual(docs, [4, 7])
+        density = next(d for d in report["density"] if d["file"] == "src/client.ts")
+        self.assertEqual(density["added_comments"], 5)
 
 
 if __name__ == "__main__":

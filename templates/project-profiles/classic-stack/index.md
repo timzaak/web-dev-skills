@@ -2,7 +2,7 @@
 
 保留从 main 泛化时移除的资源：Rust 后端、React 前端、Chrome 扩展、小程序、Flutter、Shopify，以及相关角色、开发/测试/验收指南、脚本和初始化/设计模板。Web Demo/Figma 已在通用插件保留；导出的运行时使用来源版本配套实现。
 
-来源分支：`main`；固定提交：`765872e45f99492e9d6617b5f21a6d1a87257083`。来源文件清单与版本在 [template.json](template.json)，原始内容在 files/。
+来源分支：`main`；固定提交：`231ecc4c0cad5eefe2f9ead24a4d6fac1165fe32`。来源文件清单与版本在 [template.json](template.json)，原始内容在 files/。
 
 从仓库根目录运行 `python scripts/export-template.py export classic-stack --output <仓库外的新目录>`；可先加 --dry-run。完整拉取、运行、兼容边界和重复执行规则见[模板入口](/templates/index.md)。
 
@@ -43,65 +43,37 @@
 
 ### guides
 
-- [guides/backend/calibration-mode.md](files/guides/backend/calibration-mode.md)
 - [guides/backend/development.md](files/guides/backend/development.md)
-- [guides/backend/index.md](files/guides/backend/index.md)
 - [guides/backend/quality.md](files/guides/backend/quality.md)
-- [guides/backend/tdd-workflow.md](files/guides/backend/tdd-workflow.md)
 - [guides/backend/testing.md](files/guides/backend/testing.md)
-- [guides/backend/validation.md](files/guides/backend/validation.md)
-- [guides/extension/demo-testing.md](files/guides/extension/demo-testing.md)
 - [guides/extension/development.md](files/guides/extension/development.md)
-- [guides/extension/index.md](files/guides/extension/index.md)
 - [guides/extension/initialization.md](files/guides/extension/initialization.md)
 - [guides/extension/live-browser.md](files/guides/extension/live-browser.md)
 - [guides/extension/quality.md](files/guides/extension/quality.md)
 - [guides/extension/testing.md](files/guides/extension/testing.md)
-- [guides/extension/validation.md](files/guides/extension/validation.md)
-- [guides/flutter/constitution.md](files/guides/flutter/constitution.md)
 - [guides/flutter/demo-testing.md](files/guides/flutter/demo-testing.md)
 - [guides/flutter/development.md](files/guides/flutter/development.md)
-- [guides/flutter/index.md](files/guides/flutter/index.md)
-- [guides/flutter/integration-testing.md](files/guides/flutter/integration-testing.md)
-- [guides/flutter/patrol-initialization.md](files/guides/flutter/patrol-initialization.md)
-- [guides/flutter/patterns.md](files/guides/flutter/patterns.md)
 - [guides/flutter/quality.md](files/guides/flutter/quality.md)
 - [guides/flutter/testing.md](files/guides/flutter/testing.md)
-- [guides/flutter/validation.md](files/guides/flutter/validation.md)
 - [guides/frontend/development.md](files/guides/frontend/development.md)
-- [guides/frontend/index.md](files/guides/frontend/index.md)
-- [guides/frontend/patterns.md](files/guides/frontend/patterns.md)
 - [guides/frontend/quality.md](files/guides/frontend/quality.md)
 - [guides/frontend/testid-standards.md](files/guides/frontend/testid-standards.md)
 - [guides/frontend/testing.md](files/guides/frontend/testing.md)
-- [guides/frontend/ui-decisions.md](files/guides/frontend/ui-decisions.md)
-- [guides/frontend/validation.md](files/guides/frontend/validation.md)
-- [guides/miniapp/ai-rules.md](files/guides/miniapp/ai-rules.md)
 - [guides/miniapp/constitution.md](files/guides/miniapp/constitution.md)
 - [guides/miniapp/development.md](files/guides/miniapp/development.md)
-- [guides/miniapp/index.md](files/guides/miniapp/index.md)
 - [guides/miniapp/quality.md](files/guides/miniapp/quality.md)
 - [guides/miniapp/testing.md](files/guides/miniapp/testing.md)
-- [guides/miniapp/validation.md](files/guides/miniapp/validation.md)
 - [guides/shopify/development.md](files/guides/shopify/development.md)
-- [guides/shopify/environment.md](files/guides/shopify/environment.md)
-- [guides/shopify/index.md](files/guides/shopify/index.md)
 - [guides/shopify/quality.md](files/guides/shopify/quality.md)
-- [guides/shopify/testing.md](files/guides/shopify/testing.md)
-- [guides/shopify/validation.md](files/guides/shopify/validation.md)
-- [guides/web-demo/shopify-embedded-app.md](files/guides/web-demo/shopify-embedded-app.md)
 
 ### protocols
 
 - [protocols/backend-test-execution.md](files/protocols/backend-test-execution.md)
 - [protocols/code-comment-contract.md](files/protocols/code-comment-contract.md)
 - [protocols/extension-acceptance-contract.md](files/protocols/extension-acceptance-contract.md)
-- [protocols/extension-demo-acceptance-contract.md](files/protocols/extension-demo-acceptance-contract.md)
-- [protocols/flutter-demo-run-repair-contract.md](files/protocols/flutter-demo-run-repair-contract.md)
 
 ### skills
 
-- [skills/t-init/references/script-adaptation.md](files/skills/t-init/references/script-adaptation.md)
 
 - [skills/t-design/template-backend.md](files/skills/t-design/template-backend.md)
 - [skills/t-design/template-extension.md](files/skills/t-design/template-extension.md)

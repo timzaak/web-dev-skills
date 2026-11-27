@@ -198,7 +198,7 @@ HTML Preview 的主视觉必须按语义选择表达方式，不能默认堆卡�
 
 ## Document Profiles
 
-`templates/preview-template.html` 是解释型组件库，不代表每种文档都必须展示全部 section。生成时必须按文档类型选择 profile：
+`skills/t-html-show/references/preview-template.html` 是解释型组件库，不代表每种文档都必须展示全部 section。生成时必须按文档类型选择 profile：
 
 | 文档类型 | 人类审阅问题 | 首屏主视觉 | 推荐 section |
 |---|---|---|---|

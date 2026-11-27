@@ -1,173 +1,19 @@
 #!/usr/bin/env python3
 import argparse
 import os
-import platform
 import re
 import subprocess
 import sys
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable
 
 from lib.cli import require_executable
-from lib import docker
-from lib.net import is_port_open
 from lib.paths import BACKEND_TEST_LOG, REPO_ROOT, SCRIPTS_DIR, ensure_dir
 
 
-def is_windows() -> bool:
-    """Check if running on Windows"""
-    return platform.system() == "Windows"
-
-
-def is_macos() -> bool:
-    """Check if running on macOS"""
-    return platform.system() == "Darwin"
-
-
-def is_linux() -> bool:
-    """Check if running on Linux"""
-    return platform.system() == "Linux"
-
-
-@dataclass
-class ContainerSpec:
-    name: str
-    port: int
-    run_args: list[str]
-    ready_waiter: Callable[[str], bool]
-    verify_cmd: list[str]
-    verify_output: str | None = None
-    start_error: str = "ERROR: Test container failed to start"
-    verify_error: str = "ERROR: Test container verification failed"
-
-
-@dataclass
-class ContainerState:
-    name: str
-    created_by_script: bool = False
-    reused_existing: bool = False
-
-
-POSTGRES_SPEC = ContainerSpec(
-    name="t-test-postgres",
-    port=5433,
-    run_args=[
-        "--name",
-        "t-test-postgres",
-        "--memory=2g",
-        "--restart=unless-stopped",
-        "--log-opt",
-        "max-size=10m",
-        "--log-opt",
-        "max-file=3",
-        "-e",
-        "POSTGRES_USER=postgres",
-        "-e",
-        "POSTGRES_PASSWORD=postgres",
-        "-e",
-        "POSTGRES_DB=postgres",
-        "-p",
-        "5433:5432",
-        "postgres:18-alpine",
-    ],
-    ready_waiter=lambda name: docker.wait_pg_ready(name, "postgres"),
-    verify_cmd=["pg_isready", "-U", "postgres"],
-    start_error="ERROR: PostgreSQL test container failed to start",
-    verify_error="ERROR: PostgreSQL verification failed",
-)
-
-REDIS_SPEC = ContainerSpec(
-    name="t-test-redis",
-    port=6380,
-    run_args=[
-        "--name",
-        "t-test-redis",
-        "--memory=512m",
-        "--restart=unless-stopped",
-        "--log-opt",
-        "max-size=10m",
-        "--log-opt",
-        "max-file=3",
-        "-p",
-        "6380:6379",
-        "redis:8.4-alpine",
-    ],
-    ready_waiter=docker.wait_redis_ready,
-    verify_cmd=["redis-cli", "ping"],
-    verify_output="PONG",
-    start_error="ERROR: Redis test container failed to start",
-    verify_error="ERROR: Redis verification failed",
-)
-
-
-def stop_test_environment() -> int:
-    if docker.container_running("t-test-postgres"):
-        docker.stop_container("t-test-postgres")
-    if docker.container_exists("t-test-postgres"):
-        docker.rm_container("t-test-postgres")
-
-    if docker.container_running("t-test-redis"):
-        docker.stop_container("t-test-redis")
-    if docker.container_exists("t-test-redis"):
-        docker.rm_container("t-test-redis")
-
-    print("Backend test environment stopped")
-    return 0
-
-
-def ports_free(required_ports: list[int]) -> bool:
-    occupied = [port for port in required_ports if is_port_open("127.0.0.1", port)]
-    if not occupied:
-        return True
-    print("ERROR: Occupied test ports:", ", ".join(str(p) for p in occupied))
-    return False
-
-
-def cleanup_started_containers(states: list[ContainerState]) -> None:
-    for state in states:
-        if not state.created_by_script:
-            continue
-        if docker.container_running(state.name):
-            docker.stop_container(state.name)
-        if docker.container_exists(state.name):
-            docker.rm_container(state.name)
-
-
-def ensure_container(spec: ContainerSpec) -> tuple[int, ContainerState]:
-    state = ContainerState(name=spec.name)
-
-    if docker.container_running(spec.name):
-        state.reused_existing = True
-        return 0, state
-
-    if docker.container_exists(spec.name):
-        docker.rm_container(spec.name)
-
-    if not ports_free([spec.port]):
-        return 1, state
-
-    if not docker.run_detached(spec.run_args):
-        print(spec.start_error)
-        return 1, state
-    state.created_by_script = True
-
-    if not spec.ready_waiter(spec.name):
-        print(spec.start_error)
-        return 1, state
-
-    code, out = docker.exec_check(spec.name, spec.verify_cmd)
-    if code != 0 or (spec.verify_output is not None and out != spec.verify_output):
-        print(spec.verify_error)
-        return 1, state
-
-    return 0, state
-
-
-def start_test_environment() -> tuple[int, list[ContainerState]]:
+def start_test_environment() -> int:
     command = [sys.executable, str(SCRIPTS_DIR / "test-start.py")]
     result = subprocess.run(command, cwd=REPO_ROOT)
-    return result.returncode, []
+    return result.returncode
 
 
 def build_nextest_command(nextest_args: list[str]) -> list[str]:
@@ -176,11 +22,6 @@ def build_nextest_command(nextest_args: list[str]) -> list[str]:
     if nextest_args:
         return [cargo, "nextest", "run", *nextest_args]
     return [cargo, "nextest", "run", "--workspace"]
-
-
-def print_utf8_safe(text: str) -> None:
-    sys.stdout.buffer.write(text.encode("utf-8", errors="replace"))
-    sys.stdout.buffer.write(b"\n")
 
 
 def format_command(args: list[str]) -> str:
@@ -435,7 +276,7 @@ def main() -> int:
     test_env.setdefault("TEST_POSTGRES_PORT", "16432")
     test_env.setdefault("TEST_REDIS_URL", "redis://127.0.0.1:6380/0")
 
-    start_code, container_states = start_test_environment()
+    start_code = start_test_environment()
     if start_code != 0:
         return start_code
 

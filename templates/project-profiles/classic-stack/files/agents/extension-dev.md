@@ -34,7 +34,7 @@ tools:
 
 1. 读 `${CLAUDE_PLUGIN_ROOT}/guides/extension/development.md`，核对项目入口、scripts、消息和存储封装，再实现当前 item。库级事实优先查官方文档/Context7。
 2. 权限、注入范围或 CSP 变更缺少设计/已确认依据时返回缺口；不要静默扩权。
-3. 按 `${CLAUDE_PLUGIN_ROOT}/guides/extension/validation.md` 执行受影响检查；必要测试遵循 `${CLAUDE_PLUGIN_ROOT}/guides/extension/testing.md`。失败未消除不得报告完成。
+3. 按 `${CLAUDE_PLUGIN_ROOT}/guides/extension/quality.md` 执行受影响检查；必要测试遵循 `${CLAUDE_PLUGIN_ROOT}/guides/extension/testing.md`。失败未消除不得报告完成。
 
 prompt 明确 `模式: CALIBRATION` 时只评审示例并返回 calibration_report（位置、问题、建议和依据），不写文件。
 

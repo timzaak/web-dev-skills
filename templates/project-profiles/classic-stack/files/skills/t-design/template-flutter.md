@@ -51,7 +51,7 @@
 
 ## 6. 状态管理设计（Riverpod）
 
-按 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/constitution.md` 填写：
+按 `${CLAUDE_PLUGIN_ROOT}/guides/flutter/development.md` 填写：
 
 - 状态归属与选型: [局部/共享范围、provider 职责、修改方法与返回值形态、类型及依据]
 - 依赖与生命周期: [订阅范围、保留/释放、资源清理及刷新条件；App 恢复见 §8]
