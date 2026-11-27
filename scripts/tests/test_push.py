@@ -173,6 +173,24 @@ class PushRecoveryTests(unittest.TestCase):
         self.assertIn("Commit hooks changed", output)
         self.assertEqual(self.remote_head(), self.base_head)
 
+    def write_extension(self, type_check: str) -> None:
+        package = self.root / "extension" / "package.json"
+        package.parent.mkdir(parents=True, exist_ok=True)
+        package.write_text(json.dumps({"scripts": {"compile": type_check}}), encoding="utf-8")
+
+    def test_extension_only_change_is_type_checked_before_commit(self) -> None:
+        self.write_extension('node -e "process.exit(1)"')
+        (self.root / "extension" / "entry.ts").write_text("export const entry = 1\n", encoding="utf-8")
+        code, output = self.run_script()
+        self.assertEqual(code, 1, output)
+        self.assertIn("Extension type check failed", output)
+        self.assertEqual((push.current_head(), self.remote_head()), (self.base_head, self.base_head))
+
+        self.write_extension('node -e "process.exit(0)"')
+        code, output = self.run_script()
+        self.assertEqual(code, 0, output)
+        self.assertEqual(self.remote_head(), push.current_head())
+
 
 class ShopifyAreaTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -218,6 +236,44 @@ class ShopifyAreaTests(unittest.TestCase):
                 self.configure_app({script: "tsc --noEmit", "build": "react-router build", "shopify": "shopify"}, extension=True)
                 steps = push.shopify_steps()
                 self.assertEqual([s.command[1:] for s in steps], [["run", script], ["run", "build"], ["run", "shopify", "--", "app", "build"]])
+
+
+class ExtensionAreaTests(unittest.TestCase):
+    def setUp(self) -> None:
+        temporary = tempfile.TemporaryDirectory(prefix="t-tools-push-extension-")
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name)
+        self.addCleanup(patch.stopall)
+        patch.object(push, "REPO_ROOT", self.root).start()
+
+    def configure_extension(self, scripts: dict[str, str]) -> None:
+        package = self.root / "extension" / "package.json"
+        package.parent.mkdir(parents=True, exist_ok=True)
+        package.write_text(json.dumps({"scripts": scripts}), encoding="utf-8")
+
+    def test_area_detection_covers_extension_sources(self) -> None:
+        self.assertEqual(
+            push.detect_areas(["extension/entrypoints/background.ts", "extension/wxt.config.ts", "demo/e2e/extension/a.e2e.ts"]),
+            {"extension", "demo"},
+        )
+
+    def test_type_check_script_is_required_and_lint_is_optional(self) -> None:
+        with self.assertRaisesRegex(RuntimeError, "Missing package.json"):
+            push.extension_steps()
+
+        for scripts in ({}, {"build": "wxt build"}, {"lint": "eslint ."}):
+            with self.subTest(scripts=scripts):
+                self.configure_extension(scripts)
+                with self.assertRaisesRegex(RuntimeError, "'compile' or 'type-check'"):
+                    push.extension_steps()
+
+        for script in ("compile", "type-check"):
+            with self.subTest(script=script):
+                self.configure_extension({script: "tsc --noEmit"})
+                self.assertEqual([s.command[1:] for s in push.extension_steps()], [["run", script]])
+
+        self.configure_extension({"compile": "tsc --noEmit", "lint": "eslint ."})
+        self.assertEqual([s.command[1:] for s in push.extension_steps()], [["run", "lint"], ["run", "compile"]])
 
 
 if __name__ == "__main__":

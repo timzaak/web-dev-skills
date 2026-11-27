@@ -68,6 +68,8 @@ def detect_areas(files: list[str]) -> set[str]:
             areas.add("backend")
         elif path.startswith("frontend/"):
             areas.add("frontend")
+        elif path.startswith("extension/"):
+            areas.add("extension")
         elif path.startswith("demo/"):
             areas.add("demo")
         elif shopify_root:
@@ -290,6 +292,24 @@ def demo_steps() -> list[Step]:
     return steps
 
 
+def extension_steps() -> list[Step]:
+    extension_dir = REPO_ROOT / "extension"
+    scripts = read_package_scripts(extension_dir / "package.json")
+    # WXT projects name their `tsc --noEmit` type check `compile`.
+    type_script = next((key for key in ("compile", "type-check") if key in scripts), None)
+    if type_script is None:
+        raise RuntimeError("Extension CI requires a 'compile' or 'type-check' npm script.")
+    steps: list[Step] = []
+    for name, script, optional in (
+        ("Extension lint", "lint", True),
+        ("Extension type check", type_script, False),
+    ):
+        step = npm_script_step(name, extension_dir, script, optional=optional)
+        if step:
+            steps.append(step)
+    return steps
+
+
 def shopify_steps() -> list[Step]:
     if not (REPO_ROOT / "shopify.app.toml").is_file():
         raise RuntimeError("Shopify changes detected, but shopify.app.toml was not found at the repo root.")
@@ -325,6 +345,7 @@ def run_ci(areas: set[str], *, ci_session: str, force_checks: bool = False) -> N
     builders = {
         "backend": backend_steps,
         "frontend": frontend_steps,
+        "extension": extension_steps,
         "demo": demo_steps,
         "shopify": shopify_steps,
     }
@@ -342,7 +363,7 @@ def run_ci(areas: set[str], *, ci_session: str, force_checks: bool = False) -> N
         if areas:
             print("All selected CI areas are unchanged since their last successful run in this t-push session.", flush=True)
         else:
-            print("No backend/frontend/demo/shopify changes detected; skipping local CI.", flush=True)
+            print("No backend/frontend/extension/demo/shopify changes detected; skipping local CI.", flush=True)
         return
 
     failures: list[str] = []

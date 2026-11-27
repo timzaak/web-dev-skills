@@ -31,7 +31,7 @@ uv run ${CLAUDE_PLUGIN_ROOT}/scripts/push.py --ci-session "<本次 t-push sessio
 
 session 规则只说一次：同一次 `/t-push` 执行内（含 CI 失败后 AI 修复重跑与中断恢复）复用同一 session id；新的 `/t-push` 执行必须生成新 session id，避免复用上一次的区域通过缓存。`--force-checks` 忽略当前 session 的 CI 缓存。
 
-脚本负责：检测 backend/frontend/demo/shopify 变更范围并为受影响区域并发运行本地 CI；按 session 记录每个区域通过 CI 时的 diff 指纹，重跑时已通过且 diff 未变的区域直接跳过；CI 全部通过后执行 `git add -A`、`git commit` 和推送目标分支。无 diff 时仍核对并补推现有 commit。未提交变更需要 `--message`。
+脚本负责：检测 backend/frontend/extension/demo/shopify 变更范围并为受影响区域并发运行本地 CI；按 session 记录每个区域通过 CI 时的 diff 指纹，重跑时已通过且 diff 未变的区域直接跳过；CI 全部通过后执行 `git add -A`、`git commit` 和推送目标分支。无 diff 时仍核对并补推现有 commit。未提交变更需要 `--message`。
 
 ## Commit Message 规范
 
@@ -46,8 +46,9 @@ session 规则只说一次：同一次 `/t-push` 执行内（含 CI 失败后 AI
 - Backend 变更：`cargo clippy --fix --allow-dirty --allow-staged --all-targets --all-features -- -D warnings`、`cargo fmt --all`，再以不带 `--fix` 的 `cargo clippy --all-targets --all-features -- -D warnings` 终验。
 - Frontend 变更：`npm run lint`、`npm run format:check`（不存在时跳过）、`npm run type-check`。
 - Demo 变更：`npm run lint` 和 `npm run type-check`。
+- Extension 变更：`npm run lint`（不存在时跳过）和类型检查（兼容 `compile` / `type-check`，且不能缺失）。
 - Shopify 变更（项目根存在 `shopify.app.toml` 时，除 `demo/` 外的全部变更）：按 `${CLAUDE_PLUGIN_ROOT}/guides/shopify/quality.md` 的 push 门禁执行，类型检查兼容 `typecheck` / `type-check` 且不能缺失；存在 Shopify 扩展配置时必须覆盖扩展构建。
-- 无 backend/frontend/demo/shopify 变更时跳过本地 CI，直接进入 commit/push。
+- 无 backend/frontend/extension/demo/shopify 变更时跳过本地 CI，直接进入 commit/push。
 
 ## 工作区指纹、提交及恢复契约
 
