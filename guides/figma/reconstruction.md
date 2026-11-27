@@ -30,4 +30,6 @@ Figma 的 group/frame 层级与绝对坐标可能服务于画布编辑，不直�
 
 存在多套 Figma frame 时按明确 viewport 分别记录各稿基准。只有单一平面稿时，使用适用的项目现有断点和布局模式；缺少适配依据且必须决定隐藏内容、改变阅读顺序或替换导航等行为时提交裁决，不从桌面坐标系推导新的产品规则。
 
+banner、hero 等整幅大图块的适配规则见 `${CLAUDE_PLUGIN_ROOT}/guides/figma/banner-adaptation.md`，实现对应块前读取。
+
 实现中发现结构错误时按契约「布局决策」修正本轮 context 的对应块定义再修实现；MCP 原始响应不落盘。

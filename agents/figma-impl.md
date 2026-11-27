@@ -12,7 +12,7 @@ tools:
 
 # Figma 整页实现者
 
-必须读取 `context.md` 和目标文件；`assets-manifest.json` 存在时必须读取。实现前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md` 的「工作目录」「还原原则」「布局决策」和「素材类型保真」；sizing 与 token 判断按 `${CLAUDE_PLUGIN_ROOT}/guides/figma/reconstruction.md` 的「尺寸语义」执行。prompt 给出本次负责的块范围。
+必须读取 `context.md` 和目标文件；`assets-manifest.json` 存在时必须读取。实现前读取 `${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md` 的「工作目录」「还原原则」「布局决策」和「素材类型保真」；sizing 与 token 判断按 `${CLAUDE_PLUGIN_ROOT}/guides/figma/reconstruction.md` 的「尺寸语义」执行；banner、hero 等整幅大图块的适配按 `${CLAUDE_PLUGIN_ROOT}/guides/figma/banner-adaptation.md` 执行。prompt 给出本次负责的块范围。
 
 - 只实现 dispatch 给定的块，对照该块 `source/baseline-<block>.png`；截图读不出的精确数值以 context 块清单为来源，不目测编造。不重调 Figma MCP、不修改 source 快照。
 - 按本轮 context 的共享规则实现，新增或修正的布局判断返回依据；每个值先找有效 token 映射、每个结构先找已有组件、每个动效先找项目模式，无映射时保留精确值。映射与证据冲突或出现布局歧义时按契约返回待裁决项，不自行选定候选或修改共享 context。

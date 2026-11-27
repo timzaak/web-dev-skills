@@ -18,7 +18,7 @@ allowed-tools:
 
 # Figma 整页实现
 
-按人确认的本轮范围重建 Figma UI 并实现到既有前端文件；遵循工作流契约的「协作范围」，不补全未确认设计，不下载、转换素材。还原方法见 `${CLAUDE_PLUGIN_ROOT}/guides/figma/reconstruction.md`（分块前读），manifest 与交付规则见 `${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md`，agent 派发遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md`。
+按人确认的本轮范围重建 Figma UI 并实现到既有前端文件；遵循工作流契约的「协作范围」，不补全未确认设计，不下载、转换素材。还原方法见 `${CLAUDE_PLUGIN_ROOT}/guides/figma/reconstruction.md`（分块前读），banner、hero 等整幅大图块的适配规则见 `${CLAUDE_PLUGIN_ROOT}/guides/figma/banner-adaptation.md`（分派对应块前读），manifest 与交付规则见 `${CLAUDE_PLUGIN_ROOT}/protocols/figma-workflow-contract.md`，agent 派发遵循 `${CLAUDE_PLUGIN_ROOT}/protocols/subagent-dispatch.md`。
 
 ## 前置
 
